@@ -18,7 +18,7 @@ export const EventsHero = memo(({ totalEvents, searchQuery, setSearchQuery, feat
     const hostPath = getHostPath('event', effectiveAuth)
 
     return (
-        <div className="relative bg-[#F1E7D6] pt-20 pb-12 px-4 overflow-hidden border-b border-[#E6E6E6]">
+        <div className="relative bg-white pt-20 pb-12 px-4 overflow-hidden border-b border-gray-100">
             {/* Background Elements - Clean Background matching Community Page */}
             <div className="absolute top-0 left-0 w-full h-full opacity-30 pointer-events-none">
                 {/* Removed extra gradients to reduce brightness/contrast jump */}
@@ -30,7 +30,7 @@ export const EventsHero = memo(({ totalEvents, searchQuery, setSearchQuery, feat
 
 
                         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#00142E] mb-6 leading-[1.1] tracking-tight">
-                            Discover Amazing <span className="text-[#C93A30]">Events</span>
+                            Discover Amazing <span className="text-[#CB2A25]">Events</span>
                         </h1>
 
                         <p className="text-[#00142E]/70 text-base md:text-lg max-w-xl mb-8 font-medium leading-relaxed">
@@ -44,14 +44,14 @@ export const EventsHero = memo(({ totalEvents, searchQuery, setSearchQuery, feat
                                 placeholder="Search events by name, location, or category..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full px-5 py-3 pl-12 rounded-xl bg-white border border-gray-200 text-[#00142E] placeholder-[#00142E]/50 focus:outline-none focus:border-[#C93A30] focus:ring-2 focus:ring-[#C93A30]/10 transition-all duration-300 shadow-sm hover:shadow-md"
+                                className="w-full px-5 py-3 pl-12 rounded-xl bg-[#F8F9FA] border border-gray-200 text-[#00142E] placeholder-[#00142E]/50 focus:outline-none focus:border-[#00142E] focus:ring-2 focus:ring-[#00142E]/10 transition-all duration-300 shadow-sm hover:shadow-md"
                             />
-                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#00142E]/50 group-focus-within:text-[#C93A30] transition-colors duration-300" />
+                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#00142E]/50 group-focus-within:text-[#00142E] transition-colors duration-300" />
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
                             <Link to={hostPath}>
-                                <Button className="h-12 px-6 sm:px-8 bg-[#C93A30] hover:bg-[#B82E28] text-white rounded-xl font-medium shadow-lg shadow-[#C93A30]/20 flex items-center gap-2 transform hover:scale-105 transition-all duration-300 text-sm sm:text-base">
+                                <Button className="h-12 px-6 sm:px-8 bg-[#00142E] hover:bg-[#00142E]/90 text-white rounded-xl font-medium shadow-lg shadow-[#00142E]/20 flex items-center gap-2 transform hover:scale-105 transition-all duration-300 text-sm sm:text-base">
                                     <Plus className="h-5 w-5" />
                                     Host an Event
                                 </Button>

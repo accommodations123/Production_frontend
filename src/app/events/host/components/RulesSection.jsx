@@ -5,8 +5,7 @@ import { Label } from "@/components/ui/label"
 
 
 export const RulesSection = ({ country, handleFileChange }) => {
-    const rawData = EVENT_RULES?.[country] || EVENT_RULES?.default;
-    const activeRules = rawData?.rules || [
+    const activeRules = [
         "Event must comply with local laws and regulations",
         "Ensure proper safety measures are in place",
         "Provide accurate event information",

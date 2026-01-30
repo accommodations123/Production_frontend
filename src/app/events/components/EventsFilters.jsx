@@ -76,7 +76,7 @@ export const EventsFilters = memo(({
                         <Button
                             variant="outline"
                             className={`h-10 sm:h-12 px-4 sm:px-6 rounded-lg transition-all duration-300 transform hover:scale-105 relative ${hasActiveFilters
-                                ? "bg-[#C93A30]/10 border-[#C93A30]/30 text-[#C93A30] hover:bg-[#C93A30]/20"
+                                ? "bg-[#00142E]/10 border-[#00142E]/30 text-[#00142E] hover:bg-[#00142E]/20"
                                 : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
                                 }`}
                             onClick={() => setShowFilters(!showFilters)}
@@ -84,7 +84,7 @@ export const EventsFilters = memo(({
                             <Filter className="h-4 w-4 mr-2" />
                             <span className="hidden sm:inline">Filters</span>
                             {hasActiveFilters && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#C93A30] text-white text-xs rounded-full flex items-center justify-center">
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#00142E] text-white text-xs rounded-full flex items-center justify-center">
                                     {Object.values(selectedFilters).filter(v => v !== "").length}
                                 </span>
                             )}
@@ -102,7 +102,7 @@ export const EventsFilters = memo(({
                                 <select
                                     value={selectedFilters.date}
                                     onChange={(e) => handleFilterChange("date", e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C93A30] focus:border-transparent bg-white"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00142E] focus:border-transparent bg-white"
                                 >
                                     <option value="">Any Date</option>
                                     <option value="today">Today</option>
@@ -120,7 +120,7 @@ export const EventsFilters = memo(({
                                 <select
                                     value={selectedFilters.price}
                                     onChange={(e) => handleFilterChange("price", e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C93A30] focus:border-transparent bg-white"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00142E] focus:border-transparent bg-white"
                                 >
                                     <option value="">Any Price</option>
                                     <option value="free">Free</option>
@@ -137,7 +137,7 @@ export const EventsFilters = memo(({
                                 <select
                                     value={selectedFilters.location}
                                     onChange={(e) => handleFilterChange("location", e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C93A30] focus:border-transparent bg-white"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00142E] focus:border-transparent bg-white"
                                 >
                                     <option value="">Any Location</option>
                                     <option value="online">Online</option>
@@ -159,7 +159,7 @@ export const EventsFilters = memo(({
                                     Clear
                                 </Button>
                                 <Button
-                                    className="px-4 py-2 bg-[#C93A30] hover:bg-[#B82E28] text-white rounded-lg transition-all duration-300 h-10"
+                                    className="px-4 py-2 bg-[#00142E] hover:bg-[#00142E]/90 text-white rounded-lg transition-all duration-300 h-10"
                                     onClick={() => setShowFilters(false)}
                                 >
                                     Apply

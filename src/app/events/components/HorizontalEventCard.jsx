@@ -72,7 +72,7 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     <div className="absolute top-3 left-3">
-                        <span className="px-2 sm:px-3 py-1 bg-[#C93A30] text-white text-xs font-bold rounded-full shadow-lg">
+                        <span className="px-2 sm:px-3 py-1 bg-[#00142E] text-white text-xs font-bold rounded-full shadow-lg">
                             {event.type || "Event"}
                         </span>
                     </div>
@@ -146,7 +146,7 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
                     <div className="flex gap-2">
                         <Button
                             onClick={() => onViewDetails(event.id)}
-                            className="flex-1 bg-[#C93A30] hover:bg-[#B82E28] text-white rounded-lg h-9 text-xs font-medium transition-all duration-200"
+                            className="flex-1 bg-[#00142E] hover:bg-[#00142E]/90 text-white rounded-lg h-9 text-xs font-medium transition-all duration-200"
                         >
                             View Details
                         </Button>

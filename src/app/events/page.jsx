@@ -184,11 +184,11 @@ const EventsPage = () => {
         <div id="trending" className="container mx-auto max-w-7xl px-4 py-8 sm:py-12">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <h2 className="text-2xl sm:text-3xl font-bold text-[#00142E] flex items-center gap-3">
-              <TrendingUp className="h-6 w-6 sm:h-7 sm:w-7 text-[#C93A30]" />
+              <TrendingUp className="h-6 w-6 sm:h-7 sm:w-7 text-[#00142E]" />
               Trending Events
-              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-[#C93A30] animate-pulse" />
+              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-[#CB2A25] animate-pulse" />
             </h2>
-            <button className="text-sm font-medium text-[#C93A30] hover:text-[#B82E28] flex items-center gap-1 group transition-colors duration-300">
+            <button className="text-sm font-medium text-[#00142E] hover:text-[#00142E]/70 flex items-center gap-1 group transition-colors duration-300">
               View All
               <ChevronRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform duration-300" />
             </button>
@@ -196,7 +196,7 @@ const EventsPage = () => {
 
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <div className="w-12 h-12 border-4 border-[#C93A30] border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-12 h-12 border-4 border-[#00142E] border-t-transparent rounded-full animate-spin"></div>
               <p className="text-gray-500 font-medium tracking-wide">Fetching amazing events...</p>
             </div>
           ) : (

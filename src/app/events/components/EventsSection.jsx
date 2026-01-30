@@ -15,7 +15,7 @@ export const EventsSection = memo(({ category, events, visibleSections, onViewDe
                     {category.title}
                     <span className="text-sm font-normal text-[#00142E]/60 ml-2">({events.length} events)</span>
                 </h2>
-                <button className="text-sm font-medium text-[#C93A30] hover:text-[#B82E28] flex items-center gap-1 group transition-colors duration-300">
+                <button className="text-sm font-medium text-[#00142E] hover:text-[#00142E]/70 flex items-center gap-1 group transition-colors duration-300">
                     View All
                     <ChevronRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform duration-300" />
                 </button>
