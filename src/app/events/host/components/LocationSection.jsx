@@ -10,53 +10,10 @@ export const LocationSection = ({ formData, handleInputChange }) => {
         <div className="rounded-xl p-6 border bg-[#f8f9fa] border-[#00162d]">
             <h3 className="text-lg font-semibold mb-4 flex items-center text-[#00162d]">
                 <MapPin className="mr-2 h-5 w-5 text-[#00162d]" />
-                Location Details
+                Venue Details
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <Label className="font-medium text-sm text-[#00162d]">Country</Label>
-                    <select
-                        className="w-full mt-1 border border-[#00162d] rounded-md p-2 text-gray-900"
-                        value={formData.country || "US"}
-                        onChange={e => handleInputChange("country", e.target.value)}
-                    >
-                        {COUNTRIES?.map(c => (
-                            <option key={c.code} value={c.code}>{c.name}</option>
-                        )) || <option value="US">United States</option>}
-                    </select>
-                </div>
-
-                <div>
-                    <Label className="font-medium text-sm text-[#00162d]">State</Label>
-                    <Input
-                        value={formData.state || ""}
-                        onChange={e => handleInputChange("state", e.target.value)}
-                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d]"
-                        placeholder="Enter state"
-                    />
-                </div>
-
-                <div>
-                    <Label className="font-medium text-sm text-[#00162d]">City</Label>
-                    <Input
-                        value={formData.city || ""}
-                        onChange={e => handleInputChange("city", e.target.value)}
-                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d]"
-                        placeholder="Enter city"
-                    />
-                </div>
-
-                <div>
-                    <Label className="font-medium text-sm text-[#00162d]">Zip Code</Label>
-                    <Input
-                        value={formData.zip_code || ""}
-                        onChange={e => handleInputChange("zip_code", e.target.value)}
-                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d]"
-                        placeholder="Enter zip code"
-                    />
-                </div>
-
                 <div className="md:col-span-2">
                     <Label className="font-medium text-sm text-[#00162d]">Street Address</Label>
                     <Input

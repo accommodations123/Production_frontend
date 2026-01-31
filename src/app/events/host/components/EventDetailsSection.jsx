@@ -7,7 +7,6 @@ import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect"
 import { Country, State, City } from 'country-state-city';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { useState, useEffect } from "react";
-import { COUNTRIES } from "@/lib/mock-data";
 
 export const EventDetailsSection = ({ formData, handleInputChange }) => {
     const [countriesList] = useState(Country.getAllCountries());
@@ -16,7 +15,9 @@ export const EventDetailsSection = ({ formData, handleInputChange }) => {
 
     const getCurrencySymbol = (countryName) => {
         if (!countryName) return '$';
-        const country = COUNTRIES.find(c => c.name === countryName);
+        // Use Country from country-state-city to find currency
+        const allCountries = Country.getAllCountries();
+        const country = allCountries.find(c => c.name === countryName || c.isoCode === countryName);
         if (!country || !country.currency) return '$';
 
         try {
@@ -188,7 +189,7 @@ export const EventDetailsSection = ({ formData, handleInputChange }) => {
             <div className="md:col-span-2 space-y-4">
                 <Label className="font-medium text-sm flex items-center text-[#00162d]">
                     <MapPin className="h-4 w-4 mr-1 text-[#00162d]" />
-                    Location Details
+                    Location & Region
                 </Label>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

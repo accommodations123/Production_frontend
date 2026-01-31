@@ -467,6 +467,21 @@ export const hostApi = createApi({
                 };
             }
         }),
+        getCommunityHostMembers: builder.query({
+            query: ({ id, page = 1, limit = 10 }) => ({
+                url: `community/${id}/hosts`,
+                params: { page, limit }
+            }),
+            providesTags: (result, error, { id }) => [{ type: "Community", id: `HOSTS-${id}` }],
+            transformResponse: (response) => {
+                const hosts = response?.hosts || response?.data || [];
+                return {
+                    hosts: Array.isArray(hosts) ? hosts : [],
+                    count: response?.count || 0,
+                    page: response?.page || 1
+                };
+            }
+        }),
         getMyEvents: builder.query({
             query: () => {
                 const countryData = localStorage.getItem("selectedCountry");
@@ -815,17 +830,18 @@ export const {
     useJoinCommunityMutation,
     useLeaveCommunityMutation,
     useCreateCommunityMutation,
-    useGetCommunityMembersQuery,
     useUpdateCommunityMutation,
+    useGetCommunityMembersQuery,
+    useGetCommunityHostMembersQuery,
     useGetMyEventsQuery,
     useDeleteEventMutation,
-    useUpdateHostMutation,
     useCreateCommunityPostMutation,
     useGetCommunityFeedQuery,
     useDeleteCommunityPostMutation,
     useAddCommunityResourceMutation,
     useGetCommunityResourcesQuery,
     useDeleteCommunityResourceMutation,
+    useUpdateHostMutation,
     useGetEventReviewsQuery,
     useAddEventReviewMutation,
     useGetEventRatingQuery,
