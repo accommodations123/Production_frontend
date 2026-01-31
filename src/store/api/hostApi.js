@@ -450,6 +450,23 @@ export const hostApi = createApi({
             query: ({ id, data }) => ({ url: `community/${id}/update`, method: "PUT", body: data }),
             invalidatesTags: (result, error, { id }) => [{ type: "Community", id }],
         }),
+
+        getCommunityMembers: builder.query({
+            query: ({ id, page = 1, search = "" }) => ({
+                url: `community/${id}/members`,
+                params: { page, search }
+            }),
+            providesTags: (result, error, { id }) => [{ type: "Community", id: `MEMBERS-${id}` }],
+            transformResponse: (response) => {
+                const members = response?.members || response?.data || [];
+                return {
+                    members: Array.isArray(members) ? members : [],
+                    totalPages: response?.totalPages || 1,
+                    currentPage: response?.currentPage || 1,
+                    totalMembers: response?.totalMembers || 0
+                };
+            }
+        }),
         getMyEvents: builder.query({
             query: () => {
                 const countryData = localStorage.getItem("selectedCountry");
@@ -798,6 +815,7 @@ export const {
     useJoinCommunityMutation,
     useLeaveCommunityMutation,
     useCreateCommunityMutation,
+    useGetCommunityMembersQuery,
     useUpdateCommunityMutation,
     useGetMyEventsQuery,
     useDeleteEventMutation,

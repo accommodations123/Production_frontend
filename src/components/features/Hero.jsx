@@ -22,7 +22,7 @@ export function Hero() {
   }
 
   return (
-    <div className="relative bg-white overflow-hidden min-h-[70vh] md:min-h-[75vh] flex items-center pt-24 pb-6 md:pb-10">
+    <div className="relative bg-white overflow-hidden min-h-[100dvh] md:min-h-[75vh] flex items-center pt-24 pb-6 md:pb-10">
 
       {/* 1. Dynamic Background Shape */}
       <div className="absolute top-0 right-0 w-full md:w-2/3 h-full bg-[#FFF5F5] skew-y-12 md:skew-y-0 md:skew-x-12 translate-y-32 md:translate-y-0 md:translate-x-32 z-0 opacity-50 md:opacity-100" />
@@ -44,7 +44,7 @@ export function Hero() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-[#00142E] leading-[1.1] tracking-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-[#00142E] leading-[1.1] tracking-tight">
               Feels Like <br />
               <span className="text-[#C93A30] relative inline-block">
                 Home
@@ -57,7 +57,7 @@ export function Hero() {
             </h1>
 
             {/* Subtext */}
-            <p className="text-lg md:text-xl text-[#00142E]/70 font-medium leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-[#00142E]/70 font-medium leading-relaxed max-w-lg">
               Join Indians abroad. Find verified accommodations, events, and a family away from home.
             </p>
 
@@ -77,12 +77,12 @@ export function Hero() {
           </div>
 
           {/* RIGHT: Hero Image Collage (Responsive) */}
-          <div className="relative h-[300px] md:h-[500px] lg:h-[650px] w-full perspective-1000 mt-8 lg:mt-0">
+          <div className="relative h-[350px] sm:h-[450px] md:h-[500px] lg:h-[650px] w-full perspective-1000 mt-8 lg:mt-0 hidden md:block">
             {/* Background Blob */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-[#C93A30]/10 rounded-full blur-[60px] md:blur-[80px]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[500px] lg:w-[600px] h-[300px] md:h-[500px] lg:h-[600px] bg-[#C93A30]/10 rounded-full blur-[60px] md:blur-[80px]" />
 
             {/* Main Image (Center) */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 lg:top-10 lg:right-10 lg:left-auto lg:translate-x-0 w-[280px] md:w-[350px] lg:w-[400px] h-[300px] md:h-[450px] lg:h-[500px] rounded-[2rem] overflow-hidden shadow-2xl border-[4px] md:border-[6px] border-white transform rotate-3 lg:hover:rotate-0 transition-all duration-700 z-20">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 lg:top-10 lg:right-10 lg:left-auto lg:translate-x-0 w-[260px] sm:w-[300px] md:w-[350px] lg:w-[400px] h-[320px] sm:h-[400px] md:h-[450px] lg:h-[500px] rounded-[2rem] overflow-hidden shadow-2xl border-[4px] md:border-[6px] border-white transform rotate-3 lg:hover:rotate-0 transition-all duration-700 z-20">
               <img
                 src="https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?q=80&w=1740&auto=format&fit=crop"
                 alt="Indian Community"
@@ -96,7 +96,7 @@ export function Hero() {
             </div>
 
             {/* Floating Card (Hidden on very small screens, shown on tablet+) */}
-            <div className="hidden sm:block absolute top-[20%] left-0 lg:top-20 lg:left-0 w-48 md:w-64 h-36 md:h-48 rounded-2xl overflow-hidden shadow-xl border-[4px] border-white transform -rotate-6 z-10 animate-in fade-in slide-in-from-bottom-10 delay-300">
+            <div className="hidden sm:block absolute top-[15%] left-0 sm:left-[5%] lg:top-20 lg:left-0 w-40 sm:w-48 md:w-56 lg:w-64 h-28 sm:h-36 md:h-40 lg:h-48 rounded-2xl overflow-hidden shadow-xl border-[4px] border-white transform -rotate-6 z-10 animate-in fade-in slide-in-from-bottom-10 delay-300">
               <img
                 src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop"
                 alt="Cozy Room"
@@ -105,7 +105,7 @@ export function Hero() {
             </div>
 
             {/* Floating Card 2 (Hidden on mobile) */}
-            <div className="hidden lg:block absolute bottom-20 right-0 w-64 h-64 rounded-[2rem] overflow-hidden shadow-xl border-[4px] border-white transform -rotate-3 z-30">
+            <div className="hidden lg:block absolute bottom-20 right-0 w-56 lg:w-64 h-56 lg:h-64 rounded-[2rem] overflow-hidden shadow-xl border-[4px] border-white transform -rotate-3 z-30">
               <img
                 src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=1740&auto=format&fit=crop"
                 alt="Friends"

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, memo } from "react"
 import { Users, Check, Star, MessageCircle, UserPlus, MapPin, Video, Monitor } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 
 export const Sidebar = memo(({ event }) => {
     const [imageError, setImageError] = useState(false)
@@ -9,6 +10,15 @@ export const Sidebar = memo(({ event }) => {
         if (!event?.host) return null
         return event.host.selfie_photo || event.host.profile_photo || event.host.avatar || event.host.photo || event.host.image || event.host.profileImage
     }, [event?.host])
+
+    const handleContactHost = () => {
+        if (event?.host?.phone) {
+            const cleanPhone = event.host.phone.replace(/[^0-9]/g, '');
+            window.open(`https://wa.me/${cleanPhone}`, '_blank');
+        } else {
+            toast.error("Host contact number not available");
+        }
+    }
 
     return (
         <aside className="space-y-6 sticky top-24">
@@ -45,12 +55,9 @@ export const Sidebar = memo(({ event }) => {
                         {event?.host?.email && <p className="text-sm text-gray-600 truncate">✉️ {event.host.email}</p>}
                     </div>
                 </div>
-                <div className="flex items-center gap-1 mb-6">
-                    {[1, 2, 3, 4, 5].map((star) => <Star key={star} className="h-5 w-5 fill-yellow-400 text-yellow-400" />)}
-                    <span className="text-sm text-gray-500 ml-2">4.9 Host Rating</span>
-                </div>
+
                 <Button
-                    onClick={() => event?.host?.phone && window.open(`tel:${event.host.phone}`)}
+                    onClick={handleContactHost}
                     className="w-full gap-2 bg-accent text-white hover:bg-accent/90 transition-all duration-300 transform hover:scale-105 shadow-lg rounded-2xl"
                 >
                     <MessageCircle className="h-4 w-4" />

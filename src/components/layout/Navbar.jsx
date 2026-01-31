@@ -206,7 +206,8 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                 className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-700 ease-out"
                             />
                         </div>
-                        <div className="flex items-center">
+                        {/* Only show brand text on large wide screens to prevent crowding */}
+                        <div className="hidden 2xl:flex items-center transition-all duration-300">
                             <span className="text-white font-bold text-xl">Next</span>
                             <span className="text-white font-bold text-xl">Kin</span>
                             <span className="text-accent font-bold text-xl">Life</span>
@@ -215,7 +216,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
 
                     {/* Desktop Navigation - Pill Design - IMPROVED RESPONSIVENESS */}
                     {!minimal && (
-                        <nav className="hidden lg:flex items-center gap-1 p-1.5 rounded-full bg-white/5 border border-white/5 backdrop-blur-md shadow-inner shadow-black/20">
+                        <nav className="hidden xl:flex items-center gap-1 p-1 rounded-full bg-white/5 border border-white/5 backdrop-blur-md shadow-inner shadow-black/20">
                             {navItems.map((item) => {
                                 const isActive = location.pathname === item.path;
                                 return (
@@ -223,7 +224,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                         key={item.name}
                                         to={item.path}
                                         className={cn(
-                                            "relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-300",
+                                            "relative px-3 lg:px-4 2xl:px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap",
                                             isActive
                                                 ? "text-white"
                                                 : "text-white/60 hover:text-white hover:bg-white/5"
@@ -245,7 +246,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
 
                     {/* Tablet Navigation - HIDDEN ITEMS DROPDOWN */}
                     {!minimal && (
-                        <div className="hidden md:flex lg:hidden">
+                        <div className="hidden md:flex xl:hidden">
                             <button
                                 className="p-2 rounded-full text-white/80 hover:bg-white/10 transition-colors"
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

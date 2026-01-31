@@ -99,21 +99,7 @@ export function Footer() {
                     </div>
 
                     {/* Column 4: Newsletter */}
-                    <div>
-                        <h4 className="font-bold font-poppins mb-6 text-white">Stay in the loop</h4>
-                        <p className="text-sm text-white/70 mb-4">
-                            Join our active community newsletter.
-                        </p>
-                        <div className="space-y-3">
-                            <Input
-                                placeholder="Email address"
-                                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-accent focus:ring-accent/20"
-                            />
-                            <Button className="w-full bg-accent hover:bg-red-700 text-white font-medium">
-                                Subscribe
-                            </Button>
-                        </div>
-                    </div>
+
                 </div>
 
                 {/* Bottom Bar */}
@@ -122,7 +108,7 @@ export function Footer() {
                     <div className="flex gap-6">
                         <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
                         <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
-                        <Link to="/cookies" className="hover:text-white transition-colors">Cookies</Link>
+                        {/* <Link to="/cookies" className="hover:text-white transition-colors">Cookies</Link> */}
                     </div>
                 </div>
             </div>

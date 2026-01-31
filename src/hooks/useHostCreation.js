@@ -306,10 +306,11 @@ export function useHostCreation() {
                     description: prop.description || prev.description,
 
                     // Location - handle flattened or nested
-                    address: prop.location?.address || prop.address || prev.address,
+                    address: prop.location?.address || prop.address || prop.street_address || prop.location?.street_address || prev.address,
                     city: prop.location?.city || prop.city || prev.city,
                     state: prop.location?.state || prop.state || prev.state,
                     country: prop.location?.country || prop.country || prev.country,
+                    pincode: prop.location?.zip_code || prop.zip_code || prev.pincode,
 
                     // Pricing
                     currency: prop.pricing?.currency || prop.currency || "INR",

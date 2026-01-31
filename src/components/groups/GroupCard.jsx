@@ -23,11 +23,8 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
     // This function prevents the card click from firing when the button is clicked
     const handleButtonClick = (e) => {
         e.stopPropagation();
-        if (isJoined) {
-            onLeave();
-        } else {
-            onJoin();
-        }
+        // Redirect to details page instead of joining
+        onCardClick();
     };
 
     // This function handles clicks on the card area (but not the button)
@@ -65,11 +62,10 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
                     </div>
                 )}
                 <Button
-                    className={`w-full ${isJoined ? 'bg-gray-500 hover:bg-gray-600' : 'bg-[#C93A30] hover:bg-[#B82E28]'} text-white rounded-full font-semibold text-sm py-3 px-6 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105`}
+                    className={`w-full bg-[#C93A30] hover:bg-[#B82E28] text-white rounded-full font-semibold text-sm py-3 px-6 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105`}
                     onClick={handleButtonClick}
-                    disabled={isJoining}
                 >
-                    {isJoining ? 'Processing...' : isJoined ? 'Leave Community' : 'Join Community'}
+                    View Details
                 </Button>
             </div>
         )
@@ -118,12 +114,11 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
                         </p>
                     )}
                     <Button
-                        variant={isJoined ? "default" : "outline"}
-                        className={`w-full ${isJoined ? 'bg-gray-500 hover:bg-gray-600 text-white' : 'border-[#C93A30] text-[#C93A30] hover:bg-[#C93A30] hover:text-white'} rounded-full font-semibold text-sm py-3 px-6 transition-all duration-300 hover:scale-105`}
+                        variant="outline"
+                        className={`w-full border-[#C93A30] text-[#C93A30] hover:bg-[#C93A30] hover:text-white rounded-full font-semibold text-sm py-3 px-6 transition-all duration-300 hover:scale-105`}
                         onClick={handleButtonClick}
-                        disabled={isJoining}
                     >
-                        {isJoining ? 'Processing...' : isJoined ? 'Leave Group' : 'Join Group'}
+                        View Details
                     </Button>
                 </div>
             </div>
@@ -172,11 +167,10 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
                     <Button
                         variant="ghost"
                         size="sm"
-                        className={`mt-2 ${isJoined ? 'text-gray-500' : 'text-[#C93A30]'} hover:bg-transparent hover:underline p-0 h-auto font-normal`}
+                        className={`mt-2 text-[#C93A30] hover:bg-transparent hover:underline p-0 h-auto font-normal`}
                         onClick={handleButtonClick}
-                        disabled={isJoining}
                     >
-                        {isJoining ? 'Processing...' : isJoined ? 'Leave' : 'Join'}
+                        View Details
                     </Button>
                 </div>
             </div>
@@ -212,11 +206,10 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
                     </h3>
                     <Button
                         size="lg"
-                        className={`${isJoined ? 'bg-gray-500 hover:bg-gray-600' : 'bg-white text-[#07182A] hover:bg-gray-100'} rounded-full font-semibold shadow-md hover:shadow-lg w-full transition-all duration-300 hover:scale-105`}
+                        className={`bg-white text-[#07182A] hover:bg-gray-100 rounded-full font-semibold shadow-md hover:shadow-lg w-full transition-all duration-300 hover:scale-105`}
                         onClick={handleButtonClick}
-                        disabled={isJoining}
                     >
-                        {isJoining ? 'Processing...' : isJoined ? 'Joined' : 'Join Now'}
+                        View Details
                     </Button>
                 </div>
             </div>

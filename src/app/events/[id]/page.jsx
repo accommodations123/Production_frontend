@@ -16,7 +16,7 @@ import { TabNavigation } from "./components/TabNavigation"
 import { OverviewTab } from "./components/OverviewTab"
 import { ScheduleTab } from "./components/ScheduleTab"
 import { VenueTab } from "./components/VenueTab"
-import { ReviewsTab } from "./components/ReviewsTab"
+
 import { Sidebar } from "./components/Sidebar"
 import { EventNotFound } from "./components/EventNotFound"
 
@@ -232,7 +232,6 @@ export default function EventDetailsPage() {
                             {activeTab === 'overview' && <OverviewTab event={event} visibleSections={visibleSections} />}
                             {activeTab === 'schedule' && <ScheduleTab event={event} visibleSections={visibleSections} />}
                             {activeTab === 'venue' && <VenueTab event={event} visibleSections={visibleSections} />}
-                            {activeTab === 'reviews' && <ReviewsTab event={event} visibleSections={visibleSections} />}
                         </div>
                     </div>
                     <Sidebar event={event} />

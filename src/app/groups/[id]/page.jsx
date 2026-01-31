@@ -15,7 +15,8 @@ import {
     useAddCommunityResourceMutation,
     useDeleteCommunityPostMutation,
     useDeleteCommunityResourceMutation,
-    useGetHostProfileQuery
+    useGetHostProfileQuery,
+    useGetCommunityMembersQuery
 } from "@/store/api/hostApi"
 import { useGetMeQuery as useAuthMeQuery } from "@/store/api/authApi"
 import { toast } from "sonner"
@@ -60,6 +61,103 @@ function ErrorBoundary({ children }) {
     }
 
     return <>{children}</>
+}
+
+// --- Sub-components ---
+
+function MembersTab({ communityId }) {
+    const [page, setPage] = React.useState(1);
+    const [search, setSearch] = React.useState("");
+    const { data: memberData, isLoading, isError } = useGetCommunityMembersQuery({ id: communityId, page, search });
+
+    const members = memberData?.members || [];
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <div className="text-center py-20 text-red-500">
+                <p>Failed to load members. Please try again later.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-col h-full bg-gray-50 p-6 min-h-[500px]">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Community Members</h2>
+                    <p className="text-gray-500 text-sm">{memberData?.totalMembers || 0} members</p>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative max-w-xs w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search members..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                </div>
+            </div>
+
+            {members.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {members.map((member) => {
+                        // Handle different user structures depending on backend include
+                        const user = member.User || member.user || member;
+                        const host = user?.Host || user?.host; // If we include Host model
+
+                        const name = host?.full_name || user?.name || user?.full_name || "Unknown Member";
+                        const role = member.role || "Member";
+                        const joinedAt = new Date(member.createdAt || member.created_at).toLocaleDateString();
+                        const image = host?.profile_image || user?.profile_image || user?.avatar;
+
+                        return (
+                            <div key={member.id || user.id} className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-all flex items-center gap-4 group">
+                                <div className="w-14 h-14 bg-gray-100 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-blue-100 transition-colors">
+                                    {image ? (
+                                        <img src={image} alt={name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="text-gray-400 font-bold text-lg">{(name[0] || "U").toUpperCase()}</span>
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-semibold text-gray-900 truncate" title={name}>{name}</h3>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium ${role === 'owner' ? 'bg-amber-100 text-amber-700' :
+                                                role === 'admin' ? 'bg-purple-100 text-purple-700' :
+                                                    'bg-gray-100 text-gray-600'
+                                            }`}>
+                                            {role}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-1">Joined {joinedAt}</p>
+                                </div>
+                                {role === 'owner' && <Award className="h-5 w-5 text-amber-500 ml-auto" />}
+                            </div>
+                        );
+                    })}
+                </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-gray-500 bg-white rounded-xl border border-dashed border-gray-200">
+                    <Users className="h-12 w-12 text-gray-300 mb-3" />
+                    <p className="text-lg font-medium text-gray-900">No members found</p>
+                    <p className="text-sm">Try adjusting your search terms</p>
+                </div>
+            )}
+
+            {/* Pagination Controls could go here if totalPages > 1 */}
+        </div>
+    );
 }
 
 export default function GroupDetailsPage() {
@@ -606,35 +704,7 @@ export default function GroupDetailsPage() {
 
             case "members":
                 return (
-                    <div className="flex flex-col h-full bg-gray-50 p-6 min-h-[500px]">
-                        <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900">Community Members</h2>
-                        </div>
-                        {/* 
-                           Since original mock/API didn't explicitly return a full member list with profiles in the `getCommunity` call (it usually just returns count or top few), 
-                           displaying a full member list might require a separate `getCommunityMembers` endpoint if the current one doesn't supply 'members' array effectively.
-                           We'll render a placeholder or community.members if available.
-                        */}
-                        {community?.members && Array.isArray(community.members) && community.members.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {community.members.map((member) => (
-                                    <div key={member.id} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center font-bold text-gray-500">
-                                                {(member.name || "U")[0]}
-                                            </div>
-                                            <div>
-                                                <h3 className="font-semibold text-gray-900 text-sm">{member.name}</h3>
-                                                <p className="text-xs text-gray-500">{member.role}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-20 text-gray-500">List of members will appear here.</div>
-                        )}
-                    </div>
+                    <MembersTab communityId={id} />
                 );
 
             default:

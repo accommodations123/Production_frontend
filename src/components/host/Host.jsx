@@ -226,7 +226,9 @@ export default function HostOnboardingForm() {
         country: formData.country,
         state: formData.state,
         city: formData.city,
+        zip_code: formData.zip_code, // Added zip_code
         address: formData.street_address,
+        street_address: formData.street_address, // Sending explicit street_address too just in case
         whatsapp: formData.whatsapp ? `${formData.whatsappPrefix} ${formData.whatsapp}` : "",
         facebook: formData.facebook,
         instagram: formData.instagram,
@@ -279,7 +281,7 @@ export default function HostOnboardingForm() {
   };
 
   return (
-    <div className="min-h-screen bg-primary flex flex-col pt-24 pb-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-primary flex flex-col pt-24 pb-12 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
       <Navbar />
       {/* Success Message */}
       {showSuccess && (
@@ -304,7 +306,7 @@ export default function HostOnboardingForm() {
         </div>
       )}
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-4xl">
+      <div className="w-full max-w-4xl mx-auto space-y-6">
         {/* Logo and Header */}
         <div className="flex justify-center mb-8">
           <div className="flex items-center">
@@ -379,7 +381,7 @@ export default function HostOnboardingForm() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                   <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                     <svg className="h-4 w-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
