@@ -8,6 +8,7 @@ import { useState } from "react"
 
 export function ContactForm() {
     const [phoneCode, setPhoneCode] = useState("+91");
+    const [phoneIso, setPhoneIso] = useState("");
     return (
         <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-violet-600/20 via-cyan-600/20 to-emerald-600/20 rounded-3xl blur-3xl" />
@@ -88,7 +89,11 @@ export function ContactForm() {
                                 <div className="flex gap-2">
                                     <CountryCodeSelect
                                         value={phoneCode}
-                                        onChange={setPhoneCode}
+                                        isoCode={phoneIso}
+                                        onChange={(code, iso) => {
+                                            setPhoneCode(code);
+                                            if (iso) setPhoneIso(iso);
+                                        }}
                                         className="w-[110px]"
                                     />
                                     <Input

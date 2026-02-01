@@ -11,6 +11,8 @@ import { useGetJobsQuery } from "@/store/api/hostApi"
 import { Search, MapPin, Filter, X, Briefcase, Clock, DollarSign, Building, Calendar, Users, TrendingUp, Award, ChevronRight, Star, ArrowRight, Globe, Zap, Shield, Target, Sparkles, Coffee, Wifi, Heart, Home } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
+import { usePagination } from "@/hooks/usePagination"
+import { Pagination } from "@/components/ui/Pagination"
 
 export default function CareerPage() {
     const [searchQuery, setSearchQuery] = useState("")
@@ -87,6 +89,14 @@ export default function CareerPage() {
                 matchesDepartment && matchesWorkStyle && matchesTab
         })
     }, [searchQuery, selectedFilters, activeTab, jobs])
+
+    // ✅ Pagination
+    const {
+        currentItems: paginatedJobs,
+        currentPage,
+        totalPages,
+        goToPage
+    } = usePagination(filteredJobs, 10);
 
     // Animation variants
     const containerVariants = {
@@ -383,15 +393,22 @@ export default function CareerPage() {
 
                         <div className="space-y-6">
                             {filteredJobs.length > 0 ? (
-                                filteredJobs.map((job, index) => (
-                                    <div key={job.id || index}>
-                                        <JobCard
-                                            job={job}
-                                            onViewDetails={handleViewDetails}
-                                            isHovered={hoveredJobId === job.id}
-                                        />
-                                    </div>
-                                ))
+                                <>
+                                    {paginatedJobs.map((job, index) => (
+                                        <div key={job.id || index}>
+                                            <JobCard
+                                                job={job}
+                                                onViewDetails={handleViewDetails}
+                                                isHovered={hoveredJobId === job.id}
+                                            />
+                                        </div>
+                                    ))}
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={totalPages}
+                                        onPageChange={goToPage}
+                                    />
+                                </>
                             ) : (
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}

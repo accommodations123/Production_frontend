@@ -79,6 +79,7 @@ const InfoField = ({
     action,
     actionIcon: ActionIcon,
     prefix,
+    iso,
     onPrefixChange
 }) => (
     <div className="space-y-2">
@@ -99,7 +100,7 @@ const InfoField = ({
                 <div className="flex gap-2">
                     {prefix !== undefined && onPrefixChange && (
                         <div className="w-[110px] flex-shrink-0">
-                            <CountryCodeSelect value={prefix} onChange={onPrefixChange} />
+                            <CountryCodeSelect value={prefix} isoCode={iso} onChange={onPrefixChange} />
                         </div>
                     )}
                     <input
@@ -158,7 +159,9 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
         facebook: initialData?.facebook || "",
         instagram: initialData?.instagram || "",
         phoneCode: "+91",
-        whatsappCode: "+91"
+        phoneIso: "",
+        whatsappCode: "+91",
+        whatsappIso: ""
     })
 
     const [countriesList] = useState(Country.getAllCountries());
@@ -346,7 +349,8 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
                         isEditing={editStates.personal}
                         onChange={handleChange}
                         prefix={formData.phoneCode}
-                        onPrefixChange={(code) => setFormData(prev => ({ ...prev, phoneCode: code }))}
+                        iso={formData.phoneIso}
+                        onPrefixChange={(code, iso) => setFormData(prev => ({ ...prev, phoneCode: code, phoneIso: iso }))}
                     />
                 </DetailCard>
 
@@ -459,7 +463,8 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
                             action={openWhatsApp}
                             actionIcon={MessageCircle}
                             prefix={formData.whatsappCode}
-                            onPrefixChange={(code) => setFormData(prev => ({ ...prev, whatsappCode: code }))}
+                            iso={formData.whatsappIso}
+                            onPrefixChange={(code, iso) => setFormData(prev => ({ ...prev, whatsappCode: code, whatsappIso: iso }))}
                         />
                     </div>
                     <InfoField

@@ -9,6 +9,8 @@ import { useGetMyListingsQuery, useDeletePropertyMutation, useGetMyEventsQuery, 
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
+import { usePagination } from "@/hooks/usePagination"
+import { Pagination } from "@/components/ui/Pagination"
 
 export const MyListings = () => {
     const navigate = useNavigate()
@@ -114,6 +116,14 @@ export const MyListings = () => {
     const isError = activeTab === "spaces" ? isPropertiesError : isEventsError
     const error = activeTab === "spaces" ? propertiesError : eventsError
     const currentListings = activeTab === "spaces" ? visibleProperties : visibleEvents
+
+    // ✅ Pagination
+    const {
+        currentItems: paginatedListings,
+        currentPage,
+        totalPages,
+        goToPage
+    } = usePagination(currentListings, 8); // 8 items per page
 
     return (
         <div className="relative min-h-screen">
@@ -290,18 +300,26 @@ export const MyListings = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         {activeTab === "spaces" ? (
-                            currentListings.map(p => (
+                            paginatedListings.map(p => (
                                 <div key={p._id || p.id} className="transform hover:-translate-y-1 transition-all duration-200">
                                     <PropertyCard property={p} onDelete={handlePropertyDelete} />
                                 </div>
                             ))
                         ) : (
-                            currentListings.map(e => (
+                            paginatedListings.map(e => (
                                 <div key={e._id || e.id} className="transform hover:-translate-y-1 transition-all duration-200">
                                     <EventCard event={e} onDelete={handleEventDelete} />
                                 </div>
                             ))
                         )}
+
+                        <div className="col-span-full">
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={goToPage}
+                            />
+                        </div>
                     </div>
                 )}
             </div>

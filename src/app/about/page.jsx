@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Calendar, Globe, Plus, Minus, CheckCircle, Star, Users, Award, Code, ArrowRight } from "lucide-react";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 
 /* ================= DATA ================= */
 
@@ -40,7 +42,7 @@ const whyChooseUsItems = [
   {
     title: "Custom Web & Application Development",
     content:
-      "We design and develop responsive, user-friendly websites and custom applications tailored to your business needs. From concept to deployment, we ensure scalable and secure solutions.",
+      "We design and develop responsive, user-friendly websites and custom applications tailored to your business needs. From concept to deployment, we ensure scalable and secure solutions that drive growth and engagement.",
   },
   {
     title: "Data Engineering & Analytics",
@@ -104,12 +106,13 @@ const useScrollAnimation = (threshold = 0.1) => {
 
 const AboutUs = () => {
   const [openIndex, setOpenIndex] = useState(0);
-  
+
   // Animation refs
   const [processRef, processVisible] = useScrollAnimation(0.1);
 
   return (
     <section className="w-full">
+      <Navbar />
       <style jsx>{`
         @keyframes fadeInUp {
           from {
@@ -139,8 +142,9 @@ const AboutUs = () => {
             Welcome to The IT Consulting Agency
           </h2>
           <p className="max-w-3xl mx-auto text-gray-200">
-            At NextKinLife, we believe in meaningful innovation that transforms
-            lives. We build technology around people, growth, and impact.
+            At NextKinLife, we believe in meaningful innovation—technology that transforms lives.
+            Founded on a vision of long-term impact, we’ve built a company not just around code and patents, but around people.
+            Our team is our greatest asset, united by ambition, curiosity, and a relentless pursuit of growth.
           </p>
         </div>
       </div>
@@ -152,12 +156,12 @@ const AboutUs = () => {
             {
               title: "Who Are We",
               text:
-                "A passionate team of innovators, designers, and strategists delivering user-centric digital solutions.",
+                "We are a passionate team of innovators, designers, and strategists committed to helping businesses thrive in the digital world. Our focus is on delivering powerful, user-centric digital solutions tailored to your goals.",
             },
             {
               title: "Our Mission",
               text:
-                "To build long-term partnerships through innovation, mentorship, and reliable technology.",
+                "We are not just building software; we are building a movement where people travel together on a path of mutual success. Our leadership believes in mentoring the next generation of creators, thinkers, and changemakers.",
             },
             {
               title: "What We Do",
@@ -194,12 +198,13 @@ const AboutUs = () => {
           <div>
             <h2 className="text-4xl font-bold mb-6">Founded on Innovation</h2>
             <p className="text-gray-600 mb-6">
-              A global IT Services & Consulting company headquartered in the USA
-              with a strong team based in India.
+              Nextkinlife is a global IT Services & Consulting company proudly headquartered in Ellicott City, Maryland, USA, with a strong development and management team based in India.
+            </p>
+            <p className="text-gray-600 mb-6">
+              We specialize in delivering complete end-to-end software solutions for our U.S. clients, powered by a highly skilled Indian workforce. In addition to client-based services, our team is actively engaged in building innovative internal products driving future technology advancements.
             </p>
             <p className="text-gray-600 mb-10">
-              We deliver end-to-end software solutions and build future-ready
-              digital products.
+              Our commitment to excellence, innovation, and client success defines everything we do.
             </p>
             <div className="flex gap-10 text-purple-600 font-medium">
               <span className="flex items-center gap-2">
@@ -304,8 +309,7 @@ const AboutUs = () => {
               Why Choose Us?
             </h2>
             <p className="text-gray-600 mb-10 max-w-xl">
-              We blend innovation, expertise, and a client-first mindset to
-              deliver scalable, future-ready digital solutions.
+              At NextKinLife, we blend innovation, expertise, and a client-first approach to deliver reliable tech solutions that drive real results. With a global team, proven track record, and commitment to quality, we turn your ideas into scalable, future-ready digital products.
             </p>
 
             <div className="space-y-4">
@@ -343,51 +347,9 @@ const AboutUs = () => {
         </div>
       </div>
 
-      {/* ================= STATS ================= */}
-      <div className="bg-[#f5f4ff] py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col lg:flex-row justify-between gap-10 mb-20">
-            {/* Left */}
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Some Numbers
-              </h3>
-              <p className="text-gray-600">Our Clients</p>
-            </div>
-
-            {/* Numbers */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
-              <div>
-                <h4 className="text-5xl font-bold text-purple-600">6</h4>
-                <p className="text-gray-700 font-medium mt-2">
-                  Satisfied Clients
-                </p>
-              </div>
-
-              <div>
-                <h4 className="text-5xl font-bold text-purple-600">9</h4>
-                <p className="text-gray-700 font-medium mt-2">
-                  Projects Completed
-                </p>
-              </div>
-
-              <div>
-                <h4 className="text-5xl font-bold text-purple-600">6</h4>
-                <p className="text-gray-700 font-medium mt-2">
-                  Accolades Earned
-                </p>
-              </div>
-
-              <div>
-                <h4 className="text-5xl font-bold text-purple-600">35K+</h4>
-                <p className="text-gray-700 font-medium mt-2">
-                  Lines of Code
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* ================= CTA CARD ================= */}
+      {/* ================= CTA CARD ================= */}
+      <div className="bg-[#f5f4ff] py-16 px-6">
+        <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-2xl shadow-lg p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10">
             {/* Text */}
             <div className="max-w-2xl">
@@ -396,20 +358,16 @@ const AboutUs = () => {
               </h3>
 
               <p className="text-gray-600 leading-relaxed">
-                Let's turn your ideas into reality. Whether you're building
-                something new or enhancing an existing project, our team is
-                here to help you every step of the way. Reach out and let's
-                create something exceptional together.
+                Let's turn your ideas into reality. Whether you're building something new or enhancing an existing project, our team is here to help you every step of the way. Reach out and let's create something exceptional together.
               </p>
             </div>
 
-            {/* Button */}
-            <button className="bg-purple-600 hover:bg-purple-700 transition text-white font-semibold px-8 py-4 rounded-lg">
-              BOOK A CALL
-            </button>
+
           </div>
         </div>
       </div>
+
+      <Footer />
     </section>
   );
 };

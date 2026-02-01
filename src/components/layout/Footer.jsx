@@ -104,7 +104,7 @@ export function Footer() {
 
                 {/* Bottom Bar */}
                 <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/40">
-                    <p>© {new Date().getFullYear()} NextKinLife Inc. All rights reserved.</p>
+                    <p>© {new Date().getFullYear()} NextKinLife LLC. All rights reserved.</p>
                     <div className="flex gap-6">
                         <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
                         <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>

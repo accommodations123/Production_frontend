@@ -163,7 +163,7 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
                 <div className="mt-3 flex gap-2">
                     <Button
                         onClick={() => onViewDetails(event.id || event._id)}
-                        className="flex-1 bg-[#00142E] hover:bg-[#CB2A25] text-white rounded-lg py-4 text-xs font-bold transition-all duration-300 shadow-md group-hover:shadow-lg flex items-center justify-center gap-2 h-9"
+                        className="flex-1 bg-[#C93A30] hover:bg-[#b02e25] text-white rounded-lg py-4 text-xs font-bold transition-all duration-300 shadow-md group-hover:shadow-lg flex items-center justify-center gap-2 h-9"
                     >
                         View Details
                     </Button>

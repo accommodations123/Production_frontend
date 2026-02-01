@@ -54,13 +54,13 @@ const Input = ({ error, ...props }) => (
     </div>
 );
 
+import { toast } from 'sonner';
+
 const CommunityDetailsForm = () => {
     const navigate = useNavigate();
     const [createCommunity, { isLoading: isCreating }] = useCreateCommunityMutation();
     const [updateCommunity, { isLoading: isUpdating }] = useUpdateCommunityMutation();
 
-    const [success, setSuccess] = useState(false);
-    const [statusMessage, setStatusMessage] = useState("");
     const [errors, setErrors] = useState({});
 
     // Image State
@@ -80,7 +80,8 @@ const CommunityDetailsForm = () => {
         city: "",
         topics: [],
         phone: "",
-        phoneCode: "+91"
+        phoneCode: "+91",
+        phoneIso: ""
     });
 
     const [countriesList] = useState(Country.getAllCountries());
@@ -183,18 +184,13 @@ const CommunityDetailsForm = () => {
                     }
                 }
 
-                setSuccess(true);
-                setStatusMessage("Community created successfully!");
-
-                setTimeout(() => {
-                    setSuccess(false);
-                    // Navigate to the new community or dashboard
-                    // navigate(`/groups/${result.community.slug || communityId}`);
-                    // For now, staying on page.
-                }, 3000);
+                setErrors({});
+                toast.success("Community created successfully!");
+                navigate(`/groups/${result.community.slug || communityId}`);
             }
         } catch (err) {
             console.error("Failed to create community:", err);
+            toast.error(err?.data?.message || err.message || "Failed to create community");
             setErrors(prev => ({
                 ...prev,
                 submit: err?.data?.message || err.message || "Failed to create community. Please try again."
@@ -205,24 +201,7 @@ const CommunityDetailsForm = () => {
     return (
         <div className="bg-white/5 backdrop-blur-xl rounded-[40px] border border-white/10 shadow-2xl p-8 md:p-12 relative overflow-hidden">
             {/* Success Overlay */}
-            <AnimatePresence>
-                {success && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-[#00152d]/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center p-8"
-                    >
-                        <div className="w-20 h-20 bg-accent/20 text-accent rounded-3xl flex items-center justify-center mb-6 border border-accent/20">
-                            <Check size={40} strokeWidth={3} />
-                        </div>
-                        <h3 className="text-3xl font-black text-white mb-2">Details Updated!</h3>
-                        <p className="text-white/50 font-medium max-w-xs">
-                            {statusMessage || "Your community information has been successfully saved."}
-                        </p>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
 
             <form onSubmit={handleSubmit} className="space-y-8">
                 {errors.submit && (
@@ -357,7 +336,11 @@ const CommunityDetailsForm = () => {
                         <div className="w-[120px] shrink-0">
                             <CountryCodeSelect
                                 value={formData.phoneCode || "+91"}
-                                onChange={(val) => updateFormData("phoneCode", val)}
+                                isoCode={formData.phoneIso}
+                                onChange={(val, iso) => {
+                                    updateFormData("phoneCode", val);
+                                    if (iso) updateFormData("phoneIso", iso);
+                                }}
                                 className="w-full bg-white/5 border-white/10 text-white [&>button]:bg-white/5 [&>button]:border-white/10 [&>button]:text-white"
                             />
                         </div>

@@ -5,6 +5,8 @@ import { useGetMyApplicationsQuery } from "@/store/api/hostApi";
 import { Briefcase, MapPin, Clock, Building, Loader2, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { usePagination } from "@/hooks/usePagination";
+import { Pagination } from "@/components/ui/Pagination";
 
 // Status badge component
 const StatusBadge = ({ status }) => {
@@ -50,6 +52,14 @@ export function MyApplications() {
     const { data, isLoading, error, refetch } = useGetMyApplicationsQuery({});
 
     const applications = data?.applications || [];
+
+    // ✅ Pagination
+    const {
+        currentItems: paginatedApplications,
+        currentPage,
+        totalPages,
+        goToPage
+    } = usePagination(applications, 5); // 5 items per page for dashboard list
 
     if (isLoading) {
         return (
@@ -109,7 +119,7 @@ export function MyApplications() {
 
             {/* Applications List */}
             <div className="space-y-4">
-                {applications.map((app) => (
+                {paginatedApplications.map((app) => (
                     <div
                         key={app.id}
                         className="bg-white border border-gray-100 rounded-2xl p-5 hover:shadow-md transition-shadow"
@@ -171,6 +181,13 @@ export function MyApplications() {
                         </div>
                     </div>
                 ))}
+
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                    className="mt-6"
+                />
             </div>
         </div>
     );

@@ -164,7 +164,7 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
                     <div className="flex gap-2">
                         <Button
                             onClick={() => onViewDetails(event.id)}
-                            className="flex-1 bg-[#00142E] hover:bg-[#00142E]/90 text-white rounded-lg h-9 text-xs font-medium transition-all duration-200"
+                            className="flex-1 bg-[#C93A30] hover:bg-[#b02e25] text-white rounded-lg h-9 text-xs font-medium transition-all duration-200"
                         >
                             View Details
                         </Button>

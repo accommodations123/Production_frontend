@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 
 import { useGetApprovedHostDetailsQuery, useGetAllPropertiesQuery } from '@/store/api/hostApi';
 import { UserCheck, User } from 'lucide-react';
+import { usePagination } from '@/hooks/usePagination';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function SearchPage() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -163,6 +165,14 @@ export default function SearchPage() {
         window.scrollTo(0, 0);
     }, [searchParams, allProperties]); // Dependencies correct as searchParams change on filter change
 
+    // ✅ Pagination Logic
+    const {
+        currentItems: paginatedListings,
+        currentPage,
+        totalPages,
+        goToPage
+    } = usePagination(listings, 12); // 12 items per page
+
     return (
         <div className="min-h-screen bg-transparent pb-20 md:pb-0">
             {/* Desktop Navbar - Removed double navbar, assuming layout handles it or we need it transparent */}
@@ -222,11 +232,20 @@ export default function SearchPage() {
                                 ))}
                             </div>
                         ) : listings.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
-                                {listings.map(item => (
-                                    <PropertyCard key={item._id} property={item} />
-                                ))}
-                            </div>
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
+                                    {paginatedListings.map(item => (
+                                        <PropertyCard key={item._id} property={item} />
+                                    ))}
+                                </div>
+
+                                {/* Pagination Controls */}
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={goToPage}
+                                />
+                            </>
                         ) : (
                             <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
                                 <h3 className="text-xl font-bold text-gray-900 mb-2">No listings found</h3>

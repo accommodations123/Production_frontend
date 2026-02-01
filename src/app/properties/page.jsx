@@ -4,6 +4,8 @@ import { useGetApprovedPropertiesQuery } from "@/store/api/hostApi";
 import { VerificationBadge } from "@/components/ui/VerificationBadge";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useCountry } from "@/context/CountryContext";
+import { usePagination } from "@/hooks/usePagination";
+import { Pagination } from "@/components/ui/Pagination";
 
 export default function PropertiesListPage() {
   const location = useLocation();
@@ -51,6 +53,9 @@ export default function PropertiesListPage() {
     }
     return items;
   }, [view, items]);
+
+  // ✅ Pagination
+  const { currentItems, currentPage, totalPages, goToPage } = usePagination(filtered, 12);
 
   // -------------------- STATES --------------------
   if (isLoading || isFetching) {
@@ -124,48 +129,56 @@ export default function PropertiesListPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-          {filtered.map((it) => (
-            <Link
-              to={`/rooms/${it.id}`}
-              key={it.id}
-              className="block group"
-            >
-              <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-xl hover:border-gray-300 transition-all duration-300 transform hover:-translate-y-1">
-                <div className="relative h-48 sm:h-52 lg:h-48 overflow-hidden bg-gray-100">
-                  <img
-                    src={it.image}
-                    alt={it.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute top-3 left-3">
-                    <VerificationBadge isVerified={it.isVerified} />
+        <div className="flex flex-col gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            {currentItems.map((it) => (
+              <Link
+                to={`/rooms/${it.id}`}
+                key={it.id}
+                className="block group"
+              >
+                <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-xl hover:border-gray-300 transition-all duration-300 transform hover:-translate-y-1">
+                  <div className="relative h-48 sm:h-52 lg:h-48 overflow-hidden bg-gray-100">
+                    <img
+                      src={it.image}
+                      alt={it.title}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute top-3 left-3">
+                      <VerificationBadge isVerified={it.isVerified} />
+                    </div>
+                  </div>
+
+                  <div className="p-3 sm:p-4">
+                    <h3 className="font-semibold text-gray-900 text-base sm:text-lg truncate">
+                      {it.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {it.city}
+                      {it.city && it.country ? ", " : ""}
+                      {it.country}
+                    </p>
+
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="text-lg sm:text-xl font-bold text-primary">
+                        {it.currency === "INR" ? "₹" : "$"}
+                        {Number(it.price).toLocaleString()}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        per night
+                      </span>
+                    </div>
                   </div>
                 </div>
+              </Link>
+            ))}
+          </div>
 
-                <div className="p-3 sm:p-4">
-                  <h3 className="font-semibold text-gray-900 text-base sm:text-lg truncate">
-                    {it.title}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {it.city}
-                    {it.city && it.country ? ", " : ""}
-                    {it.country}
-                  </p>
-
-                  <div className="mt-3 flex items-center justify-between">
-                    <span className="text-lg sm:text-xl font-bold text-primary">
-                      {it.currency === "INR" ? "₹" : "$"}
-                      {Number(it.price).toLocaleString()}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      per night
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={goToPage}
+          />
         </div>
       )}
     </main>

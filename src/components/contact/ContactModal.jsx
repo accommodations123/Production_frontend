@@ -10,6 +10,7 @@ export function ContactModal({ isOpen, onClose, listing, type = 'call' }) {
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     const [phoneCode, setPhoneCode] = useState("+91");
+    const [phoneIso, setPhoneIso] = useState("");
     const [message, setMessage] = useState("");
     const [preferredTime, setPreferredTime] = useState("");
 
@@ -163,7 +164,11 @@ export function ContactModal({ isOpen, onClose, listing, type = 'call' }) {
                                         <div className="w-[110px] shrink-0">
                                             <CountryCodeSelect
                                                 value={phoneCode}
-                                                onChange={setPhoneCode}
+                                                isoCode={phoneIso}
+                                                onChange={(code, iso) => {
+                                                    setPhoneCode(code);
+                                                    if (iso) setPhoneIso(iso);
+                                                }}
                                             />
                                         </div>
                                         <div className="relative flex-1">

@@ -190,6 +190,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [phoneCode, setPhoneCode] = useState("+91");
+  const [phoneIso, setPhoneIso] = useState("");
   const [category, setCategory] = useState("Furniture");
   const [subcategory, setSubcategory] = useState("");
 
@@ -661,7 +662,11 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
           <div className="flex gap-2">
             <CountryCodeSelect
               value={phoneCode || "+91"}
-              onChange={setPhoneCode}
+              isoCode={phoneIso}
+              onChange={(code, iso) => {
+                setPhoneCode(code);
+                if (iso) setPhoneIso(iso);
+              }}
               className="w-[110px]"
             />
             <Input

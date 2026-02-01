@@ -14,6 +14,8 @@ import { EventsHero } from "./components/EventsHero"
 import { EventsFilters } from "./components/EventsFilters"
 import { EventsSection } from "./components/EventsSection"
 import { EventCard } from "./components/EventCard"
+import { usePagination } from "@/hooks/usePagination"
+import { Pagination } from "@/components/ui/Pagination"
 
 // Constants for better maintainability
 const SCROLL_THRESHOLD = 50
@@ -136,6 +138,14 @@ const EventsPage = () => {
     return filtered;
   }, [allEventsList, searchQuery, activeFilter, selectedFilters, hasActiveFilters]);
 
+  // ✅ Pagination for filtered events
+  const {
+    currentItems: paginatedEvents,
+    currentPage,
+    totalPages,
+    goToPage
+  } = usePagination(filteredEventsDisplay || [], 12);
+
   const handleFilterChange = useCallback((filterType, value) => {
     setSelectedFilters(prev => ({ ...prev, [filterType]: value }))
   }, [])
@@ -226,7 +236,7 @@ const EventsPage = () => {
               {filteredEventsDisplay.length > 0 ? `Found ${filteredEventsDisplay.length} events` : "No events found"}
             </h2>
             <div className={`grid gap-6 ${viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}>
-              {filteredEventsDisplay.map((event, index) => (
+              {paginatedEvents.map((event, index) => (
                 <EventCard
                   key={event.id}
                   event={event}
@@ -236,6 +246,13 @@ const EventsPage = () => {
                 />
               ))}
             </div>
+
+            {/* Pagination Logic */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={goToPage}
+            />
           </div>
         ) : (
           <div className="space-y-12 animate-in fade-in duration-500">

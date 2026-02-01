@@ -15,6 +15,8 @@ import { useGetBuySellListingsQuery, useGetHostProfileQuery, useGetBuySellByIdQu
 import { useGetMeQuery } from "@/store/api/authApi";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import HostGuard from "@/components/auth/HostGuard";
+import { usePagination } from "@/hooks/usePagination";
+import { Pagination } from "@/components/ui/Pagination";
 
 /* ================= COMPONENT ================= */
 
@@ -92,6 +94,14 @@ export default function MarketplacePage() {
   // Filtering is now handled by the backend API
   const filteredProducts = products;
 
+  // ✅ Pagination
+  const {
+    currentItems: paginatedProducts,
+    currentPage,
+    totalPages,
+    goToPage
+  } = usePagination(filteredProducts, 12);
+
   /* ================= HANDLERS ================= */
 
   const handleMessage = product => {
@@ -136,16 +146,25 @@ export default function MarketplacePage() {
                       onMessage={handleMessage}
                     />
                   ) : filteredProducts.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-                      {filteredProducts.map(product => (
-                        <ProductCard
-                          key={product._id || product.id}
-                          product={product}
-                          onMessage={handleMessage}
-                          onClick={() => setViewProduct(product)}
-                        />
-                      ))}
-                    </div>
+                    <>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                        {paginatedProducts.map(product => (
+                          <ProductCard
+                            key={product._id || product.id}
+                            product={product}
+                            onMessage={handleMessage}
+                            onClick={() => setViewProduct(product)}
+                          />
+                        ))}
+                      </div>
+                      {/* Pagination */}
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={goToPage}
+                        className="mt-8"
+                      />
+                    </>
                   ) : (
                     <div className="text-center py-12 text-gray-500">
                       No products found.

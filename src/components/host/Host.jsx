@@ -38,6 +38,7 @@ export default function HostOnboardingForm() {
     email: "",
     phone: "",
     phonePrefix: "+91",
+    phoneIso: "",
     country: "",
     countryCode: "",
     state: "",
@@ -47,6 +48,7 @@ export default function HostOnboardingForm() {
     street_address: "",
     whatsapp: "",
     whatsappPrefix: "+91",
+    whatsappIso: "",
     facebook: "",
     instagram: ""
   });
@@ -447,7 +449,8 @@ export default function HostOnboardingForm() {
                   <div className="flex gap-2">
                     <CountryCodeSelect
                       value={formData.phonePrefix || "+91"}
-                      onChange={(code) => setFormData(prev => ({ ...prev, phonePrefix: code }))}
+                      isoCode={formData.phoneIso}
+                      onChange={(code, iso) => setFormData(prev => ({ ...prev, phonePrefix: code, phoneIso: iso }))}
                       className="w-[110px]"
                     />
                     <input
@@ -636,7 +639,8 @@ export default function HostOnboardingForm() {
                     <div className="flex gap-2">
                       <CountryCodeSelect
                         value={formData.whatsappPrefix || "+91"}
-                        onChange={(code) => setFormData(prev => ({ ...prev, whatsappPrefix: code }))}
+                        isoCode={formData.whatsappIso}
+                        onChange={(code, iso) => setFormData(prev => ({ ...prev, whatsappPrefix: code, whatsappIso: iso }))}
                         className="w-[110px]"
                       />
                       <input

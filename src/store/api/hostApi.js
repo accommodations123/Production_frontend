@@ -524,7 +524,15 @@ export const hostApi = createApi({
         getCommunityFeed: builder.query({
             query: ({ id, page = 1 }) => `community/communities/${id}/posts?page=${page}`,
             providesTags: (result, error, { id }) => [{ type: "Community", id: `FEED-${id}` }],
-            transformResponse: (response) => response?.posts || [],
+            transformResponse: (response) => {
+                const posts = response?.posts || response?.data?.posts || response?.data || [];
+                return {
+                    posts: Array.isArray(posts) ? posts : [],
+                    totalPages: response?.totalPages || 1,
+                    currentPage: response?.currentPage || 1,
+                    totalPosts: response?.totalPosts || 0
+                };
+            },
         }),
 
         deleteCommunityPost: builder.mutation({

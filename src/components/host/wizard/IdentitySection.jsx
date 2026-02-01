@@ -64,7 +64,8 @@ const IdentitySection = ({ formData, setFormData, isEmailVerified, setShowOtpMod
           <div className="flex gap-2">
             <CountryCodeSelect
               value={formData.phoneCode || "+91"}
-              onChange={(code) => setFormData({ ...formData, phoneCode: code })}
+              isoCode={formData.phoneIso}
+              onChange={(code, iso) => setFormData({ ...formData, phoneCode: code, phoneIso: iso })}
               className="w-[110px]"
             />
             <div className="relative flex-1">

@@ -25,6 +25,7 @@ import {
     Heart, MessageCircle, Share2, X, Users, Star, Zap, Bell, Search, Filter, Home, UserCheck, CalendarDays, Image, FileText, Hash, MessageSquare, Clock, MapPin, Calendar, Camera, FolderOpen, Download, Play, Eye, Briefcase, BookOpen, Database, HelpCircle, UserPlus, UserMinus, Settings, ChevronRight, ArrowLeft, ThumbsUp, Bookmark, TrendingUp, Award, BarChart3, Target, Trophy, Gift, Sparkles, Info, Code, Globe, Link2, Mail, Phone, Shield, Pin, Upload, MoreVertical, Layers, Palette, Loader2, Trash2, Plus
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Pagination } from "@/components/ui/Pagination"
 import { cn } from "@/lib/utils"
 
 function ErrorBoundary({ children }) {
@@ -133,72 +134,7 @@ function MembersTab({ communityId }) {
                 </div>
             )}
 
-            {/* Members Section */}
-            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-900">Community Members</h2>
-                    <p className="text-gray-500 text-sm">{memberData?.totalMembers || 0} members</p>
-                </div>
 
-                {/* Search Bar */}
-                <div className="relative w-full sm:max-w-xs">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Search members..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    />
-                </div>
-            </div>
-
-            {members.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {members.map((member) => {
-                        // Handle different user structures depending on backend include
-                        const user = member.User || member.user || member;
-                        const host = user?.Host || user?.host; // If we include Host model
-
-                        const name = host?.full_name || user?.name || user?.full_name || "Unknown Member";
-                        const role = member.role || "Member";
-                        const joinedAt = new Date(member.createdAt || member.created_at).toLocaleDateString();
-                        const image = host?.profile_image || user?.profile_image || user?.avatar;
-
-                        return (
-                            <div key={member.id || user.id} className="bg-white rounded-xl p-4 md:p-5 border border-gray-200 shadow-sm hover:shadow-md transition-all flex items-center gap-4 group">
-                                <div className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-blue-100 transition-colors">
-                                    {image ? (
-                                        <img src={image} alt={name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <span className="text-gray-400 font-bold text-lg">{(name[0] || "U").toUpperCase()}</span>
-                                    )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-gray-900 truncate text-sm md:text-base" title={name}>{name}</h3>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <span className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium ${role === 'owner' ? 'bg-amber-100 text-amber-700' :
-                                            role === 'admin' ? 'bg-purple-100 text-purple-700' :
-                                                'bg-gray-100 text-gray-600'
-                                            }`}>
-                                            {role}
-                                        </span>
-                                    </div>
-                                    <p className="text-xs text-gray-400 mt-1">Joined {joinedAt}</p>
-                                </div>
-                                {role === 'owner' && <Award className="h-5 w-5 text-amber-500 ml-auto" />}
-                            </div>
-                        );
-                    })}
-                </div>
-            ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-gray-500 bg-white rounded-xl border border-dashed border-gray-200">
-                    <Users className="h-12 w-12 text-gray-300 mb-3" />
-                    <p className="text-lg font-medium text-gray-900">No members found</p>
-                    <p className="text-sm">Try adjusting your search terms</p>
-                </div>
-            )
-            }
         </div>
     );
 }
@@ -217,6 +153,7 @@ export default function GroupDetailsPage() {
     const { activeCountry } = useCountry();
 
     // --- Feed State ---
+    const [page, setPage] = React.useState(1);
     const [postContent, setPostContent] = React.useState("");
     const [postMedia, setPostMedia] = React.useState([]);
     const [isPosting, setIsPosting] = React.useState(false);
@@ -228,8 +165,18 @@ export default function GroupDetailsPage() {
         description: "",
         resource_type: "link", // link, file
         resource_value: "", // url
+
         file: null
     });
+
+    // --- Menu State ---
+    const [openMenuId, setOpenMenuId] = React.useState(null);
+
+    React.useEffect(() => {
+        const handleClickOutside = () => setOpenMenuId(null);
+        window.addEventListener("click", handleClickOutside);
+        return () => window.removeEventListener("click", handleClickOutside);
+    }, []);
 
     // API hooks
     const { data: communityData, isLoading, error, refetch } = useGetCommunityByIdQuery(id)
@@ -237,7 +184,10 @@ export default function GroupDetailsPage() {
     const [leaveCommunity] = useLeaveCommunityMutation()
 
     // Feed & Resources Hooks
-    const { data: feedPosts, isLoading: isFeedLoading } = useGetCommunityFeedQuery({ id }, { skip: !id });
+    const { data: feedData, isLoading: isFeedLoading } = useGetCommunityFeedQuery({ id, page }, { skip: !id });
+    const feedPosts = feedData?.posts || [];
+    const totalPages = feedData?.totalPages || 1;
+
     const { data: resources, isLoading: isResourcesLoading } = useGetCommunityResourcesQuery(id, { skip: !id });
 
     const [createPost] = useCreateCommunityPostMutation();
@@ -581,10 +531,37 @@ export default function GroupDetailsPage() {
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        {/* Delete Option (simple check) */}
-                                                        <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-500 h-8 w-8 p-0" onClick={() => handleDeletePost(post.id)}>
-                                                            <Trash2 size={14} />
-                                                        </Button>
+
+                                                        {/* Actions Menu */}
+                                                        {(isOwner || String(post.author?.id || post.author_id) === String(resolvedUser?.id)) && (
+                                                            <div className="relative ml-2">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setOpenMenuId(openMenuId === post.id ? null : post.id);
+                                                                    }}
+                                                                    className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                                                                >
+                                                                    <MoreVertical size={18} />
+                                                                </button>
+
+                                                                {openMenuId === post.id && (
+                                                                    <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10 animate-in fade-in zoom-in duration-200">
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleDeletePost(post.id);
+                                                                                setOpenMenuId(null);
+                                                                            }}
+                                                                            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                                                        >
+                                                                            <Trash2 size={14} />
+                                                                            <span>Delete</span>
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             );
@@ -599,23 +576,7 @@ export default function GroupDetailsPage() {
                             </div>
                         </div>
 
-                        {/* Right Sidebar - Members */}
-                        <div className="hidden md:flex w-80 bg-white flex-col h-full border-l border-gray-200">
-                            <div className="p-4 border-b border-gray-200 bg-red-50">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                                        <Users className="h-5 w-5 text-red-600" /> Members
-                                    </h3>
-                                    <span className="text-sm font-medium text-red-600 bg-red-100 px-2 py-1 rounded">
-                                        {community?.members_count || 0}
-                                    </span>
-                                </div>
-                            </div>
-                            {/* We don't have a getMembers API in snippet, so placeholders or community.members if available */}
-                            <div className="flex-1 p-4 text-center text-gray-500 text-sm">
-                                <p>Member list not fully integrated yet.</p>
-                            </div>
-                        </div>
+
                     </div>
                 );
 

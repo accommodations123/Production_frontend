@@ -51,7 +51,7 @@ export const EventsHero = memo(({ totalEvents, searchQuery, setSearchQuery, feat
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
                             <Link to={hostPath}>
-                                <Button className="h-12 px-6 sm:px-8 bg-[#00142E] hover:bg-[#00142E]/90 text-white rounded-xl font-medium shadow-lg shadow-[#00142E]/20 flex items-center gap-2 transform hover:scale-105 transition-all duration-300 text-sm sm:text-base">
+                                <Button className="h-12 px-6 sm:px-8 bg-[#C93A30] hover:bg-[#C93A30]/90 text-white rounded-xl font-medium shadow-lg shadow-[#00142E]/20 flex items-center gap-2 transform hover:scale-105 transition-all duration-300 text-sm sm:text-base">
                                     <Plus className="h-5 w-5" />
                                     Host an Event
                                 </Button>

@@ -171,7 +171,11 @@ export const EventDetailsSection = ({ formData, handleInputChange }) => {
                         <div className="w-[120px] shrink-0">
                             <CountryCodeSelect
                                 value={formData.phoneCode || "+91"}
-                                onChange={(val) => handleInputChange("phoneCode", val)}
+                                isoCode={formData.phoneIso}
+                                onChange={(val, code) => {
+                                    handleInputChange("phoneCode", val);
+                                    if (code) handleInputChange("phoneIso", code);
+                                }}
                                 className="w-full"
                             />
                         </div>
