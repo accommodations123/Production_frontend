@@ -305,24 +305,35 @@ export default function TravelPage() {
     }
   };
 
-  const updateMatchStatus = async (matchId, status) => {
-    const match = matches.find(m => m.id === matchId);
-    if (!match) return;
+  const updateMatchStatus = async (matchId, tripId, matchedTripId, status) => {
+    // Find match - handle both backend formats (match_id vs id)
+    const match = matches.find(m => m.match_id === matchId || m.id === matchId);
+
+    // Use provided tripId/matchedTripId or fall back to match object
+    const actualTripId = tripId || match?.trip_id || match?.requester_trip?.id;
+    const actualMatchedTripId = matchedTripId || match?.matched_trip_id || match?.receiver_trip?.id;
+
+    if (!actualTripId || !actualMatchedTripId) {
+      console.error("Missing trip IDs for match action");
+      return;
+    }
 
     // Mapping UI status to backend action
     const action = status === "accepted" ? "accept" : status === "rejected" ? "reject" : status;
 
     const payload = {
-      trip_id: match.trip_id,
-      matched_trip_id: match.matched_trip_id,
+      trip_id: actualTripId,
+      matched_trip_id: actualMatchedTripId,
       action: action
     };
 
     try {
       const response = await performMatchAction(payload).unwrap();
       if (response.success) {
-        // UI update will happen via refetch, but local update for responsiveness
-        setMatches(matches.map(m => m.id === matchId ? { ...m, status: response.status || status, updated_at: new Date().toISOString() } : m));
+        // Remove from local matches array for instant UI feedback
+        setMatches(matches.filter(m => (m.match_id || m.id) !== matchId));
+        // Refetch to get fresh data
+        refetchMatches();
       }
     } catch (error) {
       console.error("Failed to update match status:", error);
@@ -460,8 +471,8 @@ export default function TravelPage() {
               matches={matches}
               plans={plans}
               myTrips={myTrips}
-              onAcceptRequest={(id) => updateMatchStatus(id, "accepted")}
-              onRejectRequest={(id) => updateMatchStatus(id, "rejected")}
+              onAcceptRequest={(matchId, tripId, matchedTripId) => updateMatchStatus(matchId, tripId, matchedTripId, "accepted")}
+              onRejectRequest={(matchId, tripId, matchedTripId) => updateMatchStatus(matchId, tripId, matchedTripId, "rejected")}
             />
           )}
         </AnimatePresence>

@@ -4,37 +4,62 @@ import { X, Users, AlertCircle, CheckCircle, UserCheck, UserX, Phone, Mail, Load
 import { FaWhatsapp } from "react-icons/fa";
 
 export default function MatchRequestsModal({ onClose, matches, plans, myTrips, onAcceptRequest, onRejectRequest }) {
-    const [activeTab, setActiveTab] = useState("incoming"); // incoming, outgoing
+    const [activeTab, setActiveTab] = useState("incoming");
     const [processingIds, setProcessingIds] = useState(new Set());
 
-    const handleAction = async (id, actionFn) => {
-        setProcessingIds(prev => new Set(prev).add(id));
+    const handleAction = async (matchId, tripId, matchedTripId, actionFn) => {
+        setProcessingIds(prev => new Set(prev).add(matchId));
         try {
-            await actionFn(id);
+            await actionFn(matchId, tripId, matchedTripId);
         } finally {
             setProcessingIds(prev => {
                 const next = new Set(prev);
-                next.delete(id);
+                next.delete(matchId);
                 return next;
             });
         }
     };
 
-    // Get incoming requests (where current user's trip is the target)
-    const incomingRequests = matches.filter(match =>
-        myTrips.some(myTrip => myTrip.id === match.matched_trip_id)
-    ).map(match => {
-        // The requester is the OTHER trip
-        const requesterPlan = plans.find(plan => plan.id === match.trip_id) || myTrips.find(p => p.id === match.trip_id);
+    // Process matches data based on backend response format
+    // Backend returns: { match_id, status, receiver_trip, requester_trip }
+    const processedIncoming = matches.filter(m => m.status === "pending").map(match => {
+        // If backend returns new format (receiver_trip, requester_trip)
+        if (match.requester_trip) {
+            return {
+                id: match.match_id,
+                status: match.status,
+                trip_id: match.requester_trip?.id,
+                matched_trip_id: match.receiver_trip?.id,
+                requesterPlan: {
+                    id: match.requester_trip?.id,
+                    destination: `${match.requester_trip?.to_city}, ${match.requester_trip?.to_country}`,
+                    date: match.requester_trip?.travel_date,
+                    time: match.requester_trip?.departure_time,
+                    user: {
+                        fullName: match.requester_trip?.host?.full_name || "Unknown",
+                        image: match.requester_trip?.host?.profile_image || "https://via.placeholder.com/100",
+                        country: match.requester_trip?.host?.country,
+                        city: match.requester_trip?.host?.city
+                    },
+                    flight: {
+                        from: match.requester_trip?.from_city,
+                        to: match.requester_trip?.to_city
+                    }
+                }
+            };
+        }
+        // Old format fallback (trip_id, matched_trip_id)
+        const requesterPlan = plans.find(p => p.id === match.trip_id) || myTrips.find(p => p.id === match.trip_id);
         return { ...match, requesterPlan };
-    }).filter(m => m.requesterPlan); // Ensure we found the other plan
+    }).filter(m => m.requesterPlan);
 
-    // Get outgoing requests (where current user's trip is the requester)
-    const outgoingRequests = matches.filter(match =>
-        myTrips.some(myTrip => myTrip.id === match.trip_id)
-    ).map(match => {
-        // The receiver is the OTHER trip
-        const receiverPlan = plans.find(plan => plan.id === match.matched_trip_id) || myTrips.find(p => p.id === match.matched_trip_id);
+    // Outgoing requests - where user's trip is the requester
+    const processedOutgoing = matches.filter(match => {
+        // For new format, outgoing would come from a different endpoint
+        // For now, check old format
+        return myTrips.some(myTrip => myTrip.id === match.trip_id);
+    }).map(match => {
+        const receiverPlan = plans.find(p => p.id === match.matched_trip_id) || myTrips.find(p => p.id === match.matched_trip_id);
         return { ...match, receiverPlan };
     }).filter(m => m.receiverPlan);
 
@@ -107,7 +132,7 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
                                 onClick={() => setActiveTab("incoming")}
                                 disabled={processingIds.size > 0}
                             >
-                                Incoming Requests ({incomingRequests.length})
+                                Incoming Requests ({processedIncoming.length})
                             </button>
                             <button
                                 className={`px-6 py-3 font-medium ${activeTab === "outgoing" ? "border-b-2" : ""}`}
@@ -118,7 +143,7 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
                                 onClick={() => setActiveTab("outgoing")}
                                 disabled={processingIds.size > 0}
                             >
-                                Outgoing Requests ({outgoingRequests.length})
+                                Outgoing Requests ({processedOutgoing.length})
                             </button>
                         </div>
                     </div>
@@ -126,41 +151,36 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
                     <div className="p-6 max-h-[60vh] overflow-y-auto">
                         {activeTab === "incoming" && (
                             <div>
-                                {incomingRequests.length === 0 ? (
+                                {processedIncoming.length === 0 ? (
                                     <div className="text-center py-8">
                                         <AlertCircle size={48} className="mx-auto mb-4" style={{ color: 'var(--color-secondary)' }} />
                                         <p style={{ color: 'var(--color-secondary)' }}>No incoming requests</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        {incomingRequests.map((request) => (
+                                        {processedIncoming.map((request) => (
                                             <div key={request.id} className="border rounded-lg p-4" style={{ borderColor: 'var(--color-neutral)' }}>
                                                 <div className="flex items-start justify-between">
                                                     <div className="flex items-center gap-4">
                                                         <img
-                                                            src={request.requesterPlan.user.image}
+                                                            src={request.requesterPlan?.user?.image || "https://via.placeholder.com/100"}
                                                             className="w-12 h-12 rounded-full object-cover border-2"
                                                             style={{ borderColor: 'var(--color-neutral)' }}
-                                                            alt={request.requesterPlan.user.fullName}
+                                                            alt={request.requesterPlan?.user?.fullName || "User"}
                                                             loading="lazy"
                                                         />
                                                         <div>
                                                             <h4 className="font-semibold" style={{ color: 'var(--color-foreground)' }}>
-                                                                {request.requesterPlan.user.fullName}
+                                                                {request.requesterPlan?.user?.fullName}
                                                             </h4>
                                                             <p className="text-sm" style={{ color: 'var(--color-secondary)' }}>
-                                                                Traveling to {request.requesterPlan.destination}
+                                                                Traveling to {request.requesterPlan?.destination}
                                                             </p>
                                                             <p className="text-sm" style={{ color: 'var(--color-secondary)' }}>
-                                                                {request.requesterPlan.date} at {request.requesterPlan.time}
+                                                                {request.requesterPlan?.date} {request.requesterPlan?.time && `at ${request.requesterPlan?.time}`}
                                                             </p>
                                                             <div className="flex items-center gap-2 mt-1">
                                                                 {getStatusBadge(request.status)}
-                                                                {request.consent_given && (
-                                                                    <span className="text-xs text-green-600 flex items-center gap-1">
-                                                                        <CheckCircle size={12} /> Consent Given
-                                                                    </span>
-                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -169,7 +189,12 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
                                                             <motion.button
                                                                 whileHover={{ scale: processingIds.has(request.id) ? 1 : 1.05 }}
                                                                 whileTap={{ scale: processingIds.has(request.id) ? 1 : 0.95 }}
-                                                                onClick={() => handleAction(request.id, onAcceptRequest)}
+                                                                onClick={() => handleAction(
+                                                                    request.id,
+                                                                    request.trip_id,
+                                                                    request.matched_trip_id,
+                                                                    onAcceptRequest
+                                                                )}
                                                                 className="px-4 py-2 rounded-lg text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all"
                                                                 style={{ backgroundColor: 'var(--color-accent)', opacity: processingIds.has(request.id) ? 0.7 : 1 }}
                                                                 title="Accept Request"
@@ -187,7 +212,12 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
                                                             <motion.button
                                                                 whileHover={{ scale: processingIds.has(request.id) ? 1 : 1.05 }}
                                                                 whileTap={{ scale: processingIds.has(request.id) ? 1 : 0.95 }}
-                                                                onClick={() => handleAction(request.id, onRejectRequest)}
+                                                                onClick={() => handleAction(
+                                                                    request.id,
+                                                                    request.trip_id,
+                                                                    request.matched_trip_id,
+                                                                    onRejectRequest
+                                                                )}
                                                                 className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all hover:bg-red-500 hover:text-white"
                                                                 style={{ opacity: processingIds.has(request.id) ? 0.7 : 1 }}
                                                                 title="Reject Request"
@@ -214,75 +244,76 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
 
                         {activeTab === "outgoing" && (
                             <div>
-                                {outgoingRequests.length === 0 ? (
+                                {processedOutgoing.length === 0 ? (
                                     <div className="text-center py-8">
                                         <AlertCircle size={48} className="mx-auto mb-4" style={{ color: 'var(--color-secondary)' }} />
                                         <p style={{ color: 'var(--color-secondary)' }}>No outgoing requests</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        {outgoingRequests.map((request) => (
+                                        {processedOutgoing.map((request) => (
                                             <div key={request.id} className="border rounded-lg p-4" style={{ borderColor: 'var(--color-neutral)' }}>
                                                 <div className="flex items-start justify-between">
                                                     <div className="flex items-center gap-4">
                                                         <img
-                                                            src={request.receiverPlan.user.image}
+                                                            src={request.receiverPlan?.user?.image || "https://via.placeholder.com/100"}
                                                             className="w-12 h-12 rounded-full object-cover border-2"
                                                             style={{ borderColor: 'var(--color-neutral)' }}
-                                                            alt={request.receiverPlan.user.fullName}
+                                                            alt={request.receiverPlan?.user?.fullName || "User"}
                                                             loading="lazy"
                                                         />
                                                         <div>
                                                             <h4 className="font-semibold" style={{ color: 'var(--color-foreground)' }}>
-                                                                {request.receiverPlan.user.fullName}
+                                                                {request.receiverPlan?.user?.fullName}
                                                             </h4>
                                                             <p className="text-sm" style={{ color: 'var(--color-secondary)' }}>
-                                                                Traveling to {request.receiverPlan.destination}
+                                                                Traveling to {request.receiverPlan?.destination}
                                                             </p>
                                                             <p className="text-sm" style={{ color: 'var(--color-secondary)' }}>
-                                                                {request.receiverPlan.date} at {request.receiverPlan.time}
+                                                                {request.receiverPlan?.date} {request.receiverPlan?.time && `at ${request.receiverPlan?.time}`}
                                                             </p>
                                                             <div className="flex items-center gap-2 mt-1">
                                                                 {getStatusBadge(request.status)}
-                                                                {request.consent_given && (
-                                                                    <span className="text-xs text-green-600 flex items-center gap-1">
-                                                                        <CheckCircle size={12} /> Consent Given
-                                                                    </span>
-                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
                                                     {request.status === "accepted" && (
                                                         <div className="flex items-center gap-2">
-                                                            <motion.a
-                                                                whileHover={{ scale: 1.2 }}
-                                                                whileTap={{ scale: 0.9 }}
-                                                                href={`https://wa.me/${request.receiverPlan.user.whatsapp}`}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="text-green-600"
-                                                                title="Contact on WhatsApp"
-                                                            >
-                                                                <FaWhatsapp size={20} />
-                                                            </motion.a>
-                                                            <motion.a
-                                                                whileHover={{ scale: 1.2 }}
-                                                                whileTap={{ scale: 0.9 }}
-                                                                href={`tel:${request.receiverPlan.user.phone}`}
-                                                                className="text-blue-600"
-                                                                title="Call"
-                                                            >
-                                                                <Phone size={20} />
-                                                            </motion.a>
-                                                            <motion.a
-                                                                whileHover={{ scale: 1.2 }}
-                                                                whileTap={{ scale: 0.9 }}
-                                                                href={`mailto:${request.receiverPlan.user.email}`}
-                                                                className="text-red-600"
-                                                                title="Email"
-                                                            >
-                                                                <Mail size={20} />
-                                                            </motion.a>
+                                                            {request.receiverPlan?.user?.whatsapp && (
+                                                                <motion.a
+                                                                    whileHover={{ scale: 1.2 }}
+                                                                    whileTap={{ scale: 0.9 }}
+                                                                    href={`https://wa.me/${request.receiverPlan.user.whatsapp}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-green-600"
+                                                                    title="Contact on WhatsApp"
+                                                                >
+                                                                    <FaWhatsapp size={20} />
+                                                                </motion.a>
+                                                            )}
+                                                            {request.receiverPlan?.user?.phone && (
+                                                                <motion.a
+                                                                    whileHover={{ scale: 1.2 }}
+                                                                    whileTap={{ scale: 0.9 }}
+                                                                    href={`tel:${request.receiverPlan.user.phone}`}
+                                                                    className="text-blue-600"
+                                                                    title="Call"
+                                                                >
+                                                                    <Phone size={20} />
+                                                                </motion.a>
+                                                            )}
+                                                            {request.receiverPlan?.user?.email && (
+                                                                <motion.a
+                                                                    whileHover={{ scale: 1.2 }}
+                                                                    whileTap={{ scale: 0.9 }}
+                                                                    href={`mailto:${request.receiverPlan.user.email}`}
+                                                                    className="text-red-600"
+                                                                    title="Email"
+                                                                >
+                                                                    <Mail size={20} />
+                                                                </motion.a>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
