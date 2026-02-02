@@ -21,9 +21,28 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
     };
 
     // Process matches data based on backend response format
-    // Backend returns: { match_id, status, receiver_trip, requester_trip }
-    const processedIncoming = matches.filter(m => m.status === "pending").map(match => {
-        // If backend returns new format (receiver_trip, requester_trip)
+    // NEW Backend returns: { match_id, status, requester: { full_name, whatsapp, email, ... } }
+    const processedIncoming = matches.filter(m => m.status === "pending" || m.status === "accepted").map(match => {
+        // New backend format uses 'requester' directly
+        if (match.requester) {
+            return {
+                id: match.match_id,
+                status: match.status,
+                trip_id: match.trip_id || match.requester_trip?.id,
+                matched_trip_id: match.matched_trip_id || match.receiver_trip?.id,
+                requesterPlan: {
+                    user: {
+                        fullName: match.requester.full_name || "Unknown",
+                        image: match.requester.profile_image || "https://via.placeholder.com/100",
+                        country: match.requester.country,
+                        city: match.requester.city,
+                        whatsapp: match.requester.whatsapp,
+                        email: match.requester.email
+                    }
+                }
+            };
+        }
+        // Old format fallback (requester_trip with nested host)
         if (match.requester_trip) {
             return {
                 id: match.match_id,
@@ -39,7 +58,9 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
                         fullName: match.requester_trip?.host?.full_name || "Unknown",
                         image: match.requester_trip?.host?.profile_image || "https://via.placeholder.com/100",
                         country: match.requester_trip?.host?.country,
-                        city: match.requester_trip?.host?.city
+                        city: match.requester_trip?.host?.city,
+                        whatsapp: match.requester_trip?.host?.whatsapp,
+                        email: match.requester_trip?.host?.email
                     },
                     flight: {
                         from: match.requester_trip?.from_city,
@@ -48,7 +69,7 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
                 }
             };
         }
-        // Old format fallback (trip_id, matched_trip_id)
+        // Legacy format fallback
         const requesterPlan = plans.find(p => p.id === match.trip_id) || myTrips.find(p => p.id === match.trip_id);
         return { ...match, requesterPlan };
     }).filter(m => m.requesterPlan);
@@ -232,6 +253,39 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
                                                                     </>
                                                                 )}
                                                             </motion.button>
+                                                        </div>
+                                                    )}
+                                                    {request.status === "accepted" && (
+                                                        <div className="flex items-center gap-3">
+                                                            {request.requesterPlan?.user?.whatsapp && (
+                                                                <motion.a
+                                                                    whileHover={{ scale: 1.1 }}
+                                                                    whileTap={{ scale: 0.95 }}
+                                                                    href={`https://wa.me/${request.requesterPlan.user.whatsapp.replace(/[^0-9]/g, '')}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="px-4 py-2 rounded-lg bg-green-500 text-white flex items-center gap-2 shadow-md font-medium text-sm"
+                                                                    title="Contact on WhatsApp"
+                                                                >
+                                                                    <FaWhatsapp size={18} />
+                                                                    WhatsApp
+                                                                </motion.a>
+                                                            )}
+                                                            {request.requesterPlan?.user?.email && (
+                                                                <motion.a
+                                                                    whileHover={{ scale: 1.1 }}
+                                                                    whileTap={{ scale: 0.95 }}
+                                                                    href={`mailto:${request.requesterPlan.user.email}`}
+                                                                    className="px-4 py-2 rounded-lg bg-blue-500 text-white flex items-center gap-2 shadow-md font-medium text-sm"
+                                                                    title="Send Email"
+                                                                >
+                                                                    <Mail size={18} />
+                                                                    Email
+                                                                </motion.a>
+                                                            )}
+                                                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                                Connected ✓
+                                                            </span>
                                                         </div>
                                                     )}
                                                 </div>
