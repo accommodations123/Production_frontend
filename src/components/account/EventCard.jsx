@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Edit, Trash2, Eye, Calendar, MapPin, Clock, Lock, ImageOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { COUNTRIES } from "@/lib/mock-data"
 
 export function EventCard({ event, onDelete }) {
     const [isDeleting, setIsDeleting] = useState(false)
@@ -22,7 +23,24 @@ export function EventCard({ event, onDelete }) {
 
     const startTime = event.start_time || "Time TBD"
     const location = [event.city, event.country].filter(Boolean).join(", ") || "Location TBD"
-    const price = event.price && event.price !== "0" && event.price !== 0 ? `$${event.price}` : "Free"
+
+    const getCurrencySymbol = (countryName) => {
+        if (!countryName) return '$';
+        const country = COUNTRIES.find(c => c.name === countryName || c.code === countryName);
+        if (!country || !country.currency) return '$';
+
+        try {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: country.currency,
+            }).formatToParts(0).find(part => part.type === 'currency')?.value || country.currency;
+        } catch (e) {
+            return country.currency;
+        }
+    };
+
+    const currencySymbol = getCurrencySymbol(event.country);
+    const price = event.price && event.price !== "0" && event.price !== 0 ? `${currencySymbol}${event.price}` : "Free"
 
     // Status badge configuration
     const getStatusBadge = () => {

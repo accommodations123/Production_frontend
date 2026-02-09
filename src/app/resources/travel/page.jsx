@@ -224,7 +224,7 @@ export default function TravelPage() {
     try {
       await triggerSearch({
         from_country: filters.country || "India",
-        to_country: filters.country || "USA",
+        to_country: filters.country || "United States of America",
         date: new Date().toISOString().split('T')[0]
       });
     } catch (error) {

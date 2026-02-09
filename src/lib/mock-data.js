@@ -183,7 +183,7 @@ export const LISTINGS = [
     {
         id: 1,
         title: "Modern Loft in Downtown",
-        location: "New York, USA",
+        location: "New York, United States of America",
         price: 150,
         rating: 4.8,
         reviews: 128,
@@ -208,7 +208,7 @@ export const LISTINGS = [
     {
         id: 2,
         title: "Cozy Mountain Cabin",
-        location: "Aspen, USA",
+        location: "Aspen, United States of America",
         price: 250,
         rating: 4.9,
         reviews: 85,

@@ -1,7 +1,7 @@
 export const VISA_GUIDES = [
     {
         id: "usa",
-        country: "USA",
+        country: "United States of America",
         types: [
             {
                 name: "F-1 Student Visa",

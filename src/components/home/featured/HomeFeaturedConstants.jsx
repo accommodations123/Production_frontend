@@ -103,7 +103,7 @@ export const COMMUNITY_SHARES = [
         id: 1,
         title: "Indian Cookware Set",
         description: "Traditional cookware for authentic Indian cooking",
-        location: "New York, USA",
+        location: "New York, United States of America",
         image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=400&h=200&fit=crop",
         category: "Home Goods",
         condition: "Excellent",

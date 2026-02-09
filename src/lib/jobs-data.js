@@ -32,8 +32,8 @@ export const JOB_SUPPORTERS = [
         company: "J.P. Morgan",
         domain: "Finance",
         experience: "5 years",
-        location: "New York, USA",
-        country: "USA",
+        location: "New York, United States of America",
+        country: "United States of America",
         image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
         bio: "Guiding students and professionals on breaking into Wall Street. Visa advice included.",
         connectionModes: ["Online", "Offline"]
@@ -71,8 +71,8 @@ export const JOB_SUPPORTERS = [
         company: "Amazon",
         domain: "Data Science",
         experience: "4 years",
-        location: "Seattle, USA",
-        country: "USA",
+        location: "Seattle, United States of America",
+        country: "United States of America",
         image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
         bio: "Mentoring on ML/AI career paths and resume reviews for big tech.",
         connectionModes: ["Online"]
