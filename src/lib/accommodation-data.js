@@ -44,7 +44,7 @@ export const ACCOMMODATION_LISTINGS = [
     {
         id: 4,
         title: "Family Home - Entire Floor",
-        location: "New Jersey, United States of America",
+        location: "New Jersey, USA",
         price: 2500,
         currency: "USD",
         type: "Apartment",

@@ -183,7 +183,7 @@ export default function LegalPage() {
                             </h3>
                             <div className="space-y-3">
                                 <a href="#" className="block p-3 rounded-lg bg-gray-50 hover:bg-blue-50 transition-colors border border-gray-100 group">
-                                    <span className="block font-semibold text-[#07182A] text-sm group-hover:text-blue-700">USCIS (United States of America)</span>
+                                    <span className="block font-semibold text-[#07182A] text-sm group-hover:text-blue-700">USCIS (USA)</span>
                                     <span className="text-xs text-gray-500">Official US Immigration Site</span>
                                 </a>
                                 <a href="#" className="block p-3 rounded-lg bg-gray-50 hover:bg-blue-50 transition-colors border border-gray-100 group">

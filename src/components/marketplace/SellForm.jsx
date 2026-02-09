@@ -197,7 +197,9 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
   const [isPincodeLoading, setIsPincodeLoading] = useState(false);
   const [validationError, setValidationError] = useState("");
 
-  const [countriesList] = useState(Country.getAllCountries());
+  const [countriesList] = useState(Country.getAllCountries().map(c =>
+    c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
+  ));
   const [statesList, setStatesList] = useState([]);
   const [citiesList, setCitiesList] = useState([]);
 

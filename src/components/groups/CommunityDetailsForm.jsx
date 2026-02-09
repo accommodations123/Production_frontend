@@ -84,7 +84,9 @@ const CommunityDetailsForm = () => {
         phoneIso: ""
     });
 
-    const [countriesList] = useState(Country.getAllCountries());
+    const [countriesList] = useState(Country.getAllCountries().map(c =>
+        c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
+    ));
     const [statesList, setStatesList] = useState([]);
     const [citiesList, setCitiesList] = useState([]);
 

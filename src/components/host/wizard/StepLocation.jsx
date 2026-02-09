@@ -6,7 +6,9 @@ import SearchableDropdown from "@/components/ui/SearchableDropdown";
 
 export function StepLocation({ formData, setFormData }) {
     const [isPincodeLoading, setIsPincodeLoading] = useState(false);
-    const [countriesList] = useState(Country.getAllCountries());
+    const [countriesList] = useState(Country.getAllCountries().map(c =>
+        c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
+    ));
     const [statesList, setStatesList] = useState([]);
     const [citiesList, setCitiesList] = useState([]);
 

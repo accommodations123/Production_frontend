@@ -34,7 +34,9 @@ export default function PostTripModal({ onClose, onAdd }) {
     const [formErrors, setFormErrors] = useState({});
 
     // Country/State/City lists
-    const [countriesList] = useState(Country.getAllCountries());
+    const [countriesList] = useState(Country.getAllCountries().map(c =>
+        c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
+    ));
 
     // Origin location lists
     const [fromStatesList, setFromStatesList] = useState([]);

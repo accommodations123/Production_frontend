@@ -198,7 +198,7 @@ const AboutUs = () => {
           <div>
             <h2 className="text-4xl font-bold mb-6">Founded on Innovation</h2>
             <p className="text-gray-600 mb-6">
-              Nextkinlife is a global IT Services & Consulting company proudly headquartered in Ellicott City, Maryland, United States of America, with a strong development and management team based in India.
+              Nextkinlife is a global IT Services & Consulting company proudly headquartered in Ellicott City, Maryland, USA, with a strong development and management team based in India.
             </p>
             <p className="text-gray-600 mb-6">
               We specialize in delivering complete end-to-end software solutions for our U.S. clients, powered by a highly skilled Indian workforce. In addition to client-based services, our team is actively engaged in building innovative internal products driving future technology advancements.

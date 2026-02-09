@@ -156,7 +156,7 @@ export default function CreateGroupPage() {
                                         name="country"
                                         value={formData.country}
                                         onChange={handleChange}
-                                        placeholder="e.g. United States of America"
+                                        placeholder="e.g. USA"
                                         required
                                         className="w-full"
                                     />

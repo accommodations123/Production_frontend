@@ -27,7 +27,7 @@ export const COMMUNITY_DIRECTORY = [
         id: 4,
         category: "Associations",
         name: "Telugu Association of North America",
-        location: "United States of America (National)",
+        location: "USA (National)",
         description: "Serving the Telugu speaking community across North America.",
         contact: "info@tana.org"
     },
@@ -46,7 +46,7 @@ export const DAILY_LIVING_GUIDES = [
         id: "banking",
         title: "Banking & Finance",
         icon: "CreditCard",
-        content: "Opening a bank account usually requires your passport, proof of address, and visa. Look for student accounts with low fees. Popular banks for expats include HSBC, N26 (Europe), and Chase (United States of America)."
+        content: "Opening a bank account usually requires your passport, proof of address, and visa. Look for student accounts with low fees. Popular banks for expats include HSBC, N26 (Europe), and Chase (USA)."
     },
     {
         id: "sim",

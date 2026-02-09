@@ -133,6 +133,12 @@ export default function TravelPage() {
       fullName = `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim();
     }
 
+    const normalizeCountry = (c) => {
+      if (!c) return "";
+      if (c === "United States" || c === "USA" || c === "US") return "United States of America";
+      return c;
+    };
+
     return {
       id: trip.id,
       host_id: trip.host_id,
@@ -141,7 +147,7 @@ export default function TravelPage() {
         fullName: fullName,
         age: trip.age || trip.user?.age || trip.host?.age || "",
         gender: trip.gender || trip.user?.gender || trip.host?.gender || "",
-        country: trip.user?.country || trip.host?.country || trip.from_country,
+        country: normalizeCountry(trip.user?.country || trip.host?.country || trip.from_country),
         state: trip.user?.state || trip.host?.city || "",
         city: trip.user?.city || trip.host?.city || "",
         languages: (trip.languages || trip.user?.languages)
@@ -152,7 +158,7 @@ export default function TravelPage() {
         image: trip.image || trip.user?.image || trip.user?.profile_image || trip.host?.image || trip.host?.profile_image || null,
         verified: trip.host?.user?.verified || trip.user?.verified || false
       },
-      destination: `${trip.to_city}, ${trip.to_country}`,
+      destination: `${trip.to_city}, ${normalizeCountry(trip.to_country)}`,
       date: trip.travel_date,
       time: trip.departure_time,
       flight: {
@@ -224,7 +230,7 @@ export default function TravelPage() {
     try {
       await triggerSearch({
         from_country: filters.country || "India",
-        to_country: filters.country || "United States of America",
+        to_country: filters.country || "USA",
         date: new Date().toISOString().split('T')[0]
       });
     } catch (error) {
