@@ -8,9 +8,9 @@ import { ProductCard } from '@/components/marketplace/ProductCard';
 import TripCard from '@/components/travel/TripCard';
 import { Loader2, Heart, ShoppingBag, Calendar, Home, Plane, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Navbar from '@/components/layout/Navbar';
+import { Navbar } from '@/components/layout/Navbar';
 import { CommunityGroupCard } from '@/components/home/featured/CommunityGroupCard';
-import Footer from '@/components/layout/Footer';
+import { Footer } from '@/components/layout/Footer';
 
 export default function WishlistPage() {
     const [activeTab, setActiveTab] = useState('property');

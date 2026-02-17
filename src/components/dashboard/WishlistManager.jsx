@@ -89,7 +89,7 @@ export function WishlistManager() {
                             return <PropertyCard key={item.id} property={normalizedProperty} />;
 
                         case 'event':
-                        case 'event':
+
                             // Normalize data for EventCard
                             const normalizedEvent = {
                                 ...details,
