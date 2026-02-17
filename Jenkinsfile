@@ -82,7 +82,8 @@ pipeline {
 
                         --distribution-id ${CLOUDFRONT_ID} \
 
-                        --paths "/*"
+                        --paths "/*" \
+                        --region us-east-1
 
                     """
 
