@@ -14,23 +14,23 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api/host': {
-        target: 'http://3.147.226.49:5000',
+        target: 'https://api.nextkinlife.live',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
         headers: {
-          'Host': 'accomodation.api.test.nextkinlife.live',
-          'Origin': 'https://accomodation.test.nextkinlife.live'
+          'Host': 'https://api.nextkinlife.live',
+          'Origin': 'https://nextkinlife.live'
         },
       },
       '/api': {
-        target: 'http://3.147.226.49:5000',
+        target: 'https://api.nextkinlife.live',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
         headers: {
-          'Host': 'accomodation.api.test.nextkinlife.live',
-          'Origin': 'https://accomodation.test.nextkinlife.live'
+          'Host': 'https://api.nextkinlife.live',
+          'Origin': 'https://nextkinlife.live/'
         },
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
@@ -55,13 +55,13 @@ export default defineConfig({
         }
       },
       '/socket.io': {
-        target: 'http://3.147.226.49:5000',
+        target: 'https://api.nextkinlife.live',
         changeOrigin: true,
         secure: false,
         ws: true,
         headers: {
-          'Host': 'accomodation.api.test.nextkinlife.live',
-          'Origin': 'https://accomodation.test.nextkinlife.live'
+          'Host': 'https://api.nextkinlife.live',
+          'Origin': 'https://nextkinlife.live'
         },
         configure: (proxy, _options) => {
           proxy.on('proxyRes', (proxyRes, req, res) => {
