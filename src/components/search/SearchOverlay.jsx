@@ -75,7 +75,7 @@ export function SearchOverlay({ isOpen, onClose }) {
             setIsLoading(true);
             try {
                 const baseUrl = import.meta.env.PROD
-                    ? "https://accomodation.api.test.nextkinlife.live"
+                    ? "https://api.nextkinlife.live"
                     : "/api";
                 const res = await fetch(
                     `${baseUrl}/listings?location=${encodeURIComponent(searchTerm)}`,

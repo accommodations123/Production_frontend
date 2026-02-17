@@ -15,6 +15,7 @@ import { usePagination } from "@/hooks/usePagination"
 import { Pagination } from "@/components/ui/Pagination"
 
 export default function CareerPage() {
+    const jobListRef = React.useRef(null)
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedFilters, setSelectedFilters] = useState({
         locations: [],
@@ -44,6 +45,15 @@ export default function CareerPage() {
                 : [...current, value]
             return { ...prev, [category]: updated }
         })
+        // Scroll to job results after filter change
+        setTimeout(() => {
+            if (jobListRef.current) {
+                const yOffset = -150; // Adjust for sticky header
+                const element = jobListRef.current;
+                const headingPosition = element.getBoundingClientRect().top + window.scrollY + yOffset;
+                window.scrollTo({ top: headingPosition, behavior: 'smooth' });
+            }
+        }, 150)
     }
 
     // Clear all filters
@@ -89,6 +99,8 @@ export default function CareerPage() {
                 matchesDepartment && matchesWorkStyle && matchesTab
         })
     }, [searchQuery, selectedFilters, activeTab, jobs])
+
+
 
     // ✅ Pagination
     const {
@@ -375,7 +387,7 @@ export default function CareerPage() {
                     </div>
 
                     {/* Enhanced RIGHT CONTENT - JOB LIST */}
-                    <div className="flex-1">
+                    <div className="flex-1 scroll-mt-32" ref={jobListRef}>
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}

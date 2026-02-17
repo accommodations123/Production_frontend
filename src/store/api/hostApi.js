@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const API_BASE_URL = import.meta.env.PROD
-    ? "https://accomodation.api.test.nextkinlife.live"
+    ? "https://api.nextkinlife.live"
     : "/api";
 
 const rawBase = fetchBaseQuery({
@@ -71,7 +71,7 @@ const baseQueryWithLogger = async (args, api, extraOptions) => {
 export const hostApi = createApi({
     reducerPath: "hostApi",
     baseQuery: baseQueryWithLogger,
-    tagTypes: ["Property", "Host", "Event", "Community", "BuySell", "Review", "Job", "Trips", "Match", "Notification"],
+    tagTypes: ["Property", "Host", "Event", "Community", "BuySell", "Review", "Job", "Trips", "Match", "Notification", "Wishlist"],
     endpoints: (builder) => ({
         saveHost: builder.mutation({
             query: (hostData) => ({
@@ -187,22 +187,27 @@ export const hostApi = createApi({
         }),
 
         getApprovedEvents: builder.query({
-            query: (countryCode) => {
+            query: (arg) => {
+                // Support both string (countryCode) and object ({ code, limit })
+                let code = typeof arg === 'string' ? arg : arg?.code;
+                const limit = typeof arg === 'object' ? arg?.limit : undefined;
+
                 // Events prefer country CODE (e.g. "IN")
-                const code = countryCode || (() => {
+                if (!code) {
                     const countryData = localStorage.getItem("selectedCountry");
                     if (countryData) {
                         try {
                             const c = JSON.parse(countryData);
-                            return c.code || "IN";
+                            code = c.code || "IN";
                         } catch (e) { console.error(e); }
                     }
-                    return "IN";
-                })();
+                    if (!code) code = "IN";
+                }
 
                 return {
                     url: "events/approved",
-                    headers: { "X-Country": code }
+                    headers: { "X-Country": code },
+                    params: limit ? { limit } : undefined
                 };
             },
             providesTags: ["Event"],
@@ -346,7 +351,7 @@ export const hostApi = createApi({
         }),
 
         getBuySellListings: builder.query({
-            query: ({ country, state, city, zip_code, category, minPrice, maxPrice, search } = {}) => {
+            query: ({ country, state, city, zip_code, category, minPrice, maxPrice, search, limit } = {}) => {
                 const headers = {};
                 if (country) headers["X-Country"] = country;
                 if (state) headers["X-State"] = state;
@@ -358,6 +363,7 @@ export const hostApi = createApi({
                 if (minPrice) params.minPrice = minPrice;
                 if (maxPrice) params.maxPrice = maxPrice;
                 if (search) params.search = search;
+                if (limit) params.limit = limit;
 
                 return {
                     url: "buy-sell/get",
@@ -402,10 +408,19 @@ export const hostApi = createApi({
         }),
 
         getCommunities: builder.query({
-            query: (country) => ({
-                url: "community",
-                params: country ? { country } : undefined
-            }),
+            query: (arg) => {
+                const country = typeof arg === 'string' ? arg : arg?.country;
+                const limit = typeof arg === 'object' ? arg?.limit : undefined;
+
+                const params = {};
+                if (country) params.country = country;
+                if (limit) params.limit = limit;
+
+                return {
+                    url: "community",
+                    params: Object.keys(params).length > 0 ? params : undefined
+                };
+            },
             providesTags: ["Community"],
             transformResponse: (response) => {
                 const items = response?.communities || response?.data?.communities || response?.data || response || [];
@@ -818,6 +833,56 @@ export const hostApi = createApi({
             }),
             invalidatesTags: ["Notification"],
         }),
+
+        // Wishlist
+        getWishlist: builder.query({
+            query: ({ page = 1, limit = 20, type } = {}) => ({
+                url: "wishlist",
+                params: { page, limit, type }
+            }),
+            providesTags: ["Wishlist"],
+            transformResponse: (response) => response
+        }),
+
+        checkWishlistStatus: builder.query({
+            query: ({ type, id }) => `wishlist/check/${type}/${id}`,
+            providesTags: (result, error, { type, id }) => [{ type: "Wishlist", id: `${type}-${id}` }],
+        }),
+
+        addToWishlist: builder.mutation({
+            query: (data) => ({
+                url: "wishlist/add",
+                method: "POST",
+                body: { item_type: data.type, item_id: Number(data.id) }
+            }),
+            invalidatesTags: (result, error, { type, id }) => [
+                "Wishlist",
+                { type: "Wishlist", id: `${type}-${id}` }
+            ],
+        }),
+
+        removeFromWishlist: builder.mutation({
+            query: ({ type, id }) => ({
+                url: `wishlist/${type}/${id}`,
+                method: "DELETE"
+            }),
+            invalidatesTags: (result, error, { type, id }) => [
+                "Wishlist",
+                { type: "Wishlist", id: `${type}-${id}` }
+            ],
+        }),
+
+        toggleWishlist: builder.mutation({
+            query: (data) => ({
+                url: "wishlist/toggle",
+                method: "POST",
+                body: { item_type: data.type, item_id: Number(data.id) }
+            }),
+            invalidatesTags: (result, error, { type, id }) => [
+                "Wishlist",
+                { type: "Wishlist", id: `${type}-${id}` }
+            ],
+        }),
     }),
 });
 
@@ -890,4 +955,9 @@ export const {
     useDeleteNotificationMutation,
     useDeleteAllNotificationsMutation,
     useGetMyApplicationsQuery,
+    useGetWishlistQuery,
+    useCheckWishlistStatusQuery,
+    useAddToWishlistMutation,
+    useRemoveFromWishlistMutation,
+    useToggleWishlistMutation,
 } = hostApi;

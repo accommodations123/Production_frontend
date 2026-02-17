@@ -23,7 +23,7 @@ import { EventNotFound } from "./components/EventNotFound"
 export default function EventDetailsPage() {
     const { id } = useParams()
     const { data: apiEvent, isLoading, error } = useGetEventByIdQuery(id)
-    const [isSaved, setIsSaved] = useState(false)
+    // const [isSaved, setIsSaved] = useState(false) // Removed local state
     const [showShareMenu, setShowShareMenu] = useState(false)
     const [isRegistered, setIsRegistered] = useState(false)
     const [activeTab, setActiveTab] = useState("overview")
@@ -122,6 +122,9 @@ export default function EventDetailsPage() {
     }, [])
 
     const handleSaveToggle = useCallback(() => setIsSaved(prev => !prev), [])
+
+
+    // const handleSaveToggle = useCallback(() => setIsSaved(prev => !prev), []) // Removed handler
     const handleShareToggle = useCallback(() => setShowShareMenu(prev => !prev), [])
 
     const handleRegister = useCallback(async () => {
@@ -208,8 +211,6 @@ export default function EventDetailsPage() {
             <Navbar />
             <HeroSection
                 event={event}
-                isSaved={isSaved}
-                onSave={handleSaveToggle}
                 shareOpen={showShareMenu}
                 onShare={handleShareToggle}
                 copied={copiedLink}

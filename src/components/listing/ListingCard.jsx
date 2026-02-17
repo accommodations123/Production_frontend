@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart, MapPin, Phone, Maximize } from 'lucide-react';
+import WishlistButton from '@/components/ui/WishlistButton';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { VerificationBadge } from '@/components/ui/VerificationBadge';
@@ -11,7 +12,10 @@ export function ListingCard({ listing, layout = "grid" }) {
 
     const {
         _id,
+        id,
         images = [],
+        media = [],
+        photos = [],
         title,
         location,
         price,
@@ -22,7 +26,10 @@ export function ListingCard({ listing, layout = "grid" }) {
         postedTime = "",
         tags = [],
         isVerified = false,
-        type = ""
+        type = "",
+        city,
+        address,
+        country
     } = listing;
 
     // Handle Title Fallback (if title is null or "Untitled Property")
@@ -34,11 +41,16 @@ export function ListingCard({ listing, layout = "grid" }) {
     // Normalize Location (Handle New vs Old Schema)
     const displayLocation = (() => {
         if (typeof location === 'string') return location;
+        if (city) return `${city}, ${country?.name || country || ''}`.replace(/^, /, '');
+        if (address) return address;
         if (typeof location === 'object' && location) {
             return `${location.city || ''}, ${location.country?.name || location.country || ''}`.replace(/^, /, '') || "Unknown Location";
         }
         return "Unknown Location";
     })();
+
+    // Normalize Images
+    const displayImage = images[0] || media?.[0]?.url || photos[0] || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80";
 
     // Normalize Price
     const displayPrice = price || (listing.pricing?.perMonth) || 0;
@@ -47,9 +59,9 @@ export function ListingCard({ listing, layout = "grid" }) {
         <div className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow font-sans start-animation">
             {/* Image Section */}
             <div className="relative aspect-[4/3] w-full overflow-hidden">
-                <Link to={`/rooms/${_id}`}>
+                <Link to={`/rooms/${_id || id}`}>
                     <img
-                        src={images[0] || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80"}
+                        src={displayImage}
                         alt={displayTitle}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -64,9 +76,15 @@ export function ListingCard({ listing, layout = "grid" }) {
                 </div>
 
                 {/* Top Right Heart */}
-                <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center hover:bg-black/30 transition-colors z-10">
-                    <Heart className="w-5 h-5 text-white" />
-                </button>
+                {/* Top Right Heart */}
+                <div className="absolute top-3 right-3 z-10">
+                    <WishlistButton
+                        itemId={id || _id}
+                        itemType="property"
+                        className="w-8 h-8 bg-black/20 backdrop-blur-md hover:bg-black/30 flex items-center justify-center"
+                        iconSize={20}
+                    />
+                </div>
 
                 <div className="absolute bottom-3 left-3 flex items-center gap-2">
                     <span className="bg-[#FF385C] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">
@@ -84,7 +102,7 @@ export function ListingCard({ listing, layout = "grid" }) {
             <div className="p-4">
                 {/* Header: Title & Price */}
                 <div className="flex justify-between items-start mb-1">
-                    <Link to={`/rooms/${_id}`} className="flex-1 pr-2">
+                    <Link to={`/rooms/${_id || id}`} className="flex-1 pr-2">
                         <h3 className="text-base font-bold text-gray-900 leading-tight line-clamp-2">
                             {displayTitle}
                         </h3>

@@ -97,27 +97,57 @@ const CommunityCard = ({ match, onConnect }) => {
 
 export const TravelCommunity = ({ onConnect }) => {
     const { activeCountry } = useCountry();
+    // Helper to ensure backend gets the full name it likely expects for USA
+    const getBackendCountryName = (c) => {
+        if (!c) return c;
+        const lower = c.toLowerCase().trim();
+        if (lower === "united states" || lower === "usa" || lower === "us") {
+            return "United States of America";
+        }
+        return c;
+    };
+
     const { data, isLoading } = useGetPublicTripsQuery({
         page: 1,
-        limit: 4,
-        country: activeCountry?.name
+        limit: 20,
+        country: getBackendCountryName(activeCountry?.name)
     });
 
-    const communityMatches = data?.results?.map(trip => ({
-        id: trip.id,
-        name: trip.host?.full_name || "Traveler",
-        location: trip.host?.city || trip.flight?.from || "Unknown",
-        country: trip.host?.country || "India",
-        image: trip.host?.profile_image || null,
-        tripTitle: trip.destination || `${trip.flight?.to || 'Unknown Dest'}`,
-        date: new Date(trip.date || trip.flight?.departureDate).toLocaleDateString(undefined, {
-            month: 'short', day: 'numeric', year: 'numeric'
-        })
-    })).filter(match => {
+    const communityMatches = data?.results?.map(trip => {
+        // Map trip data handling both flat DB structure and nested flight object
+        const fromCountry = trip.from_country || trip.fromCountry || trip.flight?.fromCountry || trip.host?.country || "India";
+        const fromCity = trip.from_city || trip.fromCity || trip.flight?.from || trip.host?.city || "Unknown";
+        const toCity = trip.to_city || trip.toCity || trip.destination || trip.flight?.to || "Unknown Dest";
+        const tripDate = trip.travel_date || trip.travelDate || trip.date || trip.flight?.departureDate;
+
+        return {
+            id: trip.id,
+            name: trip.host?.full_name || "Traveler",
+            location: fromCity,
+            country: fromCountry,
+            image: trip.host?.profile_image || null,
+            tripTitle: toCity,
+            date: new Date(tripDate).toLocaleDateString(undefined, {
+                month: 'short', day: 'numeric', year: 'numeric'
+            })
+        };
+    }).filter(match => {
         // Double check country matching if backend doesn't filter strictly enough
         if (!activeCountry?.name) return true;
-        return match.country?.toLowerCase() === activeCountry.name.toLowerCase() ||
-            match.tripTitle?.toLowerCase().includes(activeCountry.name.toLowerCase());
+
+        const hostCountry = match.country?.toLowerCase().trim();
+        const searchCountry = activeCountry.name.toLowerCase().trim();
+
+        // Handle USA/United States variations
+        const isUSA = (c) => c === 'usa' || c === 'united states' || c === 'united states of america' || c === 'us';
+
+        // Debugging logs
+        // console.log("Filtering:", { hostCountry, searchCountry, match: isUSA(searchCountry) && isUSA(hostCountry) });
+
+        if (isUSA(searchCountry) && isUSA(hostCountry)) return true;
+
+        return hostCountry === searchCountry ||
+            match.tripTitle?.toLowerCase().includes(searchCountry);
     }) || [];
 
     if (isLoading) {

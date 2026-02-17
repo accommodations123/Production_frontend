@@ -70,7 +70,10 @@ export default function TravelPage() {
   const mapTripToPlan = (trip) => {
     const normalizeCountry = (c) => {
       if (!c) return "";
-      if (c === "United States" || c === "USA" || c === "US") return "United States of America";
+      const lower = c.toLowerCase().trim();
+      if (lower === "united states" || lower === "usa" || lower === "us" || lower === "united states of america") {
+        return "United States of America";
+      }
       return c;
     };
 
@@ -178,7 +181,8 @@ export default function TravelPage() {
         flightNumber: trip.flight_number,
         from: trip.from_city,
         to: trip.to_city,
-        from_country: normalizeCountry(trip.from_country || trip.user?.country || trip.host?.country),
+        // Improved fallback: Check flat field -> flight object -> user/host country
+        from_country: normalizeCountry(trip.from_country || trip.flight?.from_country || trip.user?.country || trip.host?.country),
         departureDate: trip.travel_date,
         departureTime: trip.departure_time,
         arrivalDate: trip.arrival_date,
@@ -192,11 +196,22 @@ export default function TravelPage() {
   // Filter by ORIGIN country (from_country) - Shows travelers departing FROM the selected country
   // This helps users find CO-TRAVELERS going on the same journey
   // Example: User in India sees other travelers also flying FROM India → they can travel together!
+
+  // Helper to ensure backend gets the full name it likely expects for USA
+  const getBackendCountryName = (c) => {
+    if (!c) return c;
+    const lower = c.toLowerCase().trim();
+    if (lower === "united states" || lower === "usa" || lower === "us") {
+      return "United States of America";
+    }
+    return c;
+  };
+
   const { data: publicTripsData } = useGetPublicTripsQuery({
     page: 1,
-    limit: 20,
-    from_country: filters.country || activeCountry?.name,  // Uses backend index: idx_trip_search (from_country, to_country, travel_date, status)
-    status: 'active'
+    limit: 50,
+    from_country: getBackendCountryName(filters.country || activeCountry?.name),
+    // status: 'active' // Keep commented out for now to see cancelled/pending trips for debugging
   });
 
   // Sync My Trips

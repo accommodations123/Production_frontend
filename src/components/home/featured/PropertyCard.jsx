@@ -18,6 +18,7 @@ import {
 } from "react-icons/fa6";
 import { useCountry } from '@/context/CountryContext';
 import { toast } from 'sonner';
+import WishlistButton from '@/components/ui/WishlistButton';
 
 export const CardContainer = ({ children, linkTo, className = "" }) => (
     <Link to={linkTo} className="group block h-full select-none focus:outline-none" aria-label="View details">
@@ -30,7 +31,6 @@ export const CardContainer = ({ children, linkTo, className = "" }) => (
 export const PropertyCard = ({ property }) => {
     const { formatPrice } = useCountry();
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-    const [isFavorited, setIsFavorited] = useState(false);
 
     if (!property) return null;
 
@@ -180,17 +180,14 @@ export const PropertyCard = ({ property }) => {
 
                 {/* Top Right Heart */}
                 <div className="absolute top-4 right-4 z-20">
-                    <button
-                        className={`h-9 w-9 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-sm border border-white/20 ${isFavorited ? 'bg-[#CB2A25] text-white shadow-[#CB2A25]/30' : 'bg-black/20 text-white hover:bg-white hover:text-[#CB2A25]'}`}
-                        aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setIsFavorited(!isFavorited);
-                        }}
-                    >
-                        <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
-                    </button>
+                    <WishlistButton
+                        itemId={propertyData.id}
+                        itemType="property"
+                        className="h-9 w-9 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-sm border border-white/20 bg-black/20 hover:bg-white group"
+                        iconSize={16}
+                        outlineColor="text-white group-hover:text-[#CB2A25]"
+                        filledColor="fill-[#CB2A25] text-[#CB2A25]"
+                    />
                 </div>
             </div>
 

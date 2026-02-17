@@ -1,6 +1,7 @@
 import React from 'react';
 import { MapPin, Calendar, Users as UsersIcon } from 'lucide-react';
 import { CardContainer } from './PropertyCard.jsx';
+import WishlistButton from '@/components/ui/WishlistButton';
 
 const HostPhoto = ({ host }) => {
     const photoUrl =
@@ -44,16 +45,32 @@ export const CommunityGroupCard = ({ group, onJoin, isJoining }) => {
                     loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+
+                {/* Category - Bottom Left */}
                 <div className="absolute bottom-3 left-3">
                     <span className="bg-white/90 text-gray-800 text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-sm">
                         {category}
                     </span>
                 </div>
-                <div className="absolute top-3 right-3 bg-white/90 rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5 flex items-center gap-1 shadow-sm">
+
+                {/* Members Count - Top Left */}
+                <div className="absolute top-3 left-3 bg-white/90 rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5 flex items-center gap-1 shadow-sm h-7 sm:h-8">
                     <UsersIcon className="w-3 h-3 text-gray-700" />
                     <span className="text-xs font-semibold text-gray-800">
                         {membersCount.toLocaleString()}
                     </span>
+                </div>
+
+                {/* Wishlist Button - Top Right */}
+                <div className="absolute top-3 right-3 z-10">
+                    <WishlistButton
+                        itemId={groupId}
+                        itemType="community"
+                        className="w-7 h-7 sm:w-8 sm:h-8 bg-white/90 backdrop-blur-sm hover:bg-white flex items-center justify-center shadow-sm"
+                        iconSize={16}
+                        outlineColor="text-gray-400"
+                        filledColor="fill-red-500 text-red-500"
+                    />
                 </div>
             </div>
 

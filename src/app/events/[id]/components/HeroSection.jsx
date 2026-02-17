@@ -3,8 +3,9 @@ import { Link } from "react-router-dom"
 import { ArrowLeft, Share2, Heart, Globe, Video, Monitor, MapPin, Calendar, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ShareMenu } from "./ShareMenu"
+import WishlistButton from "@/components/ui/WishlistButton"
 
-export const HeroSection = memo(({ event, isSaved, onSave, shareOpen, onShare, copied, onCopy }) => (
+export const HeroSection = memo(({ event, shareOpen, onShare, copied, onCopy }) => (
     <div className={`relative h-[70vh] overflow-hidden ${!event.image ? 'bg-slate-800' : ''}`}>
         <div className="absolute inset-0">
             {event.image && (
@@ -20,11 +21,22 @@ export const HeroSection = memo(({ event, isSaved, onSave, shareOpen, onShare, c
 
             </Link>
             <div className="flex gap-2">
+                <WishlistButton
+                    itemId={event.id || event._id}
+                    itemType="event"
+                    className="w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black hover:scale-105 shadow-lg transition-all duration-300"
+                    iconSize={20}
+                    outlineColor="text-white"
+                />
                 <div className="relative">
-
+                    <button
+                        onClick={onShare}
+                        className="w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black hover:scale-105 shadow-lg transition-all duration-300"
+                    >
+                        <Share2 className="h-5 w-5" />
+                    </button>
                     <ShareMenu open={shareOpen} copied={copied} onCopy={onCopy} />
                 </div>
-
             </div>
         </div>
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-12">

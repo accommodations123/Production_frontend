@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 const rawBase = fetchBaseQuery({
     baseUrl: import.meta.env.PROD
-        ? "https://accomodation.api.test.nextkinlife.live"
+        ? "https://api.nextkinlife.live"
         : "/api",
     credentials: 'include',
     prepareHeaders: (headers) => {

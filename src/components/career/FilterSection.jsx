@@ -17,7 +17,7 @@ export function FilterSection({ title, options, selected, onChange }) {
             </Button>
 
             {isExpanded && (
-                <div className="mt-4 space-y-3">
+                <div className="mt-4 space-y-3 max-h-60 overflow-y-auto pr-2">
                     {options.map((option) => (
                         <label key={option} className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition-colors">
                             <input

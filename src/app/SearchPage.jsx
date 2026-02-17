@@ -80,7 +80,8 @@ export default function SearchPage() {
 
                         return {
                             ...property, // Preserve original fields for PropertyCard
-                            _id: property.id || property._id,
+                            _id: property.id || property._id, // Prefer SQL ID for wishlist, fallback to Mongo
+                            id: property.id || property._id,
                             title: property.title || "Untitled Property",
                             location: property.city || "Unknown Location",
                             fullAddress: property.address || "", // For location filtering

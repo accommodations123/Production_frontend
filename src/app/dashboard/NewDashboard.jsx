@@ -15,6 +15,7 @@ import { PersonalInfo } from "@/components/dashboard/PersonalInfo";
 import { Trips } from "@/components/dashboard/Trips";
 import { MyApplications } from "@/components/dashboard/MyApplications";
 import { MyBuySellListings } from "@/components/marketplace/MyBuySellListings";
+import { WishlistManager } from "@/components/dashboard/WishlistManager";
 
 import {
   useGetHostProfileQuery,
@@ -198,6 +199,7 @@ export default function NewDashboard() {
             {activeTab === "buy-sell" && <MyBuySellListings />}
             {activeTab === "trips" && <Trips />}
             {activeTab === "applications" && <MyApplications />}
+            {activeTab === "wishlist" && <WishlistManager />}
             {activeTab === "settings" && <Settings />}
 
           </div>

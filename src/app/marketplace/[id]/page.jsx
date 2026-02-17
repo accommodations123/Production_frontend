@@ -10,6 +10,7 @@ import {
     MapPin, Clock, ShieldCheck, User, ArrowLeft,
     MessageCircle, Share2, Heart, AlertCircle
 } from 'lucide-react';
+import WishlistButton from "@/components/ui/WishlistButton";
 import { ChatPopup } from "@/components/marketplace/ChatPopup";
 import { useCountry } from "@/context/CountryContext";
 import { toast } from "sonner";
@@ -96,6 +97,16 @@ export default function ProductDetailsPage() {
                                 <span className="font-bold text-gray-900 text-sm sm:text-base">
                                     {product.condition || "Used"}
                                 </span>
+                            </div>
+                            <div className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10">
+                                <WishlistButton
+                                    itemId={product.id || product._id}
+                                    itemType="buysell"
+                                    className="w-8 h-8 sm:w-10 sm:h-10 bg-white/90 backdrop-blur-md flex items-center justify-center shadow-lg hover:bg-white transition-all hover:scale-105"
+                                    iconSize={20}
+                                    outlineColor="text-gray-400"
+                                    filledColor="fill-red-500 text-red-500"
+                                />
                             </div>
                         </div>
 

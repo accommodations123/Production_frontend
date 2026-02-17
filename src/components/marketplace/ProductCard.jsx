@@ -3,6 +3,7 @@ import { MapPin, Clock, Heart, ImageOff } from "lucide-react";
 import { useCountry } from "@/context/CountryContext";
 
 import { Badge } from "@/components/ui/badge";
+import WishlistButton from "@/components/ui/WishlistButton";
 
 const FALLBACK_IMAGE = null;
 
@@ -42,15 +43,15 @@ export function ProductCard({ product, onClick }) {
         )}
 
         {/* Wishlist */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            // TODO: wishlist logic
-          }}
-          className="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-gray-400 hover:text-red-500 transition-colors"
-        >
-          <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
-        </button>
+        <div className="absolute top-2 right-2 z-10">
+          <WishlistButton
+            itemId={product.id || product._id}
+            itemType="buysell"
+            className="w-8 h-8 bg-white/80 backdrop-blur-sm hover:bg-white flex items-center justify-center"
+            iconSize={16}
+            outlineColor="text-gray-400"
+          />
+        </div>
 
         {/* Tags */}
         <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">

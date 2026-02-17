@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Menu, Globe, User, ChevronDown, X, Search, Users, Briefcase, Home, Calendar, Building, Plane, BookOpen, ShoppingBag, HomeIcon, Check, Sparkles, Settings as SettingsIcon, Grid3X3, LogOut } from "lucide-react"
+import { Menu, Globe, User, ChevronDown, X, Search, Users, Briefcase, Home, Calendar, Building, Plane, BookOpen, ShoppingBag, HomeIcon, Check, Sparkles, Settings as SettingsIcon, Grid3X3, LogOut, Heart } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -482,6 +482,14 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                                 >
                                                     <Building className="h-4 w-4 opacity-70" />
                                                     My Listings
+                                                </Link>
+                                                <Link
+                                                    to="/account-v2?tab=wishlist"
+                                                    className="flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                                                    onClick={() => setIsProfileOpen(false)}
+                                                >
+                                                    <Heart className="h-4 w-4 opacity-70" />
+                                                    My Wishlist
                                                 </Link>
                                                 <Link
                                                     to="/account-v2?tab=trips"

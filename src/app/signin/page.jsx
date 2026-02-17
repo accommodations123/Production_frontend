@@ -60,7 +60,7 @@ const Signin = () => {
   };
 
   const loginWithGoogle = () => {
-    window.location.href = "https://accomodation.api.test.nextkinlife.live/auth/google";
+    window.location.href = "https://api.nextkinlife.live/auth/google";
   };
 
   return (

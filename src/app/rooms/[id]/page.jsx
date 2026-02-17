@@ -16,6 +16,7 @@ import {
     Calendar, Clock, User, X, Copy, CopyCheck,
     Instagram, Facebook, Linkedin, Twitter, Youtube, Globe, Monitor, ExternalLink
 } from "lucide-react";
+import WishlistButton from "@/components/ui/WishlistButton";
 import { useGetPropertyByIdQuery, useGetMyListingsQuery, useGetHostProfileQuery } from '@/store/api/hostApi';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +54,7 @@ export default function RoomPage() {
     // State
     const [isContactOpen, setIsContactOpen] = useState(false);
     const [contactType, setContactType] = useState('inquiry');
-    const [isFavorite, setIsFavorite] = useState(false);
+    // const [isFavorite, setIsFavorite] = useState(false); // Removed local state
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
@@ -326,9 +327,16 @@ export default function RoomPage() {
                     {/* Share/Save floating buttons (Mobile) */}
                     <div className="absolute top-4 right-4 flex gap-2 md:hidden">
                         <button onClick={copyLink} className="p-2 bg-white rounded-full shadow-md"><Share2 className="w-4 h-4" /></button>
-                        <button onClick={() => setIsFavorite(!isFavorite)} className="p-2 bg-white rounded-full shadow-md">
-                            <Heart className={cn("w-4 h-4", isFavorite ? "fill-rose-500 text-rose-500" : "")} />
-                        </button>
+                        <div className="bg-white rounded-full shadow-md w-8 h-8 flex items-center justify-center">
+                            <WishlistButton
+                                itemId={listing.id}
+                                itemType="property"
+                                className="w-full h-full flex items-center justify-center"
+                                iconSize={16}
+                                outlineColor="text-gray-400"
+                                filledColor="fill-rose-500 text-rose-500"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -369,9 +377,16 @@ export default function RoomPage() {
                                     <Button variant="outline" size="sm" onClick={copyLink} className="gap-2 text-slate-700">
                                         <Share2 className="w-4 h-4" /> Share
                                     </Button>
-                                    <Button variant="outline" size="sm" onClick={() => setIsFavorite(!isFavorite)} className="gap-2 text-slate-700">
-                                        <Heart className={cn("w-4 h-4", isFavorite ? "fill-rose-500 text-rose-500" : "")} /> Save
-                                    </Button>
+                                    <div className="flex items-center">
+                                        <WishlistButton
+                                            itemId={listing.id}
+                                            itemType="property"
+                                            className="h-9 px-4 py-2 border border-slate-200 rounded-md hover:bg-slate-100 flex items-center gap-2 transition-colors"
+                                            iconSize={16}
+                                            outlineColor="text-slate-700"
+                                            filledColor="fill-rose-500 text-rose-500"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>

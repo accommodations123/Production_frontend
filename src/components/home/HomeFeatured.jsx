@@ -76,10 +76,10 @@ const Skeleton = ({ className = "" }) => (
 const HomeFeatured = () => {
   const navigate = useNavigate();
   const { activeCountry } = useCountry();
-  const { data: allProperties, isLoading: propertiesLoading } = useGetAllPropertiesQuery({ country: activeCountry?.name });
-  const { data: approvedEvents, isLoading: eventsLoading } = useGetApprovedEventsQuery(activeCountry?.code);
-  const { data: communities, isLoading: communitiesLoading } = useGetCommunitiesQuery(activeCountry?.name);
-  const { data: marketplaceItems, isLoading: marketplaceLoading } = useGetBuySellListingsQuery({ country: activeCountry?.name });
+  const { data: allProperties, isLoading: propertiesLoading } = useGetAllPropertiesQuery({ country: activeCountry?.name, limit: 4 });
+  const { data: approvedEvents, isLoading: eventsLoading } = useGetApprovedEventsQuery({ code: activeCountry?.code, limit: 4 });
+  const { data: communities, isLoading: communitiesLoading } = useGetCommunitiesQuery({ country: activeCountry?.name, limit: 4 });
+  const { data: marketplaceItems, isLoading: marketplaceLoading } = useGetBuySellListingsQuery({ country: activeCountry?.name, limit: 4 });
 
   const [viewMode, setViewMode] = useState("grid");
 

@@ -3,6 +3,7 @@ import { Calendar, MapPin, Users, Star, MessageCircle, Heart, Bookmark, Share2 }
 import { Button } from "@/components/ui/button"
 import { HostPhoto } from "./HostPhoto"
 import { COUNTRIES } from "@/lib/mock-data"
+import WishlistButton from "@/components/ui/WishlistButton"
 
 export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
     // Format date for display
@@ -95,9 +96,13 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                         </span>
                     </div>
                     <div className="absolute top-3 right-3 flex gap-2">
-                        <button className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors duration-200">
-                            <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </button>
+                        <WishlistButton
+                            itemId={event.id}
+                            itemType="event"
+                            className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30"
+                            iconSize={16}
+                            outlineColor="text-white"
+                        />
                         <button className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors duration-200">
                             <Bookmark className="h-3 w-3 sm:h-4 sm:w-4" />
                         </button>

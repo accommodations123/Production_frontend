@@ -46,6 +46,8 @@ const ChatPage = lazy(() => import("@/app/ChatPage"));
 const NewDashboard = lazy(() => import("@/app/dashboard/NewDashboard"));
 const PrivacyPage = lazy(() => import("@/app/privacy/page"));
 const TermsPage = lazy(() => import("@/app/terms/page"));
+const WishlistPage = lazy(() => import("@/app/wishlist/page"));
+const DebugDataPage = lazy(() => import("@/app/debug-data/page"));
 // const PropertiesList = lazy(() => import("@/app/properties/page"));
 // const HostPage = lazy(() => import("@/app/host/page")); 
 
@@ -109,6 +111,12 @@ export default function App() {
                             <Route path="/resources/travel" element={<TravelCommunity />} />
                             <Route path="/privacy" element={<PrivacyPage />} />
                             <Route path="/terms" element={<TermsPage />} />
+                            <Route path="/wishlist" element={
+                                <HostGuard>
+                                    <WishlistPage />
+                                </HostGuard>
+                            } />
+                            <Route path="/debug-data" element={<DebugDataPage />} />
                         </Routes>
                     </Suspense>
                 </RootLayout>

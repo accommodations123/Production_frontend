@@ -1,6 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Plane, Clock, Shield, Star, UserPlus, Navigation, ChevronDown } from "lucide-react";
+import WishlistButton from "@/components/ui/WishlistButton";
 
 export default function TripCard({ plan, isSelected, onSelect, onMatchRequest }) {
     return (
@@ -45,14 +46,23 @@ export default function TripCard({ plan, isSelected, onSelect, onMatchRequest })
                         </div>
                     </div>
                 </div>
-                {plan.user.rating && (
-                    <div className="flex flex-col items-end">
-                        <div className="flex gap-0.5 text-yellow-400">
-                            {[...Array(Math.round(plan.user.rating))].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
+                <div className="flex flex-col items-end gap-2">
+                    <WishlistButton
+                        itemId={plan.id || plan._id}
+                        itemType="trip"
+                        className="w-8 h-8 bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
+                        iconSize={16}
+                        outlineColor="text-gray-400"
+                    />
+                    {plan.user.rating && (
+                        <div className="flex flex-col items-end">
+                            <div className="flex gap-0.5 text-yellow-400">
+                                {[...Array(Math.round(plan.user.rating))].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
+                            </div>
+                            <span className="text-[10px]" style={{ color: 'var(--color-secondary)' }}>{plan.user.rating} ({plan.user.reviews || 0} reviews)</span>
                         </div>
-                        <span className="text-[10px]" style={{ color: 'var(--color-secondary)' }}>{plan.user.rating} ({plan.user.reviews || 0} reviews)</span>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* Main Trip Info */}
@@ -205,8 +215,8 @@ export default function TripCard({ plan, isSelected, onSelect, onMatchRequest })
                                 onClick={() => !plan.matchStatus && onMatchRequest(plan)}
                                 disabled={!!plan.matchStatus}
                                 className={`w-full py-3 rounded-xl font-bold text-sm shadow-lg flex items-center justify-center gap-2 text-white transition-all ${plan.matchStatus
-                                        ? "bg-gray-400 cursor-not-allowed opacity-80 shadow-none"
-                                        : "bg-[#CB2A25] shadow-red-500/30 hover:bg-red-600"
+                                    ? "bg-gray-400 cursor-not-allowed opacity-80 shadow-none"
+                                    : "bg-[#CB2A25] shadow-red-500/30 hover:bg-red-600"
                                     }`}
                             >
                                 {plan.matchStatus === 'pending' ? (

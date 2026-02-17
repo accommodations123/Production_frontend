@@ -25,6 +25,7 @@ import {
     Heart, MessageCircle, Share2, X, Users, Star, Zap, Bell, Search, Filter, Home, UserCheck, CalendarDays, Image, FileText, Hash, MessageSquare, Clock, MapPin, Calendar, Camera, FolderOpen, Download, Play, Eye, Briefcase, BookOpen, Database, HelpCircle, UserPlus, UserMinus, Settings, ChevronRight, ArrowLeft, ThumbsUp, Bookmark, TrendingUp, Award, BarChart3, Target, Trophy, Gift, Sparkles, Info, Code, Globe, Link2, Mail, Phone, Shield, Pin, Upload, MoreVertical, Layers, Palette, Loader2, Trash2, Plus
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import WishlistButton from "@/components/ui/WishlistButton"
 import { Pagination } from "@/components/ui/Pagination"
 import { cn } from "@/lib/utils"
 
@@ -146,6 +147,8 @@ export default function GroupDetailsPage() {
     const navigate = useNavigate()
     const [activeTab, setActiveTab] = React.useState("feed")
     const [selectedMember, setSelectedMember] = React.useState(null)
+    const [selectedImage, setSelectedImage] = React.useState(null) // Lightbox state
+    const [deleteConfirmation, setDeleteConfirmation] = React.useState(null) // { postId, authorId }
     const [isJoining, setIsJoining] = React.useState(false)
     // 'joined' | 'left' | null - overrides backend data
     const [optimisticStatus, setOptimisticStatus] = React.useState(null);
@@ -264,10 +267,23 @@ export default function GroupDetailsPage() {
 
     // Derived Owner State
     const isOwner = React.useMemo(() => {
+        // Debugging Owner Logic
+        /*
+        console.log("DEBUG OWNER CHECK:", {
+            member_role: community?.member_role,
+            userId: resolvedUser?.id,
+            communityCreatedBy: community?.created_by,
+            communityOwnerId: community?.owner_id,
+            members: community?.members
+        });
+        */
+
         if (community?.member_role === 'owner') return true;
         // Fallback checks
         const userId = resolvedUser?.id;
-        const ownerId = community?.created_by || community?.owner_id;
+        const ownerId = community?.created_by || community?.user_id || community?.owner_id; // Added user_id
+
+        // Strict string comparison
         if (userId && ownerId && String(userId) === String(ownerId)) return true;
 
         // Check members array for owner role
@@ -350,13 +366,40 @@ export default function GroupDetailsPage() {
         }
     };
 
-    const handleDeletePost = async (postId) => {
-        if (!window.confirm("Are you sure you want to delete this post?")) return;
+    const handleDeletePost = (postId, authorId) => {
+        setDeleteConfirmation({ postId, authorId });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteConfirmation) return;
+        const { postId, authorId } = deleteConfirmation;
+
+        console.log("Attempting Delete:", { postId, authorId, isOwner, userId: resolvedUser?.id });
+
+        // Optimistic check
+        const isAuthor = String(authorId) === String(resolvedUser?.id);
+
+        // If not owner AND not author, block.
+        if (!isOwner && !isAuthor) {
+            toast.error("Only the community owner can delete other users' posts.");
+            setDeleteConfirmation(null);
+            return;
+        }
+
         try {
             await deletePost(postId).unwrap();
-            toast.success("Post deleted");
+            toast.success("Post deleted successfully");
         } catch (err) {
-            toast.error("Failed to delete post");
+            console.error("Delete failed:", err);
+            const status = err.status;
+            // If backend says 403, we trust it.
+            if (status === 403 || status === 401) {
+                toast.error("Permission denied. Only the community owner can delete this post.");
+            } else {
+                toast.error(err.data?.message || "Failed to delete post");
+            }
+        } finally {
+            setDeleteConfirmation(null);
         }
     };
 
@@ -521,11 +564,25 @@ export default function GroupDetailsPage() {
                                                             <p className="text-gray-700 text-sm whitespace-pre-wrap">{post.content}</p>
 
                                                             {/* Media Display */}
+                                                            {/* Media Display - Thumbnails */}
                                                             {post.media_urls && post.media_urls.length > 0 && (
                                                                 <div className={`mt-3 grid gap-2 ${post.media_urls.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                                                                     {post.media_urls.map((url, idx) => (
-                                                                        <div key={idx} className="rounded-lg overflow-hidden border">
-                                                                            <img src={url} alt="post media" className="w-full h-auto object-cover max-h-[300px]" />
+                                                                        <div
+                                                                            key={idx}
+                                                                            className="rounded-lg overflow-hidden border bg-gray-50 relative group cursor-pointer"
+                                                                            onClick={() => setSelectedImage(url)}
+                                                                        >
+                                                                            <img
+                                                                                src={url}
+                                                                                alt="post media"
+                                                                                className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                                                                            />
+                                                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                                                                                <div className="bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                                    <Search size={20} />
+                                                                                </div>
+                                                                            </div>
                                                                         </div>
                                                                     ))}
                                                                 </div>
@@ -550,7 +607,7 @@ export default function GroupDetailsPage() {
                                                                         <button
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
-                                                                                handleDeletePost(post.id);
+                                                                                handleDeletePost(post.id, post.author?.id || post.author_id);
                                                                                 setOpenMenuId(null);
                                                                             }}
                                                                             className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
@@ -786,6 +843,17 @@ export default function GroupDetailsPage() {
                             )}
                             <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-transparent"></div>
 
+                            <div className="absolute top-4 right-4 z-10">
+                                <WishlistButton
+                                    itemId={id}
+                                    itemType="community"
+                                    className="w-10 h-10 bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-all rounded-full"
+                                    iconSize={20}
+                                    outlineColor="text-white"
+                                    filledColor="fill-red-500 text-red-500"
+                                />
+                            </div>
+
                             <div className="absolute bottom-0 left-0 right-0 p-8">
                                 <div className="flex flex-col md:flex-row items-start md:items-end gap-6">
                                     {community?.avatar_image ? (
@@ -846,6 +914,63 @@ export default function GroupDetailsPage() {
                 </ErrorBoundary>
             </div>
             <Footer />
+
+            {/* Lightbox Overlay */}
+            {selectedImage && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200"
+                    onClick={() => setSelectedImage(null)}
+                >
+                    <button
+                        className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 z-60 bg-black/50 rounded-full transition-colors"
+                        onClick={() => setSelectedImage(null)}
+                    >
+                        <X size={32} />
+                    </button>
+                    <img
+                        src={selectedImage}
+                        alt="Full size"
+                        className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200 select-none"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
+            {/* Delete Confirmation Modal */}
+            {deleteConfirmation && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200"
+                    onClick={() => setDeleteConfirmation(null)}
+                >
+                    <div
+                        className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 animate-in zoom-in-95 duration-200"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4 text-red-600">
+                                <Trash2 size={24} />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Post?</h3>
+                            <p className="text-gray-500 mb-6 text-sm">
+                                Are you sure you want to delete this post? This action cannot be undone.
+                            </p>
+                            <div className="flex gap-3 w-full">
+                                <Button
+                                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium"
+                                    onClick={() => setDeleteConfirmation(null)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium"
+                                    onClick={confirmDelete}
+                                >
+                                    Delete
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     )
 }

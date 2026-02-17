@@ -1,5 +1,5 @@
 const API_URL = import.meta.env.PROD
-    ? "https://accomodation.api.test.nextkinlife.live"
+    ? "https://api.nextkinlife.live"
     : "/api";
 
 // Helper function for API calls
