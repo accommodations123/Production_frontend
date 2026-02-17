@@ -77,13 +77,7 @@ pipeline {
                                   credentialsId: 'aws-creds']]) {
  
                     sh """
-
-                        aws cloudfront create-invalidation \
-
-                        --distribution-id ${CLOUDFRONT_ID} \
-
-                        --paths "/*" \
-                        --region us-east-1
+                        aws cloudfront create-invalidation --distribution-id ${CLOUDFRONT_ID} --paths "/*" --region us-east-1
 
                     """
 
