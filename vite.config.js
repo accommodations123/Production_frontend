@@ -19,7 +19,7 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
         headers: {
-          'Host': 'https://api.nextkinlife.live',
+          'Host': 'api.nextkinlife.live',
           'Origin': 'https://nextkinlife.live'
         },
       },
@@ -29,8 +29,8 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
         headers: {
-          'Host': 'https://api.nextkinlife.live',
-          'Origin': 'https://nextkinlife.live/'
+          'Host': 'api.nextkinlife.live',
+          'Origin': 'https://nextkinlife.live'
         },
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
@@ -60,7 +60,7 @@ export default defineConfig({
         secure: false,
         ws: true,
         headers: {
-          'Host': 'https://api.nextkinlife.live',
+          'Host': 'api.nextkinlife.live',
           'Origin': 'https://nextkinlife.live'
         },
         configure: (proxy, _options) => {
