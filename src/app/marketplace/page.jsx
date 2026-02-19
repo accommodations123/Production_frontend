@@ -121,7 +121,7 @@ export default function MarketplacePage() {
         >
           {/* ================= BUY TAB ================= */}
           {activeTab === "buy" && (
-            <div className="space-y-4 sm:space-y-6">
+            <div className="space-y-4 sm:space-y-5 md:space-y-6">
 
               <FilterPanel
                 filters={filters}
@@ -141,7 +141,7 @@ export default function MarketplacePage() {
                     />
                   ) : filteredProducts.length > 0 ? (
                     <>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                         {paginatedProducts.map(product => (
                           <ProductCard
                             key={product._id || product.id}
@@ -173,7 +173,7 @@ export default function MarketplacePage() {
           {activeTab === "sell" && (
             <HostGuard>
               <div className="max-w-4xl mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
                   <Tip icon={<Zap />} title="Sell Faster" desc="Add clear photos" />
                   <Tip icon={<Tag />} title="Moving Sale" desc="Use tags" />
                   <Tip icon={<ShieldCheck />} title="Get Verified" desc="Build trust" />
@@ -244,10 +244,10 @@ const SingleProductView = ({ product: initialProduct, onBack }) => {
             Back to Marketplace
           </button>
 
-          <div className="grid lg:grid-cols-12 gap-6 lg:gap-10 xl:gap-14">
+          <div className="grid md:grid-cols-12 gap-6 md:gap-8 lg:gap-10 xl:gap-14">
 
             {/* Left Column: Image (Span 7) */}
-            <div className="lg:col-span-7">
+            <div className="md:col-span-7">
               <div className="aspect-[4/3] bg-gray-50 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm border border-gray-100 relative group">
                 {isLoading && !product.image ? (
                   <div className="w-full h-full flex items-center justify-center bg-gray-100">
@@ -272,7 +272,7 @@ const SingleProductView = ({ product: initialProduct, onBack }) => {
             </div>
 
             {/* Right Column: Details (Span 5) */}
-            <div className="lg:col-span-5 flex flex-col justify-center space-y-6 sm:space-y-8">
+            <div className="md:col-span-5 flex flex-col justify-center space-y-5 sm:space-y-6 md:space-y-8">
 
               <div>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#00142E] mb-3 leading-tight">

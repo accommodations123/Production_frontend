@@ -186,7 +186,7 @@ export default function SearchPage() {
                 ... contents removed ...
             </div> */}
 
-            <div className="container mx-auto pt-4 md:pt-24 px-4 md:px-4">
+            <div className="container mx-auto pt-4 md:pt-24 px-4 sm:px-5 md:px-6">
                 {/* Mobile Header & Filter Toggle */}
                 <div className="md:hidden flex items-center justify-between mb-4">
                     <h1 className="text-xl font-bold text-gray-900">
@@ -202,7 +202,7 @@ export default function SearchPage() {
                     </Button>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-8">
+                <div className="flex flex-col md:flex-row gap-6 md:gap-8">
                     {/* Desktop Sidebar */}
                     <aside className="w-full md:w-80 hidden md:block shrink-0">
                         <FilterSidebar filters={filters} onFilterChange={handleFilterChange} />
@@ -280,7 +280,7 @@ export default function SearchPage() {
                             animate={{ x: 0 }}
                             exit={{ x: "100%" }}
                             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            className="fixed inset-y-0 right-0 w-[85vw] max-w-sm bg-white z-50 shadow-2xl flex flex-col"
+                            className="fixed inset-y-0 right-0 w-[85vw] sm:w-[65vw] md:w-[50vw] max-w-sm bg-white z-50 shadow-2xl flex flex-col"
                         >
                             <div className="p-4 border-b flex items-center justify-between bg-white shrink-0">
                                 <h2 className="font-bold text-lg">Filters</h2>

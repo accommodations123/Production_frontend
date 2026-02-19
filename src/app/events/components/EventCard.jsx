@@ -76,7 +76,7 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
         >
             <div className={`relative overflow-hidden rounded-xl sm:rounded-2xl border border-gray-100 shadow-sm ${viewMode === "list" ? "flex-1 flex" : ""} bg-white transition-all duration-300`}>
                 {/* Card Image */}
-                <div className={`relative ${viewMode === "list" ? "w-full sm:w-1/3 h-48 sm:h-auto" : "w-full h-48 sm:h-56"} overflow-hidden ${!eventImage ? 'bg-gradient-to-br from-slate-700 to-slate-900' : ''}`}>
+                <div className={`relative ${viewMode === "list" ? "w-full sm:w-1/3 h-48 sm:h-auto" : "w-full h-48 sm:h-52 md:h-56"} overflow-hidden ${!eventImage ? 'bg-gradient-to-br from-slate-700 to-slate-900' : ''}`}>
                     {eventImage ? (
                         <img
                             src={eventImage}
@@ -117,7 +117,7 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                 </div>
 
                 {/* Card Content */}
-                <div className={`p-4 sm:p-5 ${viewMode === "list" ? "flex-1 flex flex-col justify-between" : ""}`}>
+                <div className={`p-3.5 sm:p-4 md:p-5 ${viewMode === "list" ? "flex-1 flex flex-col justify-between" : ""}`}>
                     <div>
                         <div className="flex items-center gap-2 mb-2 sm:mb-3">
                             <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />

@@ -149,7 +149,7 @@ export const PropertyCard = ({ property }) => {
     return (
         <CardContainer key={propertyData.id} linkTo={`/rooms/${propertyData.id}`}>
             {/* Image Section */}
-            <div className="relative h-64 overflow-hidden bg-gray-100">
+            <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden bg-gray-100">
                 <img
                     src={propertyData.image}
                     alt={propertyData.title}
@@ -192,7 +192,7 @@ export const PropertyCard = ({ property }) => {
             </div>
 
             {/* Content Section */}
-            <div className="p-5 flex-grow flex flex-col gap-4">
+            <div className="p-3.5 sm:p-4 md:p-5 flex-grow flex flex-col gap-3 sm:gap-4">
                 {/* Title & Location */}
                 <div className="space-y-1">
                     <h3 className="font-bold text-lg leading-tight line-clamp-1 text-[#00142E] group-hover:text-[#CB2A25] transition-colors">

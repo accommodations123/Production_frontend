@@ -144,7 +144,7 @@ export default function CareerPage() {
             <Navbar />
 
             {/* Enhanced Hero Section with Logo Colors */}
-            <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950 pt-28 pb-20 px-4 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950 pt-24 sm:pt-28 pb-12 sm:pb-16 md:pb-20 px-4 relative overflow-hidden">
                 {/* Animated background elements with logo colors */}
                 <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute -top-40 -right-40 w-80 h-80 bg-red-600 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
@@ -157,12 +157,12 @@ export default function CareerPage() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="text-center mb-12"
+                        className="text-center mb-8 sm:mb-10 md:mb-12"
                     >
-                        <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
                             Find Your Dream Job at <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500">NextKinLife</span>
                         </h1>
-                        <p className="text-white/90 max-w-3xl mx-auto text-xl leading-relaxed">
+                        <p className="text-white/90 max-w-3xl mx-auto text-base sm:text-lg md:text-xl leading-relaxed">
                             Join our team of innovators and change-makers. Discover opportunities that align with your passion and skills in a collaborative, inclusive environment.
                         </p>
                     </motion.div>
@@ -204,7 +204,7 @@ export default function CareerPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5, delay: 0.4 }}
-                        className="flex flex-wrap justify-center gap-8 mt-12"
+                        className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 mt-8 sm:mt-10 md:mt-12"
                     >
                         <div className="flex items-center gap-3 text-white/90 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20">
                             <Briefcase className="h-6 w-6" />
@@ -249,7 +249,7 @@ export default function CareerPage() {
             </div>
 
             {/* Enhanced Company Benefits Section with logo colors */}
-            <section className="py-16 px-4 bg-gradient-to-br from-gray-50 to-white">
+            <section className="py-10 sm:py-12 md:py-16 px-4 bg-gradient-to-br from-gray-50 to-white">
                 <div className="container mx-auto max-w-6xl">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -258,7 +258,7 @@ export default function CareerPage() {
                         transition={{ duration: 0.5 }}
                         className="text-center mb-12"
                     >
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Work With Us</h2>
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">Why Work With Us</h2>
                         <p className="text-gray-600 max-w-3xl mx-auto text-lg">
                             We offer competitive benefits, a supportive work environment, and opportunities for growth. Join us in making a difference.
                         </p>
@@ -269,7 +269,7 @@ export default function CareerPage() {
                         whileInView={{ opacity: 1 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5 }}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8"
                     >
                         {[
                             { icon: TrendingUp, title: "Career Growth", desc: "Clear advancement paths and mentorship programs", color: "from-blue-500 to-blue-700" },
@@ -289,7 +289,7 @@ export default function CareerPage() {
                                 transition={{ duration: 0.3, delay: index * 0.1 }}
                                 className="group"
                             >
-                                <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-transparent h-full">
+                                <div className="bg-white rounded-2xl p-5 sm:p-6 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-transparent h-full">
                                     <div className={`w-16 h-16 bg-gradient-to-br ${benefit.color} rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300`}>
                                         <benefit.icon className="h-8 w-8 text-white" />
                                     </div>
@@ -459,7 +459,7 @@ export default function CareerPage() {
                             animate={{ x: 0 }}
                             exit={{ x: "100%" }}
                             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-50 lg:hidden overflow-y-auto"
+                            className="fixed inset-y-0 right-0 w-[85vw] sm:w-[65vw] max-w-sm bg-white shadow-2xl z-50 lg:hidden overflow-y-auto"
                         >
                             <div className="p-6">
                                 <div className="flex items-center justify-between mb-8">

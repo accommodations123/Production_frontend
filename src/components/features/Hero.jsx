@@ -22,7 +22,7 @@ export function Hero() {
   }
 
   return (
-    <div className="relative bg-gradient-to-br from-white via-[#FFF8F7] to-white overflow-hidden min-h-[100dvh] md:min-h-[85vh] flex items-center pt-24 pb-6 md:pb-10">
+    <div className="relative bg-gradient-to-br from-white via-[#FFF8F7] to-white overflow-hidden min-h-[100dvh] sm:min-h-[90vh] md:min-h-[85vh] flex items-center pt-20 sm:pt-24 pb-6 md:pb-10">
 
       {/* Premium Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -48,11 +48,11 @@ export function Hero() {
       <div className="absolute top-0 right-0 w-full md:w-2/3 h-full bg-gradient-to-bl from-[#FFF5F5] via-[#FFF0EE] to-transparent skew-y-12 md:skew-y-0 md:skew-x-12 translate-y-32 md:translate-y-0 md:translate-x-32 z-0 opacity-60 md:opacity-80" />
 
       {/* Content Container */}
-      <div className="container mx-auto px-4 md:px-6 relative z-10 w-full">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <div className="container mx-auto px-4 sm:px-5 md:px-6 relative z-10 w-full">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
 
           {/* LEFT: Content */}
-          <div className="space-y-6 md:space-y-8 max-w-2xl pt-4 lg:pt-0 animate-in fade-in slide-in-from-left-10 duration-1000">
+          <div className="space-y-5 sm:space-y-6 md:space-y-8 max-w-2xl pt-4 md:pt-0 animate-in fade-in slide-in-from-left-10 duration-1000">
 
             {/* Premium Badge with Glow */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-[#C93A30]/20 text-[#C93A30] text-xs md:text-sm font-bold shadow-lg shadow-[#C93A30]/10 hover:shadow-xl hover:shadow-[#C93A30]/20 transition-all duration-300">
@@ -104,7 +104,7 @@ export function Hero() {
             </div>
 
             {/* Trust Indicators */}
-            <div className="pt-6 md:pt-8 flex flex-wrap items-center gap-6 md:gap-8">
+            <div className="pt-4 sm:pt-6 md:pt-8 flex flex-wrap items-center gap-4 sm:gap-6 md:gap-8">
               <div className="flex items-center gap-2 text-sm text-[#00142E]/60">
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
                   <ShieldCheck className="w-4 h-4 text-green-600" />
@@ -116,13 +116,13 @@ export function Hero() {
           </div>
 
           {/* RIGHT: Premium Hero Image Collage */}
-          <div className="relative h-[350px] sm:h-[450px] md:h-[500px] lg:h-[650px] w-full perspective-1000 mt-8 lg:mt-0 hidden md:block">
+          <div className="relative h-[300px] sm:h-[350px] md:h-[450px] lg:h-[650px] w-full perspective-1000 mt-6 md:mt-0 hidden sm:block">
 
             {/* Background Glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[500px] lg:w-[600px] h-[300px] md:h-[500px] lg:h-[600px] bg-gradient-to-br from-[#C93A30]/15 via-orange-300/10 to-pink-300/15 rounded-full blur-[80px] md:blur-[100px] animate-pulse" style={{ animationDuration: '4s' }} />
 
             {/* Main Image Card */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 lg:top-10 lg:right-10 lg:left-auto lg:translate-x-0 w-[260px] sm:w-[300px] md:w-[350px] lg:w-[400px] h-[320px] sm:h-[400px] md:h-[450px] lg:h-[500px] rounded-[2rem] overflow-hidden shadow-2xl shadow-black/20 border-[4px] md:border-[6px] border-white transform rotate-3 lg:hover:rotate-0 lg:hover:scale-105 transition-all duration-700 z-20 group">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 md:top-10 md:right-10 md:left-auto md:translate-x-0 w-[220px] sm:w-[260px] md:w-[320px] lg:w-[400px] h-[280px] sm:h-[320px] md:h-[400px] lg:h-[500px] rounded-[2rem] overflow-hidden shadow-2xl shadow-black/20 border-[4px] md:border-[6px] border-white transform rotate-3 md:hover:rotate-0 md:hover:scale-105 transition-all duration-700 z-20 group">
               <img
                 src="https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?q=80&w=1740&auto=format&fit=crop"
                 alt="Indian Community"
@@ -145,7 +145,7 @@ export function Hero() {
             </div>
 
             {/* Floating Card 1 */}
-            <div className="hidden sm:block absolute top-[15%] left-0 sm:left-[5%] lg:top-20 lg:left-0 w-40 sm:w-48 md:w-56 lg:w-64 h-28 sm:h-36 md:h-40 lg:h-48 rounded-2xl overflow-hidden shadow-xl shadow-black/15 border-[4px] border-white transform -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 z-10 animate-in fade-in slide-in-from-bottom-10 delay-300 group">
+            <div className="hidden md:block absolute top-[15%] left-0 md:left-[5%] lg:top-20 lg:left-0 w-40 sm:w-48 md:w-52 lg:w-64 h-28 sm:h-36 md:h-38 lg:h-48 rounded-2xl overflow-hidden shadow-xl shadow-black/15 border-[4px] border-white transform -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 z-10 animate-in fade-in slide-in-from-bottom-10 delay-300 group">
               <img
                 src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop"
                 alt="Cozy Room"

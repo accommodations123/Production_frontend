@@ -132,13 +132,13 @@ const AboutUs = () => {
 
       {/* ================= HERO ================= */}
       <div
-        className="relative bg-cover bg-center min-h-[520px] flex items-center"
+        className="relative bg-cover bg-center min-h-[380px] sm:min-h-[420px] md:min-h-[520px] flex items-center"
         style={{ backgroundImage: "url('/colleagues-working-project-discussing-details.jpg')" }}
       >
         <div className="absolute inset-0 bg-black/60" />
-        <div className="relative max-w-6xl mx-auto px-6 text-center text-white">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">About Us</h1>
-          <h2 className="text-xl md:text-2xl font-semibold mb-6">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 text-center text-white">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">About Us</h1>
+          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 sm:mb-6">
             Welcome to The IT Consulting Agency
           </h2>
           <p className="max-w-3xl mx-auto text-gray-200">
@@ -150,8 +150,8 @@ const AboutUs = () => {
       </div>
 
       {/* ================= INFO CARDS ================= */}
-      <div className="bg-[#f4f3ff] py-16">
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="bg-[#f4f3ff] py-10 sm:py-12 md:py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
           {[
             {
               title: "Who Are We",
@@ -175,7 +175,7 @@ const AboutUs = () => {
               ],
             },
           ].map((card, i) => (
-            <div key={i} className="bg-white rounded-lg shadow-md p-8">
+            <div key={i} className="bg-white rounded-lg shadow-md p-6 sm:p-8">
               <div className="w-12 h-1 bg-purple-600 mb-6" />
               <h3 className="text-2xl font-bold mb-4">{card.title}</h3>
               {card.text ? (
@@ -193,10 +193,10 @@ const AboutUs = () => {
       </div>
 
       {/* ================= FOUNDED ================= */}
-      <div className="bg-[#f5f4ff] py-20">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="bg-[#f5f4ff] py-12 sm:py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
           <div>
-            <h2 className="text-4xl font-bold mb-6">Founded on Innovation</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6">Founded on Innovation</h2>
             <p className="text-gray-600 mb-6">
               Nextkinlife is a global IT Services & Consulting company proudly headquartered in Ellicott City, Maryland, USA, with a strong development and management team based in India.
             </p>
@@ -218,15 +218,15 @@ const AboutUs = () => {
           <img
             src="/photo-1522071820081-009f0129c71c.avif"
             alt="Team"
-            className="rounded-xl shadow-lg w-full h-[420px] object-cover"
+            className="rounded-xl shadow-lg w-full h-[280px] sm:h-[350px] md:h-[420px] object-cover"
           />
         </div>
       </div>
 
       {/* ================= 6-D PROCESS ================= */}
-      <div ref={processRef} className="py-24 relative" style={{ backgroundColor: "#f5f4ff" }}>
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className={`text-4xl md:text-5xl font-bold text-center mb-20 ${processVisible ? 'animate-fadeInUp' : 'opacity-0'}`} style={{ color: "var(--color-primary)" }}>
+      <div ref={processRef} className="py-12 sm:py-16 md:py-24 relative" style={{ backgroundColor: "#f5f4ff" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <h2 className={`text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-10 sm:mb-14 md:mb-20 ${processVisible ? 'animate-fadeInUp' : 'opacity-0'}`} style={{ color: "var(--color-primary)" }}>
             Our 6-D Process
           </h2>
 
@@ -234,7 +234,7 @@ const AboutUs = () => {
             {/* Process flow line for desktop */}
             <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-red-500 transform -translate-y-1/2 z-0"></div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
               {processSteps.map((item, i) => {
                 // Define different colors for each step
                 const stepColors = [
@@ -296,12 +296,12 @@ const AboutUs = () => {
       </div>
 
       {/* ================= WHY CHOOSE US ================= */}
-      <div className="bg-[#f5f4ff] py-24">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16">
+      <div className="bg-[#f5f4ff] py-12 sm:py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
           <img
             src="/businesspeople-meeting-office-working.jpg"
             alt="Why Choose Us"
-            className="w-full h-[520px] object-cover rounded-xl"
+            className="w-full h-[300px] sm:h-[380px] md:h-[520px] object-cover rounded-xl"
           />
 
           <div>
@@ -348,9 +348,9 @@ const AboutUs = () => {
       </div>
 
       {/* ================= CTA CARD ================= */}
-      <div className="bg-[#f5f4ff] py-16 px-6">
+      <div className="bg-[#f5f4ff] py-10 sm:py-12 md:py-16 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-lg p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10">
+          <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 md:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 sm:gap-8 md:gap-10">
             {/* Text */}
             <div className="max-w-2xl">
               <h3 className="text-3xl font-bold text-purple-600 mb-4">

@@ -58,7 +58,7 @@ export default function WishlistPage() {
         }
 
         return (
-            <div className={`grid gap-6 ${activeTab === 'trip' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
+            <div className={`grid gap-4 sm:gap-5 md:gap-6 ${activeTab === 'trip' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
                 {data.wishlist.map((item) => {
                     const details = item.details;
                     if (!details) return null; // Skip if details missing (deleted item)
@@ -113,10 +113,10 @@ export default function WishlistPage() {
     return (
         <div className="min-h-screen bg-gray-50/30">
             <Navbar />
-            <main className="container mx-auto px-4 py-8 mt-20">
-                <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+            <main className="container mx-auto px-4 sm:px-5 md:px-6 py-6 sm:py-8 mt-16 sm:mt-18 md:mt-20">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 sm:mb-8 gap-3 sm:gap-4">
                     <div>
-                        <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2 flex items-center gap-3">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
                             Your Wishlist <Heart className="text-red-500 fill-red-500" />
                         </h1>
                         <p className="text-gray-500">Manage and view all your saved items in one place</p>
@@ -124,7 +124,7 @@ export default function WishlistPage() {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex overflow-x-auto no-scrollbar gap-2 mb-8 pb-2 mask-gradient-right">
+                <div className="flex overflow-x-auto no-scrollbar gap-1.5 sm:gap-2 mb-6 sm:mb-8 pb-2 mask-gradient-right">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
@@ -132,7 +132,7 @@ export default function WishlistPage() {
                             <button
                                 key={tab.id}
                                 onClick={() => { setActiveTab(tab.id); setPage(1); }}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm whitespace-nowrap transition-all duration-300 border ${isActive
+                                className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-300 border ${isActive
                                     ? 'bg-black text-white border-black shadow-lg transform scale-105'
                                     : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                                     }`}

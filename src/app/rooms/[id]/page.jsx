@@ -343,7 +343,7 @@ export default function RoomPage() {
 
             {/* Main Content */}
             <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_360px] lg:grid-cols-[1fr_420px] gap-8 md:gap-10 lg:gap-12">
 
                     {/* Left Column: Details (Expanded) */}
                     <div className="min-w-0 space-y-10">

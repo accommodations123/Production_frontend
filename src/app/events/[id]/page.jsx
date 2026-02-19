@@ -226,8 +226,8 @@ export default function EventDetailsPage() {
                 successMessage={registrationSuccess}
             />
             <div className="container mx-auto max-w-7xl px-4 py-8 md:py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-                    <div className="lg:col-span-2 space-y-6 md:space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                    <div className="md:col-span-2 space-y-6 md:space-y-8">
                         <TabNavigation activeTab={activeTab} handleTabClick={handleTabClick} />
                         <div className="min-h-[500px]">
                             {activeTab === 'overview' && <OverviewTab event={event} visibleSections={visibleSections} />}

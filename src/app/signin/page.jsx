@@ -60,7 +60,8 @@ const Signin = () => {
   };
 
   const loginWithGoogle = () => {
-    window.location.href = "https://api.nextkinlife.live/auth/google";
+    const redirectUrl = encodeURIComponent(window.location.origin);
+    window.location.href = `https://api.nextkinlife.live/auth/google?redirect=${redirectUrl}`;
   };
 
   return (
@@ -80,10 +81,10 @@ const Signin = () => {
         className="absolute -top-[20%] -left-[20%] w-[60vh] h-[60vh] rounded-full bg-[#00142E] blur-[180px] z-0"
       />
 
-      <div className="relative z-10 w-full max-w-5xl min-h-[650px] bg-white rounded-3xl shadow-2xl shadow-[#00142E]/10 overflow-hidden grid lg:grid-cols-[1.1fr_1fr] border border-[#D1CBB7]/30">
+      <div className="relative z-10 w-full max-w-5xl min-h-[650px] bg-white rounded-3xl shadow-2xl shadow-[#00142E]/10 overflow-hidden grid md:grid-cols-[1.1fr_1fr] border border-[#D1CBB7]/30">
 
         {/* LEFT PANEL: Premium Branding */}
-        <div className="hidden lg:flex relative bg-gradient-to-br from-[#00142E] via-[#0A1C30] to-[#02152B] text-white flex-col justify-between p-10 xl:p-14 overflow-hidden">
+        <div className="hidden md:flex relative bg-gradient-to-br from-[#00142E] via-[#0A1C30] to-[#02152B] text-white flex-col justify-between p-8 md:p-10 xl:p-14 overflow-hidden">
           {/* Decorative Elements */}
           <div className="absolute inset-0 opacity-5" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }} />
 
@@ -155,11 +156,11 @@ const Signin = () => {
         </div>
 
         {/* RIGHT PANEL: Form */}
-        <div className="bg-[#ffffff] p-8 md:p-10 lg:p-12 xl:p-14 flex flex-col justify-center">
+        <div className="bg-[#ffffff] p-6 sm:p-8 md:p-10 lg:p-12 xl:p-14 flex flex-col justify-center">
           <div className="max-w-sm w-full mx-auto">
 
             {/* Mobile Header */}
-            <div className="lg:hidden mb-10 text-center">
+            <div className="md:hidden mb-10 text-center">
               <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-xl mx-auto mb-5 border-2 border-[#D1CBB7]/20">
                 <img src="/logo.jpeg" alt="NextKinLife" className="w-full h-full object-cover" />
               </div>
@@ -176,7 +177,7 @@ const Signin = () => {
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="mb-8 hidden lg:block">
+                  <div className="mb-8 hidden md:block">
                     <h2 className="text-3xl font-bold text-[#00142E]">Sign In</h2>
                     <p className="text-[#00142E]/50 mt-2">Enter your email to access your account</p>
                   </div>

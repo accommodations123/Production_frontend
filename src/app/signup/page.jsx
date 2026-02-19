@@ -88,10 +88,10 @@ const Signup = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                className="w-full h-full min-h-screen grid grid-cols-1 lg:grid-cols-2"
+                className="w-full h-full min-h-screen grid grid-cols-1 md:grid-cols-2"
             >
                 {/* Left Side - Description (Logo Palette) */}
-                <div className="hidden lg:flex flex-col justify-center items-center p-12 bg-primary relative overflow-hidden h-full">
+                <div className="hidden md:flex flex-col justify-center items-center p-8 md:p-12 bg-primary relative overflow-hidden h-full">
                     <div className="relative z-10 flex flex-col items-center text-center max-w-lg">
                         <div className="w-70 h-50 rounded-3xl overflow-hidden shadow-2xl mb-8 ">
                             <img src="/logo2.png" alt="NextKinLife Logo" className="w-full h-full object-cover" />
@@ -103,21 +103,21 @@ const Signup = () => {
                 </div>
 
                 {/* Right Side - Form (Light Bright Gray) */}
-                <div className="w-full bg-gray-50 flex flex-col justify-center items-center p-8 md:p-12 h-full overflow-y-auto">
+                <div className="w-full bg-gray-50 flex flex-col justify-center items-center p-6 sm:p-8 md:p-12 h-full overflow-y-auto">
                     <div className="w-full max-w-md mx-auto py-8">
-                        <div className="text-center mb-8 lg:hidden">
+                        <div className="text-center mb-8 md:hidden">
                             <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg mx-auto mb-4">
                                 <img src="/logo.jpeg" alt="NextKinLife Logo" className="w-full h-full object-cover" />
                             </div>
                             <h2 className="text-2xl font-bold text-gray-900">Create Account</h2>
                         </div>
 
-                        <div className="lg:hidden mb-6 text-center">
+                        <div className="md:hidden mb-6 text-center">
                             <h2 className="text-2xl font-bold text-gray-900">Sign Up</h2>
                             <p className="text-gray-500">Create your account to get started</p>
                         </div>
 
-                        <div className="hidden lg:block mb-8 text-center">
+                        <div className="hidden md:block mb-8 text-center">
                             <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
                             <p className="text-gray-500">Enter your details below to get started</p>
                         </div>

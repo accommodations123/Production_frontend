@@ -48,7 +48,7 @@ export default function CommunityPage() {
             </div>
 
             <div className="container mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
                     {/* Main Content: Directory */}
                     <div className="lg:col-span-2 space-y-8">
@@ -62,8 +62,8 @@ export default function CommunityPage() {
                                         key={cat}
                                         onClick={() => setActiveCategory(cat)}
                                         className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeCategory === cat
-                                                ? 'bg-orange-600 text-white'
-                                                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                            ? 'bg-orange-600 text-white'
+                                            : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
                                             }`}
                                     >
                                         {cat}

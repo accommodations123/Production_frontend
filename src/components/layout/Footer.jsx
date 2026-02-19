@@ -40,10 +40,10 @@ export function Footer() {
     ];
 
     return (
-        <footer className="bg-navy-dark text-white font-sans pt-16 pb-8 border-t border-white/5">
-            <div className="container mx-auto px-6">
+        <footer className="bg-navy-dark text-white font-sans pt-10 sm:pt-12 md:pt-16 pb-6 sm:pb-8 border-t border-white/5">
+            <div className="container mx-auto px-4 sm:px-6">
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10 md:gap-12 mb-10 sm:mb-12 md:mb-16">
 
                     {/* Column 1: Brand */}
                     <div className="space-y-6">
@@ -103,7 +103,7 @@ export function Footer() {
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/40">
+                <div className="border-t border-white/5 pt-6 sm:pt-8 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 text-xs text-white/40">
                     <p>© {new Date().getFullYear()} NextKinLife LLC. All rights reserved.</p>
                     <div className="flex gap-6">
                         <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>

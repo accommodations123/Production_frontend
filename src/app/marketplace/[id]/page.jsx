@@ -81,10 +81,10 @@ export default function ProductDetailsPage() {
                     Back to Marketplace
                 </button>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 xl:gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 xl:gap-12">
 
                     {/* Left Column: Image Gallery (Span 7) */}
-                    <div className="lg:col-span-7 space-y-3 sm:space-y-4">
+                    <div className="md:col-span-7 space-y-3 sm:space-y-4">
                         <div className="aspect-[4/3] bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm border border-gray-100 relative group">
                             <img
                                 src={imageError ? PLACEHOLDER_IMAGE : currentImageSrc}
@@ -138,7 +138,7 @@ export default function ProductDetailsPage() {
                     </div>
 
                     {/* Right Column: Product Info (Span 5) */}
-                    <div className="lg:col-span-5 space-y-6 sm:space-y-8">
+                    <div className="md:col-span-5 space-y-6 sm:space-y-8">
 
                         {/* Title & Price */}
                         <div className="bg-white p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-[2.5rem] shadow-sm border border-gray-100">

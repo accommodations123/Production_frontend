@@ -36,7 +36,7 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
     if (type === "country") {
         return (
             <div
-                className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 min-w-[280px] flex flex-col items-center text-center group cursor-pointer transform hover:-translate-y-1"
+                className="bg-white rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 min-w-[260px] sm:min-w-[280px] flex flex-col items-center text-center group cursor-pointer transform hover:-translate-y-1"
                 onClick={handleCardClick}
             >
                 {data.avatar_image ? (
@@ -79,7 +79,7 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
                 onClick={handleCardClick}
             >
                 {data.avatar_image || data.cover_image ? (
-                    <div className="relative h-48 overflow-hidden">
+                    <div className="relative h-40 sm:h-44 md:h-48 overflow-hidden">
                         <img
                             src={data.avatar_image || data.cover_image}
                             alt={data.name}
@@ -96,9 +96,9 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
                         )}
                     </div>
                 ) : (
-                    <div className="h-48 bg-gray-200"></div>
+                    <div className="h-40 sm:h-44 md:h-48 bg-gray-200"></div>
                 )}
-                <div className="p-5 flex flex-col flex-1">
+                <div className="p-4 sm:p-5 flex flex-col flex-1">
                     <h3 className="font-bold text-[#07182A] text-xl mb-2">
                         {data.name || data.title}
                     </h3>
@@ -132,7 +132,7 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
 
         return (
             <div
-                className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:border-[#C93A30]/30 hover:shadow-xl transition-all duration-300 cursor-pointer flex items-start gap-4 transform hover:translate-x-2"
+                className="bg-white rounded-2xl p-4 sm:p-5 md:p-6 shadow-lg border border-gray-100 hover:border-[#C93A30]/30 hover:shadow-xl transition-all duration-300 cursor-pointer flex items-start gap-3 sm:gap-4 transform hover:translate-x-2"
                 onClick={handleCardClick}
             >
                 <div className="p-4 bg-gradient-to-br from-[#F1E7D6] to-[#E8D5C4] rounded-xl text-[#07182A] shadow-sm hover:shadow-md transition-all duration-300">
@@ -181,7 +181,7 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
     if (type === "trending") {
         return (
             <div
-                className="relative rounded-2xl overflow-hidden h-64 group cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-300"
+                className="relative rounded-2xl overflow-hidden h-52 sm:h-56 md:h-64 group cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-300"
                 onClick={handleCardClick}
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#07182A] via-[#07182A]/60 to-transparent opacity-90"></div>
@@ -194,14 +194,14 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
                 ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-[#07182A] to-[#C93A30]"></div>
                 )}
-                <div className="absolute bottom-0 left-0 right-0 p-6">
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 md:p-6">
                     {data.posts_count && (
                         <div className="flex items-center gap-2 text-[#C93A30] font-bold text-sm mb-2">
                             <Flame className="h-4 w-4 fill-current" />
                             <span>Trending • {data.posts_count} active posts</span>
                         </div>
                     )}
-                    <h3 className="text-white font-bold text-2xl mb-4">
+                    <h3 className="text-white font-bold text-xl sm:text-2xl mb-3 sm:mb-4">
                         {data.name || data.title}
                     </h3>
                     <Button
@@ -220,7 +220,7 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
     if (type === "recommended") {
         return (
             <div
-                className="bg-white rounded-2xl p-5 shadow-lg border border-gray-100 flex items-center justify-between gap-4 hover:shadow-xl transition-all duration-300 transform hover:translate-x-2"
+                className="bg-white rounded-2xl p-4 sm:p-5 shadow-lg border border-gray-100 flex items-center justify-between gap-3 sm:gap-4 hover:shadow-xl transition-all duration-300 transform hover:translate-x-2"
                 onClick={handleCardClick}
             >
                 <div className="flex-1">
