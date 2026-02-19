@@ -138,7 +138,7 @@ export const authApi = createApi({
         }),
         updateUserProfile: builder.mutation({
             query: (formData) => ({
-                url: "otp/user/update",
+                url: "otp/update-profile",
                 method: "PUT",
                 body: formData,
             }),
