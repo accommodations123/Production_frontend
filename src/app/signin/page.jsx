@@ -60,8 +60,7 @@ const Signin = () => {
   };
 
   const loginWithGoogle = () => {
-    const redirectUrl = encodeURIComponent(window.location.origin);
-    window.location.href = `https://api.nextkinlife.live/auth/google?redirect=${redirectUrl}`;
+    window.location.href = "https://api.nextkinlife.live/auth/google";
   };
 
   return (

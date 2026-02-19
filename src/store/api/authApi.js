@@ -136,6 +136,14 @@ export const authApi = createApi({
                 return { ...response, user };
             },
         }),
+        updateUserProfile: builder.mutation({
+            query: (formData) => ({
+                url: "otp/user/update",
+                method: "PUT",
+                body: formData,
+            }),
+            invalidatesTags: ['User'],
+        }),
     }),
 })
 
@@ -155,5 +163,6 @@ export const {
     useGetPublicSearchTripsQuery,
     useLazyGetPublicSearchTripsQuery,
     useGetPublicTripQuery,
-    useLazyGetPublicTripQuery
+    useLazyGetPublicTripQuery,
+    useUpdateUserProfileMutation
 } = authApi

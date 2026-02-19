@@ -238,10 +238,8 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
     }
 
     const toggleEdit = async (section) => {
-        if (!isHost) {
-            navigate('/hosts')
-            return
-        }
+        // Allow all users to edit their profile
+
 
         if (editStates[section]) {
             try {

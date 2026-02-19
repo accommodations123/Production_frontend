@@ -24,7 +24,7 @@ import {
   useGetMyEventsQuery
 } from "@/store/api/hostApi";
 
-import { useGetMyTripsQuery } from "@/store/api/authApi";
+import { useGetMyTripsQuery, useUpdateUserProfileMutation } from "@/store/api/authApi";
 import { cn } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -108,28 +108,33 @@ export default function NewDashboard() {
   /* -------------------------------
      Update handler
   -------------------------------- */
-  const [updateHost, { isLoading: isUpdating }] = useUpdateHostMutation();
+  /* -------------------------------
+     Update handler
+  -------------------------------- */
+  const [updateUserProfile, { isLoading: isUpdating }] = useUpdateUserProfileMutation();
 
   const handleUpdatePersonalInfo = async (formData) => {
-    if (!hostProfile?.id) return;
-
-    const res = await updateHost({
-      hostId: hostProfile.id,
-      data: formData
-    }).unwrap();
+    // Call generic user update endpoint
+    const res = await updateUserProfile(formData).unwrap();
 
     if (!res?.success) return;
 
-    const { host, user } = res.data;
+    const { user } = res;
 
+    // Merge updated user data
     const updatedUser = {
       ...userData,
-      ...host,
+      ...user,
       profile_image: user?.profile_image || userData?.profile_image
     };
 
     localStorage.setItem("user", JSON.stringify(updatedUser));
     setUserData(updatedUser);
+
+    // Also refetch host profile if they are a host, to keep things in sync
+    if (hostProfile?.id) {
+      refetchHost();
+    }
   };
 
 
