@@ -210,10 +210,10 @@ export function Navbar({ minimal = false, onMenuClick }) {
                         : "bg-gradient-to-b from-[#0A1A2F]/90 to-transparent py-5"
                 )}
             >
-                <div className="container mx-auto px-6 flex items-center justify-between">
+                <div className="container mx-auto px-4 lg:px-6 flex items-center justify-between">
                     {/* Logo - Glass Effect - INCREASED SIZE */}
                     <Link to="/" className="flex items-center gap-3 group relative items-center">
-                        <div className="relative w-16 h-16 rounded-2xl overflow-hidden ring-1 ring-white/10 group-hover:ring-accent/50 transition-all shadow-2xl shadow-black/20">
+                        <div className="relative w-10 h-10 lg:w-12 lg:h-12 xl:w-16 xl:h-16 rounded-xl xl:rounded-2xl overflow-hidden ring-1 ring-white/10 group-hover:ring-accent/50 transition-all shadow-2xl shadow-black/20">
                             <div className="absolute inset-0 bg-gradient-to-tr from-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                             <img
                                 src="/logo.jpeg"
@@ -262,7 +262,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                     {/* Tablet hamburger no longer needed — mobile layout handles < lg */}
 
                     {/* Desktop Right Actions */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 lg:gap-2 xl:gap-3">
                         {isAuthenticated && <NotificationDropdown />}
 
                         {/* Country Selector */}
@@ -281,7 +281,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                         <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
                                             <Globe className="h-4 w-4" />
                                         </div>
-                                        <span className="hidden lg:inline">Select Country</span>
+                                        <span className="hidden xl:inline">Select Country</span>
                                     </>
                                 ) : (
                                     <>
@@ -399,7 +399,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                         {!isAuthenticated ? (
                             <Button
                                 onClick={() => navigate("/signin")}
-                                className="rounded-xl bg-white/10 border border-white/10 text-white hover:bg-white hover:text-[#0A1A2F] px-6 font-bold tracking-wide transition-all shadow-lg hover:shadow-white/20"
+                                className="rounded-xl bg-white/10 border border-white/10 text-white hover:bg-white hover:text-[#0A1A2F] px-3 lg:px-4 xl:px-6 font-bold tracking-wide transition-all shadow-lg hover:shadow-white/20 whitespace-nowrap"
                             >
                                 <span className="hidden sm:inline">Sign In</span>
                                 <span className="sm:hidden">Sign</span>
