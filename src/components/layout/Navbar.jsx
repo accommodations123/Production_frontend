@@ -139,7 +139,8 @@ export function Navbar({ minimal = false, onMenuClick }) {
     const profileRef = useClickOutside(() => setIsProfileOpen(false))
     const mobileCountryRef = useClickOutside(() => setIsMobileCountryOpen(false))
     const hostDropdownRef = useClickOutside(() => setIsHostDropdownOpen(false))
-    const mobileMenuRef = useClickOutside(() => setIsMobileMenuOpen(false))
+    // NOTE: No useClickOutside for mobile menu — backdrop onClick handles it
+    const mobileMenuRef = React.useRef(null)
 
     // Host options for dropdown
     const hostOptions = [
@@ -203,7 +204,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
             {/* ================= DESKTOP NAVBAR ================= */}
             <header
                 className={cn(
-                    "fixed top-0 left-0 right-0 z-50 transition-all duration-500 hidden md:block",
+                    "fixed top-0 left-0 right-0 z-50 transition-all duration-500 hidden lg:block",
                     isScrolled
                         ? "bg-[#0A1A2F]/80 backdrop-blur-2xl border-b border-white/5 py-3 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
                         : "bg-gradient-to-b from-[#0A1A2F]/90 to-transparent py-5"
@@ -230,7 +231,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
 
                     {/* Desktop Navigation - Pill Design - IMPROVED RESPONSIVENESS */}
                     {!minimal && (
-                        <nav className="hidden xl:flex items-center gap-1 p-1 rounded-full bg-white/5 border border-white/5 backdrop-blur-md shadow-inner shadow-black/20">
+                        <nav className="hidden lg:flex items-center gap-0.5 p-1 rounded-full bg-white/5 border border-white/5 backdrop-blur-md shadow-inner shadow-black/20">
                             {navItems.map((item) => {
                                 const isActive = location.pathname === item.path;
                                 return (
@@ -238,7 +239,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                         key={item.name}
                                         to={item.path}
                                         className={cn(
-                                            "relative px-3 lg:px-4 2xl:px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap",
+                                            "relative px-2.5 lg:px-3 xl:px-4 2xl:px-5 py-2 rounded-full text-xs lg:text-sm font-medium transition-all duration-300 whitespace-nowrap",
                                             isActive
                                                 ? "text-white"
                                                 : "text-white/60 hover:text-white hover:bg-white/5"
@@ -258,17 +259,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                         </nav>
                     )}
 
-                    {/* Tablet Navigation - HIDDEN ITEMS DROPDOWN */}
-                    {!minimal && (
-                        <div className="hidden md:flex xl:hidden">
-                            <button
-                                className="p-2 rounded-full text-white/80 hover:bg-white/10 transition-colors"
-                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            >
-                                <Menu className="w-6 h-6" />
-                            </button>
-                        </div>
-                    )}
+                    {/* Tablet hamburger no longer needed — mobile layout handles < lg */}
 
                     {/* Desktop Right Actions */}
                     <div className="flex items-center gap-3">
@@ -290,7 +281,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                         <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
                                             <Globe className="h-4 w-4" />
                                         </div>
-                                        <span className="hidden xl:inline">Select Country</span>
+                                        <span className="hidden lg:inline">Select Country</span>
                                     </>
                                 ) : (
                                     <>
@@ -358,13 +349,13 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setIsHostDropdownOpen(!isHostDropdownOpen)}
                                 className={cn(
-                                    "relative overflow-hidden cursor-pointer rounded-xl px-5 py-2.5 font-bold text-sm transition-all flex items-center gap-2",
+                                    "relative overflow-hidden cursor-pointer rounded-xl px-3 lg:px-5 py-2.5 font-bold text-xs lg:text-sm transition-all flex items-center gap-2",
                                     "bg-gradient-to-r from-accent to-[#E04642] text-white shadow-lg shadow-accent/25 hover:shadow-accent/40"
                                 )}
                             >
                                 <div className="absolute inset-0 bg-white/20 opacity-0 hover:opacity-100 transition-opacity" />
                                 <Sparkles className="w-4 h-4 fill-white/20" />
-                                <span className="hidden sm:inline">Become Host</span>
+                                <span className="hidden sm:inline whitespace-nowrap">Become Host</span>
                                 <span className="sm:hidden">Host</span>
                             </motion.button>
 
@@ -520,7 +511,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
             </header >
 
             {/* ================= MOBILE NAVBAR ================= */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
                 {/* Mobile Top Bar */}
                 <div className={cn(
                     "fixed top-0 left-0 right-0 z-50 px-4 py-3 transition-all duration-300",
@@ -529,8 +520,11 @@ export function Navbar({ minimal = false, onMenuClick }) {
                     <div className="flex items-center justify-between">
                         {/* Left: Hamburger Menu */}
                         <button
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className="p-2 text-white hover:bg-white/10 rounded-full transition-colors relative z-50"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsMobileMenuOpen(prev => !prev);
+                            }}
+                            className="p-2 text-white hover:bg-white/10 rounded-full transition-colors relative z-[60]"
                         >
                             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>

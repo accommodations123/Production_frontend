@@ -37,12 +37,12 @@ export default function Home() {
       <HomeFeatured filters={homeFilters} />
 
       {/* Footer (Desktop Only - Mobile has nav bar spacer) */}
-      <div className="hidden md:block">
+      <div className="hidden lg:block">
         <Footer />
       </div>
 
       {/* Mobile Bottom Spacing for Fixed Nav */}
-      <div className="md:hidden h-20" />
+      <div className="lg:hidden h-20" />
     </main>
   );
 }

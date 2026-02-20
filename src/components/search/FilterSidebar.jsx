@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Slider } from '@/components/ui/slider';
 // If no slider component, I'll use standard range input for now to be safe.
 import { Check, MapPin } from 'lucide-react';
@@ -6,6 +6,40 @@ import { Check, MapPin } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 export function FilterSidebar({ filters, onFilterChange, distinctValues = {}, className }) {
+    // Local state for location input — avoids URL updates on every keystroke
+    const [localLocation, setLocalLocation] = useState(filters.location || '');
+    const debounceRef = useRef(null);
+
+    // Sync from URL → local state when filters change externally
+    useEffect(() => {
+        setLocalLocation(filters.location || '');
+    }, [filters.location]);
+
+    const handleLocationChange = (e) => {
+        const value = e.target.value;
+        setLocalLocation(value);
+
+        // Debounce: only update URL after user stops typing for 500ms
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            onFilterChange({ ...filters, location: value });
+        }, 500);
+    };
+
+    const handleLocationKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            // Immediately update on Enter
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            onFilterChange({ ...filters, location: localLocation });
+        }
+    };
+
+    // Cleanup debounce on unmount
+    useEffect(() => {
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, []);
 
     const handleChange = (key, value) => {
         onFilterChange({ ...filters, [key]: value });
@@ -25,7 +59,7 @@ export function FilterSidebar({ filters, onFilterChange, distinctValues = {}, cl
                 Filters
                 {(Object.keys(filters).length > 0) && (
                     <button
-                        onClick={() => onFilterChange({ location: filters.location })}
+                        onClick={() => { setLocalLocation(''); onFilterChange({ location: '' }); }}
                         className="text-xs text-primary font-medium hover:underline ml-auto"
                     >
                         Clear All
@@ -42,8 +76,9 @@ export function FilterSidebar({ filters, onFilterChange, distinctValues = {}, cl
                         type="text"
                         className="bg-transparent text-sm w-full outline-none text-gray-700 placeholder-gray-400"
                         placeholder="Search area..."
-                        value={filters.location || ""}
-                        onChange={(e) => handleChange('location', e.target.value)}
+                        value={localLocation}
+                        onChange={handleLocationChange}
+                        onKeyDown={handleLocationKeyDown}
                     />
                 </div>
             </div>
@@ -96,3 +131,4 @@ export function FilterSidebar({ filters, onFilterChange, distinctValues = {}, cl
         </div>
     );
 }
+

@@ -469,7 +469,7 @@ export default function TravelPage() {
               <p className="text-gray-500 mb-8">Try adjusting your filters or be the first to post a trip!</p>
               <button
                 onClick={() => setShowModal(true)}
-                className="px-8 py-3 rounded-xl font-bold text-white shadow-lg mx-auto"
+                className="px-8 py-3 rounded-xl font-bold text-white shadow-lg mx-auto cursor-pointer"
                 style={{ backgroundColor: 'var(--color-accent)' }}
               >
                 Post a New Trip

@@ -24,9 +24,9 @@ export default function SearchPage() {
             <Navbar />
 
             <div className="container mx-auto px-4 py-8">
-                <div className="flex flex-col md:flex-row gap-8">
+                <div className="flex flex-col lg:flex-row gap-8">
                     {/* Filters Sidebar - Desktop */}
-                    <aside className="hidden md:block w-64 shrink-0">
+                    <aside className="hidden lg:block w-64 shrink-0">
                         <SearchFilters />
                     </aside>
 
@@ -39,7 +39,7 @@ export default function SearchPage() {
 
                             <div className="flex items-center gap-2 w-full sm:w-auto">
                                 {/* Mobile Filter Trigger */}
-                                <div className="md:hidden w-full sm:w-auto">
+                                <div className="lg:hidden w-full sm:w-auto">
                                     <Dialog>
                                         <DialogTrigger asChild>
                                             <Button variant="outline" className="w-full sm:w-auto gap-2">

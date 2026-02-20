@@ -63,15 +63,15 @@ export default function ChatPage() {
     return (
         <div className="h-screen bg-gray-50 flex flex-col">
             {/* Navbar - Hidden on specific mobile chat view if desired, but keeping generally for context */}
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
                 <Navbar />
             </div>
 
             {/* Mobile Header Spacer (if needed) */}
 
-            <div className="flex-1 flex overflow-hidden container mx-auto md:py-6 md:px-4 max-w-6xl">
+            <div className="flex-1 flex overflow-hidden container mx-auto lg:py-6 lg:px-4 max-w-6xl">
                 {/* Desktop Layout: Sidebar + Main */}
-                <div className="hidden md:flex bg-white rounded-3xl shadow-xl overflow-hidden w-full h-[calc(100vh-120px)] border border-gray-100">
+                <div className="hidden lg:flex bg-white rounded-3xl shadow-xl overflow-hidden w-full h-[calc(100vh-120px)] border border-gray-100">
                     <ChatList conversations={MOCK_CONVERSATIONS} />
                     <div className="flex-1 bg-gray-50 relative">
                         {activeChat ? (
@@ -88,7 +88,7 @@ export default function ChatPage() {
                 </div>
 
                 {/* Mobile Layout: Stacked Pages */}
-                <div className="md:hidden w-full h-screen bg-white flex flex-col">
+                <div className="lg:hidden w-full h-screen bg-white flex flex-col">
                     {!id ? (
                         <ChatList conversations={MOCK_CONVERSATIONS} />
                     ) : (

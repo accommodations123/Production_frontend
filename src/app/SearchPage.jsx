@@ -45,20 +45,18 @@ export default function SearchPage() {
     };
 
     const handleFilterChange = (newFilters) => {
-        const params = new URLSearchParams(searchParams);
-        // Clear existing keys handled by filters to avoid duplicates/mess
-        ['location', 'category', 'accommodationType', 'minPrice', 'maxPrice', 'stayType', 'furnishing'].forEach(k => params.delete(k));
+        const params = new URLSearchParams();
 
         Object.entries(newFilters).forEach(([key, value]) => {
             if (value) {
                 if (Array.isArray(value)) {
                     value.forEach(v => params.append(key, v));
                 } else {
-                    params.append(key, value);
+                    params.set(key, value);
                 }
             }
         });
-        navigate(`/search?${params.toString()}`);
+        setSearchParams(params, { replace: true });
     };
 
     useEffect(() => {
@@ -175,9 +173,9 @@ export default function SearchPage() {
     } = usePagination(listings, 12); // 12 items per page
 
     return (
-        <div className="min-h-screen bg-transparent pb-20 md:pb-0">
+        <div className="min-h-screen bg-transparent pb-20 lg:pb-0">
             {/* Desktop Navbar - Removed double navbar, assuming layout handles it or we need it transparent */}
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
                 <Navbar />
             </div>
 
@@ -186,9 +184,9 @@ export default function SearchPage() {
                 ... contents removed ...
             </div> */}
 
-            <div className="container mx-auto pt-4 md:pt-24 px-4 sm:px-5 md:px-6">
+            <div className="container mx-auto pt-4 lg:pt-24 px-4 sm:px-5 lg:px-6">
                 {/* Mobile Header & Filter Toggle */}
-                <div className="md:hidden flex items-center justify-between mb-4">
+                <div className="lg:hidden flex items-center justify-between mb-4">
                     <h1 className="text-xl font-bold text-gray-900">
                         {total > 0 ? `${total} Stays` : 'Access Stays'}
                     </h1>
@@ -202,16 +200,16 @@ export default function SearchPage() {
                     </Button>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+                <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
                     {/* Desktop Sidebar */}
-                    <aside className="w-full md:w-80 hidden md:block shrink-0">
+                    <aside className="w-full lg:w-80 hidden lg:block shrink-0">
                         <FilterSidebar filters={filters} onFilterChange={handleFilterChange} />
                     </aside>
 
                     {/* Listings Grid */}
                     <main className="flex-1">
 
-                        <div className="flex items-center justify-between mb-6 hidden md:flex">
+                        <div className="flex items-center justify-between mb-6 hidden lg:flex">
                             <h1 className="text-2xl font-bold text-gray-900">
                                 {total > 0 ? `${total} Stays found` : 'Find your requested stay'}
                                 {filters.location && <span className="text-gray-500 font-normal ml-2">in {filters.location}</span>}
@@ -227,14 +225,14 @@ export default function SearchPage() {
                         </div>
 
                         {loading ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {[1, 2, 3, 4, 5, 6].map((n) => (
                                     <div key={n} className="bg-white rounded-2xl h-[380px] animate-pulse" />
                                 ))}
                             </div>
                         ) : listings.length > 0 ? (
                             <>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
                                     {paginatedListings.map(item => (
                                         <PropertyCard key={item._id} property={item} />
                                     ))}

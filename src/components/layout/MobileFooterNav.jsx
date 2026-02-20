@@ -17,7 +17,7 @@ export function MobileFooterNav() {
     ];
 
     return (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
             {/* Gradient Fade up */}
             <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
 

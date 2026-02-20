@@ -20,7 +20,7 @@ export const getSocket = () => {
         // In Production, connect through FRONTEND domain (nginx has WebSocket config there)
         const socketUrl = import.meta.env.DEV
             ? "/"
-            : (import.meta.env.VITE_SOCKET_URL || "https://accomodation.test.nextkinlife.live");
+            : (import.meta.env.VITE_SOCKET_URL || "https://api.nextkinlife.live");
 
         socket = io(socketUrl, {
             withCredentials: true,  // Browser will send cookies automatically

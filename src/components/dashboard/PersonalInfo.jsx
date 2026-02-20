@@ -245,13 +245,25 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
             try {
                 if (onUpdate) {
                     // Normalize for backend
-                    const payload = {
-                        ...formData,
-                        phone: formData.phone ? `${formData.phoneCode}${formData.phone}` : "",
-                        whatsapp: formData.whatsapp ? `${formData.whatsappCode}${formData.whatsapp}` : "",
-                        zip_code: formData.zip,
-                        street_address: formData.address
-                    };
+                    // Normalize for backend - Convert to FormData to match ProfileCard
+                    const payload = new FormData();
+
+                    // Add all text fields
+                    Object.keys(formData).forEach(key => {
+                        if (key !== 'phone' && key !== 'whatsapp' && key !== 'phoneCode' && key !== 'whatsappCode' && key !== 'phoneIso' && key !== 'whatsappIso') {
+                            payload.append(key, formData[key]);
+                        }
+                    });
+
+                    // Handle composite fields
+                    const finalPhone = formData.phone ? `${formData.phoneCode}${formData.phone}` : "";
+                    const finalWhatsapp = formData.whatsapp ? `${formData.whatsappCode}${formData.whatsapp}` : "";
+
+                    payload.append('phone', finalPhone);
+                    payload.append('whatsapp', finalWhatsapp);
+                    payload.append('zip_code', formData.zip);
+                    payload.append('street_address', formData.address);
+
                     await onUpdate(payload);
                 }
                 setEditStates(prev => ({ ...prev, [section]: false }))

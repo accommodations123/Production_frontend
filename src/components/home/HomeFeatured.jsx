@@ -125,7 +125,7 @@ const HomeFeatured = () => {
                 <MapPin className="w-10 h-10 sm:w-12 sm:h-12 text-[#D1CBB7] mx-auto mb-4" />
                 <h3 className="text-lg sm:text-xl font-bold text-[#00142E] mb-2">No Stays Found</h3>
                 <p className="text-[#00142E]/60 text-sm sm:text-base">Be the first to list a property in our community.</p>
-                <Button className="mt-4 sm:mt-6 bg-[#CB2A25] hover:bg-[#a0221e] text-white rounded-full text-sm sm:text-base px-4 sm:px-6 py-2">List Your Property</Button>
+                <Button onClick={() => navigate('/host/create')} className="mt-4 sm:mt-6 bg-[#CB2A25] hover:bg-[#a0221e] text-white rounded-full text-sm sm:text-base px-4 sm:px-6 py-2">List Your Property</Button>
               </div>
             )}
           </div>
