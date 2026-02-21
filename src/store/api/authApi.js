@@ -68,6 +68,27 @@ export const authApi = createApi({
         getMe: builder.query({
             query: () => "auth/me",
             providesTags: ["User"],
+            transformResponse: (response) => {
+                // The backend getMe returns profile_image as just the S3 key
+                // (e.g. "properties/abc.jpeg"). We need the full CloudFront URL.
+                const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                const fixImage = (obj) => {
+                    if (obj?.profile_image && !obj.profile_image.startsWith('http')) {
+                        const key = obj.profile_image.startsWith('/')
+                            ? obj.profile_image
+                            : `/${obj.profile_image}`;
+                        obj.profile_image = `${CLOUDFRONT}${key}`;
+                    }
+                    return obj;
+                };
+                // Handle both { user: {...} } and flat user object shapes
+                if (response?.user) {
+                    fixImage(response.user);
+                } else if (response) {
+                    fixImage(response);
+                }
+                return response;
+            },
         }),
         getMyTrips: builder.query({
             query: () => "travel/trips/me",
