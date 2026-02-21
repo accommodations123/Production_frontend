@@ -36,13 +36,15 @@ const baseQueryWithLogger = async (args, api, extraOptions) => {
 
         if (result.error) {
             const status = result.error.status;
-            const url = args.url || args;
+            const url = String(args.url || args);
 
-            if (status === 401) {
-                // console.log(`🔐 Auth: Unauthorized (401) on ${url} - User might not be logged in.`);
-            } else if (status === 403) {
-                console.warn(`🚫 Auth: Forbidden (403) on ${url}`);
-            } else {
+            // Silently ignore expected errors
+            const isExpected =
+                status === 401 ||                                     // Not logged in yet
+                (status === 404 && url.includes('host/get')) ||       // No host profile
+                (status === 400 && url.includes('my-events'));        // No events
+
+            if (!isExpected && status !== 403) {
                 console.error(`⬅️ RTK Request Error [${status}] on ${url}:`, result.error);
             }
         }

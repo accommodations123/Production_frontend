@@ -36,23 +36,19 @@ const baseQueryWithLogger = async (args, api, extraOptions) => {
     try {
         const result = await rawBase(args, api, extraOptions)
 
-        // Log all errors for visibility in console
         if (result.error) {
             const status = result.error.status;
-            const url = args.url || args;
+            const url = String(args.url || args);
 
-            if (status === 401) {
-                // Silently handle 401 - Do not throw, just warn
-                console.warn(`🔐 Auth: Unauthorized (401) on ${url}`);
-            } else if (status === 403) {
-                console.warn(`🚫 Auth: Forbidden (403) on ${url}`);
-            } else if (status === 400 && (String(url).includes('/join') || String(url).includes('/leave'))) {
-                // Suppress 400 for join/leave as these are often "Already member" / "Not member" handled by UI
-                console.warn(`⚠️ API: Handled 400 on ${url} - ${result.error.data?.message || 'Bad Request'}`);
-            } else if (status === 404 && String(url).includes('host/get')) {
-                // Suppress 404 for host/get as it doesn't exist on backend yet
-                console.warn(`⚠️ API: Ignored 404 on ${url} (Endpoint missing)`);
-            } else {
+            // Silently ignore expected errors
+            const isExpected =
+                status === 401 ||                                          // Not logged in yet
+                status === 403 ||                                          // Forbidden
+                (status === 404 && url.includes('host/get')) ||            // No host profile
+                (status === 400 && (url.includes('/join') || url.includes('/leave'))) ||  // Already member
+                (status === 400 && url.includes('my-events'));             // No events
+
+            if (!isExpected) {
                 console.error(`⬅️ RTK Request Error [${status}] on ${url}:`, result.error);
             }
 
