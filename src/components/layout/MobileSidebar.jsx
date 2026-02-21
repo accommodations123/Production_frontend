@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { useCountry } from "@/context/CountryContext";
 import { COUNTRIES } from "@/lib/mock-data";
 import { useClickOutside } from "@/hooks/useClickOutside";
+import { resolveImageUrl } from "@/lib/imageUtils";
 
 export function MobileSidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ export function MobileSidebar({ isOpen, onClose }) {
   // Get user data with refetch capability
   const { data: userData, isLoading: isAuthLoading, isError: isAuthError, refetch } = useGetMeQuery();
   const [logout] = useLogoutMutation();
-  
+
   // Get host profile if authenticated
   const isAuthenticated = !!userData && !isAuthError;
   const { data: hostProfile } = useGetHostProfileQuery(undefined, {
@@ -59,10 +60,16 @@ export function MobileSidebar({ isOpen, onClose }) {
     return {
       ...(hostProfile || {}),
       ...userDetails,
-      profile_image:
-        userDetails?.profile_image ||
-        hostProfile?.profile_image ||
-        null
+      profile_image: (() => {
+        const candidates = [
+          hostProfile?.profile_image,
+          userDetails?.profile_image,
+        ];
+        const fullUrl = candidates.find(img => img && img.startsWith('http'));
+        if (fullUrl) return fullUrl;
+        const rawKey = candidates.find(img => img);
+        return resolveImageUrl(rawKey);
+      })()
     };
   }, [userData, hostProfile]);
 

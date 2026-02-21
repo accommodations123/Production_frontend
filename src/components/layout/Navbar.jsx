@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { CATEGORIES, COUNTRIES } from "@/lib/mock-data"
 import { getHostPath } from "@/lib/navigationUtils"
+import { resolveImageUrl } from "@/lib/imageUtils"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useCountry } from "@/context/CountryContext"
 import { useClickOutside } from "@/hooks/useClickOutside"
@@ -44,10 +45,19 @@ export function Navbar({ minimal = false, onMenuClick }) {
         return {
             ...(hostProfile || {}),
             ...userDetails,
-            profile_image:
-                userDetails?.profile_image ||
-                hostProfile?.profile_image ||
-                null
+            // Prefer the source that already has a full CloudFront URL
+            profile_image: (() => {
+                const candidates = [
+                    hostProfile?.profile_image,
+                    userDetails?.profile_image,
+                ];
+                // First, try to find one that's already a full URL
+                const fullUrl = candidates.find(img => img && img.startsWith('http'));
+                if (fullUrl) return fullUrl;
+                // Fallback: use resolveImageUrl on whichever is available
+                const rawKey = candidates.find(img => img);
+                return resolveImageUrl(rawKey);
+            })()
         };
     }, [userData, hostProfile]);
 
