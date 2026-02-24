@@ -16,6 +16,7 @@ import {
 import { useDispatch } from "react-redux";
 import { useTimeAgo } from "../../hooks/useTimeAgo";
 
+import { useGetMeQuery } from "@/store/api/authApi";
 
 export function NotificationDropdown({ minimal = false }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -23,8 +24,14 @@ export function NotificationDropdown({ minimal = false }) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    // Fetch notifications from API
-    const { data: notifications = [], isLoading, refetch } = useGetNotificationsQuery();
+    // Check auth status to avoid unnecessary notification requests
+    const { data: userData, isError } = useGetMeQuery();
+    const isAuthenticated = !!userData && !isError;
+
+    // Fetch notifications from API (only if authenticated)
+    const { data: notifications = [], isLoading, refetch } = useGetNotificationsQuery(undefined, {
+        skip: !isAuthenticated
+    });
     const [markAsRead] = useMarkNotificationAsReadMutation();
     const [markAllAsRead] = useMarkAllNotificationsAsReadMutation();
     const [deleteNotification] = useDeleteNotificationMutation();

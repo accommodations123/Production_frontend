@@ -81,8 +81,8 @@ export default function NewDashboard() {
   /* -------------------------------
      Other dashboard data
   -------------------------------- */
-  const { data: listings = [] } = useGetMyListingsQuery();
-  const { data: events = [] } = useGetMyEventsQuery();
+  const { data: listings = [] } = useGetMyListingsQuery(undefined, { skip: !hostProfile });
+  const { data: events = [] } = useGetMyEventsQuery(undefined, { skip: !hostProfile });
   const { data: tripsData } = useGetMyTripsQuery();
 
   const propertiesCount = listings.length;
