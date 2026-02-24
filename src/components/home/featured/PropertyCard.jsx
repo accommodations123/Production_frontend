@@ -36,7 +36,7 @@ export const PropertyCard = ({ property }) => {
 
     // Helper to normalize image URLs
     const getValidImageUrl = (imagePath) => {
-        if (!imagePath) return "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80"; // Generic House
+        if (!imagePath) return null;
         if (imagePath.startsWith('http')) return imagePath;
         return `/${imagePath.startsWith('/') ? imagePath.slice(1) : imagePath}`;
     };
@@ -156,7 +156,9 @@ export const PropertyCard = ({ property }) => {
                     className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
                     onLoad={() => setIsImageLoaded(true)}
                     onError={(e) => {
-                        e.target.src = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80";
+                        e.target.onerror = null;
+                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'%3E%3C/path%3E%3Cpolyline points='9 22 9 12 15 12 15 22'%3E%3C/polyline%3E%3C/svg%3E"; // SVG Home Icon
+                        e.target.className = "w-1/2 h-1/2 object-contain mx-auto my-auto opacity-50";
                         e.target.classList.remove('opacity-0');
                     }}
                     loading="lazy"

@@ -5,7 +5,7 @@ import { Home, AlertCircle, ShieldCheck, Calendar, Sparkles, Plus, TrendingUp, E
 import { Button } from "@/components/ui/button"
 import { PropertyCard } from "@/components/account/PropertyCard"
 import { EventCard } from "@/components/account/EventCard"
-import { useGetMyListingsQuery, useDeletePropertyMutation, useGetMyEventsQuery, useDeleteEventMutation } from "@/store/api/hostApi"
+import { useGetMyListingsQuery, useDeletePropertyMutation, useGetMyEventsQuery, useDeleteEventMutation, useGetHostProfileQuery } from "@/store/api/hostApi"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
@@ -16,13 +16,19 @@ export const MyListings = () => {
     const navigate = useNavigate()
     const [activeTab, setActiveTab] = useState("spaces")
 
+    // Check if user has a host profile
+    const { data: hostProfile } = useGetHostProfileQuery()
+
     const {
         data: propertyListings = [],
         isLoading: isPropertiesLoading,
         isError: isPropertiesError,
         error: propertiesError,
         refetch: refetchProperties,
-    } = useGetMyListingsQuery(undefined, { refetchOnMountOrArgChange: true })
+    } = useGetMyListingsQuery(undefined, {
+        refetchOnMountOrArgChange: true,
+        skip: !hostProfile
+    })
 
     const {
         data: eventListings = [],
@@ -30,7 +36,10 @@ export const MyListings = () => {
         isError: isEventsError,
         error: eventsError,
         refetch: refetchEvents,
-    } = useGetMyEventsQuery(undefined, { refetchOnMountOrArgChange: true })
+    } = useGetMyEventsQuery(undefined, {
+        refetchOnMountOrArgChange: true,
+        skip: !hostProfile
+    })
 
     const [deleteProperty] = useDeletePropertyMutation()
     const [deleteEvent] = useDeleteEventMutation()

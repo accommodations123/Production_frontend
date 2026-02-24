@@ -50,7 +50,7 @@ export function ListingCard({ listing, layout = "grid" }) {
     })();
 
     // Normalize Images
-    const displayImage = images[0] || media?.[0]?.url || photos[0] || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80";
+    const displayImage = images[0] || media?.[0]?.url || photos[0] || null;
 
     // Normalize Price
     const displayPrice = price || (listing.pricing?.perMonth) || 0;
@@ -65,7 +65,10 @@ export function ListingCard({ listing, layout = "grid" }) {
                         alt={displayTitle}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                            e.target.src = "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop";
+                            e.target.onerror = null;
+                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'%3E%3C/circle%3E%3Cpolyline points='21 15 16 10 5 21'%3E%3C/polyline%3E%3C/svg%3E";
+                            e.target.className = "w-1/3 h-1/3 object-contain mx-auto my-auto opacity-30";
+                            e.target.parentElement.classList.add("flex", "items-center", "justify-center", "bg-gray-100");
                         }}
                     />
                 </Link>
