@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { HostPhoto } from "./HostPhoto"
 import { COUNTRIES } from "@/lib/mock-data"
 import WishlistButton from "@/components/ui/WishlistButton"
+import { useCountry } from "@/context/CountryContext"
 
 export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
     // Format date for display
@@ -28,7 +29,7 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
             const [hours, minutes] = timeString.split(':');
             const hour = parseInt(hours);
             const ampm = hour >= 12 ? 'PM' : 'AM';
-            const displayHour = hour > 12 ? hour - 12 : hour;
+            const displayHour = hour % 12 || 12;
             return `${displayHour}:${minutes} ${ampm}`;
         } catch (e) {
             return timeString;
@@ -67,7 +68,9 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
         }
     };
 
-    const currencySymbol = getCurrencySymbol(event.country);
+    const { activeCountry } = useCountry();
+    const targetCountryName = activeCountry?.name || event.country;
+    const currencySymbol = getCurrencySymbol(targetCountryName);
 
     return (
         <div

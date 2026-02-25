@@ -156,7 +156,6 @@ const CommunityDetailsForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validate()) return;
-        setStatusMessage("");
 
         try {
             // Step 1: Create Community

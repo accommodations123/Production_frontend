@@ -37,19 +37,24 @@ export const CountryCodeSelect = ({ value, onChange, className, isoCode }) => {
                     setIsOpen(!isOpen);
                     setSearch(""); // Reset search on open
                 }}
-                className="flex items-center gap-2 px-3 py-4 bg-white border-2 border-neutral/30 rounded-xl hover:border-accent/30 transition-all w-full min-w-[100px]"
+                className={cn(
+                    "flex items-center justify-between gap-1.5 px-3 h-full min-h-[36px] bg-white border border-gray-300 rounded-md hover:border-gray-400 transition-all w-full",
+                    "sm:min-h-[40px]" // Matches standard input height
+                )}
             >
                 {selectedCountry && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 overflow-hidden">
                         {selectedCountry.flag.startsWith('/') ? (
-                            <img src={selectedCountry.flag} alt={selectedCountry.name} className="w-5 h-3.5 object-cover rounded-sm" />
+                            <img src={selectedCountry.flag} alt={selectedCountry.name} className="w-5 h-3.5 object-cover rounded-sm shrink-0" />
                         ) : (
-                            <span className="text-lg leading-none">{selectedCountry.flag}</span>
+                            <span className="text-base leading-none shrink-0">{selectedCountry.flag}</span>
                         )}
-                        <span className="font-semibold text-primary">{selectedCountry.phoneCode}</span>
+                        <span className="font-medium text-sm text-gray-900 truncate">
+                            {selectedCountry.phoneCode}
+                        </span>
                     </div>
                 )}
-                <ChevronDown className={cn("w-4 h-4 text-neutral/50 ml-auto transition-transform", isOpen && "rotate-180")} />
+                <ChevronDown className={cn("w-4 h-4 text-gray-500 shrink-0 transition-transform", isOpen && "rotate-180")} />
             </button>
 
             <AnimatePresence>

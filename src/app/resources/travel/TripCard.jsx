@@ -3,6 +3,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Plane, Clock, Shield, Star, Heart, Navigation, ChevronDown } from "lucide-react";
 
 export default function TripCard({ plan, isSelected, onSelect, onMatchRequest }) {
+    const formatTime = (timeString) => {
+        if (!timeString) return "";
+        try {
+            const [hours, minutes] = timeString.split(':');
+            const hour = parseInt(hours, 10);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            return `${displayHour}:${minutes} ${ampm}`;
+        } catch (e) {
+            return timeString;
+        }
+    };
+
     return (
         <motion.div
             layout
@@ -155,7 +168,7 @@ export default function TripCard({ plan, isSelected, onSelect, onMatchRequest })
                                         <div>
                                             <p className="text-xs font-bold" style={{ color: 'var(--color-secondary)' }}>DEPARTURE</p>
                                             <p className="font-bold text-sm" style={{ color: 'var(--color-foreground)' }}>{plan.flight.from}</p>
-                                            <p className="text-xs" style={{ color: 'var(--color-secondary)' }}>{plan.flight.departureDate} at {plan.flight.departureTime}</p>
+                                            <p className="text-xs" style={{ color: 'var(--color-secondary)' }}>{plan.flight.departureDate} at {formatTime(plan.flight.departureTime)}</p>
                                         </div>
                                     </div>
 
@@ -167,7 +180,7 @@ export default function TripCard({ plan, isSelected, onSelect, onMatchRequest })
                                             </div>
                                             <div className="bg-yellow-50 p-2 rounded-lg flex-1">
                                                 <p className="text-[10px] font-bold text-yellow-700">LAYOVER • {stop.location}</p>
-                                                <p className="text-xs" style={{ color: 'var(--color-secondary)' }}>Arrival: {stop.arrivalTime} | Departure: {stop.departureTime}</p>
+                                                <p className="text-xs" style={{ color: 'var(--color-secondary)' }}>Arrival: {formatTime(stop.arrivalTime)} | Departure: {formatTime(stop.departureTime)}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -179,7 +192,7 @@ export default function TripCard({ plan, isSelected, onSelect, onMatchRequest })
                                         <div>
                                             <p className="text-xs font-bold" style={{ color: 'var(--color-secondary)' }}>ARRIVAL</p>
                                             <p className="font-bold text-sm" style={{ color: 'var(--color-foreground)' }}>{plan.flight.to}</p>
-                                            <p className="text-xs" style={{ color: 'var(--color-secondary)' }}>{plan.flight.arrivalDate} at {plan.flight.arrivalTime}</p>
+                                            <p className="text-xs" style={{ color: 'var(--color-secondary)' }}>{plan.flight.arrivalDate} at {formatTime(plan.flight.arrivalTime)}</p>
                                         </div>
                                     </div>
                                 </div>

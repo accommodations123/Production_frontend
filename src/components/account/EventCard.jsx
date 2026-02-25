@@ -5,6 +5,7 @@ import { Edit, Trash2, Eye, Calendar, MapPin, Clock, Lock, ImageOff } from "luci
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { COUNTRIES } from "@/lib/mock-data"
+import { useCountry } from "@/context/CountryContext"
 
 export function EventCard({ event, onDelete }) {
     const [isDeleting, setIsDeleting] = useState(false)
@@ -39,7 +40,9 @@ export function EventCard({ event, onDelete }) {
         }
     };
 
-    const currencySymbol = getCurrencySymbol(event.country);
+    const { activeCountry } = useCountry();
+    const targetCountryName = activeCountry?.name || event.country;
+    const currencySymbol = getCurrencySymbol(targetCountryName);
     const price = event.price && event.price !== "0" && event.price !== 0 ? `${currencySymbol}${event.price}` : "Free"
 
     // Status badge configuration

@@ -2,6 +2,7 @@ import React, { memo } from "react"
 import { TrendingUp, CheckCircle, Ticket } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { COUNTRIES } from "@/lib/mock-data"
+import { useCountry } from "@/context/CountryContext"
 
 export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave, event, isLoading, errorMessage, successMessage }) => {
     const getCurrencySymbol = (countryName) => {
@@ -19,7 +20,9 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
         }
     };
 
-    const currencySymbol = getCurrencySymbol(event?.country);
+    const { activeCountry } = useCountry();
+    const targetCountryName = activeCountry?.name || event?.country;
+    const currencySymbol = getCurrencySymbol(targetCountryName);
 
     return (
         <div className="sticky top-0 z-40 bg-accent/90 shadow-2xl backdrop-blur-xl">

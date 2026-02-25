@@ -2,8 +2,19 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Users, AlertCircle, CheckCircle, UserCheck, UserX, Phone, Mail, Loader2 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
-
 export default function MatchRequestsModal({ onClose, matches, plans, myTrips, onAcceptRequest, onRejectRequest }) {
+    const formatTime = (timeString) => {
+        if (!timeString) return "";
+        try {
+            const [hours, minutes] = timeString.split(':');
+            const hour = parseInt(hours, 10);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            return `${displayHour}:${minutes} ${ampm}`;
+        } catch (e) {
+            return timeString;
+        }
+    };
     const [activeTab, setActiveTab] = useState("incoming"); // incoming, outgoing
     const [processingIds, setProcessingIds] = useState(new Set());
 
@@ -152,7 +163,7 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
                                                                 Traveling to {request.requesterPlan.destination}
                                                             </p>
                                                             <p className="text-sm" style={{ color: 'var(--color-secondary)' }}>
-                                                                {request.requesterPlan.date} at {request.requesterPlan.time}
+                                                                {request.requesterPlan.date} at {formatTime(request.requesterPlan.time)}
                                                             </p>
                                                             <div className="flex items-center gap-2 mt-1">
                                                                 {getStatusBadge(request.status)}
@@ -240,7 +251,7 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
                                                                 Traveling to {request.receiverPlan.destination}
                                                             </p>
                                                             <p className="text-sm" style={{ color: 'var(--color-secondary)' }}>
-                                                                {request.receiverPlan.date} at {request.receiverPlan.time}
+                                                                {request.receiverPlan.date} at {formatTime(request.receiverPlan.time)}
                                                             </p>
                                                             <div className="flex items-center gap-2 mt-1">
                                                                 {getStatusBadge(request.status)}

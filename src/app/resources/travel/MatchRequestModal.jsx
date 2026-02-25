@@ -1,8 +1,19 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, UserPlus, CheckCircle } from "lucide-react";
-
 export default function MatchRequestModal({ plan, onClose, onSendRequest }) {
+    const formatTime = (timeString) => {
+        if (!timeString) return "";
+        try {
+            const [hours, minutes] = timeString.split(':');
+            const hour = parseInt(hours, 10);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            return `${displayHour}:${minutes} ${ampm}`;
+        } catch (e) {
+            return timeString;
+        }
+    };
     const [message, setMessage] = useState("");
     const [consentGiven, setConsentGiven] = useState(false);
 
@@ -44,7 +55,7 @@ export default function MatchRequestModal({ plan, onClose, onSendRequest }) {
                                     Traveling to {plan.destination}
                                 </p>
                                 <p className="text-sm" style={{ color: 'var(--color-secondary)' }}>
-                                    {plan.date} at {plan.time}
+                                    {plan.date} at {formatTime(plan.time)}
                                 </p>
                             </div>
                         </div>
