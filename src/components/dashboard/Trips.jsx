@@ -393,12 +393,31 @@ export const Trips = () => {
                                                             })}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-2.5 px-4 py-2 bg-neutral/5 rounded-xl border border-neutral/10">
-                                                        <Clock className="w-4 h-4 text-accent" />
-                                                        <span className="text-sm font-semibold text-primary/80">
-                                                            {trip.departure_time ? trip.departure_time.slice(0, 5) : 'N/A'}
-                                                        </span>
-                                                    </div>
+                                                    {(() => {
+                                                        const time = trip.departure_time || trip.time || trip.flight?.departureTime;
+                                                        // Convert 24h time string to 12h AM/PM
+                                                        const formatTime12h = (t) => {
+                                                            if (!t) return null;
+                                                            const [h, m] = t.split(':').map(Number);
+                                                            if (isNaN(h) || isNaN(m)) return t;
+                                                            const period = h >= 12 ? 'PM' : 'AM';
+                                                            const hour12 = h % 12 || 12;
+                                                            return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
+                                                        };
+                                                        // Try to extract time from travel_date if it has a time component (ISO string)
+                                                        const dateTime = !time && trip.travel_date && trip.travel_date.includes('T')
+                                                            ? new Date(trip.travel_date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })
+                                                            : null;
+                                                        const displayTime = time ? formatTime12h(time) : dateTime;
+                                                        return displayTime ? (
+                                                            <div className="flex items-center gap-2.5 px-4 py-2 bg-neutral/5 rounded-xl border border-neutral/10">
+                                                                <Clock className="w-4 h-4 text-accent" />
+                                                                <span className="text-sm font-semibold text-primary/80">
+                                                                    {displayTime}
+                                                                </span>
+                                                            </div>
+                                                        ) : null;
+                                                    })()}
                                                 </div>
                                             </div>
 

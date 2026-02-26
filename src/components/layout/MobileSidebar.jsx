@@ -229,7 +229,7 @@ export function MobileSidebar({ isOpen, onClose }) {
                             )}
                           >
                             <span className="flex items-center gap-3">
-                              {country.flag.startsWith('/') ? (
+                              {(country.flag.startsWith('/') || country.flag.startsWith('http')) ? (
                                 <img src={country.flag} alt={country.name} className="w-5 h-3 object-cover rounded" />
                               ) : (
                                 <span className="text-base">{country.flag}</span>

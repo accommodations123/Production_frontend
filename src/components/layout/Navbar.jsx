@@ -129,7 +129,21 @@ export function Navbar({ minimal = false, onMenuClick }) {
     // Mobile State
     const [isMobileCountryOpen, setIsMobileCountryOpen] = React.useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
+    const [countrySearchQuery, setCountrySearchQuery] = React.useState("")
     const location = useLocation()
+
+    const filteredCountries = React.useMemo(() => {
+        if (!countrySearchQuery) return COUNTRIES;
+        const query = countrySearchQuery.toLowerCase();
+        return COUNTRIES.filter(c => c.name?.toLowerCase().includes(query) || c.code?.toLowerCase().includes(query));
+    }, [countrySearchQuery]);
+
+    React.useEffect(() => {
+        if (!isCountryOpen && !isMobileCountryOpen) {
+            const timeout = setTimeout(() => setCountrySearchQuery(""), 200);
+            return () => clearTimeout(timeout);
+        }
+    }, [isCountryOpen, isMobileCountryOpen]);
 
     // Define Explore section paths
     const explorePaths = ["/", "/events", "/search"]
@@ -296,7 +310,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                 ) : (
                                     <>
                                         {activeCountry && activeCountry.flag && (
-                                            activeCountry.flag.startsWith('/') ? (
+                                            (activeCountry.flag.startsWith('/') || activeCountry.flag.startsWith('http')) ? (
                                                 <img src={activeCountry.flag} alt={activeCountry.name} className="w-8 h-6 object-cover rounded-md shadow-md bg-white/10" />
                                             ) : (
                                                 <span className="text-2xl filter drop-shadow-sm">{activeCountry.flag}</span>
@@ -320,32 +334,51 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                             <p className="text-[10px] font-black text-accent uppercase tracking-widest">Select Region</p>
                                             <p className="text-[10px] text-white/50 mt-1">💡 Currency will be set automatically</p>
                                         </div>
+                                        <div className="px-3 py-2 border-b border-white/5">
+                                            <div className="relative">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search country..."
+                                                    value={countrySearchQuery}
+                                                    onChange={(e) => setCountrySearchQuery(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-accent/50 focus:bg-white/10 transition-colors"
+                                                    autoFocus
+                                                />
+                                            </div>
+                                        </div>
                                         <div className="max-h-64 overflow-y-auto py-2 px-2 scrollbar-hide">
-                                            {COUNTRIES.map((country) => (
-                                                <button
-                                                    key={country.code}
-                                                    className={cn(
-                                                        "w-full text-left px-4 py-3 text-sm rounded-xl flex items-center justify-between transition-all group",
-                                                        getCountryCode() === country.code
-                                                            ? "bg-accent text-white shadow-lg shadow-accent/20"
-                                                            : "text-white/70 hover:bg-white/5 hover:text-white"
-                                                    )}
-                                                    onClick={() => {
-                                                        setCountry(country)
-                                                        setIsCountryOpen(false)
-                                                    }}
-                                                >
-                                                    <span className="flex items-center gap-4">
-                                                        {country.flag.startsWith('/') ? (
-                                                            <img src={country.flag} alt={country.name} className="w-6 h-4 object-cover rounded shadow-sm" />
-                                                        ) : (
-                                                            <span className="text-lg">{country.flag}</span>
+                                            {filteredCountries.length > 0 ? (
+                                                filteredCountries.map((country) => (
+                                                    <button
+                                                        key={country.code}
+                                                        className={cn(
+                                                            "w-full text-left px-4 py-3 text-sm rounded-xl flex items-center justify-between transition-all group",
+                                                            getCountryCode() === country.code
+                                                                ? "bg-accent text-white shadow-lg shadow-accent/20"
+                                                                : "text-white/70 hover:bg-white/5 hover:text-white"
                                                         )}
-                                                        <span className="font-medium">{country.name}</span>
-                                                    </span>
-                                                    {getCountryCode() === country.code && <Check className="w-4 h-4" />}
-                                                </button>
-                                            ))}
+                                                        onClick={() => {
+                                                            setCountry(country)
+                                                            setIsCountryOpen(false)
+                                                        }}
+                                                    >
+                                                        <span className="flex items-center gap-4">
+                                                            {(country.flag.startsWith('/') || country.flag.startsWith('http')) ? (
+                                                                <img src={country.flag} alt={country.name} className="w-6 h-4 object-cover rounded shadow-sm" />
+                                                            ) : (
+                                                                <span className="text-lg">{country.flag}</span>
+                                                            )}
+                                                            <span className="font-medium">{country.name}</span>
+                                                        </span>
+                                                        {getCountryCode() === country.code && <Check className="w-4 h-4" />}
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-4 py-6 text-center text-white/50 text-sm">
+                                                    No countries found
+                                                </div>
+                                            )}
                                         </div>
                                     </motion.div>
                                 )}
@@ -588,32 +621,50 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                                 <p className="text-[10px] font-black text-accent uppercase tracking-widest">Select Region</p>
                                                 <p className="text-[10px] text-white/50 mt-1">💡 Currency set automatically</p>
                                             </div>
+                                            <div className="px-3 py-2 border-b border-white/5">
+                                                <div className="relative">
+                                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Search country..."
+                                                        value={countrySearchQuery}
+                                                        onChange={(e) => setCountrySearchQuery(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-accent/50 focus:bg-white/10 transition-colors"
+                                                    />
+                                                </div>
+                                            </div>
                                             <div className="max-h-64 overflow-y-auto py-2 px-2 scrollbar-hide">
-                                                {COUNTRIES.map((country) => (
-                                                    <button
-                                                        key={country.code}
-                                                        className={cn(
-                                                            "w-full text-left px-3 py-2 text-sm rounded-lg flex items-center justify-between transition-all",
-                                                            getCountryCode() === country.code
-                                                                ? "bg-accent text-white"
-                                                                : "text-white/70 hover:bg-white/5 hover:text-white"
-                                                        )}
-                                                        onClick={() => {
-                                                            setCountry(country)
-                                                            setIsMobileCountryOpen(false)
-                                                        }}
-                                                    >
-                                                        <span className="flex items-center gap-3">
-                                                            {country.flag.startsWith('/') ? (
-                                                                <img src={country.flag} alt={country.name} className="w-5 h-3 object-cover rounded" />
-                                                            ) : (
-                                                                <span className="text-base">{country.flag}</span>
+                                                {filteredCountries.length > 0 ? (
+                                                    filteredCountries.map((country) => (
+                                                        <button
+                                                            key={country.code}
+                                                            className={cn(
+                                                                "w-full text-left px-3 py-2 text-sm rounded-lg flex items-center justify-between transition-all",
+                                                                getCountryCode() === country.code
+                                                                    ? "bg-accent text-white"
+                                                                    : "text-white/70 hover:bg-white/5 hover:text-white"
                                                             )}
-                                                            <span className="font-medium">{country.name}</span>
-                                                        </span>
-                                                        {getCountryCode() === country.code && <Check className="w-3 h-3" />}
-                                                    </button>
-                                                ))}
+                                                            onClick={() => {
+                                                                setCountry(country)
+                                                                setIsMobileCountryOpen(false)
+                                                            }}
+                                                        >
+                                                            <span className="flex items-center gap-3">
+                                                                {(country.flag.startsWith('/') || country.flag.startsWith('http')) ? (
+                                                                    <img src={country.flag} alt={country.name} className="w-5 h-3 object-cover rounded" />
+                                                                ) : (
+                                                                    <span className="text-base">{country.flag}</span>
+                                                                )}
+                                                                <span className="font-medium">{country.name}</span>
+                                                            </span>
+                                                            {getCountryCode() === country.code && <Check className="w-3 h-3" />}
+                                                        </button>
+                                                    ))
+                                                ) : (
+                                                    <div className="px-4 py-6 text-center text-white/50 text-sm">
+                                                        No countries found
+                                                    </div>
+                                                )}
                                             </div>
                                         </motion.div>
                                     )}

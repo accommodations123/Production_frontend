@@ -22,6 +22,7 @@ import { Country, State, City } from 'country-state-city';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { COUNTRIES } from "@/lib/mock-data";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
+import { useCountry } from "@/context/CountryContext";
 
 /* =========================================================
    BASIC UI COMPONENTS (MUST BE ABOVE SellForm)
@@ -166,6 +167,7 @@ const splitPhone = (fullPhone) => {
 };
 
 export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) {
+  const { activeCountry: globalActiveCountry } = useCountry();
   const [images, setImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [imagesToDelete, setImagesToDelete] = useState([]);
@@ -557,18 +559,34 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
           <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm min-w-[1rem] text-center">
               {(() => {
-                if (!country) return '$';
-                const cName = typeof country === 'string' ? country : country.name;
-                const found = COUNTRIES.find(c => c.name === cName);
-                if (!found || !found.currency) return '$';
-                try {
-                  return new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: found.currency,
-                  }).formatToParts(0).find(part => part.type === 'currency')?.value || found.currency;
-                } catch (e) {
-                  return found.currency;
+                const cName = country ? (typeof country === 'string' ? country : country.name) : null;
+                if (cName) {
+                  const found = COUNTRIES.find(c => c.name === cName);
+                  if (found?.currency) {
+                    try {
+                      return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: found.currency,
+                      }).formatToParts(0).find(part => part.type === 'currency')?.value || found.currency;
+                    } catch (e) {
+                      return found.currency;
+                    }
+                  }
                 }
+                // Fallback: use global country context currency
+                const globalCountry = COUNTRIES.find(c => c.code === globalActiveCountry?.code);
+                const globalCurrency = globalCountry?.currency || globalActiveCountry?.currency;
+                if (globalCurrency) {
+                  try {
+                    return new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: globalCurrency,
+                    }).formatToParts(0).find(part => part.type === 'currency')?.value || globalCurrency;
+                  } catch (e) {
+                    return globalCurrency;
+                  }
+                }
+                return '$';
               })()}
             </div>
             <Input

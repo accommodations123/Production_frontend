@@ -4,6 +4,7 @@ import { useGetPublicTripsQuery } from "@/store/api/authApi";
 import { useCountry } from "@/context/CountryContext";
 import { Loader2, ExternalLink, MapPin, Calendar, MessageCircle, ShieldCheck, User } from 'lucide-react';
 import { SectionHeader } from '../home/featured/SectionHeader';
+import { resolveImageUrl } from '@/lib/imageUtils';
 
 const CommunityCard = ({ match, onConnect }) => {
     const [isImageLoaded, setIsImageLoaded] = React.useState(false);
@@ -125,7 +126,7 @@ export const TravelCommunity = ({ onConnect }) => {
             name: trip.host?.full_name || "Traveler",
             location: fromCity,
             country: fromCountry,
-            image: trip.host?.profile_image || null,
+            image: resolveImageUrl(trip.host?.profile_image) || null,
             tripTitle: toCity,
             date: new Date(tripDate).toLocaleDateString(undefined, {
                 month: 'short', day: 'numeric', year: 'numeric'

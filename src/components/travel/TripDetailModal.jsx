@@ -5,6 +5,16 @@ import { X, Plane, User, Users, MapPin, Clock, Languages, Calendar, Tag, UserPlu
 export default function TripDetailModal({ plan, onClose, onMatchRequest }) {
     if (!plan) return null;
 
+    const formatTime12h = (t) => {
+        if (!t) return '';
+        const [h, m] = t.split(':').map(Number);
+        if (isNaN(h) || isNaN(m)) return t;
+        const period = h >= 12 ? 'PM' : 'AM';
+        const hour12 = h % 12 || 12;
+        return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
+    };
+
+
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -72,7 +82,7 @@ export default function TripDetailModal({ plan, onClose, onMatchRequest }) {
                                         </div>
                                         <div className="flex-1 text-sm bg-white p-3 rounded-xl shadow-sm border border-gray-100">
                                             <p className="font-black text-gray-900 leading-none mb-1">{plan.flight.from}</p>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Departure • {plan.flight.departureTime}</p>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Departure • {formatTime12h(plan.flight.departureTime)}</p>
                                         </div>
                                     </div>
 
@@ -82,7 +92,7 @@ export default function TripDetailModal({ plan, onClose, onMatchRequest }) {
                                         </div>
                                         <div className="flex-1 text-sm bg-white p-3 rounded-xl shadow-sm border border-gray-100">
                                             <p className="font-black text-gray-900 leading-none mb-1">{plan.flight.to}</p>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Arrival • {plan.flight.arrivalTime}</p>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Arrival • {formatTime12h(plan.flight.arrivalTime)}</p>
                                         </div>
                                     </div>
                                 </div>

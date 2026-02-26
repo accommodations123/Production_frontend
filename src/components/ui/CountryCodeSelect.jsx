@@ -44,12 +44,12 @@ export const CountryCodeSelect = ({ value, onChange, className, isoCode }) => {
             >
                 {selectedCountry && (
                     <div className="flex items-center gap-1.5 overflow-hidden">
-                        {selectedCountry.flag.startsWith('/') ? (
+                        {(selectedCountry.flag.startsWith('/') || selectedCountry.flag.startsWith('http')) ? (
                             <img src={selectedCountry.flag} alt={selectedCountry.name} className="w-5 h-3.5 object-cover rounded-sm shrink-0" />
                         ) : (
                             <span className="text-base leading-none shrink-0">{selectedCountry.flag}</span>
                         )}
-                        <span className="font-medium text-sm text-gray-900 truncate">
+                        <span className="font-semibold text-sm text-gray-800 truncate">
                             {selectedCountry.phoneCode}
                         </span>
                     </div>
@@ -95,7 +95,7 @@ export const CountryCodeSelect = ({ value, onChange, className, isoCode }) => {
                                         )}
                                     >
                                         <div className="flex items-center gap-3">
-                                            {country.flag.startsWith('/') ? (
+                                            {(country.flag.startsWith('/') || country.flag.startsWith('http')) ? (
                                                 <img src={country.flag} alt={country.name} className="w-5 h-3.5 object-cover rounded-sm shadow-sm" />
                                             ) : (
                                                 <span className="text-xl leading-none">{country.flag}</span>

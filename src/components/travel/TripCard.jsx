@@ -4,6 +4,15 @@ import { MapPin, Plane, Clock, Shield, Star, UserPlus, Navigation, ChevronDown }
 import WishlistButton from "@/components/ui/WishlistButton";
 
 export default function TripCard({ plan, isSelected, onSelect, onMatchRequest }) {
+    const formatTime12h = (t) => {
+        if (!t) return '';
+        const [h, m] = t.split(':').map(Number);
+        if (isNaN(h) || isNaN(m)) return t;
+        const period = h >= 12 ? 'PM' : 'AM';
+        const hour12 = h % 12 || 12;
+        return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
+    };
+
     return (
         <motion.div
             layout
@@ -188,14 +197,14 @@ export default function TripCard({ plan, isSelected, onSelect, onMatchRequest })
                                         <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-sm mt-1"></div>
                                         <div>
                                             <p className="font-black text-sm text-gray-900 leading-none">{plan.flight.from}</p>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Departure • {plan.flight.departureTime}</p>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Departure • {formatTime12h(plan.flight.departureTime)}</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-4 relative z-10">
                                         <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow-sm mt-1"></div>
                                         <div>
                                             <p className="font-black text-sm text-gray-900 leading-none">{plan.flight.to}</p>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Arrival • {plan.flight.arrivalTime}</p>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Arrival • {formatTime12h(plan.flight.arrivalTime)}</p>
                                         </div>
                                     </div>
                                 </div>

@@ -35,7 +35,29 @@ export const CountryProvider = ({ children }) => {
   }, []);
 
   const initializeWithGeolocation = async () => {
-    // Geolocation is not auto-initialized; users can manually set location.
+    try {
+      setIsGeolocationLoading(true);
+      const response = await fetch('https://ipapi.co/json/');
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.country_code) {
+          const country = COUNTRIES.find(c => c.code === data.country_code);
+          if (country) {
+            setActiveCountry(country);
+            setIsSelected(true);
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Geolocation failed", e);
+    } finally {
+      setIsGeolocationLoading(false);
+      // Fallback: If we couldn't determine the country or API failed, still show DEFAULT_COUNTRY instead of "Select Country"
+      if (!isSelected) {
+        setIsSelected(true);
+      }
+    }
   };
 
   const setCountry = useCallback((country) => {

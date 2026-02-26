@@ -97,7 +97,7 @@ export default function TravelFilter({
                                 <div className="flex items-center gap-3">
                                     {selectedCountry ? (
                                         <>
-                                            {selectedCountry.flag.startsWith('/') ? (
+                                            {(selectedCountry.flag.startsWith('/') || selectedCountry.flag.startsWith('http')) ? (
                                                 <img src={selectedCountry.flag} alt={selectedCountry.name} className="w-6 h-4 object-cover rounded" />
                                             ) : (
                                                 <span className="text-lg">{selectedCountry.flag}</span>
@@ -175,7 +175,7 @@ export default function TravelFilter({
                                                             : 'hover:bg-gray-50 text-gray-700'
                                                             }`}
                                                     >
-                                                        {country.flag.startsWith('/') ? (
+                                                        {(country.flag.startsWith('/') || country.flag.startsWith('http')) ? (
                                                             <img src={country.flag} alt={country.name} className="w-6 h-4 object-cover rounded shadow-sm" />
                                                         ) : (
                                                             <span className="text-lg">{country.flag}</span>

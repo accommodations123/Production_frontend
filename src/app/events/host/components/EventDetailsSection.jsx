@@ -7,8 +7,10 @@ import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect"
 import { Country, State, City } from 'country-state-city';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { useState, useEffect } from "react";
+import { useCountry } from "@/context/CountryContext";
 
 export const EventDetailsSection = ({ formData, handleInputChange }) => {
+    const { activeCountry } = useCountry();
     const [countriesList] = useState(Country.getAllCountries().map(c =>
         c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
     ));
@@ -16,11 +18,11 @@ export const EventDetailsSection = ({ formData, handleInputChange }) => {
     const [citiesList, setCitiesList] = useState([]);
 
     const getCurrencySymbol = (countryName) => {
-        if (!countryName) return '$';
+        if (!countryName) return null;
         // Use Country from country-state-city to find currency
         const allCountries = Country.getAllCountries();
         const country = allCountries.find(c => c.name === countryName || c.isoCode === countryName);
-        if (!country || !country.currency) return '$';
+        if (!country || !country.currency) return null;
 
         try {
             return new Intl.NumberFormat('en-US', {
@@ -32,7 +34,19 @@ export const EventDetailsSection = ({ formData, handleInputChange }) => {
         }
     };
 
-    const currencySymbol = getCurrencySymbol(formData.country);
+    const getGlobalCurrencySymbol = () => {
+        if (!activeCountry?.currency) return '$';
+        try {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: activeCountry.currency,
+            }).formatToParts(0).find(part => part.type === 'currency')?.value || activeCountry.currency;
+        } catch (e) {
+            return activeCountry.currency;
+        }
+    };
+
+    const currencySymbol = getCurrencySymbol(formData.country) || getGlobalCurrencySymbol();
 
     // Initialize lists if data exists
     useEffect(() => {
