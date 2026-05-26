@@ -10,10 +10,13 @@ import { useState, useMemo, useEffect } from 'react';
 export function usePagination(items = [], itemsPerPage = 12) {
     const [currentPage, setCurrentPage] = useState(1);
 
+    const [prevLength, setPrevLength] = useState(items?.length || 0);
+
     // Reset to page 1 when the array length changes (filtering happened)
-    useEffect(() => {
+    if ((items?.length || 0) !== prevLength) {
+        setPrevLength(items?.length || 0);
         setCurrentPage(1);
-    }, [items?.length]);
+    }
 
     // Calculate total pages
     const totalPages = Math.max(1, Math.ceil((items?.length || 0) / itemsPerPage));

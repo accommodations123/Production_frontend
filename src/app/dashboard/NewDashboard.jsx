@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  User, Home, MapPin, Bell, Settings as SettingsIcon,
-  Plane, Building2, Calendar, ArrowRight, Plus,
+  User, Home, MapPin, Plane, Building2, Calendar,
   LayoutDashboard, Briefcase, ShoppingBag
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
@@ -20,13 +19,13 @@ import { WishlistManager } from "@/components/dashboard/WishlistManager";
 
 import {
   useGetHostProfileQuery,
-  useUpdateHostMutation,
   useGetMyListingsQuery,
   useGetMyEventsQuery
 } from "@/store/api/hostApi";
 
-import { useGetMyTripsQuery, useUpdateUserProfileMutation } from "@/store/api/authApi";
-import { cn } from "@/lib/utils";
+import { useDispatch, useSelector } from "react-redux";
+import { updateProfile } from "@/store/slices/authSlice";
+import { useGetMyTripsQuery } from "@/store/api/authApi";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 /* -------------------------------
@@ -44,30 +43,13 @@ const mergeDefined = (...sources) =>
 
 export default function NewDashboard() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
 
-  const [userData, setUserData] = useState(null);
-  const [refreshKey, setRefreshKey] = useState(Date.now());
+  const { user: reduxUser } = useSelector((state) => state.auth);
+  const [refreshKey] = useState(() => Date.now());
 
   const activeTab = searchParams.get("tab") || "overview";
-
-  /* -------------------------------
-     Load auth user ONCE
-  -------------------------------- */
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("user");
-      if (!raw) return;
-
-      const parsed = JSON.parse(raw);
-      setUserData({
-        ...parsed,
-        firstName: (parsed.full_name || parsed.name || "User").split("")[0],
-      });
-    } catch (e) {
-      console.error("Invalid user in localStorage", e);
-    }
-  }, []);
 
   /* -------------------------------
      Host profile (NO SKIP)
@@ -93,45 +75,41 @@ export default function NewDashboard() {
      FINAL merged user (SAFE)
   -------------------------------- */
   const currentUser = useMemo(() => {
-    if (!userData && !hostProfile) return null;
+    if (!reduxUser && !hostProfile) return null;
 
-    return mergeDefined(
-      userData,
+    const merged = mergeDefined(
+      reduxUser,
       hostProfile,
       {
         profile_image: hostProfile?.profile_image
           ? `${hostProfile.profile_image}?v=${refreshKey}`
-          : userData?.profile_image
+          : reduxUser?.profile_image
       }
     );
-  }, [userData, hostProfile, refreshKey]);
+
+    if (merged) {
+      // Calculate first initial or name consistently
+      merged.firstName = (merged.full_name || merged.name || "User").split(" ")[0];
+    }
+    return merged;
+  }, [reduxUser, hostProfile, refreshKey]);
 
   /* -------------------------------
      Update handler
   -------------------------------- */
-  const [updateUserProfile, { isLoading: isUpdating }] = useUpdateUserProfileMutation();
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleUpdatePersonalInfo = async (formData) => {
-    // Call generic user update endpoint
-    const res = await updateUserProfile(formData).unwrap();
-
-    if (!res?.success) return;
-
-    const { user } = res;
-
-    // Merge updated user data
-    const updatedUser = {
-      ...userData,
-      ...user,
-      profile_image: user?.profile_image || userData?.profile_image
-    };
-
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-    setUserData(updatedUser);
-
-    // Also refetch host profile if they are a host, to keep things in sync
-    if (hostProfile?.id) {
-      refetchHost();
+    setIsUpdating(true);
+    try {
+      const res = await dispatch(updateProfile(formData)).unwrap();
+      if (res?.success && hostProfile?.id) {
+        refetchHost();
+      }
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+    } finally {
+      setIsUpdating(false);
     }
   };
 

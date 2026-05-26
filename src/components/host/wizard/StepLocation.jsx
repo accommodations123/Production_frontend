@@ -13,23 +13,35 @@ export function StepLocation({ formData, setFormData }) {
     const [citiesList, setCitiesList] = useState([]);
     const citiesFetched = useRef(false);
 
-    // Initialize lists if data exists
+    // Sync statesList when country changes
     useEffect(() => {
         if (formData.country) {
             const countryObj = countriesList.find(c => c.name === (formData.country?.name || formData.country));
+            if (countryObj && countryObj.isoCode && countryObj.isoCode !== 'CUSTOM') {
+                setStatesList(State.getStatesOfCountry(countryObj.isoCode));
+                return;
+            }
+        }
+        setStatesList([]);
+    }, [formData.country, countriesList]);
+
+    // Sync citiesList when country or state changes
+    useEffect(() => {
+        if (formData.country && formData.state) {
+            const countryObj = countriesList.find(c => c.name === (formData.country?.name || formData.country));
             if (countryObj) {
                 const states = State.getStatesOfCountry(countryObj.isoCode);
-                setStatesList(states);
-                if (formData.state) {
-                    const stateObj = states.find(s => s.name === formData.state);
-                    if (stateObj) {
-                        setCitiesList(City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
-                        citiesFetched.current = true;
-                    }
+                const stateObj = states.find(s => s.name === formData.state);
+                if (stateObj) {
+                    setCitiesList(City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
+                    citiesFetched.current = true;
+                    return;
                 }
             }
         }
-    }, []);
+        setCitiesList([]);
+        citiesFetched.current = false;
+    }, [formData.country, formData.state, countriesList]);
 
     // Auto-fill address based on Pincode
     useEffect(() => {
@@ -129,12 +141,6 @@ export function StepLocation({ formData, setFormData }) {
                                 state: "",
                                 city: ""
                             });
-                            if (country.isoCode && country.isoCode !== 'CUSTOM') {
-                                setStatesList(State.getStatesOfCountry(country.isoCode));
-                            } else {
-                                setStatesList([]);
-                            }
-                            setCitiesList([]);
                             citiesFetched.current = false;
                         }}
                     />
@@ -156,28 +162,29 @@ export function StepLocation({ formData, setFormData }) {
                                 state: state.name,
                                 city: ""
                             });
-                            const cObj = typeof formData.country === 'object' ? formData.country : countriesList.find(c => c.name === formData.country);
-                            if (cObj && cObj.isoCode && cObj.isoCode !== 'CUSTOM' && state.isoCode && state.isoCode !== 'CUSTOM') {
-                                setCitiesList(City.getCitiesOfState(cObj.isoCode, state.isoCode));
-                                citiesFetched.current = true;
-                            } else {
-                                setCitiesList([]);
-                                citiesFetched.current = false;
-                            }
                         }}
                     />
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300">City <span className="text-red-500 ml-1">*</span></label>
-                        <input
-                            type="text"
-                            placeholder="Enter City"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:border-accent outline-none text-white"
-                            value={formData.city || ""}
-                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                            required
-                        />
-                    </div>
+                    <SearchableDropdown
+                        label="City"
+                        placeholder="Select City"
+                        options={citiesList}
+                        required={true}
+                        value={formData.city}
+                        disabled={!formData.state}
+                        isLoading={(() => {
+                            if (citiesFetched.current) return false;
+                            const cObj = typeof formData.country === 'object' ? formData.country : countriesList.find(c => c.name === formData.country);
+                            const hasValidC = cObj && cObj.isoCode && cObj.isoCode !== 'CUSTOM';
+                            return !!(hasValidC && formData.state && !citiesList.length && statesList.find(s => s.name === formData.state)?.isoCode);
+                        })()}
+                        onChange={(city) => {
+                            setFormData(prev => ({
+                                ...prev,
+                                city: city.name
+                            }));
+                        }}
+                    />
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-300 flex justify-between">

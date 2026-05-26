@@ -4,11 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mail, KeyRound, ArrowRight, Loader2, Globe, ShieldCheck, Users, Home } from "lucide-react";
 import { toast } from "sonner";
 import Button from "@/components/auth/Button";
-import {
-  useSendOtpMutation,
-  useVerifyOtpMutation,
-  useLazyGetMeQuery,
-} from "@/store/api/authApi";
+import { useDispatch } from "react-redux";
+import { sendOtp, verifyOtp, fetchCurrentUser } from "@/store/slices/authSlice";
 
 /* Brand Colors:
   --color-background: #ffffff
@@ -22,10 +19,10 @@ import {
 
 const Signin = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const [sendOtp, { isLoading: sendingOtp }] = useSendOtpMutation();
-  const [verifyOtp, { isLoading: verifyingOtp }] = useVerifyOtpMutation();
-  const [triggerGetMe] = useLazyGetMeQuery();
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   const [step, setStep] = useState("email");
   const [formData, setFormData] = useState({ email: "", otp: "" });
@@ -37,25 +34,30 @@ const Signin = () => {
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
+    setSendingOtp(true);
     try {
-      await sendOtp({ email: formData.email }).unwrap();
+      await dispatch(sendOtp({ email: formData.email })).unwrap();
       toast.success("OTP sent to your email");
       setStep("otp");
     } catch (error) {
-      toast.error(error?.data?.message || "Failed to send OTP");
+      toast.error(error || "Failed to send OTP");
+    } finally {
+      setSendingOtp(false);
     }
   };
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
+    setVerifyingOtp(true);
     try {
-      await verifyOtp(formData).unwrap();
-      const me = await triggerGetMe().unwrap();
-      localStorage.setItem("user", JSON.stringify(me.user || me));
+      await dispatch(verifyOtp(formData)).unwrap();
+      await dispatch(fetchCurrentUser()).unwrap();
       toast.success("Signed in successfully");
       navigate("/");
     } catch (error) {
-      toast.error(error?.data?.message || "Login failed. Please check your OTP.");
+      toast.error(error || "Login failed. Please check your OTP.");
+    } finally {
+      setVerifyingOtp(false);
     }
   };
 

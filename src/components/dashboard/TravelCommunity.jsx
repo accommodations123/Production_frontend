@@ -149,9 +149,6 @@ export const TravelCommunity = ({ onConnect }) => {
         // Handle USA/United States variations
         const isUSA = (c) => c === 'usa' || c === 'united states' || c === 'united states of america' || c === 'us';
 
-        // Debugging logs
-        // console.log("Filtering:", { hostCountry, searchCountry, match: isUSA(searchCountry) && isUSA(hostCountry) });
-
         if (isUSA(searchCountry) && isUSA(hostCountry)) return true;
 
         return hostCountry === searchCountry ||

@@ -37,14 +37,18 @@ export default function PostTripModal({ onClose, onAdd }) {
     const [statesList, setStatesList] = useState([]);
     const [citiesList, setCitiesList] = useState([]);
 
-    useEffect(() => {
+    const [prevFormCountry, setPrevFormCountry] = useState(form.country);
+
+    // Sync state lists inline during render when country selection changes
+    if (form.country !== prevFormCountry) {
+        setPrevFormCountry(form.country);
         if (form.country) {
             const countryObj = countriesList.find(c => c.name === form.country);
             if (countryObj) {
                 setStatesList(State.getStatesOfCountry(countryObj.isoCode));
             }
         }
-    }, []);
+    }
 
     const [activeTab, setActiveTab] = useState("personal");
     const [formErrors, setFormErrors] = useState({});

@@ -4,6 +4,7 @@ import { Send, Mail, User, MessageSquare, CheckCircle, Loader2, AlertCircle } fr
 import { motion, AnimatePresence } from "framer-motion"
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect"
 import { useState } from "react"
+import axios from "axios"
 
 const API_BASE = import.meta.env.PROD
     ? 'https://api.nextkinlife.live'
@@ -31,31 +32,33 @@ export function ContactForm() {
         e.preventDefault();
         if (!canSubmit) return;
 
-        setSending(true);
-        setError("");
-
         try {
-            const res = await fetch(`${API_BASE}/contact/submit`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
+            setSending(true);
+            setError("");
+
+            await axios.post(
+                `${API_BASE}/contact/submit`,
+                {
                     firstName,
                     lastName,
                     email,
                     phone: phone ? `${phoneCode} ${phone}` : "",
                     subject,
                     message,
-                }),
-            });
-
-            if (!res.ok) {
-                const data = await res.json().catch(() => ({}));
-                throw new Error(data.message || "Failed to send message");
-            }
+                }
+            );
 
             setSent(true);
-        } catch (err) {
-            setError(err.message || "Something went wrong. Please try again.");
+        } catch (error) {
+            console.error(
+                "Error sending contact message:",
+                error
+            );
+
+            setError(
+                error.response?.data?.message ||
+                "Something went wrong. Please try again."
+            );
         } finally {
             setSending(false);
         }

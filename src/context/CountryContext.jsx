@@ -1,8 +1,10 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { hostApi } from "@/store/api/hostApi";
 import { authApi } from "@/store/api/authApi";
 import { COUNTRIES } from "@/lib/mock-data";
+import axios from "axios";
 
 const CountryContext = createContext(null);
 
@@ -43,19 +45,21 @@ export const CountryProvider = ({ children }) => {
   const initializeWithGeolocation = async () => {
     try {
       setIsGeolocationLoading(true);
-      const response = await fetch('https://ipapi.co/json/');
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.country_code) {
-          const country = COUNTRIES.find(c => c.code === data.country_code);
-          if (country) {
-            setActiveCountry(country);
-            setIsSelected(true);
-            return;
-          }
+
+      const response =
+        await axios.get(
+          'https://ipapi.co/json/'
+        );
+
+      const data = response.data;
+
+      if (data && data.country_code) {
+        const country = COUNTRIES.find(c => c.code === data.country_code);
+        if (country) {
+          setActiveCountry(country);
+          setIsSelected(true);
+          return;
         }
-      } else {
-        console.warn(`Geolocation API failed with status: ${response.status}`);
       }
     } catch (e) {
       console.error("Geolocation network request failed:", e.message);
@@ -79,15 +83,39 @@ export const CountryProvider = ({ children }) => {
   const formatPrice = useCallback((amount, customCurrency) => {
     if (amount === undefined || amount === null) return "";
 
-    const currency = customCurrency || activeCountry?.currency || 'INR';
+    // Securely validate and sanitize currency inputs
+    let currency = 'USD'; // Safe baseline currency
+    if (typeof customCurrency === 'string' && /^[A-Za-z]{3}$/.test(customCurrency)) {
+      currency = customCurrency.toUpperCase();
+    } else if (activeCountry?.currency && /^[A-Za-z]{3}$/.test(activeCountry.currency)) {
+      currency = activeCountry.currency.toUpperCase();
+    } else {
+      currency = 'INR'; // Fallback
+    }
+
     const locale = currency === 'INR' ? 'en-IN' : 'en-US';
 
-    return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    } catch (e) {
+      console.error("formatPrice failed securely with error:", e);
+      try {
+        // Safe secondary fallback
+        return new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(amount);
+      } catch (innerErr) {
+        return `${currency} ${amount}`;
+      }
+    }
   }, [activeCountry]);
 
   return (

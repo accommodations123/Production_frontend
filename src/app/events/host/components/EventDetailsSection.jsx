@@ -16,7 +16,7 @@ export const EventDetailsSection = ({ formData, handleInputChange }) => {
     ));
     const [statesList, setStatesList] = useState([]);
     const [citiesList, setCitiesList] = useState([]);
-    const citiesFetched = useRef(false);
+    const [citiesFetched, setCitiesFetched] = useState(false);
 
     const getCurrencySymbol = (countryName) => {
         if (!countryName) return null;
@@ -60,7 +60,7 @@ export const EventDetailsSection = ({ formData, handleInputChange }) => {
                     const stateObj = states.find(s => s.name === formData.state);
                     if (stateObj) {
                         setCitiesList(City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
-                        citiesFetched.current = true;
+                        setCitiesFetched(true);
                     }
                 }
             }
@@ -244,7 +244,7 @@ inputMode="numeric"                            className="text-gray-900 placehol
                             handleInputChange("city", "");
                             setStatesList(State.getStatesOfCountry(option.isoCode));
                             setCitiesList([]);
-                            citiesFetched.current = false;
+                            setCitiesFetched(false);
                         }}
                     />
 
@@ -261,9 +261,9 @@ inputMode="numeric"                            className="text-gray-900 placehol
                             const countryObj = countriesList.find(c => c.name === formData.country);
                             if (countryObj) {
                                 setCitiesList(City.getCitiesOfState(countryObj.isoCode, option.isoCode));
-                                citiesFetched.current = true;
+                                setCitiesFetched(true);
                             } else {
-                                citiesFetched.current = false;
+                                setCitiesFetched(false);
                             }
                         }}
                     />
@@ -274,7 +274,7 @@ inputMode="numeric"                            className="text-gray-900 placehol
                         options={citiesList}
                         value={formData.city}
                         disabled={!formData.state}
-                        isLoading={isValidState && !citiesList.length && !citiesFetched.current && formData.state}
+                        isLoading={isValidState && !citiesList.length && !citiesFetched && formData.state}
                         onChange={(option) => {
                             handleInputChange("city", option.name);
                         }}

@@ -1,12 +1,17 @@
+import axios from "axios";
+
 const API_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 
 // API service functions for reviews
 export const reviewService = {
     getEventReviews: async (eventId) => {
         try {
-            const response = await fetch(`${API_URL}/events/reviews/${eventId}/reviews`)
-            if (!response.ok) throw new Error('Failed to fetch reviews')
-            const data = await response.json()
+            const response =
+                await axios.get(
+                    `${API_URL}/events/reviews/${eventId}/reviews`
+                )
+
+            const data = response.data
 
             // Process each review to ensure user data is properly extracted
             let reviews = []
@@ -51,9 +56,12 @@ export const reviewService = {
 
     getEventRating: async (eventId) => {
         try {
-            const response = await fetch(`${API_URL}/events/reviews/${eventId}/rating`)
-            if (!response.ok) throw new Error('Failed to fetch rating')
-            return await response.json()
+            const response =
+                await axios.get(
+                    `${API_URL}/events/reviews/${eventId}/rating`
+                )
+
+            return response.data
         } catch (error) {
             console.error('Error fetching rating:', error)
             return { rating: 0, count: 0 }
@@ -62,16 +70,16 @@ export const reviewService = {
 
     submitReview: async (eventId, reviewData) => {
         try {
-            const response = await fetch(`${API_URL}/events/reviews/${eventId}/reviews`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(reviewData),
-                credentials: 'include'
-            })
-            if (!response.ok) throw new Error('Failed to submit review')
-            return await response.json()
+            const response =
+                await axios.post(
+                    `${API_URL}/events/reviews/${eventId}/reviews`,
+                    reviewData,
+                    {
+                        withCredentials: true
+                    }
+                )
+
+            return response.data
         } catch (error) {
             console.error('Error submitting review:', error)
             throw error
@@ -80,12 +88,16 @@ export const reviewService = {
 
     hideReview: async (reviewId) => {
         try {
-            const response = await fetch(`${API_URL}/events/reviews/reviews/${reviewId}/hide`, {
-                method: 'PATCH',
-                credentials: 'include'
-            })
-            if (!response.ok) throw new Error('Failed to hide review')
-            return await response.json()
+            const response =
+                await axios.patch(
+                    `${API_URL}/events/reviews/reviews/${reviewId}/hide`,
+                    {},
+                    {
+                        withCredentials: true
+                    }
+                )
+
+            return response.data
         } catch (error) {
             console.error('Error hiding review:', error)
             throw error
@@ -97,50 +109,44 @@ export const reviewService = {
 export const eventService = {
     joinEvent: async (eventId) => {
         try {
-            const response = await fetch(`${API_URL}/events/${eventId}/join`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include'
-            })
+            const response =
+                await axios.post(
+                    `${API_URL}/events/${eventId}/join`,
+                    {},
+                    {
+                        withCredentials: true
+                    }
+                )
 
-            if (response.status === 400) {
-                const errorData = await response.json().catch(() => ({}))
-                if (errorData.message && errorData.message.includes('already joined')) {
-                    return { success: true, alreadyRegistered: true, message: errorData.message }
-                }
-                throw new Error(errorData.message || 'Failed to join event')
-            }
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}))
-                throw new Error(errorData.message || 'Failed to join event')
-            }
-
-            return { success: true, ...await response.json() }
+            return { success: true, ...response.data }
         } catch (error) {
             console.error('Error joining event:', error)
+
+            const message = error.response?.data?.message || ''
+            if (error.response?.status === 400 && message.includes('already joined')) {
+                return {
+                    success: true,
+                    alreadyRegistered: true,
+                    message
+                }
+            }
+
             throw error
         }
     },
 
     leaveEvent: async (eventId) => {
         try {
-            const response = await fetch(`${API_URL}/events/${eventId}/leave`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include'
-            })
+            const response =
+                await axios.post(
+                    `${API_URL}/events/${eventId}/leave`,
+                    {},
+                    {
+                        withCredentials: true
+                    }
+                )
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}))
-                throw new Error(errorData.message || 'Failed to leave event')
-            }
-
-            return { success: true, ...await response.json() }
+            return { success: true, ...response.data }
         } catch (error) {
             console.error('Error leaving event:', error)
             throw error
@@ -149,13 +155,15 @@ export const eventService = {
 
     checkRegistrationStatus: async (eventId) => {
         try {
-            const response = await fetch(`${API_URL}/events/${eventId}`, {
-                method: 'GET',
-                credentials: 'include'
-            })
+            const response =
+                await axios.get(
+                    `${API_URL}/events/${eventId}`,
+                    {
+                        withCredentials: true
+                    }
+                )
 
-            if (!response.ok) throw new Error('Failed to check registration status')
-            const data = await response.json()
+            const data = response.data
 
             if (data.is_registered !== undefined) {
                 return { registered: data.is_registered }

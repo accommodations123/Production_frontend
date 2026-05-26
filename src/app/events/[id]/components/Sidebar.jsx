@@ -33,6 +33,24 @@ export const Sidebar = memo(({ event }) => {
         }
     };
 
+    const handleInviteFriends = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: event.title,
+                    text: `Check out this event: ${event.title}`,
+                    url: window.location.href,
+                });
+            } catch {
+                toast.error("Unable to share event link");
+            }
+            return;
+        }
+
+        navigator.clipboard.writeText(window.location.href);
+        toast.success("Event link copied to clipboard!");
+    };
+
     return (
         <aside className="space-y-6 md:sticky md:top-24">
             <div className="bg-white rounded-3xl shadow-xl p-6 md:hover:shadow-2xl transition-all duration-300 md:hover:scale-105 border border-gray-100">
@@ -91,18 +109,7 @@ export const Sidebar = memo(({ event }) => {
                 )}
                 <p className="text-sm text-gray-600 mb-6 text-center">{event?.attendeesCount || 0} people attending</p>
                 <Button
-                    onClick={() => {
-                        if (navigator.share) {
-                            navigator.share({
-                                title: event.title,
-                                text: `Check out this event: ${event.title}`,
-                                url: window.location.href,
-                            }).catch((error) => console.log('Error sharing', error));
-                        } else {
-                            navigator.clipboard.writeText(window.location.href);
-                            toast.success("Event link copied to clipboard!");
-                        }
-                    }}
+                    onClick={handleInviteFriends}
                     className="w-full gap-2 bg-accent text-white hover:bg-accent/90 transition-all duration-300 transform hover:scale-105 shadow-lg rounded-2xl"
                 >
                     <UserPlus className="h-4 w-4" />

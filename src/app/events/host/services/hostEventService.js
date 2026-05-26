@@ -1,33 +1,32 @@
+import axios from "axios";
+
 const API_URL = import.meta.env.PROD
     ? "https://api.nextkinlife.live"
     : "/api";
 
 // Helper function for API calls
-export const apiCall = async (endpoint, method = "GET", data = null, isFormData = false) => {
-    // Token is now handled by HTTP-only cookies
-
-    const options = {
-        method,
-        headers: isFormData ? {} : { "Content-Type": "application/json" },
-        credentials: "include",
-    }
-
-    if (data) {
-        options.body = isFormData ? data : JSON.stringify(data)
-    }
-
+export const apiCall = async (endpoint, method = "GET", data = null) => {
     try {
-        const response = await fetch(`${API_URL}${endpoint}`, options)
+        const response =
+            await axios({
+                url: `${API_URL}${endpoint}`,
+                method,
+                data,
+                withCredentials: true
+            })
 
-        if (!response.ok) {
-            const errorData = await response.json()
-            throw new Error(errorData.message || `API error: ${response.status}`)
-        }
-
-        return await response.json()
+        return response.data
     } catch (error) {
-        console.error("API call error:", error)
-        throw error
+        console.error(
+            "API call error:",
+            error
+        )
+
+        throw new Error(
+            error.response?.data?.message ||
+            error.message ||
+            "API request failed"
+        )
     }
 }
 
@@ -113,50 +112,46 @@ export const hostEventService = {
             }
         };
 
-        const uploadSingle = (item, index) => {
-            return new Promise((resolve, reject) => {
-                const mediaFormData = new FormData();
-                if (item.type === 'banner') {
-                    mediaFormData.append("bannerImage", item.file);
-                } else {
-                    mediaFormData.append("galleryImages", item.file);
-                }
+        const uploadSingle = async (item, index) => {
+            const mediaFormData = new FormData();
 
-                const xhr = new XMLHttpRequest();
-                xhr.withCredentials = true;
+            if (item.type === 'banner') {
+                mediaFormData.append("bannerImage", item.file);
+            } else {
+                mediaFormData.append("galleryImages", item.file);
+            }
 
-                xhr.upload.addEventListener('progress', (event) => {
-                    if (event.lengthComputable) {
-                        const percentComplete = (event.loaded / event.total) * 100;
-                        progressArray[index] = percentComplete;
-                        updateOverallProgress();
-                    }
-                });
+            try {
+                const response =
+                    await axios.put(
+                        `${API_URL}/events/media/${id}`,
+                        mediaFormData,
+                        {
+                            withCredentials: true,
+                            onUploadProgress: (event) => {
+                                if (!event.total) return;
 
-                xhr.addEventListener('load', () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        progressArray[index] = 100;
-                        updateOverallProgress();
-                        resolve(JSON.parse(xhr.responseText));
-                    } else {
-                        let errorMessage = `Upload failed with status ${xhr.status}`;
-                        try {
-                            const errorData = JSON.parse(xhr.responseText);
-                            errorMessage = errorData.message || errorMessage;
-                        } catch (e) {
-                            if (xhr.status === 413) errorMessage = "File too large. Please upload smaller images.";
+                                const percentComplete = (event.loaded / event.total) * 100;
+                                progressArray[index] = percentComplete;
+                                updateOverallProgress();
+                            }
                         }
-                        reject(new Error(errorMessage));
-                    }
-                });
+                    );
 
-                xhr.addEventListener('error', () => {
-                    reject(new Error('Network error during upload'));
-                });
+                progressArray[index] = 100;
+                updateOverallProgress();
+                return response.data;
+            } catch (error) {
+                console.error(
+                    "Error uploading event media:",
+                    error
+                );
 
-                xhr.open('PUT', `${API_URL}/events/media/${id}`);
-                xhr.send(mediaFormData);
-            });
+                throw new Error(
+                    error.response?.data?.message ||
+                    "File upload failed. Please try again."
+                );
+            }
         };
 
         let lastResult = null;

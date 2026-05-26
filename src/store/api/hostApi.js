@@ -851,7 +851,7 @@ export const hostApi = createApi({
 
         // Delete all notifications
         deleteAllNotifications: builder.mutation({
-            queryFn: async (undefined, _queryApi, _extraOptions, baseQuery) => {
+            queryFn: async (_, _queryApi, _extraOptions, baseQuery) => {
                 await baseQuery({
                     url: "notification/",
                     method: "DELETE"

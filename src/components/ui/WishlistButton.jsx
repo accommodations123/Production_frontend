@@ -16,11 +16,8 @@ const WishlistButton = ({
     const user = userData?.user || userData;
     const [isWishlisted, setIsWishlisted] = useState(false);
 
-    // Debug logging
-    // console.log("WishlistButton Render:", { itemId, itemType, user: !!user, isWishlisted });
-
     // Skip query if no user or no ID
-    const { data, isLoading, error } = useCheckWishlistStatusQuery(
+    const { data } = useCheckWishlistStatusQuery(
         { type: itemType, id: itemId },
         { skip: !user || !itemId || !itemType }
     );
@@ -37,10 +34,7 @@ const WishlistButton = ({
         e.preventDefault();
         e.stopPropagation();
 
-        console.log("WishlistButton Clicked:", { itemId, itemType, user: !!user });
-
         if (!user) {
-            console.warn("User not logged in, cannot toggle wishlist");
             toast.error("Please login to add to wishlist");
             return;
         }
@@ -71,11 +65,6 @@ const WishlistButton = ({
             toast.error("Failed to update wishlist");
         }
     };
-
-    if (isLoading && !isWishlisted) {
-        // Optional: Show loading spinner or nothing
-        // For now, showing empty heart is fine to prevent layout shift
-    }
 
     return (
         <button

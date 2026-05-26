@@ -3,6 +3,29 @@ import { useSearchParams } from "react-router-dom"
 import { hostEventService, compressImage } from "../services/hostEventService"
 import { useGetMyEventsQuery, useGetEventByIdQuery } from "@/store/api/hostApi"
 
+// Helper to split phone number
+// Known country codes (most common first)
+const KNOWN_CODES = ["+1", "+91", "+44", "+86", "+81", "+49", "+33", "+61", "+55", "+39", "+34", "+7", "+82", "+62", "+52", "+31", "+27", "+966", "+971", "+65", "+60", "+63", "+66", "+84", "+92", "+94", "+880", "+977", "+254", "+233", "+234"];
+
+const splitPhone = (fullPhone) => {
+    if (!fullPhone) return { code: "+91", number: "" };
+
+    const phoneStr = fullPhone.toString().trim();
+
+    // Check against known country codes (sorted by length, longest first)
+    if (phoneStr.startsWith('+')) {
+        const sortedCodes = [...KNOWN_CODES].sort((a, b) => b.length - a.length);
+        for (const code of sortedCodes) {
+            if (phoneStr.startsWith(code)) {
+                return { code: code, number: phoneStr.slice(code.length).trim() };
+            }
+        }
+    }
+
+    // Fallback for numbers without + or unknown codes
+    return { code: "+91", number: phoneStr };
+};
+
 export const useHostEvent = () => {
     const [searchParams] = useSearchParams()
     const editId = searchParams.get('edit')
@@ -47,29 +70,6 @@ export const useHostEvent = () => {
         phone: "",
         phoneCode: "+91",
     })
-
-    // Helper to split phone number
-    // Known country codes (most common first)
-    const KNOWN_CODES = ["+1", "+91", "+44", "+86", "+81", "+49", "+33", "+61", "+55", "+39", "+34", "+7", "+82", "+62", "+52", "+31", "+27", "+966", "+971", "+65", "+60", "+63", "+66", "+84", "+92", "+94", "+880", "+977", "+254", "+233", "+234"];
-
-    const splitPhone = (fullPhone) => {
-        if (!fullPhone) return { code: "+91", number: "" };
-
-        const phoneStr = fullPhone.toString().trim();
-
-        // Check against known country codes (sorted by length, longest first)
-        if (phoneStr.startsWith('+')) {
-            const sortedCodes = [...KNOWN_CODES].sort((a, b) => b.length - a.length);
-            for (const code of sortedCodes) {
-                if (phoneStr.startsWith(code)) {
-                    return { code: code, number: phoneStr.slice(code.length).trim() };
-                }
-            }
-        }
-
-        // Fallback for numbers without + or unknown codes
-        return { code: "+91", number: phoneStr };
-    };
 
 
     // Data Fetching

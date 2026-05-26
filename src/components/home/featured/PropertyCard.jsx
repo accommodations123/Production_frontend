@@ -260,7 +260,7 @@ export const PropertyCard = ({ property }) => {
                     <div className="flex flex-col gap-2">
                         <div className="flex items-baseline gap-1">
                             <span className="text-xl font-black text-[#00142E]">
-                                {propertyData.price.amount > 0 ? formatPrice(propertyData.price.amount) : "On Request"}
+                                {propertyData.price.amount > 0 ? formatPrice(propertyData.price.amount, propertyData.price.currency) : "On Request"}
                             </span>
                             {propertyData.price.amount > 0 && (
                                 <span className="text-xs font-medium text-[#00142E]/50">/{propertyData.price.period}</span>

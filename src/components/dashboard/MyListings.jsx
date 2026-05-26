@@ -82,8 +82,7 @@ export const MyListings = () => {
             // Exclude if now is after the event end time
             if (new Date() > date) return false
 
-        } catch (err) {
-            console.warn("Date parsing error for event:", e)
+        } catch {
             return true // Keep on error to be safe
         }
 

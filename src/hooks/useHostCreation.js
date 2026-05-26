@@ -1,28 +1,16 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { useCountry } from '@/context/CountryContext';
 import { hostService } from '@/services/hostService';
 import { getTermsFor } from '@/lib/host-terms-data';
-import { useGetMeQuery, authApi } from '@/store/api/authApi';
-import { compressImage } from '@/lib/imageUtils';
+import { fetchCurrentUser } from '@/store/slices/authSlice';
+import { useHostSubmission } from './useHostSubmission';
 import {
     useGetHostProfileQuery,
-    useSaveHostMutation,
-    useUploadFileMutation,
-    useCreatePropertyDraftMutation,
-    useUpdatePropertyBasicMutation,
-    useUpdatePropertyAddressMutation,
-    useUpdatePropertyPricingMutation,
-    useUpdatePropertyAmenitiesMutation,
-    useUpdatePropertyRulesMutation,
-    useUpdatePropertyMediaMutation,
-    useUpdatePropertyVideoMutation,
-    useSubmitPropertyMutation,
     useGetPropertyByIdQuery,
-    useGetMyListingsQuery,
-    hostApi
+    useGetMyListingsQuery
 } from '@/store/api/hostApi';
 
 export const STEPS = [
@@ -164,37 +152,24 @@ const getFormDataStructure = (type = 'property') => {
 };
 
 export function useHostCreation() {
-    const navigate = useNavigate();
     const dispatch = useDispatch();
     const { activeCountry } = useCountry();
+    const [searchParams] = useSearchParams();
+    const editId = searchParams.get('edit');
 
-    // Auth State (Backend Verified)
-    const { data: userData, isError: isAuthError } = useGetMeQuery();
+    // Auth State (Redux State)
+    const { user: userData, error: isAuthError } = useSelector((state) => state.auth);
     const { data: hostProfile, isError: isHostError } = useGetHostProfileQuery(undefined, {
-        skip: !userData || isAuthError
+        skip: !userData || !!isAuthError
     });
 
     const isExistingHost = !!hostProfile && !isHostError;
 
     const [currentStep, setCurrentStep] = useState(1);
     const [direction, setDirection] = useState(0);
-    const [isLoading, setIsLoading] = useState(false);
     const [contributionType, setContributionType] = useState('property');
     const [showOtpModal, setShowOtpModal] = useState(false);
     const [isEmailVerified, setIsEmailVerified] = useState(false);
-
-    // API Mutations
-    const [saveHost] = useSaveHostMutation();
-    const [uploadFile] = useUploadFileMutation();
-    const [createPropertyDraft] = useCreatePropertyDraftMutation();
-    const [updatePropertyBasic] = useUpdatePropertyBasicMutation();
-    const [updatePropertyAddress] = useUpdatePropertyAddressMutation();
-    const [updatePropertyPricing] = useUpdatePropertyPricingMutation();
-    const [updatePropertyAmenities] = useUpdatePropertyAmenitiesMutation();
-    const [updatePropertyRules] = useUpdatePropertyRulesMutation();
-    const [updatePropertyMedia] = useUpdatePropertyMediaMutation();
-    const [updatePropertyVideo] = useUpdatePropertyVideoMutation();
-    const [submitProperty] = useSubmitPropertyMutation();
 
     // Form State - Initialize with property type as default
     const [formData, setFormData] = useState(() => getFormDataStructure('property'));
@@ -206,6 +181,18 @@ export function useHostCreation() {
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [displayedTerms, setDisplayedTerms] = useState([]);
     const [isReadOnly, setIsReadOnly] = useState(false);
+
+    // Hooks Delegation
+    const { isLoading, handleSubmit } = useHostSubmission({
+        formData,
+        contributionType,
+        editId,
+        isExistingHost,
+        customRuleInput,
+        termsAccepted,
+        isReadOnly
+    });
+
 
     // Update form structure when contribution type changes
     useEffect(() => {
@@ -255,10 +242,6 @@ export function useHostCreation() {
             }));
         }
     }, [userData, hostProfile]);
-
-    // === EDIT MODE LOGIC ===
-    const [searchParams] = useSearchParams();
-    const editId = searchParams.get('edit');
 
     // FETCH DATA FROM MY LISTINGS (OWNER VIEW) INSTEAD OF PUBLIC API
     const { data: myListings } = useGetMyListingsQuery(undefined, {
@@ -370,14 +353,14 @@ export function useHostCreation() {
                 }
                 toast.success("Verification Successful! You are logged in.");
                 setIsEmailVerified(true);
-                // Invalidate getMe query to update global auth state
-                dispatch(authApi.util.invalidateTags(['User']));
+                // Hydrate global auth state
+                dispatch(fetchCurrentUser());
                 setShowOtpModal(false);
             } else {
                 if (response.message === "Email verified successfully" || response.success) {
                     toast.success("Email verified.");
                     setIsEmailVerified(true);
-                    dispatch(authApi.util.invalidateTags(['User']));
+                    dispatch(fetchCurrentUser());
                     setShowOtpModal(false);
                 } else {
                     toast.error(`Verification failed: ${response.message}`);
@@ -447,23 +430,23 @@ export function useHostCreation() {
     // Updated validation for different contribution types
     const validateStep = (step) => {
         switch (step) {
-            case 1: // Basics
+            case 1: { // Basics
                 const hasTitle = formData.title && formData.title.trim() !== "";
                 const hasCategory = !!formData.category;
                 const hasDescription = formData.description && formData.description.trim() !== "";
-                // type check only if property
-                const hasType = contributionType === 'property' ? !!formData.type : true;
 
                 // conditional checks based on type could be added here
                 return hasTitle && hasCategory && hasDescription;
+            }
 
-            case 2: // Location
+            case 2: { // Location
                 const hasAddress = formData.address && formData.address.trim() !== "";
                 const hasCity = formData.city && formData.city.trim() !== "";
                 // const hasPincode = formData.pincode && formData.pincode.trim() !== "";
                 return hasAddress && hasCity; // Relax pincode check if needed
+            }
 
-            case 3: // Pricing
+            case 3: { // Pricing
                 if (contributionType === 'event') {
                     // Free events don't need price
                     if (formData.eventPrice === 'free') return true;
@@ -474,6 +457,7 @@ export function useHostCreation() {
                 const hasPrice = formData.priceMonth !== "" && formData.priceMonth !== null && formData.priceMonth !== undefined;
                 const hasCurrency = !!formData.currency;
                 return hasPrice && hasCurrency;
+            }
 
             case 4: // Media
                 return formData.images.length >= 1; // Relax proof check for non-properties? 
@@ -509,304 +493,7 @@ export function useHostCreation() {
         });
     };
 
-    // Type-specific submission handlers
-    const handleSubmitProperty = async (propertyId) => {
-        // Your existing property submission logic
-        await updatePropertyPricing({
-            id: propertyId, data: {
-                pricePerHour: Number(formData.pricePerHour) || 0,
-                pricePerNight: Number(formData.priceNight) || 0,
-                pricePerMonth: Number(formData.priceMonth) || 0,
-                currency: formData.currency || 'INR'
-            }
-        }).unwrap();
 
-        const combinedAmenities = [...formData.amenities, ...formData.customAmenities];
-        if (combinedAmenities.length > 0) {
-            await updatePropertyAmenities({ id: propertyId, amenities: combinedAmenities }).unwrap();
-        }
-
-        // Auto-add pending rule if exists
-        const finalRules = [...formData.rules];
-        if (customRuleInput.trim()) {
-            finalRules.push(customRuleInput.trim());
-        }
-
-        if (finalRules.length > 0) {
-            await updatePropertyRules({ id: propertyId, rules: finalRules }).unwrap();
-        }
-
-        // Filter for NEW images only (those with a file object)
-        const newImages = formData.images.filter(img => img.file);
-        if (newImages.length > 0) {
-            for (const img of newImages) {
-                const photoFd = new FormData();
-                try {
-                    const compressed = await compressImage(img.file);
-                    photoFd.append('photo', compressed);
-                } catch (err) {
-                    console.error("Failed to compress image, using original:", err);
-                    photoFd.append('photo', img.file);
-                }
-                await updatePropertyMedia({ id: propertyId, formData: photoFd }).unwrap();
-            }
-        }
-
-        // Only upload video if it is a new File object (not an existing URL object)
-        if (formData.video && formData.video instanceof File) {
-            const videoFd = new FormData();
-            videoFd.append('video', formData.video);
-            await updatePropertyVideo({ id: propertyId, formData: videoFd }).unwrap();
-        }
-
-
-    };
-
-    const handleSubmitEvent = async () => {
-        // Event submission logic
-        const eventPayload = {
-            title: formData.title,
-            description: formData.description,
-            eventType: formData.eventType,
-            category: formData.eventCategory,
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-            startTime: formData.startTime,
-            endTime: formData.endTime,
-            location: `${formData.address}, ${formData.city}`,
-            maxAttendees: formData.maxAttendees,
-            priceType: formData.eventPrice,
-            priceAmount: formData.priceAmount || 0,
-            requirements: formData.requirements,
-            images: formData.images.map(img => img.url),
-            hostId: userData?.id || userData?._id || userData?.user?.id || null
-        };
-
-        // If hostApi doesn't have createEvent, we should implement it or stick to hostService with credentials
-        await hostService.createEvent(eventPayload);
-    };
-
-    const handleSubmitGroup = async () => {
-        // Group submission logic
-        const groupPayload = {
-            name: formData.title,
-            description: formData.description,
-            type: formData.groupType,
-            category: formData.category,
-            location: `${formData.city}, ${formData.country?.name || 'Unknown'}`,
-            size: formData.groupSize,
-            meetingFrequency: formData.meetingFrequency,
-            membershipType: formData.membershipType,
-            rules: formData.groupRules,
-            topics: formData.topics,
-            adminId: userData?.id || userData?._id || userData?.user?.id || null
-        };
-
-        await hostService.createGroup(groupPayload);
-    };
-
-    const handleSubmit = async (e) => {
-        if (e) e.preventDefault();
-        if (isReadOnly) {
-            toast.warning("This property is approved and cannot be modified.");
-            return;
-        }
-
-        if (!termsAccepted) {
-            toast.warning("Please accept the terms to continue.");
-            return;
-        }
-
-        setIsLoading(true);
-        try {
-            // Fallback to localStorage if Redux state is missing or incomplete
-            const localUserStr = localStorage.getItem("user");
-            const localUser = localUserStr ? JSON.parse(localUserStr) : null;
-
-            const effectiveUser = userData || localUser;
-
-            if (!effectiveUser) throw new Error("User not authenticated. Session verification failed.");
-
-
-            let userId = effectiveUser.id || effectiveUser._id || effectiveUser.user_id || effectiveUser.user?.id || effectiveUser.user?._id;
-
-            if (!userId && localUser) {
-                userId = localUser.id || localUser._id || localUser.user_id || localUser.user?.id;
-            }
-
-            if (!userId) {
-                console.error("❌ User ID Extraction Failed. Object keys:", Object.keys(effectiveUser || {}));
-                throw new Error("User ID missing. Authentication failed.");
-            }
-            userId = String(userId);
-
-            let idPhotoUrl = "";
-            let selfiePhotoUrl = "";
-
-            if (formData.idProof) {
-                const fd = new FormData();
-                let uploadFileObj = formData.idProof;
-                try {
-                    uploadFileObj = await compressImage(formData.idProof);
-                } catch (err) {
-                    console.error("Failed to compress idProof:", err);
-                }
-                fd.append('images', uploadFileObj);
-                const res = await uploadFile(fd).unwrap();
-                if (res.urls && res.urls.length > 0) idPhotoUrl = res.urls[0];
-            }
-            if (formData.profilePhoto) {
-                const fd = new FormData();
-                let uploadFileObj = formData.profilePhoto;
-                try {
-                    uploadFileObj = await compressImage(formData.profilePhoto);
-                } catch (err) {
-                    console.error("Failed to compress profilePhoto:", err);
-                }
-                fd.append('images', uploadFileObj);
-                const res = await uploadFile(fd).unwrap();
-                if (res.urls && res.urls.length > 0) selfiePhotoUrl = res.urls[0];
-            }
-
-            const hostPayload = {
-                user_id: Number(userId) || userId,
-                full_name: formData.fullName,
-                email: formData.email,
-                phone: formData.phone,
-                country: formData.hostCountry,
-                city: formData.hostCity,
-                address: formData.hostAddress,
-                id_type: formData.idType,
-                id_number: formData.idNumber,
-                id_photo: idPhotoUrl,
-                selfie_photo: selfiePhotoUrl,
-                whatsapp: formData.phone, // 👈 Fallback to phone for contact method
-                userId: userId,
-                fullName: formData.fullName,
-                idType: formData.idType,
-                idNumber: formData.idNumber,
-                idPhoto: idPhotoUrl,
-                selfiePhoto: selfiePhotoUrl,
-                contribution_type: contributionType // Add contribution type to host profile
-            };
-
-            // 5. Save Host Profile if not existing
-            if (!isExistingHost) {
-                await saveHost(hostPayload).unwrap();
-                // RTK Query will update isExistingHost automatically via invalidateTags
-            }
-
-            // Handle different contribution types
-            switch (contributionType) {
-                case 'property':
-                    // If we are editing, use the existing ID. If creating, create a draft.
-                    let propertyId = editId;
-
-                    if (!propertyId) {
-                        const draftPayload = {
-                            categoryId: formData.category,
-                            propertyType: (formData.type || '').toLowerCase(),
-                            privacyType: formData.privacyType
-                        };
-                        const draftRes = await createPropertyDraft(draftPayload).unwrap();
-                        propertyId = draftRes.propertyId || (draftRes.data && draftRes.data.id) || draftRes.id;
-                        if (!propertyId) throw new Error("Failed to create property draft ID.");
-
-                        await updatePropertyBasic({
-                            id: propertyId, data: {
-                                title: formData.title || '',
-                                description: formData.description || '',
-                                guests: Number(formData.capacity) || 0,
-                                bedrooms: Number(formData.bedrooms) || 0,
-                                bathrooms: Number(formData.bathrooms) || 0,
-                                petsAllowed: Number(formData.petsAllowed) || 0,
-                                area: Number(formData.sqft) || 0
-                            }
-                        }).unwrap();
-                    } else {
-                        // On update, also update basic info
-                        await updatePropertyBasic({
-                            id: propertyId, data: {
-                                title: formData.title || '',
-                                description: formData.description || '',
-                                guests: Number(formData.capacity) || 0,
-                                bedrooms: Number(formData.bedrooms) || 0,
-                                bathrooms: Number(formData.bathrooms) || 0,
-                                petsAllowed: Number(formData.petsAllowed) || 0,
-                                area: Number(formData.sqft) || 0
-                            }
-                        }).unwrap();
-                    }
-
-                    await updatePropertyAddress({
-                        id: propertyId, data: {
-                            country: formData.country?.name || 'India',
-                            state: formData.state || '',
-                            city: formData.city || '',
-                            zip_code: formData.pincode || '',
-                            street_address: formData.address || ''
-                        }
-                    }).unwrap();
-
-                    await handleSubmitProperty(propertyId);
-
-                    // Only submit for review if it's a new draft or user explicitly wants to re-submit
-                    // For now, we always submit to ensure status is updated if needed
-                    await submitProperty(propertyId).unwrap();
-                    break;
-
-                case 'event':
-                    await handleSubmitEvent();
-                    break;
-
-                case 'group':
-                    await handleSubmitGroup();
-                    break;
-
-                case 'local_guide':
-                case 'travel_companion':
-                case 'workshop':
-                    // For other types, save as community contribution
-                    const contributionPayload = {
-                        type: contributionType,
-                        title: formData.title,
-                        description: formData.description,
-                        location: `${formData.city}, ${formData.country?.name || 'Unknown'}`,
-                        userId: userId,
-                        details: formData // Store all form data as details
-                    };
-                    await hostService.createCommunityContribution(contributionPayload);
-                    break;
-
-                default:
-                    throw new Error("Invalid contribution type");
-            }
-
-            // Differentiate success message
-            const actionText = editId ? "Updated" : "Submitted";
-            toast.success(`${getContributionTypeLabel(contributionType)} ${actionText} Successfully!`);
-            navigate("/");
-
-        } catch (error) {
-            console.error("❌ Submission Workflow Error:", error);
-            const msg = error.message || "Unknown error occurred.";
-            toast.error(`Submission Failed: ${msg}`);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const getContributionTypeLabel = (type) => {
-        const labels = {
-            property: 'Space Sharing',
-            event: 'Event',
-            group: 'Community Group',
-            local_guide: 'Local Guide Profile',
-            travel_companion: 'Travel Companion Offer',
-            workshop: 'Workshop'
-        };
-        return labels[type] || 'Contribution';
-    };
 
     const isEdit = !!editId;
 

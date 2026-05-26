@@ -1,3 +1,5 @@
+import axios from "axios";
+
 /**
  * Utility to fetch address details (City, State, Country) from an Indian Pincode.
  * Uses the free Post Office API (api.postalpincode.in).
@@ -11,8 +13,12 @@ export async function fetchAddressByPincode(pincode) {
     }
 
     try {
-        const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
-        const data = await response.json();
+        const response =
+            await axios.get(
+                `https://api.postalpincode.in/pincode/${pincode}`
+            );
+
+        const data = response.data;
 
         if (data && data[0].Status === "Success" && data[0].PostOffice?.length > 0) {
             const details = data[0].PostOffice[0];

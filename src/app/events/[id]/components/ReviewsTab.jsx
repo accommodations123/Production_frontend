@@ -33,12 +33,16 @@ export const ReviewsTab = memo(({ event, visibleSections }) => {
 
     const hasReviewed = !!userReview
 
-    useEffect(() => {
+    const [prevUserReview, setPrevUserReview] = useState(userReview)
+
+    // Synchronize review rating and comments inline during render when userReview changes
+    if (userReview !== prevUserReview) {
+        setPrevUserReview(userReview)
         if (userReview) {
             setUserRating(userReview.rating || 0)
             setReviewText(userReview.comment || '')
         }
-    }, [userReview])
+    }
 
     const handleSubmitReview = async () => {
         if (!user) {

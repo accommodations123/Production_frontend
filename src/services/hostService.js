@@ -1,185 +1,170 @@
-const API_URL = import.meta.env.PROD
-    ? "https://api.nextkinlife.live"
-    : "/api";
+import { axiosClient } from "@/lib/axiosClient";
 
-const getHeaders = (isMultipart = false) => {
-    const headers = {};
-    if (!isMultipart) {
-        headers["Content-Type"] = "application/json";
-    }
-    return headers;
-};
+const request = async (config) => {
+    try {
+        const response = await axiosClient(config);
+        return response.data;
+    } catch (error) {
+        const message =
+            error.response?.data?.message ||
+            error.response?.data?.error ||
+            error.message ||
+            "Request failed";
 
-const handleResponse = async (response) => {
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Request failed with status ${response.status}`);
+        throw new Error(message);
     }
-    return await response.json();
 };
 
 export const hostService = {
     // === AUTH & OTP ===
     sendOtp: async (data) => {
-        const res = await fetch(`${API_URL}/otp/send-otp`, {
+        return request({
+            url: "otp/send-otp",
             method: "POST",
-            headers: getHeaders(),
-            body: JSON.stringify(data),
-            credentials: "include",
+            data
         });
-        return handleResponse(res);
     },
 
     verifyOtp: async (data) => {
-        const res = await fetch(`${API_URL}/otp/verify-otp`, {
+        return request({
+            url: "otp/verify-otp",
             method: "POST",
-            headers: getHeaders(),
-            body: JSON.stringify(data),
-            credentials: "include",
+            data
         });
-        return handleResponse(res);
     },
 
     // Step 2: Host Details
     saveHost: async (data) => {
-        const res = await fetch(`${API_URL}/host/save`, {
+        return request({
+            url: "host/save",
             method: "POST",
-            headers: getHeaders(),
-            body: JSON.stringify(data),
-            credentials: "include",
+            data
         });
-        return handleResponse(res);
     },
 
-    // Get Host Profile (New Method)
     getHostProfile: async () => {
-        const res = await fetch(`${API_URL}/host/get`, {
-            method: "GET",
-            headers: getHeaders(),
-            credentials: "include",
+        return request({
+            url: "host/get",
+            method: "GET"
         });
-        return handleResponse(res);
     },
 
     // === PROPERTY FLOW ===
-
-    // Upload files (Images/Docs)
     uploadFile: async (formData) => {
-        const res = await fetch(`${API_URL}/property/upload`, {
+        return request({
+            url: "property/upload",
             method: "POST",
-            headers: getHeaders(true), // true for multipart/form-data
-            body: formData,
-            credentials: "include",
+            data: formData
         });
-        return handleResponse(res);
     },
 
     createPropertyDraft: async (data) => {
-        const res = await fetch(`${API_URL}/property/create-draft`, {
+        return request({
+            url: "property/create-draft",
             method: "POST",
-            headers: getHeaders(),
-            body: JSON.stringify(data),
-            credentials: "include",
+            data
         });
-        return handleResponse(res);
     },
 
     updatePropertyBasic: async (id, data) => {
-        const res = await fetch(`${API_URL}/property/basic-info/${id}`, {
+        return request({
+            url: `property/basic-info/${id}`,
             method: "PUT",
-            headers: getHeaders(),
-            body: JSON.stringify(data),
-            credentials: "include",
+            data
         });
-        return handleResponse(res);
     },
 
     updatePropertyAddress: async (id, data) => {
-        const res = await fetch(`${API_URL}/property/address/${id}`, {
+        return request({
+            url: `property/address/${id}`,
             method: "PUT",
-            headers: getHeaders(),
-            body: JSON.stringify(data),
-            credentials: "include",
+            data
         });
-        return handleResponse(res);
     },
 
     updatePropertyPricing: async (id, data) => {
-        const res = await fetch(`${API_URL}/property/pricing/${id}`, {
+        return request({
+            url: `property/pricing/${id}`,
             method: "PUT",
-            headers: getHeaders(),
-            body: JSON.stringify(data),
-            credentials: "include",
+            data
         });
-        return handleResponse(res);
     },
 
     updatePropertyAmenities: async (id, amenities) => {
-        const res = await fetch(`${API_URL}/property/amenities/${id}`, {
+        return request({
+            url: `property/amenities/${id}`,
             method: "PUT",
-            headers: getHeaders(),
-            body: JSON.stringify({ amenities }),
-            credentials: "include",
+            data: { amenities }
         });
-        return handleResponse(res);
     },
 
     updatePropertyRules: async (id, rules) => {
-        const res = await fetch(`${API_URL}/property/rules/${id}`, {
+        return request({
+            url: `property/rules/${id}`,
             method: "PUT",
-            headers: getHeaders(),
-            body: JSON.stringify({ rules }),
-            credentials: "include",
+            data: { rules }
         });
-        return handleResponse(res);
     },
 
     updatePropertyMedia: async (id, formData) => {
-        const res = await fetch(`${API_URL}/property/media/${id}`, {
+        return request({
+            url: `property/media/${id}`,
             method: "PUT",
-            headers: getHeaders(true),
-            body: formData,
-            credentials: "include",
+            data: formData
         });
-        return handleResponse(res);
     },
 
     updatePropertyVideo: async (id, formData) => {
-        const res = await fetch(`${API_URL}/property/media/video/${id}`, {
+        return request({
+            url: `property/media/video/${id}`,
             method: "PUT",
-            headers: getHeaders(true),
-            body: formData,
-            credentials: "include",
+            data: formData
         });
-        return handleResponse(res);
     },
 
     updatePropertyLegal: async (id, formData) => {
-        const res = await fetch(`${API_URL}/property/legal/${id}`, {
+        return request({
+            url: `property/legal/${id}`,
             method: "POST",
-            headers: getHeaders(true),
-            body: formData,
-            credentials: "include",
+            data: formData
         });
-        return handleResponse(res);
     },
 
-    // Get Single Property Details (Public)
     getPropertyDetails: async (id) => {
-        const res = await fetch(`${API_URL}/property/${id}`, {
-            method: "GET",
-            headers: getHeaders(),
-            credentials: "include",
+        return request({
+            url: `property/${id}`,
+            method: "GET"
         });
-        return handleResponse(res);
     },
 
     submitProperty: async (id) => {
-        const res = await fetch(`${API_URL}/property/submit/${id}`, {
-            method: "PUT",
-            headers: getHeaders(),
-            credentials: "include",
+        return request({
+            url: `property/submit/${id}`,
+            method: "PUT"
         });
-        return handleResponse(res);
     },
+
+    createEvent: async (data) => {
+        return request({
+            url: "events/create",
+            method: "POST",
+            data
+        });
+    },
+
+    createGroup: async (data) => {
+        return request({
+            url: "community",
+            method: "POST",
+            data
+        });
+    },
+
+    createCommunityContribution: async (data) => {
+        return request({
+            url: "community/contributions",
+            method: "POST",
+            data
+        });
+    }
 };

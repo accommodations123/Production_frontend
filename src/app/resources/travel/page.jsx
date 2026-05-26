@@ -295,15 +295,6 @@ export default function TravelPage() {
       // Filter by ORIGIN country (where traveler is flying FROM) - For CO-TRAVELER matching
       const matchesCountry = !filters.country || plan.flight.from_country?.toLowerCase() === filters.country.toLowerCase();
 
-      if (filters.country && !matchesCountry) {
-        console.log("Filter Mismatch:", {
-          filter: filters.country,
-          planCountry: plan.flight.from_country,
-          planFrom: plan.flight.from,
-          matches: matchesCountry
-        });
-      }
-
       const matchesState =
         !filters.state ||
         plan.user.state?.toLowerCase().includes(filters.state.toLowerCase());

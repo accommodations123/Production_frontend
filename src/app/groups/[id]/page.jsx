@@ -267,17 +267,6 @@ export default function GroupDetailsPage() {
 
     // Derived Owner State
     const isOwner = React.useMemo(() => {
-        // Debugging Owner Logic
-        /*
-        console.log("DEBUG OWNER CHECK:", {
-            member_role: community?.member_role,
-            userId: resolvedUser?.id,
-            communityCreatedBy: community?.created_by,
-            communityOwnerId: community?.owner_id,
-            members: community?.members
-        });
-        */
-
         if (community?.member_role === 'owner') return true;
         // Fallback checks
         const userId = resolvedUser?.id;
@@ -373,8 +362,6 @@ export default function GroupDetailsPage() {
     const confirmDelete = async () => {
         if (!deleteConfirmation) return;
         const { postId, authorId } = deleteConfirmation;
-
-        console.log("Attempting Delete:", { postId, authorId, isOwner, userId: resolvedUser?.id });
 
         // Optimistic check
         const isAuthor = String(authorId) === String(resolvedUser?.id);

@@ -1,5 +1,5 @@
-import React, { memo } from "react"
-import { Calendar, MapPin, Users, Star, MessageCircle, Heart, Bookmark, Share2 } from "lucide-react"
+import { memo } from "react"
+import { Calendar, MapPin, Users, Star, MessageCircle, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { HostPhoto } from "./HostPhoto"
 import { COUNTRIES } from "@/lib/mock-data"
@@ -19,20 +19,6 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
             });
         } catch (e) {
             return dateString;
-        }
-    };
-
-    // Format time for display
-    const formatTime = (timeString) => {
-        if (!timeString) return "";
-        try {
-            const [hours, minutes] = timeString.split(':');
-            const hour = parseInt(hours);
-            const ampm = hour >= 12 ? 'PM' : 'AM';
-            const displayHour = hour % 12 || 12;
-            return `${displayHour}:${minutes} ${ampm}`;
-        } catch (e) {
-            return timeString;
         }
     };
 

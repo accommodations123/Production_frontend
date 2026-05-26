@@ -26,8 +26,32 @@ export default function EventDetailsPage() {
     // const [isSaved, setIsSaved] = useState(false) // Removed local state
     const [showShareMenu, setShowShareMenu] = useState(false)
     const [isRegistered, setIsRegistered] = useState(false)
+    const [prevEvent, setPrevEvent] = useState(null)
+
+    // Sync isRegistered inline during render when event data changes
+    if (event !== prevEvent) {
+        setPrevEvent(event)
+        setIsRegistered(!!event?.is_registered)
+    }
+
     const [activeTab, setActiveTab] = useState("overview")
+    const [prevActiveTab, setPrevActiveTab] = useState("overview")
     const [visibleSections, setVisibleSections] = useState(new Set(['overview']))
+
+    // Sync visible sections inline during render when active tab changes
+    if (activeTab !== prevActiveTab) {
+        setPrevActiveTab(activeTab)
+        setVisibleSections(prev => {
+            const next = new Set(prev)
+            next.add(activeTab)
+            if (activeTab === 'overview') {
+                next.add('included')
+                next.add('gallery')
+            }
+            return next
+        })
+    }
+
     const [copiedLink, setCopiedLink] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
     const [registrationError, setRegistrationError] = useState('')
@@ -83,12 +107,7 @@ export default function EventDetailsPage() {
         }
     }, [apiEvent])
 
-    // Update isRegistered state based on event data
-    useEffect(() => {
-        if (event) {
-            setIsRegistered(!!event.is_registered)
-        }
-    }, [event])
+    // Syncing of isRegistered is handled inline during render above
 
     // Removed manual registration check effect since we rely on apiEvent data now
 
@@ -102,12 +121,7 @@ export default function EventDetailsPage() {
         return () => sections.forEach(section => observer.unobserve(section))
     }, [])
 
-    useEffect(() => {
-        setVisibleSections(prev => new Set([...prev, activeTab]))
-        if (activeTab === 'overview') {
-            setVisibleSections(prev => new Set([...prev, 'included', 'gallery']))
-        }
-    }, [activeTab])
+    // Syncing of visible sections is handled inline during render above
 
     const handleCopyLink = useCallback(async () => {
         try {
@@ -120,11 +134,6 @@ export default function EventDetailsPage() {
             toast.error("Failed to copy link")
         }
     }, [])
-
-    const handleSaveToggle = useCallback(() => setIsSaved(prev => !prev), [])
-
-
-    // const handleSaveToggle = useCallback(() => setIsSaved(prev => !prev), []) // Removed handler
     const handleShareToggle = useCallback(() => setShowShareMenu(prev => !prev), [])
 
     const handleRegister = useCallback(async () => {

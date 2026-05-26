@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { fetchAddressByPincode } from "@/lib/pincodeUtils";
 import { useEffect } from "react";
 import { Country, State, City } from 'country-state-city';
+import { useNavigate } from "react-router-dom";
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { COUNTRIES } from "@/lib/mock-data";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
@@ -168,6 +169,7 @@ const splitPhone = (fullPhone) => {
 };
 
 export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) {
+  const navigate = useNavigate();
   const { activeCountry: globalActiveCountry } = useCountry();
   const [images, setImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
@@ -443,7 +445,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
   if (!isVerifiedHost) {
     const isPending = hostProfile?.status === 'pending';
     return (
-      <div className="max-w-3xl mx-auto bg-gray-50 p-8 rounded-xl text-center border border-gray-200">
+      <div className="max-w-3xl mx-auto bg-gray-50 p-8 rounded-xl text-center border border-gray-200 shadow-md">
         <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-2xl">🔒</span>
         </div>
@@ -456,7 +458,24 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
             : "You need to be an approved host to list items for sale."
           }
         </p>
-
+        <div className="flex justify-center gap-4">
+          <button
+            type="button"
+            onClick={() => navigate("/marketplace")}
+            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition shadow-sm cursor-pointer"
+          >
+            Back to Marketplace
+          </button>
+          {!isPending && (
+            <button
+              type="button"
+              onClick={() => navigate("/hosts")}
+              className="px-5 py-2 text-sm font-medium text-white bg-[#C93A30] rounded-lg hover:bg-[#b02e25] transition shadow-sm cursor-pointer"
+            >
+              Become a Host
+            </button>
+          )}
+        </div>
       </div>
     );
   }

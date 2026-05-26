@@ -880,7 +880,22 @@ export default function EventDetailsPage() {
     const [showShareMenu, setShowShareMenu] = useState(false)
     const [isRegistered, setIsRegistered] = useState(false)
     const [activeTab, setActiveTab] = useState("overview")
+    const [prevActiveTab, setPrevActiveTab] = useState("overview")
     const [visibleSections, setVisibleSections] = useState(new Set(['overview']))
+
+    // Sync visible sections inline during render when active tab changes
+    if (activeTab !== prevActiveTab) {
+        setPrevActiveTab(activeTab)
+        setVisibleSections(prev => {
+            const next = new Set(prev)
+            next.add(activeTab)
+            if (activeTab === 'overview') {
+                next.add('included')
+                next.add('gallery')
+            }
+            return next
+        })
+    }
     const [copiedLink, setCopiedLink] = useState(false)
 
     const event = useMemo(() => {
@@ -932,12 +947,7 @@ export default function EventDetailsPage() {
         return () => sections.forEach(section => observer.unobserve(section))
     }, [])
 
-    useEffect(() => {
-        setVisibleSections(prev => new Set([...prev, activeTab]))
-        if (activeTab === 'overview') {
-            setVisibleSections(prev => new Set([...prev, 'included', 'gallery']))
-        }
-    }, [activeTab])
+    // Syncing of visible sections is handled inline during render above
 
     const handleCopyLink = useCallback(async () => {
         try {

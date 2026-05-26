@@ -13,7 +13,7 @@ import { useCountry } from "@/context/CountryContext"
 import { useClickOutside } from "@/hooks/useClickOutside"
 import { getSocket, disconnectSocket } from "@/lib/socket"
 import { useDispatch, useSelector } from "react-redux"
-import { useGetMeQuery, useLogoutMutation, authApi } from "@/store/api/authApi"
+import { logoutUser, fetchCurrentUser } from "@/store/slices/authSlice"
 import { useGetHostProfileQuery, hostApi } from "@/store/api/hostApi"
 import { NotificationDropdown } from "@/components/common/NotificationDropdown"
 
@@ -21,10 +21,11 @@ export function Navbar({ minimal = false, onMenuClick }) {
     const navigate = useNavigate()
     const dispatch = useDispatch()
 
+    const [renderTimestamp] = React.useState(() => Date.now());
+
     const socketRef = React.useRef(null);
     const isSocketInitialized = React.useRef(false);
 
-    const [logout] = useLogoutMutation()
     const [isScrolled, setIsScrolled] = React.useState(false)
     const { activeCountry, setCountry, isSelected } = useCountry()
     const [isCountryOpen, setIsCountryOpen] = React.useState(false)
@@ -32,8 +33,13 @@ export function Navbar({ minimal = false, onMenuClick }) {
     const [isHostDropdownOpen, setIsHostDropdownOpen] = React.useState(false)
 
     // ================= AUTH STATE (BACKEND VERIFIED) =================
-    const { data: userData, isLoading: isAuthLoading, isError: isAuthError } = useGetMeQuery()
+    const { user: userData, loading: isAuthLoading, error: isAuthError } = useSelector((state) => state.auth)
     const isAuthenticated = !!userData && !isAuthError
+
+    // Automatically fetch current user session on mount to validate session state and avoid stale cache
+    React.useEffect(() => {
+        dispatch(fetchCurrentUser())
+    }, [dispatch])
 
     // Fetch host profile if authenticated
     const { data: hostProfile } = useGetHostProfileQuery(undefined, {
@@ -76,14 +82,12 @@ export function Navbar({ minimal = false, onMenuClick }) {
     // Handle logout function
     const handleLogout = async () => {
         try {
-            await logout().unwrap();
+            await dispatch(logoutUser()).unwrap();
         } catch (e) {
             console.warn("Backend logout failed, proceeding with local cleanup", e);
         }
         disconnectSocket();
-        dispatch(authApi.util.resetApiState());
         dispatch(hostApi.util.resetApiState());
-        localStorage.removeItem("user");
         setIsMobileMenuOpen(false);
         navigate("/signin");
     };
@@ -456,7 +460,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                     <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-accent transition-all shadow-lg">
                                         {resolvedUser?.profile_image ? (
                                             <img
-                                                src={`${resolvedUser.profile_image}?v=${Date.now()}`}
+                                                src={`${resolvedUser.profile_image}?v=${renderTimestamp}`}
                                                 alt="Profile"
                                                 className="w-full h-full object-cover"
                                             />

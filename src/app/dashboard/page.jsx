@@ -29,14 +29,16 @@ export default function DashboardPage() {
         id: false,
     })
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-    const [active, setActive] = useState(tabFromUrl || "overview")
+    const [active, setActive] = useState(() => tabFromUrl || "overview")
+    const [prevTabFromUrl, setPrevTabFromUrl] = useState(tabFromUrl)
 
-    // Update active when URL tab changes
-    useEffect(() => {
+    // Sync active when URL tab changes inline during render
+    if (tabFromUrl !== prevTabFromUrl) {
+        setPrevTabFromUrl(tabFromUrl)
         if (tabFromUrl) {
             setActive(tabFromUrl)
         }
-    }, [tabFromUrl])
+    }
 
     const menuItems = [
         { id: "overview", label: "Overview", icon: LayoutDashboard },

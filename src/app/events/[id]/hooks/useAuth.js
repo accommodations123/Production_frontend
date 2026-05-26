@@ -1,29 +1,26 @@
-import { useState, useEffect } from "react"
-import { useGetMeQuery } from "@/store/api/authApi"
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCurrentUser } from "@/store/slices/authSlice";
 
 export const useAuth = () => {
-    const { data: userData, isError } = useGetMeQuery()
-    const [user, setUser] = useState(null)
+    const dispatch = useDispatch();
+
+    const {
+        user,
+        loading,
+        error
+    } = useSelector((state) => state.auth);
 
     useEffect(() => {
-        // Priority 1: Redux Store (Source of Truth)
-        if (userData) {
-            setUser(userData)
-            return
+        if (!user && !loading && !error) {
+            dispatch(fetchCurrentUser());
         }
+    }, [dispatch, user, loading, error]);
 
-        // Priority 2: LocalStorage (Fallback/Optimistic)
-        if (typeof window !== 'undefined') {
-            const storedUser = localStorage.getItem('user')
-            if (storedUser) {
-                try {
-                    setUser(JSON.parse(storedUser))
-                } catch (e) {
-                    console.error('Failed to parse user from localStorage')
-                }
-            }
-        }
-    }, [userData])
-
-    return { user }
-}
+    return {
+        user,
+        loading,
+        error,
+        isAuthenticated: !!user && !error
+    };
+};

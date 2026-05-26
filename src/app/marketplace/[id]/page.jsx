@@ -21,6 +21,7 @@ const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/20
 export default function ProductDetailsPage() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { activeCountry } = useCountry();
     const { data: product, isLoading: loading, error } = useGetBuySellByIdQuery(id);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [activeImage, setActiveImage] = useState(0);
@@ -33,8 +34,6 @@ export default function ProductDetailsPage() {
             </div>
         );
     }
-
-    const { activeCountry } = useCountry();
 
     if (!product) {
         return (

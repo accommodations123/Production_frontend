@@ -2,9 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { X, MapPin, Clock, ArrowUpRight, Search, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const RECENT_SEARCHES_KEY = 'recentLocationSearches';
 const MAX_RECENT_SEARCHES = 5;
+const API_BASE = import.meta.env.PROD
+    ? "https://api.nextkinlife.live"
+    : "/api";
 
 // Get recent searches from localStorage
 const getRecentSearches = () => {
@@ -72,26 +76,38 @@ export function SearchOverlay({ isOpen, onClose }) {
         const controller = new AbortController();
 
         const fetchSuggestions = async () => {
-            setIsLoading(true);
             try {
-                const baseUrl = import.meta.env.PROD
-                    ? "https://api.nextkinlife.live"
-                    : "/api";
-                const res = await fetch(
-                    `${baseUrl}/listings?location=${encodeURIComponent(searchTerm)}`,
-                    { credentials: 'include', signal: controller.signal }
+                setIsLoading(true);
+
+                const response =
+                    await axios.get(
+                        `${API_BASE}/listings?location=${encodeURIComponent(searchTerm)}`,
+                        {
+                            withCredentials: true,
+                            signal: controller.signal
+                        }
+                    );
+
+                const listings = response.data?.data || [];
+                const uniqueLocations = [
+                    ...new Set(
+                        listings
+                            .map(item => item.location)
+                            .filter(Boolean)
+                    )
+                ].slice(
+                    0,
+                    8
                 );
 
-                if (!res.ok) throw new Error('Failed to fetch');
-
-                const response = await res.json();
-                const listings = response.data || [];
-                const uniqueLocations = [...new Set(
-                    listings.map(item => item.location).filter(Boolean)
-                )].slice(0, 8);
                 setSuggestions(uniqueLocations);
-            } catch (err) {
-                if (err.name !== 'AbortError') {
+            } catch (error) {
+                if (error.name !== 'CanceledError') {
+                    console.error(
+                        'Error fetching location suggestions:',
+                        error
+                    );
+
                     setSuggestions([]);
                 }
             } finally {
@@ -126,10 +142,12 @@ export function SearchOverlay({ isOpen, onClose }) {
                 try {
                     // Reverse geocode to get city name
                     const { latitude, longitude } = position.coords;
-                    const response = await fetch(
-                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-                    );
-                    const data = await response.json();
+                    const response =
+                        await axios.get(
+                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+                        );
+
+                    const data = response.data;
                     const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county;
 
                     if (city) {
@@ -137,7 +155,12 @@ export function SearchOverlay({ isOpen, onClose }) {
                     } else {
                         alert('Could not determine your city. Please search manually.');
                     }
-                } catch {
+                } catch (error) {
+                    console.error(
+                        'Error getting current location details:',
+                        error
+                    );
+
                     alert('Failed to get location details. Please search manually.');
                 } finally {
                     setIsGettingLocation(false);

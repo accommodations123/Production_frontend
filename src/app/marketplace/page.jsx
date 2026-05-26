@@ -26,40 +26,49 @@ export default function MarketplacePage() {
 
   const [activeTab, setActiveTab] = useState("buy");
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [viewProduct, setViewProduct] = useState(null);
-  const [isVerificationOpen, setIsVerificationOpen] = useState(false);
-
-  const [filters, setFilters] = useState({
-    priceMin: "",
-    priceMax: "",
-    category: "",
-    country: "",
-    state: "",
-    city: "",
-    search: "",
-  });
-  
-
   const { activeCountry, isSelected } = useCountry();
 
-  useEffect(() => {
-    if (activeCountry?.name) {
-      let countryName = activeCountry.name;
-      if (countryName === "United States" || countryName.startsWith("United States")) {
-        countryName = "United States of America";
-      }
-      setFilters(prev => {
-        // Only update if country changed, keeping other filters intact unless country changed
-        const countryChanged = prev.country !== countryName;
-        return {
-          ...prev,
-          country: countryName,
-          state: countryChanged ? "" : prev.state,
-          city: countryChanged ? "" : prev.city,
-        };
-      });
+  const getInitialCountryName = (country) => {
+    if (!country?.name) return "";
+    let name = country.name;
+    if (name === "United States" || name.startsWith("United States")) {
+        return "United States of America";
     }
-  }, [activeCountry]);
+    return name;
+  };
+
+  const [filters, setFilters] = useState(() => {
+    const countryName = getInitialCountryName(activeCountry);
+    return {
+      priceMin: "",
+      priceMax: "",
+      category: "",
+      country: countryName,
+      state: "",
+      city: "",
+      search: "",
+    };
+  });
+
+  const [prevActiveCountry, setPrevActiveCountry] = useState(activeCountry);
+
+  // Sync country filter inline during render when activeCountry changes
+  if (activeCountry !== prevActiveCountry) {
+    setPrevActiveCountry(activeCountry);
+    const countryName = getInitialCountryName(activeCountry);
+    if (countryName && filters.country !== countryName) {
+      setFilters(prev => ({
+        ...prev,
+        country: countryName,
+        state: "",
+        city: "",
+      }));
+    }
+  }
+
+  const [viewProduct, setViewProduct] = useState(null);
+  const [prevProductFromUrl, setPrevProductFromUrl] = useState(null);
+  const [isVerificationOpen, setIsVerificationOpen] = useState(false);
   // products state is now managed by RTK Query
   const { data: productsData, isLoading: loading, error } = useGetBuySellListingsQuery({
     country: filters.country || activeCountry?.name,
@@ -76,12 +85,13 @@ export default function MarketplacePage() {
     skip: !productIdFromUrl
   });
 
-  // Auto-display product from URL param
-  useEffect(() => {
+  // Auto-display product from URL param inline during render
+  if (productFromUrl !== prevProductFromUrl) {
+    setPrevProductFromUrl(productFromUrl);
     if (productFromUrl && productIdFromUrl) {
       setViewProduct(productFromUrl);
     }
-  }, [productFromUrl, productIdFromUrl]);
+  }
 
   // Clear URL param when closing product view
   const handleBackFromProduct = () => {

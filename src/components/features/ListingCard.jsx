@@ -142,7 +142,7 @@ export function ListingCard({ listing, layout = "grid" }) {
                     </Link>
                     <div className="text-right shrink-0">
                         <div className="text-lg font-bold text-gray-900 leading-tight">
-                            {formatPrice(displayPrice)}
+                            {formatPrice(displayPrice, currency)}
                         </div>
                         <div className="text-[10px] text-gray-500 font-medium whitespace-nowrap">
                             Ready to move

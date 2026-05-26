@@ -100,7 +100,12 @@ export default function CreateGroupPage() {
                                 : "You need to be an approved host to create a new community."
                             }
                         </p>
-
+                        <Button
+                            onClick={() => navigate(isPending ? "/groups" : "/hosts")}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                        >
+                            {isPending ? "Back to Groups" : "Apply to Become Host"}
+                        </Button>
                     </div>
                 </main>
                 <Footer />

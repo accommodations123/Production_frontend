@@ -161,6 +161,7 @@ export default function RoomPage() {
                 nightly: parseFloat(p.price_per_night) || 0,
                 hourly: parseFloat(p.price_per_hour) || 0,
                 monthly: parseFloat(p.price_per_month) || 0,
+                currency: p.currency || 'USD',
             },
             host: {
                 name: hostName,
@@ -513,7 +514,7 @@ export default function RoomPage() {
                                     {listing.price.nightly > 0 && (
                                         <div className="flex items-baseline justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
                                             <div className="flex items-baseline gap-1">
-                                                <span className="text-3xl font-bold text-slate-900">{formatPrice(listing.price.nightly)}</span>
+                                                <span className="text-3xl font-bold text-slate-900">{formatPrice(listing.price.nightly, listing.price.currency)}</span>
                                                 <span className="text-slate-500 font-medium">/ night</span>
                                             </div>
                                         </div>
@@ -523,7 +524,7 @@ export default function RoomPage() {
                                         <div className="flex items-baseline justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
                                             <div className="flex items-baseline gap-1">
                                                 <span className={`${listing.price.nightly > 0 ? 'text-xl text-slate-700' : 'text-3xl text-slate-900'} font-bold`}>
-                                                    {formatPrice(listing.price.hourly)}
+                                                    {formatPrice(listing.price.hourly, listing.price.currency)}
                                                 </span>
                                                 <span className="text-slate-500 font-medium">/ hour</span>
                                             </div>
@@ -534,7 +535,7 @@ export default function RoomPage() {
                                         <div className="flex items-baseline justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
                                             <div className="flex items-baseline gap-1">
                                                 <span className={`${(listing.price.nightly > 0 || listing.price.hourly > 0) ? 'text-xl text-slate-700' : 'text-3xl text-slate-900'} font-bold`}>
-                                                    {formatPrice(listing.price.monthly)}
+                                                    {formatPrice(listing.price.monthly, listing.price.currency)}
                                                 </span>
                                                 <span className="text-slate-500 font-medium">/ month</span>
                                             </div>

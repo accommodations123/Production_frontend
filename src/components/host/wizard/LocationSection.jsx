@@ -165,16 +165,25 @@ const LocationSection = ({ formData, setFormData }) => {
             }}
           />
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-300">City</label>
-            <input
-              type="text"
-              placeholder="Enter City"
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:border-accent outline-none text-white"
-              value={formData.city || ""}
-              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-            />
-          </div>
+          <SearchableDropdown
+            label="City"
+            placeholder="Select City"
+            options={citiesList}
+            value={formData.city}
+            disabled={!formData.state}
+            isLoading={(() => {
+              if (citiesFetched.current) return false;
+              const cObj = typeof formData.country === 'object' ? formData.country : countriesList.find(c => c.name === formData.country);
+              const hasValidC = cObj && cObj.isoCode && cObj.isoCode !== 'CUSTOM';
+              return !!(hasValidC && formData.state && !citiesList.length && statesList.find(s => s.name === formData.state)?.isoCode);
+            })()}
+            onChange={(city) => {
+              setFormData(prev => ({
+                ...prev,
+                city: city.name
+              }));
+            }}
+          />
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-300 flex justify-between">

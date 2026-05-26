@@ -5,10 +5,12 @@ import { User, Mail, Lock, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react
 import FormCard from '@/components/auth/FormCard';
 import TextInput from '@/components/auth/TextInput';
 import Button from '@/components/auth/Button';
-import { useSendOtpMutation, useVerifyOtpMutation } from '@/store/api/authApi';
+import { useDispatch } from 'react-redux';
+import { sendOtp, verifyOtp, fetchCurrentUser } from '@/store/slices/authSlice';
 
 const Signup = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -18,9 +20,8 @@ const Signup = () => {
         confirmPassword: '',
     });
 
-    // API Hooks
-    const [sendOtp, { isLoading: isSendingOtp }] = useSendOtpMutation();
-    const [verifyOtp, { isLoading: isVerifyingOtp }] = useVerifyOtpMutation();
+    const [isSendingOtp, setIsSendingOtp] = useState(false);
+    const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
     const [otpSent, setOtpSent] = useState(false);
 
@@ -34,16 +35,19 @@ const Signup = () => {
             alert("Please enter an email address first.");
             return;
         }
+        setIsSendingOtp(true);
         try {
-            await sendOtp({
+            await dispatch(sendOtp({
                 email: formData.email,
                 phone: "0000000000" // Backend requires phone field currently
-            }).unwrap();
+            })).unwrap();
             setOtpSent(true);
             alert("OTP sent to your email!");
         } catch (error) {
             console.error("Failed to send OTP:", error);
-            alert("Failed to send OTP. Please try again.");
+            alert(error || "Failed to send OTP. Please try again.");
+        } finally {
+            setIsSendingOtp(false);
         }
     };
 
@@ -55,20 +59,15 @@ const Signup = () => {
             return;
         }
 
+        setIsVerifyingOtp(true);
         try {
-            const response = await verifyOtp({
+            const response = await dispatch(verifyOtp({
                 email: formData.email,
-                // phone: "0000000000", // Backend primarily uses email now
                 otp: formData.otp
-            }).unwrap();
+            })).unwrap();
 
             if (response) {
-                const userData = response.user || response.data?.user;
-                if (userData) {
-                    // Rely on HttpOnly cookie for session; localStorage only for UI hints (e.g. name)
-                    localStorage.setItem("user", JSON.stringify(userData));
-                }
-
+                await dispatch(fetchCurrentUser()).unwrap();
                 alert("Account verified successfully!");
                 navigate("/"); // Redirect to home, Navbar will refresh auth via getMe query
             } else {
@@ -78,7 +77,9 @@ const Signup = () => {
 
         } catch (error) {
             console.error("Verification Error:", error);
-            alert(error?.data?.message || "Wrong OTP. Please try again.");
+            alert(error || "Wrong OTP. Please try again.");
+        } finally {
+            setIsVerifyingOtp(false);
         }
     };
 

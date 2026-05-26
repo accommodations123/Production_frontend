@@ -81,25 +81,28 @@ export default function HostOnboardingForm() {
   // Redirect if already a host
   useEffect(() => {
     if (hostProfile) {
-      // Populate form with existing data if available
-      const phoneData = splitPhone(hostProfile.phone || prev.phone);
-      const whatsappData = splitPhone(hostProfile.whatsapp || prev.whatsapp);
-
       setFormData(prev => ({
         ...prev,
-        full_name: hostProfile.full_name || prev.full_name,
-        email: hostProfile.email || prev.email,
-        phone: phoneData.number,
-        phonePrefix: phoneData.code,
-        country: hostProfile.country || prev.country,
-        state: hostProfile.state || prev.state,
-        city: hostProfile.city || prev.city,
-        street_address: hostProfile.address || prev.street_address,
-        whatsapp: whatsappData.number,
-        whatsappPrefix: whatsappData.code,
-        facebook: hostProfile.facebook || prev.facebook,
-        instagram: hostProfile.instagram || prev.instagram,
-        zip_code: hostProfile.zip_code || prev.zip_code || "",
+        ...(() => {
+          const phoneData = splitPhone(hostProfile.phone || prev.phone);
+          const whatsappData = splitPhone(hostProfile.whatsapp || prev.whatsapp);
+
+          return {
+            full_name: hostProfile.full_name || prev.full_name,
+            email: hostProfile.email || prev.email,
+            phone: phoneData.number,
+            phonePrefix: phoneData.code,
+            country: hostProfile.country || prev.country,
+            state: hostProfile.state || prev.state,
+            city: hostProfile.city || prev.city,
+            street_address: hostProfile.address || prev.street_address,
+            whatsapp: whatsappData.number,
+            whatsappPrefix: whatsappData.code,
+            facebook: hostProfile.facebook || prev.facebook,
+            instagram: hostProfile.instagram || prev.instagram,
+            zip_code: hostProfile.zip_code || prev.zip_code || "",
+          };
+        })()
       }));
 
       // Populate location lists if country exists
@@ -123,12 +126,12 @@ export default function HostOnboardingForm() {
 
       // Set active socials if data exists
       setActiveSocials({
-        whatsapp: !!(hostProfile.whatsapp || formData.whatsapp),
-        facebook: !!(hostProfile.facebook || formData.facebook),
-        instagram: !!(hostProfile.instagram || formData.instagram)
+        whatsapp: !!hostProfile.whatsapp,
+        facebook: !!hostProfile.facebook,
+        instagram: !!hostProfile.instagram
       });
     }
-  }, [hostProfile, navigate]);
+  }, [hostProfile, countriesList]);
 
   // Auto-fill address based on Pincode
   useEffect(() => {
@@ -561,19 +564,20 @@ export default function HostOnboardingForm() {
                   }}
                 />
 
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                    City
-                  </label>
-                  <input
-                    id="city"
-                    name="city"
-                    placeholder="Enter City"
-                    value={formData.city || ""}
-                    onChange={handleChange}
-                    className="block w-full px-4 py-3 border-2 border-gray-200 bg-gray-50 rounded-lg shadow-sm placeholder-gray-400 text-black focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-all"
-                  />
-                </div>
+                <SearchableDropdown
+                  label="City"
+                  placeholder="Select City"
+                  options={citiesList}
+                  value={formData.city}
+                  disabled={!formData.stateCode}
+                  isLoading={!!(formData.stateCode && formData.stateCode !== 'CUSTOM' && !citiesList.length && !citiesFetched.current && formData.countryCode && formData.countryCode !== 'CUSTOM')}
+                  onChange={(city) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      city: city.name
+                    }));
+                  }}
+                />
 
                 <div>
                   <label htmlFor="zip_code" className="block text-sm font-medium text-gray-700 mb-1">

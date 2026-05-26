@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import CommunityDetailsForm from '@/components/groups/CommunityDetailsForm';
@@ -8,6 +9,7 @@ import { useGetMeQuery } from "@/store/api/authApi";
 import { Button } from "@/components/ui/button";
 
 const AddResourcePage = () => {
+    const navigate = useNavigate();
     const { data: userData } = useGetMeQuery();
     const { data: hostProfile, isLoading: isProfileLoading } = useGetHostProfileQuery(undefined, {
         skip: !userData
@@ -41,7 +43,12 @@ const AddResourcePage = () => {
                                 : "You need to be an approved host to create a new community resource."
                             }
                         </p>
-
+                        <Button
+                            onClick={() => navigate(isPending ? "/groups" : "/hosts")}
+                            className="w-full bg-[#c92a26] hover:bg-[#b02420] text-white font-semibold"
+                        >
+                            {isPending ? "Back to Groups" : "Apply to Become Host"}
+                        </Button>
                     </div>
                 </main>
                 <Footer />
