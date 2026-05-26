@@ -24,11 +24,7 @@ export function StepReview({
                 <div className="flex gap-2">
                     {formData.images.length} Photos • {formData.amenities.length + formData.customAmenities.length} Amenities
                 </div>
-                {formData.propertyProof && (
-                    <div className="flex items-center gap-2 text-green-400 text-sm bg-green-900/20 p-2 rounded-lg inline-block">
-                        <Check className="h-4 w-4" /> Proof Attached
-                    </div>
-                )}
+
             </div>
 
             {/* T&C */}

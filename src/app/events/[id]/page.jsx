@@ -23,45 +23,6 @@ import { EventNotFound } from "./components/EventNotFound"
 export default function EventDetailsPage() {
     const { id } = useParams()
     const { data: apiEvent, isLoading, error } = useGetEventByIdQuery(id)
-    // const [isSaved, setIsSaved] = useState(false) // Removed local state
-    const [showShareMenu, setShowShareMenu] = useState(false)
-    const [isRegistered, setIsRegistered] = useState(false)
-    const [prevEvent, setPrevEvent] = useState(null)
-
-    // Sync isRegistered inline during render when event data changes
-    if (event !== prevEvent) {
-        setPrevEvent(event)
-        setIsRegistered(!!event?.is_registered)
-    }
-
-    const [activeTab, setActiveTab] = useState("overview")
-    const [prevActiveTab, setPrevActiveTab] = useState("overview")
-    const [visibleSections, setVisibleSections] = useState(new Set(['overview']))
-
-    // Sync visible sections inline during render when active tab changes
-    if (activeTab !== prevActiveTab) {
-        setPrevActiveTab(activeTab)
-        setVisibleSections(prev => {
-            const next = new Set(prev)
-            next.add(activeTab)
-            if (activeTab === 'overview') {
-                next.add('included')
-                next.add('gallery')
-            }
-            return next
-        })
-    }
-
-    const [copiedLink, setCopiedLink] = useState(false)
-    const [isProcessing, setIsProcessing] = useState(false)
-    const [registrationError, setRegistrationError] = useState('')
-    const [registrationSuccess, setRegistrationSuccess] = useState('')
-    const [isCheckingRegistration, setIsCheckingRegistration] = useState(true)
-
-    const [joinEvent, { isLoading: isJoining }] = useJoinEventMutation()
-    const [leaveEvent, { isLoading: isLeaving }] = useLeaveEventMutation()
-
-    const { user } = useAuth()
 
     const event = useMemo(() => {
         if (!apiEvent) return null
@@ -106,6 +67,46 @@ export default function EventDetailsPage() {
             is_registered: apiEvent.is_registered || false // Assuming backend returns this with event details
         }
     }, [apiEvent])
+
+    // const [isSaved, setIsSaved] = useState(false) // Removed local state
+    const [showShareMenu, setShowShareMenu] = useState(false)
+    const [isRegistered, setIsRegistered] = useState(false)
+    const [prevEvent, setPrevEvent] = useState(null)
+
+    // Sync isRegistered inline during render when event data changes
+    if (event !== prevEvent) {
+        setPrevEvent(event)
+        setIsRegistered(!!event?.is_registered)
+    }
+
+    const [activeTab, setActiveTab] = useState("overview")
+    const [prevActiveTab, setPrevActiveTab] = useState("overview")
+    const [visibleSections, setVisibleSections] = useState(new Set(['overview']))
+
+    // Sync visible sections inline during render when active tab changes
+    if (activeTab !== prevActiveTab) {
+        setPrevActiveTab(activeTab)
+        setVisibleSections(prev => {
+            const next = new Set(prev)
+            next.add(activeTab)
+            if (activeTab === 'overview') {
+                next.add('included')
+                next.add('gallery')
+            }
+            return next
+        })
+    }
+
+    const [copiedLink, setCopiedLink] = useState(false)
+    const [isProcessing, setIsProcessing] = useState(false)
+    const [registrationError, setRegistrationError] = useState('')
+    const [registrationSuccess, setRegistrationSuccess] = useState('')
+    const [isCheckingRegistration, setIsCheckingRegistration] = useState(true)
+
+    const [joinEvent, { isLoading: isJoining }] = useJoinEventMutation()
+    const [leaveEvent, { isLoading: isLeaving }] = useLeaveEventMutation()
+
+    const { user } = useAuth()
 
     // Syncing of isRegistered is handled inline during render above
 
