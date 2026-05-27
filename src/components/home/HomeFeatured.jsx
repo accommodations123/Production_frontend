@@ -185,7 +185,21 @@ const HomeFeatured = () => {
             {eventsLoading ? (
               [1, 2, 3, 4].map((n) => <Skeleton key={n} className="h-[300px] sm:h-[350px] lg:h-[380px] bg-gray-100 rounded-2xl" />)
             ) : approvedEvents?.length > 0 ? (
-              approvedEvents.slice(0, 4).filter(Boolean).map((event, idx) => (
+              approvedEvents
+                .filter(event => {
+                  if (!activeCountry?.name) return true;
+                  const eventCountry = (event.country || "").toLowerCase().trim();
+                  const selectedCountry = activeCountry.name.toLowerCase().trim();
+                  const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim();
+                  
+                  // Allow online events to show globally
+                  if (event.event_mode?.toLowerCase() === "online") return true;
+                  
+                  return eventCountry === selectedCountry || eventCountry === selectedCountryCode;
+                })
+                .slice(0, 4)
+                .filter(Boolean)
+                .map((event, idx) => (
                 <motion.div
                   key={event.id || event._id}
                   {...fadeInUp}

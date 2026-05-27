@@ -99,7 +99,19 @@ const EventsPage = () => {
       return "other";
     };
 
-    apiEvents.forEach(event => {
+    const filteredApiEvents = apiEvents.filter(event => {
+      if (!activeCountry?.name) return true;
+      const eventCountry = (event.country || "").toLowerCase().trim();
+      const selectedCountry = activeCountry.name.toLowerCase().trim();
+      const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim();
+
+      // Allow online events to show globally
+      if (event.event_mode?.toLowerCase() === "online") return true;
+
+      return eventCountry === selectedCountry || eventCountry === selectedCountryCode;
+    });
+
+    filteredApiEvents.forEach(event => {
       const categoryId = classifyEventCategory(event);
       const uiEvent = {
         id: event._id || event.id,
@@ -133,7 +145,7 @@ const EventsPage = () => {
     });
 
     return grouped;
-  }, [apiEvents]);
+  }, [apiEvents, activeCountry]);
 
   const allEventsList = useMemo(() => {
     return Object.values(eventsByCategory).flat();

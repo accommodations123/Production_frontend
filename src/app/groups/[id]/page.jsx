@@ -204,14 +204,25 @@ export default function GroupDetailsPage() {
 
     const resolvedUser = React.useMemo(() => {
         const userDetails = userData?.user || userData || {};
-        // Prioritize Host Profile data for the name if available
+        const userId = userDetails.id || userDetails._id || userDetails.user_id;
+
         const finalProfile = {
             ...userDetails,
-            ...(hostProfile || {}), // Host profile overrides user details for shared fields if both exist, or we can be more selective
+            ...(hostProfile || {}),
         };
 
-        // Ensure profile image is handled gracefully
-        finalProfile.profile_image = hostProfile?.profile_image || userDetails?.profile_image || null;
+        if (userId) {
+            finalProfile.id = userId;
+            finalProfile.userId = userId;
+        }
+
+        finalProfile.profile_image = 
+            hostProfile?.profile_image ||
+            userDetails?.profile_image ||
+            hostProfile?.selfie_photo ||
+            userDetails?.User?.profile_image ||
+            userDetails?.User?.selfie_photo ||
+            null;
 
         return finalProfile;
     }, [userData, hostProfile]);
@@ -363,8 +374,9 @@ export default function GroupDetailsPage() {
         if (!deleteConfirmation) return;
         const { postId, authorId } = deleteConfirmation;
 
-        // Optimistic check
-        const isAuthor = String(authorId) === String(resolvedUser?.id || resolvedUser?._id);
+        // Robust Author ID match
+        const currentUserId = String(resolvedUser?.id || resolvedUser?._id || resolvedUser?.userId || resolvedUser?.user_id || "");
+        const isAuthor = authorId && currentUserId && String(authorId) === currentUserId;
 
         // If not owner AND not author, block.
         if (!isOwner && !isAuthor) {
@@ -555,9 +567,21 @@ export default function GroupDetailsPage() {
                                                 <div key={post.id} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
                                                     <div className="flex items-start gap-3 mb-3">
                                                         <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-sm overflow-hidden text-gray-500">
-                                                            {post.author?.profile_image ? (
-                                                                <img src={post.author.profile_image} alt={authorName} className="w-full h-full object-cover" />
-                                                            ) : (authorName[0] || "U")}
+                                                            {(() => {
+                                                                const authorImage =
+                                                                    post.author?.profile_image ||
+                                                                    post.author?.Host?.profile_image ||
+                                                                    post.author?.User?.profile_image ||
+                                                                    post.author?.image ||
+                                                                    post.author?.selfie_photo ||
+                                                                    post.author?.Host?.selfie_photo ||
+                                                                    post.user?.profile_image ||
+                                                                    post.user?.selfie_photo ||
+                                                                    null;
+                                                                return authorImage ? (
+                                                                    <img src={authorImage} alt={authorName} className="w-full h-full object-cover" />
+                                                                ) : (authorName[0] || "U").toUpperCase();
+                                                            })()}
                                                         </div>
                                                         <div className="flex-1">
                                                             <div className="flex items-center justify-between mb-1">
@@ -593,35 +617,40 @@ export default function GroupDetailsPage() {
                                                         </div>
 
                                                         {/* Actions Menu */}
-                                                        {(isOwner || String(post.author?.id || post.author?._id || post.author_id) === String(resolvedUser?.id || resolvedUser?._id)) && (
-                                                            <div className="relative ml-2">
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setOpenMenuId(openMenuId === post.id ? null : post.id);
-                                                                    }}
-                                                                    className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-                                                                >
-                                                                    <MoreVertical size={18} />
-                                                                </button>
+                                                        {(() => {
+                                                            const postAuthorId = String(post.author?.id || post.author?._id || post.author_id || post.user_id || post.user?.id || post.user?._id || "");
+                                                            const currentUserId = String(resolvedUser?.id || resolvedUser?._id || resolvedUser?.userId || resolvedUser?.user_id || "");
+                                                            const isPostAuthor = postAuthorId && currentUserId && postAuthorId === currentUserId;
+                                                            return (isOwner || isPostAuthor) && (
+                                                                <div className="relative ml-2">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setOpenMenuId(openMenuId === post.id ? null : post.id);
+                                                                        }}
+                                                                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                                                                    >
+                                                                        <MoreVertical size={18} />
+                                                                    </button>
 
-                                                                {openMenuId === post.id && (
-                                                                    <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10 animate-in fade-in zoom-in duration-200">
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                handleDeletePost(post.id || post._id, post.author?.id || post.author?._id || post.author_id);
-                                                                                setOpenMenuId(null);
-                                                                            }}
-                                                                            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                                                        >
-                                                                            <Trash2 size={14} />
-                                                                            <span>Delete</span>
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                                    {openMenuId === post.id && (
+                                                                        <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10 animate-in fade-in zoom-in duration-200">
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleDeletePost(post.id || post._id, post.author?.id || post.author?._id || post.author_id);
+                                                                                    setOpenMenuId(null);
+                                                                                }}
+                                                                                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                                                            >
+                                                                                <Trash2 size={14} />
+                                                                                <span>Delete</span>
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })()}
                                                     </div>
                                                 </div>
                                             );

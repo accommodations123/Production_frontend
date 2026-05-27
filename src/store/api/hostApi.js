@@ -201,10 +201,14 @@ export const hostApi = createApi({
                     }
                 }
 
+                const params = {};
+                if (limit) params.limit = limit;
+                if (countryName) params.country = countryName;
+
                 return {
                     url: "events/approved",
                     headers: countryName ? { "X-Country": countryName } : undefined,
-                    params: limit ? { limit } : undefined
+                    params
                 };
             },
             providesTags: ["Event"],
@@ -549,14 +553,30 @@ export const hostApi = createApi({
 
                 const rawPosts = response?.posts || response?.data?.posts || response?.data || [];
                 const posts = Array.isArray(rawPosts) ? rawPosts.map(post => {
-                    // Fix author profile image URL if it's an S3 key
-                    if (post.author?.profile_image) {
-                        post = { ...post, author: { ...post.author, profile_image: fixImage(post.author.profile_image) } };
-                    }
-                    if (post.user?.profile_image) {
-                        post = { ...post, user: { ...post.user, profile_image: fixImage(post.user.profile_image) } };
-                    }
-                    return post;
+                    const author = post.author || {};
+                    const Host = author.Host || {};
+                    const User = author.User || {};
+                    const userObj = post.user || {};
+
+                    // Ensure S3 URLs are fully resolved
+                    if (author.profile_image) author.profile_image = fixImage(author.profile_image);
+                    if (Host.profile_image) Host.profile_image = fixImage(Host.profile_image);
+                    if (User.profile_image) User.profile_image = fixImage(User.profile_image);
+                    if (author.image) author.image = fixImage(author.image);
+                    if (author.selfie_photo) author.selfie_photo = fixImage(author.selfie_photo);
+                    if (Host.selfie_photo) Host.selfie_photo = fixImage(Host.selfie_photo);
+                    if (userObj.profile_image) userObj.profile_image = fixImage(userObj.profile_image);
+                    if (userObj.selfie_photo) userObj.selfie_photo = fixImage(userObj.selfie_photo);
+
+                    return {
+                        ...post,
+                        author: {
+                            ...author,
+                            Host: { ...Host },
+                            User: { ...User }
+                        },
+                        user: { ...userObj }
+                    };
                 }) : [];
 
                 return {
