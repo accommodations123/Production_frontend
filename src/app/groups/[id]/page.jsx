@@ -17,7 +17,8 @@ import {
     useDeleteCommunityResourceMutation,
     useGetHostProfileQuery,
     useGetCommunityMembersQuery,
-    useGetCommunityHostMembersQuery
+    useGetCommunityHostMembersQuery,
+    useUpdateCommunityMutation
 } from "@/store/api/hostApi"
 import { useGetMeQuery as useAuthMeQuery } from "@/store/api/authApi"
 import { toast } from "sonner"
@@ -197,6 +198,7 @@ export default function GroupDetailsPage() {
     const [deletePost] = useDeleteCommunityPostMutation();
     const [addResource] = useAddCommunityResourceMutation();
     const [deleteResource] = useDeleteCommunityResourceMutation();
+    const [updateCommunity] = useUpdateCommunityMutation();
 
     // Get current user profile for robust membership check
     const { data: userData } = useAuthMeQuery();
@@ -438,6 +440,29 @@ export default function GroupDetailsPage() {
             toast.success("Resource deleted");
         } catch (err) {
             toast.error("Failed to delete resource");
+        }
+    };
+
+    const [isUploadingImage, setIsUploadingImage] = React.useState(false);
+
+    const handleImageUpload = async (file, type) => {
+        if (!file || !community) return;
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("File size must be less than 5MB");
+            return;
+        }
+        setIsUploadingImage(true);
+        try {
+            const formData = new FormData();
+            formData.append(type, file);
+            await updateCommunity({ id: community.id, data: formData }).unwrap();
+            toast.success(`${type === 'avatar_image' ? 'Avatar' : 'Cover'} image updated successfully!`);
+            refetch();
+        } catch (err) {
+            console.error(err);
+            toast.error(err.data?.message || "Failed to update image");
+        } finally {
+            setIsUploadingImage(false);
         }
     };
 
@@ -889,6 +914,30 @@ export default function GroupDetailsPage() {
                             )}
                             <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-transparent"></div>
 
+                            {isOwner && (
+                                <div className="absolute top-4 left-4 z-10">
+                                    <input
+                                        type="file"
+                                        id="cover-upload"
+                                        accept="image/*"
+                                        className="hidden"
+                                        disabled={isUploadingImage}
+                                        onChange={(e) => {
+                                            if (e.target.files?.[0]) {
+                                                handleImageUpload(e.target.files[0], 'cover_image');
+                                            }
+                                        }}
+                                    />
+                                    <label
+                                        htmlFor="cover-upload"
+                                        className="w-10 h-10 bg-black/45 backdrop-blur-md flex items-center justify-center hover:bg-black/65 transition-all rounded-full cursor-pointer text-white hover:scale-105"
+                                        title="Change Cover Image"
+                                    >
+                                        {isUploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera size={18} />}
+                                    </label>
+                                </div>
+                            )}
+
                             <div className="absolute top-4 right-4 z-10">
                                 <WishlistButton
                                     itemId={id}
@@ -902,13 +951,43 @@ export default function GroupDetailsPage() {
 
                             <div className="absolute bottom-0 left-0 right-0 p-8">
                                 <div className="flex flex-col md:flex-row items-start md:items-end gap-6">
-                                    {community?.avatar_image ? (
-                                        <img src={community.avatar_image} alt={community?.name} className="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-lg" />
-                                    ) : (
-                                        <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border-4 border-white">
-                                            <span className="text-white text-3xl font-bold">{community?.name ? community.name.substring(0, 2).toUpperCase() : 'CO'}</span>
-                                        </div>
-                                    )}
+                                    <div className="relative group">
+                                        {community?.avatar_image ? (
+                                            <img src={community.avatar_image} alt={community?.name} className="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-lg animate-in fade-in duration-300" />
+                                        ) : (
+                                            <div className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border-4 border-white">
+                                                <span className="text-white text-3xl font-bold">{community?.name ? community.name.substring(0, 2).toUpperCase() : 'CO'}</span>
+                                            </div>
+                                        )}
+                                        {isOwner && (
+                                            <>
+                                                <input
+                                                    type="file"
+                                                    id="avatar-upload"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    disabled={isUploadingImage}
+                                                    onChange={(e) => {
+                                                        if (e.target.files?.[0]) {
+                                                            handleImageUpload(e.target.files[0], 'avatar_image');
+                                                        }
+                                                    }}
+                                                />
+                                                <label
+                                                    htmlFor="avatar-upload"
+                                                    className="absolute inset-0 bg-black/40 hover:bg-black/60 rounded-2xl flex items-center justify-center cursor-pointer text-white opacity-0 group-hover:opacity-100 transition-all border-4 border-transparent"
+                                                    title="Change Avatar Image"
+                                                >
+                                                    <Camera size={24} />
+                                                </label>
+                                            </>
+                                        )}
+                                        {isUploadingImage && (
+                                            <div className="absolute inset-0 bg-black/55 rounded-2xl flex items-center justify-center text-white border-4 border-transparent">
+                                                <Loader2 className="h-6 w-6 animate-spin" />
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className="flex-1 mb-2">
                                         <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">{community?.name || 'Community Name'}</h1>
                                         <p className="text-white/90 text-lg max-w-2xl">{community?.description || 'Community description'}</p>

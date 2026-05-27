@@ -110,7 +110,21 @@ export const hostApi = createApi({
         getHostProfile: builder.query({
             query: () => "host/get",
             providesTags: ["Host"],
-            transformResponse: (response) => response?.host || response?.data || response,
+            transformResponse: (response) => {
+                const host = response?.host || response?.data || response;
+                if (host && typeof host === 'object') {
+                    const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                    const fixImage = (img) => {
+                        if (img && typeof img === 'string' && !img.startsWith('http')) {
+                            return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
+                        }
+                        return img;
+                    };
+                    if (host.profile_image) host.profile_image = fixImage(host.profile_image);
+                    if (host.selfie_photo) host.selfie_photo = fixImage(host.selfie_photo);
+                }
+                return host;
+            },
         }),
 
         getApprovedHostDetails: builder.query({
@@ -118,7 +132,25 @@ export const hostApi = createApi({
                 url: "admin/approved/approved-host-details",
                 params: country ? { country } : undefined
             }),
-            transformResponse: (response) => response?.data || response?.hosts || response || [],
+            transformResponse: (response) => {
+                const hosts = response?.data || response?.hosts || response || [];
+                const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                const fixImage = (img) => {
+                    if (img && typeof img === 'string' && !img.startsWith('http')) {
+                        return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
+                    }
+                    return img;
+                };
+                if (Array.isArray(hosts)) {
+                    return hosts.map(h => {
+                        const host = { ...h };
+                        if (host.profile_image) host.profile_image = fixImage(host.profile_image);
+                        if (host.selfie_photo) host.selfie_photo = fixImage(host.selfie_photo);
+                        return host;
+                    });
+                }
+                return hosts;
+            },
         }),
 
         getApprovedProperties: builder.query({
@@ -180,6 +212,22 @@ export const hostApi = createApi({
             transformResponse: (response) => {
                 const property = response?.property || response?.data?.property || response?.data || response;
                 const host = response?.host || response?.data?.host || {};
+                const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                const fixImage = (img) => {
+                    if (img && typeof img === 'string' && !img.startsWith('http')) {
+                        return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
+                    }
+                    return img;
+                };
+                if (host && typeof host === 'object') {
+                    if (host.profile_image) host.profile_image = fixImage(host.profile_image);
+                    if (host.selfie_photo) host.selfie_photo = fixImage(host.selfie_photo);
+                    if (host.image) host.image = fixImage(host.image);
+                    if (host.User && typeof host.User === 'object') {
+                        if (host.User.profile_image) host.User.profile_image = fixImage(host.User.profile_image);
+                        if (host.User.selfie_photo) host.User.selfie_photo = fixImage(host.User.selfie_photo);
+                    }
+                }
                 return { property, host };
             },
         }),
@@ -214,7 +262,25 @@ export const hostApi = createApi({
             providesTags: ["Event"],
             transformResponse: (response) => {
                 const items = response?.data?.events || response?.events || response?.data || response || [];
-                return Array.isArray(items) ? items : [];
+                if (Array.isArray(items)) {
+                    const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                    const fixImage = (img) => {
+                        if (img && typeof img === 'string' && !img.startsWith('http')) {
+                            return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
+                        }
+                        return img;
+                    };
+                    items.forEach(e => {
+                        const host = e.Host || e.host || {};
+                        if (host.profile_image) host.profile_image = fixImage(host.profile_image);
+                        if (host.selfie_photo) host.selfie_photo = fixImage(host.selfie_photo);
+                        if (host.User && typeof host.User === 'object') {
+                            if (host.User.profile_image) host.User.profile_image = fixImage(host.User.profile_image);
+                        }
+                        e.Host = host;
+                    });
+                }
+                return items;
             }
         }),
 
@@ -235,6 +301,22 @@ export const hostApi = createApi({
             },
             transformResponse: (response) => {
                 const event = response?.event || response?.data || response;
+                const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                const fixImage = (img) => {
+                    if (img && typeof img === 'string' && !img.startsWith('http')) {
+                        return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
+                    }
+                    return img;
+                };
+                if (event && typeof event === 'object') {
+                    const host = event.Host || event.host || {};
+                    if (host.profile_image) host.profile_image = fixImage(host.profile_image);
+                    if (host.selfie_photo) host.selfie_photo = fixImage(host.selfie_photo);
+                    if (host.User && typeof host.User === 'object') {
+                        if (host.User.profile_image) host.User.profile_image = fixImage(host.User.profile_image);
+                    }
+                    event.Host = host;
+                }
                 // Merge is_registered if it exists at the root level but not in the event object
                 if (response?.is_registered !== undefined && event && typeof event === 'object') {
                     return { ...event, is_registered: response.is_registered };

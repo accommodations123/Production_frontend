@@ -50,7 +50,8 @@ export const PropertyCard = ({ property }) => {
     const getValidImageUrl = (imagePath) => {
         if (!imagePath) return null;
         if (imagePath.startsWith('http')) return imagePath;
-        return `/${imagePath.startsWith('/') ? imagePath.slice(1) : imagePath}`;
+        const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+        return `${CLOUDFRONT}/${imagePath.startsWith('/') ? imagePath.slice(1) : imagePath}`;
     };
 
     // Safely get property data
