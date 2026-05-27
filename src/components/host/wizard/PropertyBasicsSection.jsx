@@ -1,18 +1,18 @@
 import React from 'react';
 import { Home, Users, Bed, Bath, Sparkles, Building2, Quote, Layout } from 'lucide-react';
+import { PROPERTY_TYPES } from '@/lib/accommodation-data';
 
 const PropertyBasicsSection = ({ formData, setFormData }) => {
   const categories = [
     { name: 'Apartment', slug: 'apartment', icon: Building2 },
     { name: 'House', slug: 'house', icon: Home },
     { name: 'Villa', slug: 'villa', icon: Building2 },
-    { name: 'Studio', slug: 'studio', icon: Layout },
-    { name: 'Loft', slug: 'loft', icon: Building2 },
-    { name: 'Condo', slug: 'condo', icon: Building2 },
-
     { name: 'PG', slug: 'pg', icon: Home },
     { name: 'Hostel', slug: 'hostel', icon: Home },
     { name: 'Shared Room', slug: 'shared-room', icon: Users },
+    { name: 'Studio', slug: 'studio', icon: Layout },
+    { name: 'Townhouse', slug: 'townhouse', icon: Home },
+    { name: 'Entire Place', slug: 'entire-place', icon: Sparkles }
   ];
 
   return (
@@ -33,7 +33,7 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
               placeholder="e.g. Cozy Studio in Downtown"
               className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:border-accent outline-none"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
             />
           </div>
         </div>
@@ -46,7 +46,7 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
               placeholder="Describe your place..."
               className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:border-accent outline-none min-h-[100px]"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             />
           </div>
         </div>
@@ -61,11 +61,11 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
               key={cat.slug}
               type="button"
               onClick={() =>
-                setFormData({
-                  ...formData,
+                setFormData(prev => ({
+                  ...prev,
                   category: cat.name,
                   type: cat.name
-                })
+                }))
               }
               className={`p-4 rounded-xl border text-left transition-all ${formData.category === cat.name
                 ? 'bg-accent/20 border-accent text-white'
@@ -91,7 +91,7 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
             placeholder="0"
             className="w-full bg-transparent text-xl font-bold focus:outline-none"
             value={formData.capacity}
-            onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+            onChange={(e) => setFormData(prev => ({ ...prev, capacity: e.target.value }))}
           />
         </div>
         <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-2">
@@ -104,7 +104,7 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
             placeholder="0"
             className="w-full bg-transparent text-xl font-bold focus:outline-none"
             value={formData.bedrooms}
-            onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
+            onChange={(e) => setFormData(prev => ({ ...prev, bedrooms: e.target.value }))}
           />
         </div>
         <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-2">
@@ -117,7 +117,7 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
             placeholder="0"
             className="w-full bg-transparent text-xl font-bold focus:outline-none"
             value={formData.bathrooms}
-            onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
+            onChange={(e) => setFormData(prev => ({ ...prev, bathrooms: e.target.value }))}
           />
         </div>
         <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-2">
@@ -130,7 +130,7 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
             placeholder="0"
             className="w-full bg-transparent text-xl font-bold focus:outline-none"
             value={formData.sqft}
-            onChange={(e) => setFormData({ ...formData, sqft: e.target.value })}
+            onChange={(e) => setFormData(prev => ({ ...prev, sqft: e.target.value }))}
           />
         </div>
       </div>
@@ -155,47 +155,20 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
   "
               value={formData.type}
               onChange={(e) =>
-                setFormData({
-                  ...formData,
+                setFormData(prev => ({
+                  ...prev,
                   type: e.target.value
-                })
+                }))
               }
             >
               <option value="" className="bg-[#10233E]">
                 Select Property Type
               </option>
-
-              <option value="Apartment" className="bg-[#10233E]">
-                Apartment
-              </option>
-
-              <option value="House" className="bg-[#10233E]">
-                House
-              </option>
-
-              <option value="Villa" className="bg-[#10233E]">
-                Villa
-              </option>
-
-              <option value="PG" className="bg-[#10233E]">
-                PG
-              </option>
-
-              <option value="Hostel" className="bg-[#10233E]">
-                Hostel
-              </option>
-
-              <option value="Shared Room" className="bg-[#10233E]">
-                Shared Room
-              </option>
-
-              <option value="Studio" className="bg-[#10233E]">
-                Studio
-              </option>
-
-              <option value="Townhouse" className="bg-[#10233E]">
-                Townhouse
-              </option>
+              {PROPERTY_TYPES.map((type) => (
+                <option key={type} value={type} className="bg-[#10233E]">
+                  {type}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -205,7 +178,7 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
           <select
             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:border-accent outline-none appearance-none"
             value={formData.privacyType}
-            onChange={(e) => setFormData({ ...formData, privacyType: e.target.value })}
+            onChange={(e) => setFormData(prev => ({ ...prev, privacyType: e.target.value }))}
           >
             <option value="entire place" className="bg-gray-800 text-white">Entire Place</option>
             <option value="private room" className="bg-gray-800 text-white">Private Room</option>
@@ -226,7 +199,7 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
             placeholder="0 (No pets) or Number of pets"
             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:border-accent outline-none text-white placeholder:text-gray-500"
             value={formData.petsAllowed}
-            onChange={(e) => setFormData({ ...formData, petsAllowed: e.target.value })}
+            onChange={(e) => setFormData(prev => ({ ...prev, petsAllowed: e.target.value }))}
             min="0"
           />
         </div>

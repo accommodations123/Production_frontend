@@ -108,15 +108,21 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
         }
     }, []);
 
+    // Get the current user's ID, checking both id and _id fields
+    const currentUserId = user?.id || user?._id;
+
     const {
-        data: posts = [],
+        data: feedData,
         isLoading: postsLoading,
     } = useGetCommunityFeedQuery(
-        community?.id,
+        { id: community?.id, page: 1 },
         {
             skip: !community?.id,
         }
     );
+
+    // Extract the posts array from the paginated response
+    const posts = feedData?.posts || [];
 
     const [deletePost] =
         useDeleteCommunityPostMutation();
@@ -269,22 +275,42 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                             {/* Posts */}
                             <div className="flex-1 overflow-y-auto p-4">
                                 <div className="space-y-4">
-                                    {posts?.map((post) => (
+                                    {posts?.map((post) => {
+                                        // Support both post.author and post.user from different API shapes
+                                        const author = post.author || post.user || {};
+                                        const authorName =
+                                            author.Host?.full_name ||
+                                            post.author_name ||
+                                            author.host_name ||
+                                            author.name ||
+                                            author.full_name ||
+                                            author.fullName ||
+                                            author.username ||
+                                            "Unknown User";
+                                        const authorPhoto =
+                                            author.profile_image ||
+                                            author.profilePhoto ||
+                                            author.avatar ||
+                                            null;
+                                        const authorId = String(author.id || author._id || "");
+                                        const postId = post.id || post._id;
+
+                                        return (
                                         <div
-                                            key={post.id}
+                                            key={postId}
                                             className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm"
                                         >
                                             <div className="flex items-start gap-3 mb-3">
                                                 <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 shrink-0">
-                                                    {post.user?.profilePhoto ? (
+                                                    {authorPhoto ? (
                                                         <img
-                                                            src={post.user.profilePhoto}
-                                                            alt={post.user?.name}
+                                                            src={authorPhoto}
+                                                            alt={authorName}
                                                             className="w-full h-full object-cover"
                                                         />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white font-bold text-sm">
-                                                            {post.user?.name
+                                                            {authorName
                                                                 ?.charAt(0)
                                                                 ?.toUpperCase() || "U"}
                                                         </div>
@@ -295,31 +321,26 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                                                     <div className="flex items-center justify-between mb-2">
                                                         <div>
                                                             <h4 className="font-semibold text-gray-900">
-                                                                {post.user?.name ||
-                                                                    "Unknown User"}
+                                                                {authorName}
                                                             </h4>
 
                                                             <span className="text-xs text-gray-500">
-                                                                {post.createdAt
+                                                                {(post.createdAt || post.created_at)
                                                                     ? new Date(
-                                                                        post.createdAt
+                                                                        post.createdAt || post.created_at
                                                                     ).toLocaleString()
                                                                     : "Just now"}
                                                             </span>
                                                         </div>
 
-                                                        {user?.id === post.user?.id && (
+                                                        {currentUserId && authorId && String(currentUserId) === authorId && (
                                                             <button
                                                                 onClick={() =>
                                                                     handleDeletePost(
-                                                                        post.id
+                                                                        postId
                                                                     )
                                                                 }
-                                                                className="
-                        text-red-500
-                        hover:text-red-700
-                        text-sm
-                    "
+                                                                className="text-red-500 hover:text-red-700 text-sm font-medium"
                                                             >
                                                                 Delete
                                                             </button>
@@ -329,24 +350,36 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                                                     <p className="text-gray-700 text-sm">
                                                         {post.content}
                                                     </p>
+
+                                                    {/* Media Display */}
+                                                    {post.media_urls && post.media_urls.length > 0 && (
+                                                        <div className={`mt-3 grid gap-2 ${post.media_urls.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                                            {post.media_urls.map((url, idx) => (
+                                                                <div key={idx} className="rounded-lg overflow-hidden border bg-gray-50">
+                                                                    <img src={url} alt="post media" className="w-full h-48 object-cover" />
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-6 pt-3 border-t border-gray-100">
                                                 <button className="flex items-center gap-1 text-gray-600 hover:text-red-500 text-sm">
                                                     <Heart className="h-4 w-4" />
-                                                    <span>{post.likes}</span>
+                                                    <span>{post.likes || 0}</span>
                                                 </button>
                                                 <button className="flex items-center gap-1 text-gray-600 hover:text-blue-500 text-sm">
                                                     <MessageCircle className="h-4 w-4" />
-                                                    <span>{post.comments}</span>
+                                                    <span>{post.comments || 0}</span>
                                                 </button>
                                                 <button className="flex items-center gap-1 text-gray-600 hover:text-green-500 text-sm">
                                                     <Share2 className="h-4 w-4" />
-                                                    <span>{post.shares}</span>
+                                                    <span>{post.shares || 0}</span>
                                                 </button>
                                             </div>
                                         </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>

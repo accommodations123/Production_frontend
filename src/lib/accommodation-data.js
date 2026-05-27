@@ -93,3 +93,16 @@ export const ACCOMMODATION_GUIDES = [
         content: "Be wary of listings that seem too good to be true. Never wire money without seeing the place or verifying the landlord. Check for red flags like poor grammar in ads or requests for personal financial info upfront."
     }
 ];
+
+export const PROPERTY_TYPES = [
+    "Apartment",
+    "House",
+    "Villa",
+    "PG",
+    "Hostel",
+    "Shared Room",
+    "Studio",
+    "Townhouse",
+    "Entire Place"
+];
+

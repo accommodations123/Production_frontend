@@ -129,12 +129,12 @@ export default function SearchPage() {
 
                     if (category?.length > 0) {
                         mapped = mapped.filter(item =>
-                            category.some(cat =>
-                                cat.toLowerCase().trim() ===
-                                (item.category || item.type || "")
-                                    .toLowerCase()
-                                    .trim()
-                            )
+                            category.some(cat => {
+                                const targetCategory = cat.toLowerCase().trim();
+                                const itemType = (item.type || "").toLowerCase().trim();
+                                const itemCategory = (item.category || "").toLowerCase().trim();
+                                return targetCategory === itemType || targetCategory === itemCategory;
+                            })
                         );
                     }
 

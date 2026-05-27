@@ -364,7 +364,7 @@ export default function GroupDetailsPage() {
         const { postId, authorId } = deleteConfirmation;
 
         // Optimistic check
-        const isAuthor = String(authorId) === String(resolvedUser?.id);
+        const isAuthor = String(authorId) === String(resolvedUser?.id || resolvedUser?._id);
 
         // If not owner AND not author, block.
         if (!isOwner && !isAuthor) {
@@ -593,7 +593,7 @@ export default function GroupDetailsPage() {
                                                         </div>
 
                                                         {/* Actions Menu */}
-                                                        {(isOwner || String(post.author?.id || post.author_id) === String(resolvedUser?.id)) && (
+                                                        {(isOwner || String(post.author?.id || post.author?._id || post.author_id) === String(resolvedUser?.id || resolvedUser?._id)) && (
                                                             <div className="relative ml-2">
                                                                 <button
                                                                     onClick={(e) => {
@@ -610,7 +610,7 @@ export default function GroupDetailsPage() {
                                                                         <button
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
-                                                                                handleDeletePost(post.id, post.author?.id || post.author_id);
+                                                                                handleDeletePost(post.id || post._id, post.author?.id || post.author?._id || post.author_id);
                                                                                 setOpenMenuId(null);
                                                                             }}
                                                                             className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"

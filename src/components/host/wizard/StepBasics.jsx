@@ -1,17 +1,8 @@
 import React from 'react';
 import { Home, Users, Bed, Bath, Sparkles, Building2, Quote, Layout } from 'lucide-react';
 import { motion } from 'framer-motion';
-const PROPERTY_TYPES = [
-    "Apartment",
-    "House",
-    "Villa",
-    "PG",
-    "Hostel",
-    "Shared Room",
-    "Studio",
-    "Townhouse",
-    "Entire Place"
-];
+import { PROPERTY_TYPES } from '@/lib/accommodation-data';
+
 export function StepBasics({ formData, setFormData, categories, isEdit }) {
     return (
         <div className="space-y-6 max-w-2xl mx-auto w-full">
@@ -56,10 +47,10 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                     {categories.map(cat => (
                         <button
                             key={cat.slug}
-                            onClick={() => setFormData({
-                                ...formData, category: cat.name,
-                                type: cat.name
-                            })}
+                            onClick={() => setFormData(prev => ({
+                                ...prev,
+                                category: cat.slug
+                            }))}
                             className={`p-4 rounded-xl border text-left transition-all ${formData.category === cat.slug
                                 ? 'bg-accent/20 border-accent text-white'
                                 : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'

@@ -4,6 +4,7 @@ import { Slider } from '@/components/ui/slider';
 import { Check, MapPin } from 'lucide-react';
 
 import { cn } from "@/lib/utils";
+import { PROPERTY_TYPES } from '@/lib/accommodation-data';
 
 export function FilterSidebar({ filters, onFilterChange, distinctValues = {}, className }) {
     // Local state for location input — avoids URL updates on every keystroke
@@ -108,7 +109,7 @@ export function FilterSidebar({ filters, onFilterChange, distinctValues = {}, cl
             <div className="mb-8">
                 <h3 className="font-bold text-sm text-gray-900 mb-3">Property Type</h3>
                 <div className="space-y-2">
-                    {['Apartment', 'House', 'PG', 'Hostel', 'Shared Room'].map((cat) => (
+                    {PROPERTY_TYPES.map((cat) => (
                         <label key={cat} className="flex items-center gap-3 cursor-pointer group">
                             <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${(filters.category || []).includes(cat)
                                 ? 'bg-primary border-primary'

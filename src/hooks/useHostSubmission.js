@@ -248,7 +248,9 @@ export function useHostSubmission({
                                 bedrooms: Number(formData.bedrooms) || 0,
                                 bathrooms: Number(formData.bathrooms) || 0,
                                 petsAllowed: Number(formData.petsAllowed) || 0,
-                                area: Number(formData.sqft) || 0
+                                area: Number(formData.sqft) || 0,
+                                propertyType: (formData.type || '').toLowerCase(),
+                                categoryId: formData.category
                             }
                         }).unwrap();
                     } else {
@@ -260,7 +262,9 @@ export function useHostSubmission({
                                 bedrooms: Number(formData.bedrooms) || 0,
                                 bathrooms: Number(formData.bathrooms) || 0,
                                 petsAllowed: Number(formData.petsAllowed) || 0,
-                                area: Number(formData.sqft) || 0
+                                area: Number(formData.sqft) || 0,
+                                propertyType: (formData.type || '').toLowerCase(),
+                                categoryId: formData.category
                             }
                         }).unwrap();
                     }

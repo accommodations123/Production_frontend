@@ -186,25 +186,24 @@ export const hostApi = createApi({
 
         getApprovedEvents: builder.query({
             query: (arg) => {
-                // Support both string (countryCode) and object ({ code, limit })
-                let code = typeof arg === 'string' ? arg : (arg?.name || arg?.code);
+                // Support both string (countryName) and object ({ name, code, limit })
+                let countryName = typeof arg === 'string' ? arg : (arg?.name || arg?.code);
                 const limit = typeof arg === 'object' ? arg?.limit : undefined;
 
-                // Events in the database use country NAME (e.g. "India")
-                if (!code) {
+                // Resolve from localStorage if not provided via argument
+                if (!countryName) {
                     const countryData = localStorage.getItem("selectedCountry");
                     if (countryData) {
                         try {
                             const c = JSON.parse(countryData);
-                            code = c.name || "India";
+                            countryName = c.name || c.code;
                         } catch (e) { console.error(e); }
                     }
-                    if (!code) code = "India";
                 }
 
                 return {
                     url: "events/approved",
-                    headers: { "X-Country": code },
+                    headers: countryName ? { "X-Country": countryName } : undefined,
                     params: limit ? { limit } : undefined
                 };
             },
@@ -218,16 +217,16 @@ export const hostApi = createApi({
         getEventById: builder.query({
             query: (id) => {
                 const countryData = localStorage.getItem("selectedCountry");
-                let countryName = "India";
+                let countryName = "";
                 if (countryData) {
                     try {
                         const c = JSON.parse(countryData);
-                        if (c.name) countryName = c.name;
+                        countryName = c.name || c.code || "";
                     } catch (e) { }
                 }
                 return {
                     url: `events/${id}`,
-                    headers: { "X-Country": countryName }
+                    headers: countryName ? { "X-Country": countryName } : undefined
                 };
             },
             transformResponse: (response) => {
@@ -499,16 +498,16 @@ export const hostApi = createApi({
         getMyEvents: builder.query({
             query: () => {
                 const countryData = localStorage.getItem("selectedCountry");
-                let countryCode = "IN";
+                let countryCode = "";
                 if (countryData) {
                     try {
                         const c = JSON.parse(countryData);
-                        if (c.code) countryCode = c.code;
+                        countryCode = c.code || c.name || "";
                     } catch (e) { }
                 }
                 return {
                     url: "events/host/my-events",
-                    headers: { "X-Country": countryCode }
+                    headers: countryCode ? { "X-Country": countryCode } : undefined
                 }
             },
             providesTags: ["Event"],
@@ -540,9 +539,28 @@ export const hostApi = createApi({
             query: ({ id, page = 1 }) => `community/communities/${id}/posts?page=${page}`,
             providesTags: (result, error, { id }) => [{ type: "Community", id: `FEED-${id}` }],
             transformResponse: (response) => {
-                const posts = response?.posts || response?.data?.posts || response?.data || [];
+                const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                const fixImage = (img) => {
+                    if (img && typeof img === 'string' && !img.startsWith('http')) {
+                        return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
+                    }
+                    return img;
+                };
+
+                const rawPosts = response?.posts || response?.data?.posts || response?.data || [];
+                const posts = Array.isArray(rawPosts) ? rawPosts.map(post => {
+                    // Fix author profile image URL if it's an S3 key
+                    if (post.author?.profile_image) {
+                        post = { ...post, author: { ...post.author, profile_image: fixImage(post.author.profile_image) } };
+                    }
+                    if (post.user?.profile_image) {
+                        post = { ...post, user: { ...post.user, profile_image: fixImage(post.user.profile_image) } };
+                    }
+                    return post;
+                }) : [];
+
                 return {
-                    posts: Array.isArray(posts) ? posts : [],
+                    posts,
                     totalPages: response?.totalPages || 1,
                     currentPage: response?.currentPage || 1,
                     totalPosts: response?.totalPosts || 0
