@@ -22,6 +22,7 @@ export default function SearchPage() {
     const [listings, setListings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
+    const [sortBy, setSortBy] = useState("recommended")
 
     // Mobile State
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -89,8 +90,11 @@ export default function SearchPage() {
                             image: (property.photos && property.photos.length > 0)
                                 ? property.photos[0]
                                 : "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop",
-                            type: property.property_type || "Stays", // Matches 'House', 'Apartment', etc.
-                            category: property.category_id || "Apartment", // Should probably match type
+                            type: property.property_type || "Apartment", // Matches 'House', 'Apartment', etc.
+                            category:
+                                property.category ||
+                                property.property_type ||
+                                "Apartment", // Should probably match type
                             rating: 4.8, // Mock
                             reviews: 12, // Mock
                             isVerified: property.status === 'approved',
@@ -111,6 +115,9 @@ export default function SearchPage() {
                     // Apply Filters
                     const { location, category, minPrice, maxPrice, stayType, furnishing } = filters;
 
+
+                    // Recommended = keep backend order
+
                     if (location) {
                         const locLower = location.toLowerCase();
                         mapped = mapped.filter(item =>
@@ -120,14 +127,13 @@ export default function SearchPage() {
                         );
                     }
 
-                    if (category && category.length > 0) {
-                        // category in Sidebar comes as ['Apartment', 'House'] etc.
-                        // property.category_id or type should match. 
-                        // Backend might retain lowercase or IDs. We'll try flexible matching.
+                    if (category?.length > 0) {
                         mapped = mapped.filter(item =>
                             category.some(cat =>
-                                cat.toLowerCase() === (item.category || "").toLowerCase() ||
-                                cat.toLowerCase() === (item.type || "").toLowerCase()
+                                cat.toLowerCase().trim() ===
+                                (item.category || item.type || "")
+                                    .toLowerCase()
+                                    .trim()
                             )
                         );
                     }
@@ -148,6 +154,23 @@ export default function SearchPage() {
                         // Sidebar uses 'ShortTerm', 'LongTerm'. Backend might use different.
                         mapped = mapped.filter(item => (item.stayType || "").toLowerCase() === stayType.toLowerCase());
                     }
+                    // Apply Sorting AFTER filtering
+                    if (sortBy === "low-to-high") {
+                        mapped = [...mapped].sort(
+                            (a, b) => Number(a.price || 0) - Number(b.price || 0)
+                        );
+                    }
+
+                    if (sortBy === "high-to-low") {
+                        mapped = [...mapped].sort(
+                            (a, b) => Number(b.price || 0) - Number(a.price || 0)
+                        );
+                    }
+
+                    // Recommended
+                    if (sortBy === "recommended") {
+                        mapped = [...mapped];
+                    }
 
                     setListings(mapped);
                     setTotal(mapped.length);
@@ -163,7 +186,7 @@ export default function SearchPage() {
         // Scroll only on initial load or severe changes, not every filter tweak to keep context? 
         // User likely wants to see results at top if list refreshes.
         window.scrollTo(0, 0);
-    }, [searchParams, allProperties]); // Dependencies correct as searchParams change on filter change
+    }, [searchParams, allProperties, sortBy]); // Dependencies correct as searchParams change on filter change
 
     // ✅ Pagination Logic
     const {
@@ -217,10 +240,22 @@ export default function SearchPage() {
                             </h1>
                             <div className="flex items-center gap-2">
                                 <span className="text-sm text-gray-500">Sort by:</span>
-                                <select className="text-sm font-bold bg-transparent border-none outline-none cursor-pointer">
-                                    <option>Recommended</option>
-                                    <option>Price: Low to High</option>
-                                    <option>Price: High to Low</option>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    className="text-sm font-bold bg-transparent border-none outline-none cursor-pointer"
+                                >
+                                    <option value="recommended">
+                                        Recommended
+                                    </option>
+
+                                    <option value="low-to-high">
+                                        Price: Low to High
+                                    </option>
+
+                                    <option value="high-to-low">
+                                        Price: High to Low
+                                    </option>
                                 </select>
                             </div>
                         </div>

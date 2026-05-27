@@ -2,86 +2,91 @@
 
 import * as React from "react"
 import { Heart, MessageCircle, Share2, X, Users, Star, Zap, Bell, Search, Filter, Home, UserCheck, CalendarDays, Image, FileText, Hash, MessageSquare, Clock, MapPin, Calendar, Camera, FolderOpen, Download, Play, Eye, Briefcase, BookOpen, Database, HelpCircle, UserPlus, UserMinus, Settings, ChevronRight, ArrowLeft, ThumbsUp, Bookmark, TrendingUp, Award, BarChart3, Target, Trophy, Gift, Sparkles, Info, Code, Globe, Link2, Mail, Phone, Shield, Pin, Upload, MoreVertical, Layers, Palette, Loader2 } from "lucide-react"
-import { useJoinCommunityMutation, useLeaveCommunityMutation } from "@/store/api/hostApi"
+import {
+    useJoinCommunityMutation,
+    useLeaveCommunityMutation,
+    useDeleteCommunityPostMutation,
+    useGetCommunityFeedQuery
+} from "@/store/api/hostApi"
 import { toast } from "sonner"
 
 // Simple Button Component
 const Button = React.forwardRef(({ className, variant = "default", size = "default", children, ...props }, ref) => {
-  const baseClasses = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none"
-  
-  const variants = {
-    default: "bg-blue-600 text-white hover:bg-blue-700",
-    destructive: "bg-red-600 text-white hover:bg-red-700",
-    outline: "border border-gray-300 bg-white hover:bg-gray-50",
-    secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
-    ghost: "hover:bg-gray-100",
-    link: "text-blue-600 underline-offset-4 hover:underline",
-  }
-  
-  const sizes = {
-    default: "h-10 py-2 px-4",
-    sm: "h-9 px-3",
-    lg: "h-11 px-8",
-    icon: "h-10 w-10",
-  }
+    const baseClasses = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none"
 
-  return (
-    <button
-      className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className || ""}`}
-      ref={ref}
-      {...props}
-    >
-      {children}
-    </button>
-  )
+    const variants = {
+        default: "bg-blue-600 text-white hover:bg-blue-700",
+        destructive: "bg-red-600 text-white hover:bg-red-700",
+        outline: "border border-gray-300 bg-white hover:bg-gray-50",
+        secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
+        ghost: "hover:bg-gray-100",
+        link: "text-blue-600 underline-offset-4 hover:underline",
+    }
+
+    const sizes = {
+        default: "h-10 py-2 px-4",
+        sm: "h-9 px-3",
+        lg: "h-11 px-8",
+        icon: "h-10 w-10",
+    }
+
+    return (
+        <button
+            className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className || ""}`}
+            ref={ref}
+            {...props}
+        >
+            {children}
+        </button>
+    )
 })
 
 Button.displayName = "Button"
 
 // Improved Error Boundary Component
 function ErrorBoundary({ children }) {
-  const [hasError, setHasError] = React.useState(false)
-  const [error, setError] = React.useState(null)
+    const [hasError, setHasError] = React.useState(false)
+    const [error, setError] = React.useState(null)
 
-  React.useEffect(() => {
-    const handleError = (event) => {
-      console.error("Caught by Error Boundary:", event.error);
-      setError(event.error);
-      setHasError(true);
-    };
+    React.useEffect(() => {
+        const handleError = (event) => {
+            console.error("Caught by Error Boundary:", event.error);
+            setError(event.error);
+            setHasError(true);
+        };
 
-    window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
-  }, []);
+        window.addEventListener('error', handleError);
+        return () => window.removeEventListener('error', handleError);
+    }, []);
 
-  const handleRetry = () => {
-    setHasError(false)
-    setError(null)
-  }
+    const handleRetry = () => {
+        setHasError(false)
+        setError(null)
+    }
 
-  if (hasError) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-        <div className="bg-white rounded-lg p-6 max-w-md w-full">
-          <h3 className="text-lg font-semibold mb-2">Something went wrong</h3>
-          <p className="text-gray-600 mb-2 text-sm">An error occurred while loading the community.</p>
-          {process.env.NODE_ENV === 'development' && error && (
-            <details className="mb-4">
-              <summary className="cursor-pointer text-xs font-mono bg-gray-100 p-2 rounded">Error Details</summary>
-              <pre className="text-xs bg-red-50 p-2 rounded mt-2 overflow-auto max-h-40">
-                {error.toString()}
-              </pre>
-            </details>
-          )}
-          <Button onClick={handleRetry}>
-            Try Again
-          </Button>
-        </div>
-      </div>
-    )
-  }
+    if (hasError) {
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                    <h3 className="text-lg font-semibold mb-2">Something went wrong</h3>
+                    <p className="text-gray-600 mb-2 text-sm">An error occurred while loading the community.</p>
+                    {process.env.NODE_ENV === 'development' && error && (
+                        <details className="mb-4">
+                            <summary className="cursor-pointer text-xs font-mono bg-gray-100 p-2 rounded">Error Details</summary>
+                            <pre className="text-xs bg-red-50 p-2 rounded mt-2 overflow-auto max-h-40">
+                                {error.toString()}
+                            </pre>
+                        </details>
+                    )}
+                    <Button onClick={handleRetry}>
+                        Try Again
+                    </Button>
+                </div>
+            </div>
+        )
+    }
 
-  return <>{children}</>
+    return <>{children}</>
 }
 
 export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
@@ -89,11 +94,49 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
     const [selectedMember, setSelectedMember] = React.useState(null)
     const [isMounted, setIsMounted] = React.useState(false)
     const [isJoining, setIsJoining] = React.useState(false)
-    
+
     // API hooks for join/leave functionality
     const [joinCommunity] = useJoinCommunityMutation();
     const [leaveCommunity] = useLeaveCommunityMutation();
-    
+    const user = React.useMemo(() => {
+        try {
+            return JSON.parse(
+                localStorage.getItem("user")
+            );
+        } catch {
+            return null;
+        }
+    }, []);
+
+    const {
+        data: posts = [],
+        isLoading: postsLoading,
+    } = useGetCommunityFeedQuery(
+        community?.id,
+        {
+            skip: !community?.id,
+        }
+    );
+
+    const [deletePost] =
+        useDeleteCommunityPostMutation();
+
+    const handleDeletePost = async (id) => {
+        try {
+            await deletePost(id).unwrap();
+
+            toast.success(
+                "Post deleted successfully"
+            );
+        } catch (err) {
+            console.error(err);
+
+            toast.error(
+                "Failed to delete post"
+            );
+        }
+    };
+
     const fileInputRef = React.useRef(null)
 
     // Handle close with event stop propagation
@@ -124,8 +167,8 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
             // You might want to refetch the community details here
             // For simplicity, we'll just update the local state
             community.isJoined = !community.isJoined;
-            community.members_count = community.isJoined 
-                ? community.members_count + 1 
+            community.members_count = community.isJoined
+                ? community.members_count + 1
                 : community.members_count - 1;
         } catch (err) {
             toast.error(err.data?.message || "An error occurred");
@@ -137,7 +180,7 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
     // Close on Escape key
     React.useEffect(() => {
         setIsMounted(true)
-        
+
         const handleEscape = (e) => {
             if (e.key === 'Escape' && isOpen) {
                 setSelectedMember(null)
@@ -162,109 +205,6 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
         { id: "random", name: "Random", icon: Hash, count: 89 },
         { id: "resources", name: "Resources", icon: FileText, count: 134 },
     ]
-
-    // Members data matching the screenshot
-    const members = [
-        { 
-            id: 1, 
-            name: "Smith Row", 
-            posts: 11, 
-            avatar: "SR", 
-            avatarColor: "from-blue-500 to-indigo-600",
-            profilePic: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-            status: "online",
-        },
-        { 
-            id: 2, 
-            name: "Shakil Ahmed", 
-            posts: 10, 
-            avatar: "SA", 
-            avatarColor: "from-purple-500 to-pink-600",
-            profilePic: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-            status: "online",
-        },
-        { 
-            id: 3, 
-            name: "John Doe", 
-            posts: 8, 
-            avatar: "JD", 
-            avatarColor: "from-green-500 to-teal-600",
-            profilePic: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face",
-            status: "offline",
-        },
-        { 
-            id: 4, 
-            name: "Jane Smith", 
-            posts: 7, 
-            avatar: "JS", 
-            avatarColor: "from-orange-500 to-red-600",
-            profilePic: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",
-            status: "online",
-        },
-        { 
-            id: 5, 
-            name: "Mike Johnson", 
-            posts: 6, 
-            avatar: "MJ", 
-            avatarColor: "from-indigo-500 to-purple-600",
-            profilePic: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-            status: "online",
-        },
-        { 
-            id: 6, 
-            name: "Sarah Wilson", 
-            posts: 5, 
-            avatar: "SW", 
-            avatarColor: "from-pink-500 to-rose-600",
-            profilePic: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face",
-            status: "offline",
-        },
-        { 
-            id: 7, 
-            name: "Alex Turner", 
-            posts: 4, 
-            avatar: "AT", 
-            avatarColor: "from-cyan-500 to-blue-600",
-            profilePic: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-            status: "online",
-        },
-        { 
-            id: 8, 
-            name: "Lisa Anderson", 
-            posts: 3, 
-            avatar: "LA", 
-            avatarColor: "from-amber-500 to-orange-600",
-            profilePic: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",
-            status: "offline",
-        },
-    ]
-
-    // Posts data
-    const posts = [
-        {
-            id: 1,
-            author: "Smith Row",
-            avatar: "SR",
-            avatarColor: "from-blue-500 to-indigo-600",
-            time: "2 hours ago",
-            content: "Just deployed a new Laravel package for handling API authentication! 🚀 Check it out on GitHub.",
-            likes: 24,
-            comments: 8,
-            shares: 3,
-        },
-        {
-            id: 2,
-            author: "Shakil Ahmed",
-            avatar: "SA",
-            avatarColor: "from-purple-500 to-pink-600",
-            time: "5 hours ago",
-            content: "Working on a Laravel-based e-commerce platform with Vue.js frontend.",
-            likes: 18,
-            comments: 12,
-            shares: 5,
-        },
-    ]
-
     const renderTabContent = () => {
         switch (activeTab) {
             case "feed":
@@ -329,21 +269,66 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                             {/* Posts */}
                             <div className="flex-1 overflow-y-auto p-4">
                                 <div className="space-y-4">
-                                    {posts.map((post) => (
-                                        <div 
-                                            key={post.id} 
+                                    {posts?.map((post) => (
+                                        <div
+                                            key={post.id}
                                             className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm"
                                         >
                                             <div className="flex items-start gap-3 mb-3">
-                                                <div className={`w-10 h-10 bg-gradient-to-br ${post.avatarColor} text-white rounded-full flex items-center justify-center font-bold text-sm`}>
-                                                    {post.avatar}
+                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 shrink-0">
+                                                    {post.user?.profilePhoto ? (
+                                                        <img
+                                                            src={post.user.profilePhoto}
+                                                            alt={post.user?.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white font-bold text-sm">
+                                                            {post.user?.name
+                                                                ?.charAt(0)
+                                                                ?.toUpperCase() || "U"}
+                                                        </div>
+                                                    )}
                                                 </div>
+
                                                 <div className="flex-1">
                                                     <div className="flex items-center justify-between mb-2">
-                                                        <h4 className="font-semibold text-gray-900">{post.author}</h4>
-                                                        <span className="text-xs text-gray-500">{post.time}</span>
+                                                        <div>
+                                                            <h4 className="font-semibold text-gray-900">
+                                                                {post.user?.name ||
+                                                                    "Unknown User"}
+                                                            </h4>
+
+                                                            <span className="text-xs text-gray-500">
+                                                                {post.createdAt
+                                                                    ? new Date(
+                                                                        post.createdAt
+                                                                    ).toLocaleString()
+                                                                    : "Just now"}
+                                                            </span>
+                                                        </div>
+
+                                                        {user?.id === post.user?.id && (
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleDeletePost(
+                                                                        post.id
+                                                                    )
+                                                                }
+                                                                className="
+                        text-red-500
+                        hover:text-red-700
+                        text-sm
+                    "
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        )}
                                                     </div>
-                                                    <p className="text-gray-700 text-sm">{post.content}</p>
+
+                                                    <p className="text-gray-700 text-sm">
+                                                        {post.content}
+                                                    </p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-6 pt-3 border-t border-gray-100">
@@ -382,23 +367,22 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                             </div>
                             <div className="flex-1 overflow-y-auto">
                                 {members.map((member) => (
-                                    <div 
-                                        key={member.id} 
+                                    <div
+                                        key={member.id}
                                         className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100"
                                         onClick={() => setSelectedMember(member)}
                                     >
                                         <div className="relative">
-                                            <img 
-                                                src={member.profilePic} 
+                                            <img
+                                                src={member.profilePic}
                                                 alt={member.name}
                                                 className="w-10 h-10 rounded-full object-cover"
                                                 onError={(e) => {
                                                     e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=4F46E5&color=fff`
                                                 }}
                                             />
-                                            <div className={`absolute -bottom-1 -right-1 w-3 h-3 ${
-                                                member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                                            } rounded-full border-2 border-white`}></div>
+                                            <div className={`absolute -bottom-1 -right-1 w-3 h-3 ${member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                                                } rounded-full border-2 border-white`}></div>
                                         </div>
                                         <div className="flex-1">
                                             <h4 className="font-medium text-gray-900 text-sm">{member.name}</h4>
@@ -423,24 +407,23 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {members.map((member) => (
-                                <div 
-                                    key={member.id} 
+                                <div
+                                    key={member.id}
                                     className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                                     onClick={() => setSelectedMember(member)}
                                 >
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="relative">
-                                            <img 
-                                                src={member.profilePic} 
+                                            <img
+                                                src={member.profilePic}
                                                 alt={member.name}
                                                 className="w-12 h-12 rounded-lg object-cover"
                                                 onError={(e) => {
                                                     e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=4F46E5&color=fff&size=100`
                                                 }}
                                             />
-                                            <div className={`absolute -bottom-1 -right-1 w-3 h-3 ${
-                                                member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                                            } rounded-full border-2 border-white`}></div>
+                                            <div className={`absolute -bottom-1 -right-1 w-3 h-3 ${member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                                                } rounded-full border-2 border-white`}></div>
                                         </div>
                                         <div>
                                             <h3 className="font-semibold text-gray-900 text-sm">{member.name}</h3>
@@ -490,8 +473,8 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                         </button>
                         <div className="absolute bottom-0 left-0 right-0 p-4">
                             <div className="flex items-end gap-4">
-                                <img 
-                                    src={selectedMember.profilePic} 
+                                <img
+                                    src={selectedMember.profilePic}
                                     alt={selectedMember.name}
                                     className="w-16 h-16 rounded-lg object-cover border-3 border-white shadow-lg"
                                     onError={(e) => {
@@ -580,8 +563,8 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                     {/* Header with Background Image */}
                     <div className="relative h-48 flex-shrink-0">
                         {community?.cover_image ? (
-                            <img 
-                                src={community.cover_image} 
+                            <img
+                                src={community.cover_image}
                                 alt="Community Background"
                                 className="absolute inset-0 w-full h-full object-cover"
                             />
@@ -589,7 +572,7 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-600"></div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-transparent"></div>
-                        
+
                         <button
                             onClick={handleClose}
                             className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full text-white"
@@ -600,8 +583,8 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                         <div className="absolute bottom-0 left-0 right-0 p-6">
                             <div className="flex items-center gap-6">
                                 {community?.avatar_image ? (
-                                    <img 
-                                        src={community.avatar_image} 
+                                    <img
+                                        src={community.avatar_image}
                                         alt={community?.name || 'Community'}
                                         className="w-16 h-16 rounded-xl object-cover border-3 border-white shadow-lg"
                                     />
@@ -616,7 +599,7 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                                     <h1 className="text-3xl font-bold text-white">{community?.name || 'Community Name'}</h1>
                                     <p className="text-white/90">{community?.description || 'Community description'}</p>
                                 </div>
-                                <Button 
+                                <Button
                                     onClick={handleJoinLeave}
                                     disabled={isJoining}
                                     className={`font-semibold ${community?.isJoined ? 'bg-white text-blue-600 hover:bg-gray-100' : 'bg-white text-blue-600 hover:bg-gray-100'}`}
@@ -647,11 +630,10 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors ${
-                                        activeTab === tab.id
-                                            ? "text-blue-600 border-b-2 border-blue-600"
-                                            : "text-gray-600 hover:text-gray-900"
-                                    }`}
+                                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors ${activeTab === tab.id
+                                        ? "text-blue-600 border-b-2 border-blue-600"
+                                        : "text-gray-600 hover:text-gray-900"
+                                        }`}
                                 >
                                     <tab.icon className="h-4 w-4" />
                                     <span>{tab.label}</span>
@@ -665,7 +647,7 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                     </div>
                 </div>
             </div>
-            
+
             {renderMemberProfile()}
         </ErrorBoundary>
     )

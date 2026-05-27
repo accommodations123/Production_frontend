@@ -26,14 +26,14 @@ export const CountryProvider = ({ children }) => {
     }
     return DEFAULT_COUNTRY;
   });
-  
+
   const [isSelected, setIsSelected] = useState(() => {
     if (typeof window !== 'undefined') {
       return !!localStorage.getItem("selectedCountry");
     }
     return false;
   });
-  
+
   const [isGeolocationLoading, setIsGeolocationLoading] = useState(false);
 
   useEffect(() => {
@@ -46,38 +46,60 @@ export const CountryProvider = ({ children }) => {
     try {
       setIsGeolocationLoading(true);
 
-      const response =
-        await axios.get(
-          'https://ipapi.co/json/'
-        );
+      const response = await axios.get(
+        "https://ipapi.co/json/"
+      );
 
       const data = response.data;
 
       if (data && data.country_code) {
-        const country = COUNTRIES.find(c => c.code === data.country_code);
+        const country = COUNTRIES.find(
+          c => c.code === data.country_code
+        );
+
         if (country) {
           setActiveCountry(country);
           setIsSelected(true);
+
+          localStorage.setItem(
+            "selectedCountry",
+            JSON.stringify(country)
+          );
+
+          dispatch(
+            hostApi.util.invalidateTags(["Event"])
+          );
+
           return;
         }
       }
     } catch (e) {
-      console.error("Geolocation network request failed:", e.message);
+      console.error(
+        "Geolocation network request failed:",
+        e.message
+      );
     } finally {
       setIsGeolocationLoading(false);
-      // Ensure we mark as selected to prevent infinite loops, even on failure
       setIsSelected(true);
     }
   };
 
   const setCountry = useCallback((country) => {
+    if (!country?.code) return;
+
     setActiveCountry(country);
     setIsSelected(true);
-    localStorage.setItem("selectedCountry", JSON.stringify(country));
 
-    // Reset all API states to force refetch with new headers
-    dispatch(hostApi.util.resetApiState());
-    dispatch(authApi.util.resetApiState());
+    localStorage.setItem(
+      "selectedCountry",
+      JSON.stringify(country)
+    );
+
+    // Refetch event queries
+    dispatch(
+      hostApi.util.invalidateTags(["Event"])
+    );
+
   }, [dispatch]);
 
   const formatPrice = useCallback((amount, customCurrency) => {

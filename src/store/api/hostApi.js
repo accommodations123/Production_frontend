@@ -495,6 +495,7 @@ export const hostApi = createApi({
                 };
             }
         }),
+
         getMyEvents: builder.query({
             query: () => {
                 const countryData = localStorage.getItem("selectedCountry");

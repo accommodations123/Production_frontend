@@ -158,10 +158,10 @@ const HomeFeatured = () => {
                   {...fadeInUp}
                   transition={{ delay: idx * 0.1 }}
                 >
-                 <CommunityGroupCard
-  group={group}
-  onViewDetails={(id) => navigate(`/groups/${id}`)}
-/>
+                  <CommunityGroupCard
+                    group={group}
+                    onViewDetails={(id) => navigate(`/groups/${id}`)}
+                  />
                 </motion.div>
               ))
             ) : (

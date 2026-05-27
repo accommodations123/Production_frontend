@@ -8,7 +8,11 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
     { name: 'Villa', slug: 'villa', icon: Building2 },
     { name: 'Studio', slug: 'studio', icon: Layout },
     { name: 'Loft', slug: 'loft', icon: Building2 },
-    { name: 'Condo', slug: 'condo', icon: Building2 }
+    { name: 'Condo', slug: 'condo', icon: Building2 },
+
+    { name: 'PG', slug: 'pg', icon: Home },
+    { name: 'Hostel', slug: 'hostel', icon: Home },
+    { name: 'Shared Room', slug: 'shared-room', icon: Users },
   ];
 
   return (
@@ -56,8 +60,14 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
             <button
               key={cat.slug}
               type="button"
-              onClick={() => setFormData({ ...formData, category: cat.slug })}
-              className={`p-4 rounded-xl border text-left transition-all ${formData.category === cat.slug
+              onClick={() =>
+                setFormData({
+                  ...formData,
+                  category: cat.name,
+                  type: cat.name
+                })
+              }
+              className={`p-4 rounded-xl border text-left transition-all ${formData.category === cat.name
                 ? 'bg-accent/20 border-accent text-white'
                 : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                 }`}
@@ -131,13 +141,62 @@ const PropertyBasicsSection = ({ formData, setFormData }) => {
           <label className="text-sm font-medium text-gray-300">Property Type</label>
           <div className="relative">
             <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Apartment, Villa..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:border-accent outline-none"
+            <select
+              className="
+    w-full
+    bg-white/5
+    border border-white/10
+    rounded-xl
+    py-3 pl-12 pr-4
+    focus:border-accent
+    outline-none
+    text-white
+    appearance-none
+  "
               value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            />
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  type: e.target.value
+                })
+              }
+            >
+              <option value="" className="bg-[#10233E]">
+                Select Property Type
+              </option>
+
+              <option value="Apartment" className="bg-[#10233E]">
+                Apartment
+              </option>
+
+              <option value="House" className="bg-[#10233E]">
+                House
+              </option>
+
+              <option value="Villa" className="bg-[#10233E]">
+                Villa
+              </option>
+
+              <option value="PG" className="bg-[#10233E]">
+                PG
+              </option>
+
+              <option value="Hostel" className="bg-[#10233E]">
+                Hostel
+              </option>
+
+              <option value="Shared Room" className="bg-[#10233E]">
+                Shared Room
+              </option>
+
+              <option value="Studio" className="bg-[#10233E]">
+                Studio
+              </option>
+
+              <option value="Townhouse" className="bg-[#10233E]">
+                Townhouse
+              </option>
+            </select>
           </div>
         </div>
 

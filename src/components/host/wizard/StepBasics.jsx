@@ -1,7 +1,17 @@
 import React from 'react';
 import { Home, Users, Bed, Bath, Sparkles, Building2, Quote, Layout } from 'lucide-react';
 import { motion } from 'framer-motion';
-
+const PROPERTY_TYPES = [
+    "Apartment",
+    "House",
+    "Villa",
+    "PG",
+    "Hostel",
+    "Shared Room",
+    "Studio",
+    "Townhouse",
+    "Entire Place"
+];
 export function StepBasics({ formData, setFormData, categories, isEdit }) {
     return (
         <div className="space-y-6 max-w-2xl mx-auto w-full">
@@ -46,7 +56,10 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                     {categories.map(cat => (
                         <button
                             key={cat.slug}
-                            onClick={() => setFormData({ ...formData, category: cat.slug })}
+                            onClick={() => setFormData({
+                                ...formData, category: cat.name,
+                                type: cat.name
+                            })}
                             className={`p-4 rounded-xl border text-left transition-all ${formData.category === cat.slug
                                 ? 'bg-accent/20 border-accent text-white'
                                 : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
@@ -121,13 +134,36 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                     <label className="text-sm font-medium text-gray-300">Property Type <span className="text-red-500 ml-1">*</span></label>
                     <div className="relative">
                         <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Apartment, Villa..."
-                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:border-accent outline-none"
+                        <select
                             value={formData.type}
-                            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                        />
+                            onChange={(e) =>
+                                setFormData(prev => ({
+                                    ...prev,
+                                    type: e.target.value
+                                }))
+                            }
+                            className="
+        w-full
+        bg-[#1A2B45]
+        border border-[#2C3E5D]
+        rounded-xl
+        px-12 py-4
+        text-white
+        outline-none
+        focus:border-[#C93A30]
+        transition
+    "
+                        >
+                            <option value="">
+                                Select Property Type
+                            </option>
+
+                            {PROPERTY_TYPES.map((type) => (
+                                <option key={type} value={type}>
+                                    {type}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
