@@ -10,7 +10,7 @@ const rawBase = fetchBaseQuery({
     baseUrl: API_BASE_URL,
     credentials: 'include',
     prepareHeaders: (headers) => {
-        const countryData = localStorage.getItem("selectedCountry");
+        const countryData = localStorage.getItem("selectedCountry")
 
         // If the query already provided a specific X-Country header (e.g. for events which prefer code), do not override it.
         if (headers.has("X-Country")) {
