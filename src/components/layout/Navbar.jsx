@@ -15,6 +15,7 @@ import { getSocket, disconnectSocket } from "@/lib/socket"
 import { useDispatch, useSelector } from "react-redux"
 import { logoutUser, fetchCurrentUser } from "@/store/slices/authSlice"
 import { useGetHostProfileQuery, hostApi } from "@/store/api/hostApi"
+import { authApi } from "@/store/api/authApi"
 import { NotificationDropdown } from "@/components/common/NotificationDropdown"
 
 export function Navbar({ minimal = false, onMenuClick }) {
@@ -87,6 +88,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
             console.warn("Backend logout failed, proceeding with local cleanup", e);
         }
         disconnectSocket();
+        dispatch(authApi.util.resetApiState());
         dispatch(hostApi.util.resetApiState());
         setIsMobileMenuOpen(false);
         navigate("/signin");
