@@ -250,7 +250,8 @@ export function useHostSubmission({
                                 petsAllowed: Number(formData.petsAllowed) || 0,
                                 area: Number(formData.sqft) || 0,
                                 propertyType: (formData.type || '').toLowerCase(),
-                                categoryId: formData.category
+                                categoryId: formData.category,
+                                privacyType: formData.privacyType
                             }
                         }).unwrap();
                     } else {
@@ -264,7 +265,8 @@ export function useHostSubmission({
                                 petsAllowed: Number(formData.petsAllowed) || 0,
                                 area: Number(formData.sqft) || 0,
                                 propertyType: (formData.type || '').toLowerCase(),
-                                categoryId: formData.category
+                                categoryId: formData.category,
+                                privacyType: formData.privacyType
                             }
                         }).unwrap();
                     }
