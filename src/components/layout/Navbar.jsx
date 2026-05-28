@@ -15,6 +15,7 @@ import { getSocket, disconnectSocket } from "@/lib/socket"
 import { useDispatch, useSelector } from "react-redux"
 import { logoutUser, fetchCurrentUser } from "@/store/slices/authSlice"
 import { useGetHostProfileQuery, hostApi } from "@/store/api/hostApi"
+import { authApi } from "@/store/api/authApi"
 import { NotificationDropdown } from "@/components/common/NotificationDropdown"
 
 export function Navbar({ minimal = false, onMenuClick }) {
@@ -88,6 +89,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
         }
         disconnectSocket();
         dispatch(hostApi.util.resetApiState());
+        dispatch(authApi.util.resetApiState());
         setIsMobileMenuOpen(false);
         navigate("/signin");
     };

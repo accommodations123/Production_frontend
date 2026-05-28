@@ -30,13 +30,22 @@ export default function TripCard({ plan, isSelected, onSelect, onMatchRequest })
             <div className="p-4 flex items-center justify-between border-b" style={{ borderColor: 'var(--color-neutral)' }}>
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <img
-                            src={plan.user.image}
-                            className="w-12 h-12 rounded-full object-cover border-2"
-                            style={{ borderColor: 'var(--color-neutral)' }}
-                            alt={plan.user.fullName}
-                            loading="lazy"
-                        />
+                        {plan.user.image && typeof plan.user.image === "string" && (plan.user.image.includes("/") || plan.user.image.startsWith("data:") || plan.user.image.startsWith("blob:")) ? (
+                            <img
+                                src={plan.user.image}
+                                className="w-12 h-12 rounded-full object-cover border-2"
+                                style={{ borderColor: 'var(--color-neutral)' }}
+                                alt={plan.user.fullName}
+                                loading="lazy"
+                            />
+                        ) : (
+                            <div
+                                className="w-12 h-12 rounded-full border-2 flex items-center justify-center font-bold text-lg text-primary bg-primary/10"
+                                style={{ borderColor: 'var(--color-neutral)' }}
+                            >
+                                {plan.user.fullName?.[0]?.toUpperCase() || "U"}
+                            </div>
+                        )}
                         <div className="absolute -bottom-1 -right-1 bg-green-500 w-3 h-3 rounded-full border-2 border-white"></div>
                     </div>
                     <div>
