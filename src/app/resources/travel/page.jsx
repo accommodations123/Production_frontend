@@ -87,7 +87,7 @@ export default function TravelPage() {
           ...(trip.received_matches || [])
         ],
         // Provide minimal defaults to prevent UI crashes if this is erroneously rendered
-        user: { fullName: currentUser?.fullName || "Me", image: currentUser?.image || null },
+        user: { fullName: currentUser?.fullName || "Me", image: resolveImageUrl(currentUser?.image || null) },
         flight: {
           from: trip.from_city || "",
           to: trip.to_city || "",
@@ -117,7 +117,7 @@ export default function TravelPage() {
           country: trip.host.country,
           state: trip.host.city,
           city: trip.host.city,
-          image: trip.host.profile_image || null,
+          image: resolveImageUrl(trip.host.profile_image || null),
           verified: trip.host.verified || false
         }
       };
@@ -134,7 +134,7 @@ export default function TravelPage() {
         },
         user: {
           ...trip.user,
-          image: trip.user.image || trip.user.profile_image || null
+          image: resolveImageUrl(trip.user.image || trip.user.profile_image || null)
         }
       };
     }
@@ -170,7 +170,7 @@ export default function TravelPage() {
             ? (trip.languages || trip.user?.languages)
             : (trip.languages || trip.user?.languages).split(',').map(l => l.trim()))
           : (trip.host?.languages || []),
-        image: trip.image || trip.user?.image || trip.user?.profile_image || trip.host?.image || trip.host?.profile_image || null,
+        image: resolveImageUrl(trip.image || trip.user?.image || trip.user?.profile_image || trip.host?.image || trip.host?.profile_image || null),
         verified: trip.host?.user?.verified || trip.user?.verified || false
       },
       destination: `${trip.to_city}, ${normalizeCountry(trip.to_country)}`,

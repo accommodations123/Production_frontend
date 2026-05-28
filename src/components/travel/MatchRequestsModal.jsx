@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Users, AlertCircle, CheckCircle, UserCheck, UserX, Phone, Mail, Loader2 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
+import { resolveImageUrl } from "@/lib/imageUtils";
 
 export default function MatchRequestsModal({ onClose, matches, plans, myTrips, onAcceptRequest, onRejectRequest }) {
     const [activeTab, setActiveTab] = useState("incoming");
@@ -33,7 +34,7 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
                 requesterPlan: {
                     user: {
                         fullName: match.requester.full_name || "Unknown",
-                        image: match.requester.profile_image || "https://via.placeholder.com/100",
+                        image: resolveImageUrl(match.requester.profile_image, "https://via.placeholder.com/100"),
                         country: match.requester.country,
                         city: match.requester.city,
                         whatsapp: match.requester.whatsapp,
@@ -56,7 +57,7 @@ export default function MatchRequestsModal({ onClose, matches, plans, myTrips, o
                     time: match.requester_trip?.departure_time,
                     user: {
                         fullName: match.requester_trip?.host?.full_name || "Unknown",
-                        image: match.requester_trip?.host?.profile_image || "https://via.placeholder.com/100",
+                        image: resolveImageUrl(match.requester_trip?.host?.profile_image, "https://via.placeholder.com/100"),
                         country: match.requester_trip?.host?.country,
                         city: match.requester_trip?.host?.city,
                         whatsapp: match.requester_trip?.host?.whatsapp,
