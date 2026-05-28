@@ -216,20 +216,18 @@ const filteredEventsDisplay = useMemo(() => {
   if (selectedFilters.price) {
     filtered = filtered.filter(e => {
       const p = parsePrice(e.price);
-      switch (selectedFilters.price) {
-        case "free":
-          return p === 0;
-        case "0-25":
-          return p > 0 && p <= 25;
-        case "25-50":
-          return p > 25 && p <= 50;
-        case "50-100":
-          return p > 50 && p <= 100;
-        case "100+":
-          return p > 100;
-        default:
-          return true;
+      if (selectedFilters.price === "free") {
+        return p === 0;
       }
+      if (selectedFilters.price.endsWith("+")) {
+        const min = parseFloat(selectedFilters.price.slice(0, -1));
+        return p >= min;
+      }
+      if (selectedFilters.price.includes("-")) {
+        const [min, max] = selectedFilters.price.split("-").map(parseFloat);
+        return p >= min && p <= max;
+      }
+      return true;
     });
   }
 

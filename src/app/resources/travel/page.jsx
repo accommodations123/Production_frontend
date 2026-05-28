@@ -19,6 +19,7 @@ import {
   useGetHostProfileQuery
 } from "../../../store/api/hostApi";
 import { useCountry } from "@/context/CountryContext";
+import { resolveImageUrl } from "@/lib/imageUtils";
 
 // Extracted Constants
 import {

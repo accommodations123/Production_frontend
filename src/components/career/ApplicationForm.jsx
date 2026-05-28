@@ -45,10 +45,11 @@ export const ApplicationForm = ({ jobId, jobTitle, onSuccess, onCancel }) => {
         formData.append('phone', data.phone || '');
         formData.append('linkedin_url', data.linkedin_url || '');
         formData.append('portfolio_url', data.portfolio_url || '');
-formData.append(
-  'experience',
-  JSON.stringify([data.experience])
-);        formData.append('resume', resumeFile);
+        formData.append(
+            'experience',
+            JSON.stringify([{ description: data.experience }])
+        );
+        formData.append('resume', resumeFile);
 
         try {
             await applyForJob(formData).unwrap();

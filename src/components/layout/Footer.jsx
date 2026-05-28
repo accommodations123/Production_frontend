@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import {
     Facebook,
-    Twitter,
     Instagram,
     Linkedin,
     Globe, // Added Globe icon for Google
@@ -13,6 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCountry } from "@/context/CountryContext";
 
+const XIcon = ({ size = 16 }) => (
+    <svg 
+        viewBox="0 0 24 24" 
+        width={size} 
+        height={size} 
+        fill="currentColor"
+    >
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+);
+XIcon.displayName = "XIcon";
+
 export function Footer() {
     const { activeCountry } = useCountry();
 
@@ -22,7 +33,7 @@ export function Footer() {
             url: "https://www.facebook.com/people/Nextkinlife-LLC/61577029054815/?mibextid=wwXIfr&rdid=pk37kk7FzbBW2j1M&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1C2FRbhoeA%2F%3Fmibextid%3DwwXIfr"
         },
         {
-            icon: Twitter,
+            icon: XIcon,
             url: "https://x.com/NextKinLife"
         },
         {

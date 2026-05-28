@@ -1,6 +1,7 @@
 import React, { memo, useEffect } from "react"
 import { Grid, List, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useCountry } from "@/context/CountryContext"
 
 export const EventsFilters = memo(({
     activeFilter,
@@ -17,6 +18,23 @@ export const EventsFilters = memo(({
     isScrolled,
     uniqueLocations = []
 }) => {
+
+    const { activeCountry, formatPrice } = useCountry();
+    const isINR = activeCountry?.currency === "INR";
+
+    const priceRanges = isINR ? [
+        { value: "free", label: "Free" },
+        { value: "0-2000", label: `${formatPrice(0)} - ${formatPrice(2000)}` },
+        { value: "2000-4000", label: `${formatPrice(2000)} - ${formatPrice(4000)}` },
+        { value: "4000-8000", label: `${formatPrice(4000)} - ${formatPrice(8000)}` },
+        { value: "8000+", label: `${formatPrice(8000)}+` }
+    ] : [
+        { value: "free", label: "Free" },
+        { value: "0-25", label: `${formatPrice(0)} - ${formatPrice(25)}` },
+        { value: "25-50", label: `${formatPrice(25)} - ${formatPrice(50)}` },
+        { value: "50-100", label: `${formatPrice(50)} - ${formatPrice(100)}` },
+        { value: "100+", label: `${formatPrice(100)}+` }
+    ];
 
     // Prevent body scroll lock issues
     useEffect(() => {
@@ -180,11 +198,11 @@ export const EventsFilters = memo(({
                                     className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00142E] bg-white"
                                 >
                                     <option value="">Any Price</option>
-                                    <option value="free">Free</option>
-                                    <option value="0-25">$0 - $25</option>
-                                    <option value="25-50">$25 - $50</option>
-                                    <option value="50-100">$50 - $100</option>
-                                    <option value="100+">$100+</option>
+                                    {priceRanges.map(range => (
+                                        <option key={range.value} value={range.value}>
+                                            {range.label}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 
