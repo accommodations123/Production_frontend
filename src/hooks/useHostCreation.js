@@ -281,7 +281,15 @@ export function useHostCreation() {
                     // Basics
                     title: prop.title || prop.name || prev.title,
                     category: prop.category || prop.category_slug || prev.category,
-                    type: prop.property_type || prop.type || prev.type,
+                    type: (() => {
+                        const val = prop.property_type || prop.type || prev.type;
+                        if (!val) return "";
+                        const lower = val.toLowerCase().trim();
+                        if (lower === "pg") return "PG";
+                        const types = ["Apartment", "House", "Villa", "PG", "Hostel", "Shared Room", "Studio", "Townhouse", "Entire Place"];
+                        const match = types.find(t => t.toLowerCase() === lower);
+                        return match || val;
+                    })(),
                     privacyType: prop.privacy_type || prev.privacyType,
                     petsAllowed: prop.pets_allowed ? "1" : "0",
                     sqft: prop.specs?.area || prop.area || prev.sqft,

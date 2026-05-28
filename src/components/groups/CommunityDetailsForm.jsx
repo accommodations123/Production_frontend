@@ -15,7 +15,8 @@ import {
     Camera,
     Image as ImageIcon,
     Upload,
-    Phone
+    Phone,
+    X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCreateCommunityMutation, useUpdateCommunityMutation } from '@/store/api/hostApi';
@@ -134,6 +135,22 @@ const CommunityDetailsForm = () => {
         }
     };
 
+    const handleRemoveImage = (e, type) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (type === 'avatar') {
+            setAvatar(null);
+            setAvatarPreview(null);
+            const input = document.getElementById('avatar-input');
+            if (input) input.value = '';
+        } else {
+            setCover(null);
+            setCoverPreview(null);
+            const input = document.getElementById('cover-input');
+            if (input) input.value = '';
+        }
+    };
+
     const addTopic = (e) => {
         if (e.key === 'Enter' && newTopic.trim()) {
             e.preventDefault();
@@ -243,7 +260,7 @@ const CommunityDetailsForm = () => {
                         <Label>Cover Image</Label>
                         <div className="relative group">
                             <div className={cn(
-                                "w-full h-48 rounded-2xl border-2 border-dashed border-white/10 bg-white/5 flex flex-col items-center justify-center overflow-hidden transition-all",
+                                "w-full h-48 rounded-2xl border-2 border-dashed border-white/10 bg-white/5 flex flex-col items-center justify-center overflow-hidden transition-all relative",
                                 !coverPreview && "hover:border-accent/50 hover:bg-white/10"
                             )}>
                                 {coverPreview ? (
@@ -255,17 +272,28 @@ const CommunityDetailsForm = () => {
                                     </div>
                                 )}
                                 <input
+                                    id="cover-input"
                                     type="file"
                                     accept="image/*"
                                     onChange={(e) => handleImageChange(e, 'cover')}
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
                                 />
                                 {coverPreview && (
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                                         <div className="bg-white/10 backdrop-blur-md p-2 rounded-full">
                                             <Upload className="w-5 h-5 text-white" />
                                         </div>
                                     </div>
+                                )}
+                                {coverPreview && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => handleRemoveImage(e, 'cover')}
+                                        className="absolute top-3 right-3 p-1.5 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-md z-20 transition-all active:scale-90 flex items-center justify-center cursor-pointer"
+                                        title="Remove cover image"
+                                    >
+                                        <X size={14} />
+                                    </button>
                                 )}
                             </div>
                         </div>
@@ -276,7 +304,7 @@ const CommunityDetailsForm = () => {
                         <Label>Avatar</Label>
                         <div className="relative group">
                             <div className={cn(
-                                "w-full aspect-square rounded-2xl border-2 border-dashed border-white/10 bg-white/5 flex flex-col items-center justify-center overflow-hidden transition-all",
+                                "w-full aspect-square rounded-2xl border-2 border-dashed border-white/10 bg-white/5 flex flex-col items-center justify-center overflow-hidden transition-all relative",
                                 !avatarPreview && "hover:border-accent/50 hover:bg-white/10"
                             )}>
                                 {avatarPreview ? (
@@ -288,17 +316,28 @@ const CommunityDetailsForm = () => {
                                     </div>
                                 )}
                                 <input
+                                    id="avatar-input"
                                     type="file"
                                     accept="image/*"
                                     onChange={(e) => handleImageChange(e, 'avatar')}
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
                                 />
                                 {avatarPreview && (
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                                         <div className="bg-white/10 backdrop-blur-md p-2 rounded-full">
                                             <Upload className="w-5 h-5 text-white" />
                                         </div>
                                     </div>
+                                )}
+                                {avatarPreview && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => handleRemoveImage(e, 'avatar')}
+                                        className="absolute top-3 right-3 p-1.5 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-md z-20 transition-all active:scale-90 flex items-center justify-center cursor-pointer"
+                                        title="Remove avatar image"
+                                    >
+                                        <X size={14} />
+                                    </button>
                                 )}
                             </div>
                         </div>

@@ -442,6 +442,10 @@ export const hostApi = createApi({
                 if (zip_code) headers["X-Zip-Code"] = zip_code;
 
                 const params = {};
+                if (country) params.country = country;
+                if (state) params.state = state;
+                if (city) params.city = city;
+                if (zip_code) params.zip_code = zip_code;
                 if (category) params.category = category;
                 if (minPrice) params.minPrice = minPrice;
                 if (maxPrice) params.maxPrice = maxPrice;

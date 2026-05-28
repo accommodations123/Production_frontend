@@ -22,7 +22,7 @@ export const HeroSection = memo(({ event, shareOpen, onShare, copied, onCopy }) 
                 )}
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
-            <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-10">
+            <div className="absolute top-6 left-6 right-6 flex justify-between items-start z-10 mt-18">
                 <Link
                     to="/events"
                     className="inline-flex items-center gap-2 text-white bg-black/50 backdrop-blur-sm px-4 py-2 rounded-full transition-all duration-300 hover:bg-black hover:scale-105 shadow-lg"
@@ -80,7 +80,18 @@ export const HeroSection = memo(({ event, shareOpen, onShare, copied, onCopy }) 
                         <div className="flex flex-wrap gap-4 md:gap-8 text-white drop-shadow-lg">
                             <div className="flex items-center gap-2 group bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full">
                                 <Calendar className="h-5 w-5 text-accent" />
-                                <span className="text-sm md:text-base font-medium">{event.date}</span>
+                                <span>
+                                    {event?.date
+                                        ? new Date(event.date).toLocaleDateString(
+                                            "en-IN",
+                                            {
+                                                day: "numeric",
+                                                month: "short",
+                                                year: "numeric",
+                                            }
+                                        )
+                                        : "Date not available"}
+                                </span>
                             </div>
                             <div className="flex items-center gap-2 group bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full">
                                 <Clock className="h-5 w-5 text-accent" />

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { COUNTRIES } from "@/lib/mock-data";
+import { City } from 'country-state-city';
 
 export default function TravelFilter({
     travels = [],
@@ -24,6 +25,12 @@ export default function TravelFilter({
     const [countrySearch, setCountrySearch] = React.useState("");
     const countryInputRef = React.useRef(null);
 
+    const [isCityOpen, setIsCityOpen] = React.useState(false);
+    const cityRef = React.useRef(null);
+
+    const [citySearch, setCitySearch] = React.useState("");
+    const cityInputRef = React.useRef(null);
+
     const hasActiveFilters =
         filters.country ||
         filters.state ||
@@ -34,6 +41,22 @@ export default function TravelFilter({
     const selectedCountry = COUNTRIES.find(
         (c) => c.name === filters.country
     );
+
+    // Selected Country code for City list
+    const countryIsoCode = selectedCountry?.code;
+
+    // Get cities
+    const citiesList = React.useMemo(() => {
+        if (!countryIsoCode) return [];
+        return City.getCitiesOfCountry(countryIsoCode);
+    }, [countryIsoCode]);
+
+    // City search filter
+    const filteredCities = React.useMemo(() => {
+        if (!citySearch) return citiesList;
+        const lowerSearch = citySearch.toLowerCase();
+        return citiesList.filter(c => c.name.toLowerCase().includes(lowerSearch));
+    }, [citiesList, citySearch]);
 
     // Country Search Filter
     const filteredCountries = COUNTRIES.filter((c) =>
@@ -51,6 +74,17 @@ export default function TravelFilter({
         }
     }, [isCountryOpen]);
 
+    // Reset city search
+    React.useEffect(() => {
+        if (!isCityOpen) {
+            setCitySearch("");
+        } else {
+            setTimeout(() => {
+                cityInputRef.current?.focus();
+            }, 100);
+        }
+    }, [isCityOpen]);
+
     // Close dropdown outside click
     React.useEffect(() => {
         const handleClickOutside = (e) => {
@@ -59,6 +93,12 @@ export default function TravelFilter({
                 !countryRef.current.contains(e.target)
             ) {
                 setIsCountryOpen(false);
+            }
+            if (
+                cityRef.current &&
+                !cityRef.current.contains(e.target)
+            ) {
+                setIsCityOpen(false);
             }
         };
 
@@ -353,38 +393,125 @@ export default function TravelFilter({
                                 </AnimatePresence>
                             </div>
 
-                            {/* State */}
-                            {/* <div className="md:col-span-4 lg:col-span-2">
-
-                                <input
-                                    type="text"
-                                    placeholder="State"
-                                    className="w-full px-5 h-14 rounded-2xl bg-neutral/5 border border-neutral/10 focus:border-accent/30 focus:bg-white focus:ring-4 focus:ring-accent/5 outline-none transition-all font-medium"
-                                    value={filters.state}
-                                    onChange={(e) =>
-                                        setFilters({
-                                            ...filters,
-                                            state: e.target.value
-                                        })
+                            {/* City Dropdown */}
+                            <div
+                                className="md:col-span-4 lg:col-span-4 relative"
+                                ref={cityRef}
+                            >
+                                <button
+                                    type="button"
+                                    disabled={!filters.country}
+                                    onClick={() =>
+                                        setIsCityOpen(!isCityOpen)
                                     }
-                                />
-                            </div> */}
+                                    className={`w-full h-14 px-5 rounded-2xl border transition-all font-medium flex items-center justify-between gap-2 ${
+                                        !filters.country
+                                            ? "bg-neutral/5 border-neutral/10 opacity-50 cursor-not-allowed text-primary/30"
+                                            : "bg-neutral/5 border-neutral/10 hover:border-accent/30 focus:border-accent/30 focus:bg-white focus:ring-4 focus:ring-accent/5 text-primary"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Globe
+                                            size={18}
+                                            className={filters.city ? "text-accent" : "text-primary/40"}
+                                        />
+                                        {filters.city ? (
+                                            <span className="truncate">{filters.city}</span>
+                                        ) : (
+                                            <span className="text-primary/40">
+                                                {!filters.country ? "Select Country First" : "Select City"}
+                                            </span>
+                                        )}
+                                    </div>
 
-                            {/* City */}
-                            <div className="md:col-span-4 lg:col-span-2">
+                                    <ChevronDown
+                                        size={18}
+                                        className={`text-primary/40 transition-transform ${isCityOpen ? "rotate-180" : ""}`}
+                                    />
+                                </button>
 
-                                <input
-                                    type="text"
-                                    placeholder="City"
-                                    className="w-full px-5 h-14 rounded-2xl bg-neutral/5 border border-neutral/10 focus:border-accent/30 focus:bg-white focus:ring-4 focus:ring-accent/5 outline-none transition-all font-medium"
-                                    value={filters.city}
-                                    onChange={(e) =>
-                                        setFilters({
-                                            ...filters,
-                                            city: e.target.value
-                                        })
-                                    }
-                                />
+                                {/* Dropdown Menu */}
+                                <AnimatePresence>
+                                    {isCityOpen && (
+                                        <motion.div
+                                            initial={{
+                                                opacity: 0,
+                                                y: 10,
+                                                scale: 0.95
+                                            }}
+                                            animate={{
+                                                opacity: 1,
+                                                y: 0,
+                                                scale: 1
+                                            }}
+                                            exit={{
+                                                opacity: 0,
+                                                y: 10,
+                                                scale: 0.95
+                                            }}
+                                            transition={{ duration: 0.2 }}
+                                            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
+                                        >
+                                            <div className="p-3 border-b border-gray-100">
+                                                <div className="relative">
+                                                    <Search
+                                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                                        size={14}
+                                                    />
+                                                    <input
+                                                        ref={cityInputRef}
+                                                        type="text"
+                                                        placeholder="Search city..."
+                                                        className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-black outline-none focus:border-accent transition-all"
+                                                        value={citySearch}
+                                                        onChange={(e) => setCitySearch(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="max-h-64 overflow-y-auto">
+                                                <button
+                                                    onClick={() => {
+                                                        setFilters({
+                                                            ...filters,
+                                                            city: ""
+                                                        });
+                                                        setIsCityOpen(false);
+                                                    }}
+                                                    className="w-full text-left px-4 py-3 hover:bg-gray-50 text-black font-medium"
+                                                >
+                                                    All Cities
+                                                </button>
+
+                                                {filteredCities.length > 0 ? (
+                                                    filteredCities.map((city, index) => (
+                                                        <button
+                                                            key={`${city.name}-${index}`}
+                                                            onClick={() => {
+                                                                setFilters({
+                                                                    ...filters,
+                                                                    city: city.name
+                                                                });
+                                                                setIsCityOpen(false);
+                                                            }}
+                                                            className={`w-full text-left px-4 py-3 hover:bg-gray-50 text-black ${
+                                                                filters.city === city.name
+                                                                    ? "bg-accent/10 text-accent font-bold"
+                                                                    : ""
+                                                            }`}
+                                                        >
+                                                            {city.name}
+                                                        </button>
+                                                    ))
+                                                ) : (
+                                                    <div className="px-4 py-3 text-sm text-gray-400 italic text-center">
+                                                        No cities found
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </div>
                     </div>
