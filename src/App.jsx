@@ -57,7 +57,7 @@ export default function App() {
             <ScrollToTop />
             <CountryProvider>
                 <RootLayout>
-                    <Suspense fallback={<LoadingSpinner />}>
+                    <Suspense fallback={<LoadingSpinner />}>;
                         <Routes>
                             <Route path="/" element={<Home />} />
                             {/* <Route path="/book/confirmation" element={<BookConfirmation />} /> */}
