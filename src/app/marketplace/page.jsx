@@ -50,11 +50,12 @@ export default function MarketplacePage() {
     };
   });
 
-  const [prevActiveCountry, setPrevActiveCountry] = useState(activeCountry);
+  const [prevActiveCountryName, setPrevActiveCountryName] = useState(activeCountry?.name || "");
 
   // Sync country filter inline during render when activeCountry changes
-  if (activeCountry !== prevActiveCountry) {
-    setPrevActiveCountry(activeCountry);
+  const activeCountryName = activeCountry?.name || "";
+  if (activeCountryName !== prevActiveCountryName) {
+    setPrevActiveCountryName(activeCountryName);
     const countryName = getInitialCountryName(activeCountry);
     if (countryName && filters.country !== countryName) {
       setFilters(prev => ({

@@ -437,9 +437,6 @@ export const hostApi = createApi({
             query: ({ country, state, city, zip_code, category, minPrice, maxPrice, search, limit } = {}) => {
                 const headers = {};
                 if (country) headers["X-Country"] = country;
-                if (state) headers["X-State"] = state;
-                if (city) headers["X-City"] = city;
-                if (zip_code) headers["X-Zip-Code"] = zip_code;
 
                 const params = {};
                 if (country) params.country = country;
