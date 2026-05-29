@@ -88,6 +88,13 @@ export function Navbar({ minimal = false, onMenuClick }) {
             console.warn("Backend logout failed, proceeding with local cleanup", e);
         }
         disconnectSocket();
+
+        // Force expire the access_token cookie
+        document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.nextkinlife.live;";
+
+        localStorage.removeItem("user");
+
         dispatch(authApi.util.resetApiState());
         dispatch(hostApi.util.resetApiState());
         setIsMobileMenuOpen(false);

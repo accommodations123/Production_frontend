@@ -17,9 +17,10 @@ import { useDispatch } from "react-redux";
 
 import {
   useGetMeQuery,
-  useLogoutMutation,
   authApi,
 } from "@/store/api/authApi";
+import { logoutUser } from "@/store/slices/authSlice";
+import { disconnectSocket } from "@/lib/socket";
 import { useGetHostProfileQuery, hostApi } from "@/store/api/hostApi";
 
 import { cn } from "@/lib/utils";
@@ -35,7 +36,6 @@ export function MobileSidebar({ isOpen, onClose }) {
 
   // Get user data with refetch capability
   const { data: userData, isLoading: isAuthLoading, isError: isAuthError, refetch } = useGetMeQuery();
-  const [logout] = useLogoutMutation();
 
   // Get host profile if authenticated
   const isAuthenticated = !!userData && !isAuthError;
@@ -88,10 +88,18 @@ export function MobileSidebar({ isOpen, onClose }) {
 
   const handleLogout = async () => {
     try {
-      await logout().unwrap();
+      await dispatch(logoutUser()).unwrap();
     } catch (err) {
-      console.error("Logout failed:", err);
+      console.warn("Backend logout failed, proceeding with local cleanup", err);
     }
+    disconnectSocket();
+
+    // Force expire the access_token cookie
+    document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.nextkinlife.live;";
+
+    localStorage.removeItem("user");
+
     dispatch(authApi.util.resetApiState());
     dispatch(hostApi.util.resetApiState());
     onClose();

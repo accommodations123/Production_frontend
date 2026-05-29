@@ -73,11 +73,13 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose }) {
 
     if (!isOpen || !job) return null
 
-    // Format the posted date
-    const postedDate = new Date(job.postedDate)
-    const now = new Date()
-    const diffTime = Math.abs(now - postedDate)
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    // Format the posted date safely
+    const rawDate = job.postedDate || job.createdAt || job.created_at;
+    const postedDate = rawDate ? new Date(rawDate) : new Date();
+    const now = new Date();
+    const parsedPostedDate = isNaN(postedDate.getTime()) ? now : postedDate;
+    const diffTime = Math.abs(now - parsedPostedDate);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     return (
         <AnimatePresence>
