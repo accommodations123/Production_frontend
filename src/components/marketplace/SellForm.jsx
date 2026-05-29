@@ -283,6 +283,21 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
     }
   }, [initialData, countriesList]);
 
+  // Pre-fill country & states list from global country context on mount (for new listings)
+  useEffect(() => {
+    if (!isEditing && !country && globalActiveCountry?.name) {
+      const countryName = globalActiveCountry.name === "United States" || globalActiveCountry.name.startsWith("United States")
+        ? "United States of America"
+        : globalActiveCountry.name;
+      
+      const matched = countriesList.find(c => c.name === countryName);
+      if (matched) {
+        setCountry(matched.name);
+        setStatesList(State.getStatesOfCountry(matched.isoCode));
+      }
+    }
+  }, [globalActiveCountry, isEditing, countriesList, country]);
+
   // Auto-fill address based on Pincode (Only if not editing or if user changes zip explicitly?)
   // Keeping logic simple: triggers on zipCode change.
   useEffect(() => {
