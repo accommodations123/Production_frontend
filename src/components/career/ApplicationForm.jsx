@@ -20,8 +20,16 @@ export const ApplicationForm = ({ jobId, jobTitle, onSuccess, onCancel }) => {
                 toast.error("File size must be less than 10MB");
                 return;
             }
-            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-            if (!allowedTypes.includes(file.type)) {
+            const fileName = file.name.toLowerCase();
+            const isAllowedExtension = fileName.endsWith('.pdf') || fileName.endsWith('.doc') || fileName.endsWith('.docx');
+            const allowedTypes = [
+                'application/pdf', 
+                'application/msword', 
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/octet-stream',
+                ''
+            ];
+            if (!allowedTypes.includes(file.type) && !isAllowedExtension) {
                 toast.error("Only PDF and Word documents are allowed");
                 return;
             }
