@@ -8,6 +8,7 @@ import { EVENT_CATEGORIES } from "@/lib/mock-events"
 import { TrendingUp, Sparkles, ChevronRight } from "lucide-react"
 import { useGetApprovedEventsQuery } from "@/store/api/hostApi"
 import { useCountry } from "@/context/CountryContext"
+import { filterUpcomingEvents } from "@/lib/eventUtils"
 
 // Components
 import { EventsHero } from "./components/EventsHero"
@@ -99,7 +100,11 @@ const EventsPage = () => {
       return "other";
     };
 
-    const filteredApiEvents = apiEvents.filter(event => {
+    // 1. Remove expired events first
+    const activeApiEvents = filterUpcomingEvents(apiEvents);
+
+    // 2. Then filter by country
+    const filteredApiEvents = activeApiEvents.filter(event => {
       if (!activeCountry?.name) return true;
       const eventCountry = (event.country || "").toLowerCase().trim();
       const selectedCountry = activeCountry.name.toLowerCase().trim();

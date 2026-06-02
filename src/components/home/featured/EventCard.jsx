@@ -1,7 +1,8 @@
 import React from 'react';
-import { MapPin, Calendar, Users, Star, MessageCircle, Share2 } from 'lucide-react';
+import { MapPin, Calendar, Users, Star, MessageCircle, Share2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCountry } from '@/context/CountryContext';
+import { getEventStatus } from '@/lib/eventUtils';
 
 const HostPhoto = ({ host, name }) => {
     const photoUrl =
@@ -32,6 +33,10 @@ const HostPhoto = ({ host, name }) => {
 
 export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
     const { activeCountry } = useCountry();
+    const status = getEventStatus(event);
+    const isExpired = status === "expired";
+    const isLive = status === "happening-now";
+
     // Helper functions for formatting date and time
     const formatDate = (dateString) => {
         if (!dateString) return "Date TBA";
@@ -81,8 +86,9 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
     const { month, day } = getDateParts(event.date || event.start_date || event.event_date);
 
     return (
-        <div className={`group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 border border-neutral-100 overflow-hidden ${viewMode === "list" ? "flex" : "flex flex-col h-full"
-            }`}>
+        <div className={`group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 border overflow-hidden ${
+            isExpired ? "border-gray-200 opacity-75 grayscale-[20%]" : "border-neutral-100"
+        } ${viewMode === "list" ? "flex" : "flex flex-col h-full"}`}>
             {/* Event Image */}
             {viewMode !== "list" && (
                 <div className={`relative h-48 overflow-hidden ${!(event.banner_image || event.image) ? 'bg-gradient-to-br from-slate-700 to-slate-900' : ''}`}>
@@ -90,7 +96,7 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
                         <img
                             src={event.banner_image || event.image}
                             alt={event.title}
-                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                            className={`w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ${isExpired ? "brightness-75" : ""}`}
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center">
@@ -103,6 +109,22 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
                     <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md rounded-xl p-1.5 text-center min-w-[3rem] shadow-lg border border-white/20">
                         <span className="block text-[10px] font-bold text-[#CB2A25] uppercase tracking-wider">{month}</span>
                         <span className="block text-lg font-black text-[#00142E] leading-none mt-0.5">{day}</span>
+                    </div>
+
+                    {/* Status Badges Overlay */}
+                    <div className="absolute top-3 right-3 flex flex-col gap-1.5 items-end">
+                        {isExpired && (
+                            <span className="px-2 py-1 bg-gray-800/90 backdrop-blur-sm text-gray-200 text-[10px] font-bold rounded-lg shadow-lg flex items-center gap-1 uppercase tracking-wide">
+                                <Clock className="h-3 w-3" />
+                                Ended
+                            </span>
+                        )}
+                        {isLive && (
+                            <span className="px-2 py-1 bg-green-600/90 backdrop-blur-sm text-white text-[10px] font-bold rounded-lg shadow-lg flex items-center gap-1 animate-pulse uppercase tracking-wide">
+                                <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                                Live
+                            </span>
+                        )}
                     </div>
 
                     <div className="absolute bottom-3 left-3 right-3">
@@ -161,12 +183,23 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
 
                 {/* Action Buttons */}
                 <div className="mt-3 flex gap-2">
-                    <Button
-                        onClick={() => onViewDetails(event.id || event._id)}
-                        className="flex-1 bg-[#C93A30] hover:bg-[#b02e25] text-white rounded-lg py-4 text-xs font-bold transition-all duration-300 shadow-md group-hover:shadow-lg flex items-center justify-center gap-2 h-9"
-                    >
-                        View Details
-                    </Button>
+                    {isExpired ? (
+                        <Button
+                            onClick={() => onViewDetails(event.id || event._id)}
+                            variant="outline"
+                            className="flex-1 border-gray-300 text-gray-500 rounded-lg py-4 text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 h-9 hover:bg-gray-50"
+                        >
+                            <Clock className="h-3.5 w-3.5" />
+                            View Recap
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={() => onViewDetails(event.id || event._id)}
+                            className="flex-1 bg-[#C93A30] hover:bg-[#b02e25] text-white rounded-lg py-4 text-xs font-bold transition-all duration-300 shadow-md group-hover:shadow-lg flex items-center justify-center gap-2 h-9"
+                        >
+                            View Details
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>

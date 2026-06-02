@@ -1,12 +1,17 @@
 import React, { memo } from "react"
-import { Calendar, MapPin, Users, Star, MessageCircle, Heart, Bookmark, Share2 } from "lucide-react"
+import { Calendar, MapPin, Users, Star, MessageCircle, Heart, Bookmark, Share2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { HostPhoto } from "./HostPhoto"
 import { COUNTRIES } from "@/lib/mock-data"
 import WishlistButton from "@/components/ui/WishlistButton"
 import { useCountry } from "@/context/CountryContext"
+import { getEventStatus } from "@/lib/eventUtils"
 
 export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
+    const status = getEventStatus(event)
+    const isExpired = status === "expired"
+    const isLive = status === "happening-now"
+
     // Format date for display
     const formatDate = (dateString) => {
         if (!dateString) return "Date TBA";
@@ -77,14 +82,16 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
             className={`${viewMode === "list" ? "flex flex-col sm:flex-row gap-4" : ""}`}
             style={{ animationDelay: `${index * 50}ms` }}
         >
-            <div className={`relative overflow-hidden rounded-xl sm:rounded-2xl border border-gray-100 shadow-sm ${viewMode === "list" ? "flex-1 flex" : ""} bg-white transition-all duration-300`}>
+            <div className={`relative overflow-hidden rounded-xl sm:rounded-2xl border shadow-sm ${viewMode === "list" ? "flex-1 flex" : ""} bg-white transition-all duration-300 ${
+                isExpired ? "border-gray-200 opacity-70 grayscale-[30%]" : "border-gray-100"
+            }`}>
                 {/* Card Image */}
                 <div className={`relative ${viewMode === "list" ? "w-full sm:w-1/3 h-48 sm:h-auto" : "w-full h-48 sm:h-52 md:h-56"} overflow-hidden ${!eventImage ? 'bg-gradient-to-br from-slate-700 to-slate-900' : ''}`}>
                     {eventImage ? (
                         <img
                             src={eventImage}
                             alt={event.title}
-                            className="w-full h-full object-cover"
+                            className={`w-full h-full object-cover ${isExpired ? "brightness-75" : ""}`}
                             loading="lazy"
                         />
                     ) : (
@@ -93,11 +100,26 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                         </div>
                     )}
                     <div className="absolute inset-0 from-black/60 via-black/20 to-transparent" />
-                    <div className="absolute top-3 left-3">
+
+                    {/* Status badges */}
+                    <div className="absolute top-3 left-3 flex flex-col gap-1.5">
                         <span className="px-2 sm:px-3 py-1 bg-[#00142E] text-white text-xs font-bold rounded-full shadow-lg">
                             {event.type || "Event"}
                         </span>
+                        {isExpired && (
+                            <span className="px-2 sm:px-3 py-1 bg-gray-800/90 backdrop-blur-sm text-gray-200 text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                Event Ended
+                            </span>
+                        )}
+                        {isLive && (
+                            <span className="px-2 sm:px-3 py-1 bg-green-600/90 backdrop-blur-sm text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1 animate-pulse">
+                                <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                                Happening Now
+                            </span>
+                        )}
                     </div>
+
                     <div className="absolute top-3 right-3 flex gap-2">
                         <WishlistButton
                             itemId={event.id}
@@ -143,7 +165,7 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                             <div className="flex items-center gap-2">
                                 <Users className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
                                 <span className="text-xs sm:text-sm text-gray-600">
-                                    {event.attendees_count || 0} attending
+                                    {event.attendees_count || 0} attended
                                 </span>
                             </div>
                         </div>
@@ -158,16 +180,25 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                         </div>
                     </div>
 
-
-
                     {/* Action Buttons */}
                     <div className="flex gap-2">
-                        <Button
-                            onClick={() => onViewDetails(event.id)}
-                            className="flex-1 bg-[#C93A30] hover:bg-[#b02e25] text-white rounded-lg py-2 text-xs sm:text-sm font-medium transition-all duration-200"
-                        >
-                            View Details
-                        </Button>
+                        {isExpired ? (
+                            <Button
+                                onClick={() => onViewDetails(event.id)}
+                                variant="outline"
+                                className="flex-1 border-gray-300 text-gray-500 rounded-lg py-2 text-xs sm:text-sm font-medium transition-all duration-200"
+                            >
+                                <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5" />
+                                View Recap
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={() => onViewDetails(event.id)}
+                                className="flex-1 bg-[#C93A30] hover:bg-[#b02e25] text-white rounded-lg py-2 text-xs sm:text-sm font-medium transition-all duration-200"
+                            >
+                                View Details
+                            </Button>
+                        )}
                         <Button variant="outline" className="px-3 sm:px-4 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200">
                             <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>

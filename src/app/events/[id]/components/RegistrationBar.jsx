@@ -1,10 +1,13 @@
 import React, { memo } from "react"
-import { TrendingUp, CheckCircle, Ticket } from "lucide-react"
+import { TrendingUp, CheckCircle, Ticket, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { COUNTRIES } from "@/lib/mock-data"
 import { useCountry } from "@/context/CountryContext"
+import { isEventExpired } from "@/lib/eventUtils"
 
 export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave, event, isLoading, errorMessage, successMessage }) => {
+    const expired = isEventExpired(event)
+
     const getCurrencySymbol = (countryName) => {
         if (!countryName) return '$';
         const country = COUNTRIES.find(c => c.name === countryName || c.code === countryName);
@@ -24,6 +27,60 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
     const targetCountryName = activeCountry?.name || event?.country;
     const currencySymbol = getCurrencySymbol(targetCountryName);
 
+    // ── Expired Event Banner ──────────────────────────────────
+    if (expired) {
+        return (
+            <>
+                {/* Desktop */}
+                <div className="hidden lg:block sticky top-0 z-40 bg-gray-800/90 shadow-2xl backdrop-blur-xl">
+                    <div className="container mx-auto max-w-7xl px-4 py-4">
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="text-white flex items-center gap-3">
+                                <Clock className="h-5 w-5 text-gray-400" />
+                                <div>
+                                    <span className="font-bold">This event has ended</span>
+                                    <p className="text-sm text-white/60">
+                                        Registration is no longer available. Browse other upcoming events.
+                                    </p>
+                                </div>
+                            </div>
+                            <Button
+                                onClick={() => window.location.href = "/events"}
+                                className="font-bold py-3 px-8 rounded-full bg-white text-gray-800 hover:bg-gray-100 transition-all duration-300 shadow-xl"
+                            >
+                                Browse Events
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Mobile */}
+                <div className="lg:hidden mx-4 -mt-6 relative z-20">
+                    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                        <div className="bg-gray-800 px-4 py-3">
+                            <div className="flex items-center gap-2 text-white">
+                                <Clock className="h-4 w-4 text-gray-400 shrink-0" />
+                                <span className="font-bold text-sm">This event has ended</span>
+                            </div>
+                            <p className="text-white/60 text-xs mt-1">
+                                Registration is no longer available.
+                            </p>
+                        </div>
+                        <div className="p-4 flex items-center justify-center">
+                            <Button
+                                onClick={() => window.location.href = "/events"}
+                                className="w-full font-bold py-3 px-6 rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-all duration-300 shadow-lg"
+                            >
+                                Browse Upcoming Events
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </>
+        )
+    }
+
+    // ── Active Event Registration Bar ─────────────────────────
     return (
         <>
             {/* Desktop: Full-width sticky bar */}
@@ -125,3 +182,4 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
     )
 })
 RegistrationBar.displayName = "RegistrationBar"
+

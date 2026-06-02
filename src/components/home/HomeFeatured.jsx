@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Shield, ShieldCheck, Sparkles, MapPin, Users, Calendar,
   ArrowRight, Heart, Globe, Star, Facebook, Instagram, MessageCircle
@@ -9,6 +9,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useCountry } from '@/context/CountryContext';
+import { filterUpcomingEvents } from '@/lib/eventUtils';
 
 // API Hooks
 import {
@@ -80,6 +81,26 @@ const HomeFeatured = () => {
   const { data: approvedEvents, isLoading: eventsLoading } = useGetApprovedEventsQuery({ name: activeCountry?.name, limit: 4 });
   const { data: communities, isLoading: communitiesLoading } = useGetCommunitiesQuery({ country: activeCountry?.name, limit: 4 });
   const { data: marketplaceItems, isLoading: marketplaceLoading } = useGetBuySellListingsQuery({ country: activeCountry?.name, limit: 4 });
+
+  const displayedEvents = useMemo(() => {
+    if (!approvedEvents || approvedEvents.length === 0) return [];
+    
+    // 1. Filter out expired events
+    const upcoming = filterUpcomingEvents(approvedEvents);
+    
+    // 2. Filter by country matching listing page logic
+    return upcoming.filter(event => {
+      if (!activeCountry?.name) return true;
+      const eventCountry = (event.country || "").toLowerCase().trim();
+      const selectedCountry = activeCountry.name.toLowerCase().trim();
+      const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim();
+      
+      // Allow online events to show globally
+      if (event.event_mode?.toLowerCase() === "online") return true;
+      
+      return eventCountry === selectedCountry || eventCountry === selectedCountryCode;
+    }).slice(0, 4);
+  }, [approvedEvents, activeCountry]);
 
   const [viewMode, setViewMode] = useState("grid");
 
@@ -184,22 +205,8 @@ const HomeFeatured = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {eventsLoading ? (
               [1, 2, 3, 4].map((n) => <Skeleton key={n} className="h-[300px] sm:h-[350px] lg:h-[380px] bg-gray-100 rounded-2xl" />)
-            ) : approvedEvents?.length > 0 ? (
-              approvedEvents
-                .filter(event => {
-                  if (!activeCountry?.name) return true;
-                  const eventCountry = (event.country || "").toLowerCase().trim();
-                  const selectedCountry = activeCountry.name.toLowerCase().trim();
-                  const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim();
-                  
-                  // Allow online events to show globally
-                  if (event.event_mode?.toLowerCase() === "online") return true;
-                  
-                  return eventCountry === selectedCountry || eventCountry === selectedCountryCode;
-                })
-                .slice(0, 4)
-                .filter(Boolean)
-                .map((event, idx) => (
+            ) : displayedEvents.length > 0 ? (
+              displayedEvents.map((event, idx) => (
                 <motion.div
                   key={event.id || event._id}
                   {...fadeInUp}

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { COUNTRIES } from "@/lib/mock-data"
 import { useCountry } from "@/context/CountryContext"
+import { getEventStatus } from "@/lib/eventUtils"
 
 export function EventCard({ event, onDelete }) {
     const [isDeleting, setIsDeleting] = useState(false)
@@ -15,6 +16,8 @@ export function EventCard({ event, onDelete }) {
     const id = event._id || event.id
     const status = (event.status || "").toLowerCase()
     const bannerUrl = event.banner_image || null
+
+    const isExpired = getEventStatus(event) === "expired"
 
     const startDate = event.start_date ? new Date(event.start_date).toLocaleDateString(undefined, {
         weekday: 'short',
@@ -63,14 +66,17 @@ export function EventCard({ event, onDelete }) {
     const isPending = status === "pending"
 
     return (
-        <div className="bg-white rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition-all">
+        <div className={cn(
+            "bg-white rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition-all",
+            isExpired && "opacity-80 border-gray-200"
+        )}>
             {/* Image with Status Badge */}
             <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-100">
                 {bannerUrl ? (
                     <img
                         src={bannerUrl}
                         alt={event.title || "Event"}
-                        className="w-full h-full object-cover"
+                        className={cn("w-full h-full object-cover", isExpired && "brightness-90")}
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-200">
@@ -101,12 +107,19 @@ export function EventCard({ event, onDelete }) {
                     <h3 className="text-lg font-bold text-gray-900 line-clamp-1 mb-1">
                         {event.title || "Untitled Event"}
                     </h3>
-                    <div className="flex items-center gap-1.5 text-xs text-accent font-semibold uppercase">
-                        <Calendar className="w-3 h-3" />
-                        <span>{startDate}</span>
-                        <span className="mx-1">•</span>
-                        <Clock className="w-3 h-3" />
-                        <span>{startTime}</span>
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 text-xs text-accent font-semibold uppercase">
+                            <Calendar className="w-3 h-3" />
+                            <span>{startDate}</span>
+                            <span className="mx-1">•</span>
+                            <Clock className="w-3 h-3" />
+                            <span>{startTime}</span>
+                        </div>
+                        {isExpired && (
+                            <span className="bg-gray-100 text-gray-600 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider">
+                                Ended
+                            </span>
+                        )}
                     </div>
                 </div>
 
@@ -134,7 +147,7 @@ export function EventCard({ event, onDelete }) {
                     <div className="bg-green-50 border border-green-200 rounded-lg p-2 flex items-center gap-2">
                         <Lock className="w-3.5 h-3.5 text-green-600 shrink-0" />
                         <p className="text-xs text-green-800">
-                            Approved events cannot be edited.
+                            {isExpired ? "This event has ended and is read-only." : "Approved events cannot be edited."}
                         </p>
                     </div>
                 )}
