@@ -13,8 +13,7 @@ import {
     Camera, Maximize2, Award, Crown, Thermometer, Wine,
     TreePine, Cloud, Waves as Pool, Sun, Moon,
     Sparkle, Gem, Flower, Trees, Mountain,
-    Calendar, Clock, User, X, Copy, CopyCheck,
-    Instagram, Facebook, Linkedin, Twitter, Youtube, Globe, Monitor, ExternalLink
+    Calendar, X
 } from "lucide-react";
 import WishlistButton from "@/components/ui/WishlistButton";
 import { useGetPropertyByIdQuery, useGetMyListingsQuery, useGetHostProfileQuery } from '@/store/api/hostApi';
@@ -23,28 +22,9 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaWhatsapp } from "react-icons/fa";
-import { SiGmail } from "react-icons/si";
+import { HostDetailSocials } from '@/components/ui/SocialConnect';
 
-const normalizeSocialUrl = (platform, value) => {
-    if (!value) return null;
-    let v = value.trim();
-    if (v.startsWith("http://") || v.startsWith("https://")) return v;
-    v = v.replace(/^@/, "");
 
-    switch (platform) {
-        case "whatsapp":
-            const num = v.replace(/\D/g, "");
-            return num ? `https://wa.me/${num}` : null;
-        case "instagram": return `https://instagram.com/${v}`;
-        case "facebook": return `https://facebook.com/${v}`;
-        case "twitter": return `https://twitter.com/${v}`;
-        case "linkedin": return `https://linkedin.com/in/${v}`;
-        case "youtube": return `https://youtube.com/@${v}`;
-        case "website": return `https://${v}`;
-        default: return null;
-    }
-};
 
 export default function RoomPage() {
     const { id } = useParams();
@@ -191,11 +171,7 @@ export default function RoomPage() {
         setIsContactOpen(true);
     };
 
-    const handleSocialClick = (platform, value) => {
-        const url = normalizeSocialUrl(platform, value);
-        if (url) window.open(url, "_blank", "noopener,noreferrer");
-        else toast.error("Link not available");
-    };
+
 
     const copyLink = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -205,70 +181,7 @@ export default function RoomPage() {
     if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-white"><div className="w-8 h-8 border-4 border-rose-600 border-t-transparent rounded-full animate-spin" /></div>;
     if (!listing) return <div className="min-h-screen flex items-center justify-center">Property not found</div>;
 
-    // Gallery Modal
-    const GalleryModal = () => (
-        <AnimatePresence>
-            {isFullscreen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex flex-col"
-                >
-                    <div className="absolute top-4 right-4 z-10 flex gap-4">
-                        <Button
-                            variant="ghost"
-                            className="text-white hover:bg-white/10 rounded-full w-12 h-12 p-0"
-                            onClick={() => setIsFullscreen(false)}
-                        >
-                            <X className="w-6 h-6" />
-                        </Button>
-                    </div>
 
-                    <div className="flex-1 flex items-center justify-center p-4 md:p-10 relative">
-                        <Button
-                            variant="ghost"
-                            className="absolute left-4 text-white hover:bg-white/10 rounded-full w-12 h-12 p-0 hidden md:flex"
-                            onClick={() => setCurrentImageIndex(prev => (prev - 1 + listing.photos.length) % listing.photos.length)}
-                        >
-                            <ChevronLeft className="w-8 h-8" />
-                        </Button>
-
-                        <motion.img
-                            key={currentImageIndex}
-                            src={listing.photos[currentImageIndex]}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="max-h-full max-w-5xl object-contain rounded-lg shadow-2xl"
-                        />
-
-                        <Button
-                            variant="ghost"
-                            className="absolute right-4 text-white hover:bg-white/10 rounded-full w-12 h-12 p-0 hidden md:flex"
-                            onClick={() => setCurrentImageIndex(prev => (prev + 1) % listing.photos.length)}
-                        >
-                            <ChevronRight className="w-8 h-8" />
-                        </Button>
-                    </div>
-
-                    <div className="h-24 p-4 flex gap-2 overflow-x-auto justify-center">
-                        {listing.photos.map((p, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setCurrentImageIndex(i)}
-                                className={cn(
-                                    "h-full aspect-square rounded-lg overflow-hidden border-2 transition-all",
-                                    i === currentImageIndex ? "border-rose-500 scale-105" : "border-transparent opacity-50 hover:opacity-100"
-                                )}
-                            >
-                                <img src={p} className="w-full h-full object-cover" alt="" />
-                            </button>
-                        ))}
-                    </div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
 
     return (
         <div className="bg-white min-h-screen">
@@ -414,28 +327,7 @@ export default function RoomPage() {
                                 <h3 className="font-bold text-lg text-slate-900">Hosted by {listing.host.name}</h3>
                                 <p className="text-slate-500 text-sm">Superhost · Very responsive</p>
                             </div>
-                            <div className="flex flex-wrap gap-2">
-                                {listing.host.socials.whatsapp && (
-                                    <button onClick={() => handleSocialClick('whatsapp', listing.host.socials.whatsapp)} className="w-10 h-10 flex items-center justify-center rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors">
-                                        <FaWhatsapp className="w-5 h-5" />
-                                    </button>
-                                )}
-                                {listing.host.socials.email && (
-                                    <button onClick={() => { window.open(`mailto:${listing.host.socials.email}`, '_blank'); }} className="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 text-[#EA4335] hover:bg-red-100 transition-colors" title="Gmail">
-                                        <SiGmail className="w-4 h-4" />
-                                    </button>
-                                )}
-                                {listing.host.socials.instagram && (
-                                    <button onClick={() => handleSocialClick('instagram', listing.host.socials.instagram)} className="w-10 h-10 flex items-center justify-center rounded-full bg-pink-50 text-pink-600 hover:bg-pink-100 transition-colors">
-                                        <Instagram className="w-5 h-5" />
-                                    </button>
-                                )}
-                                {listing.host.socials.facebook && (
-                                    <button onClick={() => handleSocialClick('facebook', listing.host.socials.facebook)} className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50 text-[#1877F2] hover:bg-blue-100 transition-colors" title="Facebook">
-                                        <Facebook className="w-5 h-5" />
-                                    </button>
-                                )}
-                            </div>
+                            <HostDetailSocials socials={listing.host.socials} />
                         </div>
 
                         {/* Highlights Stats */}
@@ -579,7 +471,67 @@ export default function RoomPage() {
                     setIsContactOpen(false);
                 }}
             />
-            <GalleryModal />
+            <AnimatePresence>
+                {isFullscreen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex flex-col"
+                    >
+                        <div className="absolute top-4 right-4 z-10 flex gap-4">
+                            <Button
+                                variant="ghost"
+                                className="text-white hover:bg-white/10 rounded-full w-12 h-12 p-0"
+                                onClick={() => setIsFullscreen(false)}
+                            >
+                                <X className="w-6 h-6" />
+                            </Button>
+                        </div>
+
+                        <div className="flex-1 flex items-center justify-center p-4 md:p-10 relative">
+                            <Button
+                                variant="ghost"
+                                className="absolute left-4 text-white hover:bg-white/10 rounded-full w-12 h-12 p-0 hidden md:flex"
+                                onClick={() => setCurrentImageIndex(prev => (prev - 1 + listing.photos.length) % listing.photos.length)}
+                            >
+                                <ChevronLeft className="w-8 h-8" />
+                            </Button>
+
+                            <motion.img
+                                key={currentImageIndex}
+                                src={listing.photos[currentImageIndex]}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="max-h-full max-w-5xl object-contain rounded-lg shadow-2xl"
+                            />
+
+                            <Button
+                                variant="ghost"
+                                className="absolute right-4 text-white hover:bg-white/10 rounded-full w-12 h-12 p-0 hidden md:flex"
+                                onClick={() => setCurrentImageIndex(prev => (prev + 1) % listing.photos.length)}
+                            >
+                                <ChevronRight className="w-8 h-8" />
+                            </Button>
+                        </div>
+
+                        <div className="h-24 p-4 flex gap-2 overflow-x-auto justify-center">
+                            {listing.photos.map((p, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => setCurrentImageIndex(i)}
+                                    className={cn(
+                                        "h-full aspect-square rounded-lg overflow-hidden border-2 transition-all",
+                                        i === currentImageIndex ? "border-rose-500 scale-105" : "border-transparent opacity-50 hover:opacity-100"
+                                    )}
+                                >
+                                    <img src={p} className="w-full h-full object-cover" alt="" />
+                                </button>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Amenities Modal */}
             <AnimatePresence>

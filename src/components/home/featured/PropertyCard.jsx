@@ -1,21 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-    Heart, Star, MapPin, Users, Wifi, Car, Utensils, Tv,
-    Thermometer, Bed, CheckCircle, ShieldCheck, Dumbbell, ArrowRight, ExternalLink, Bath, MessageCircle,
-    Globe, Twitter
-} from 'lucide-react';
+import { MapPin, Users, Bed, ShieldCheck, Bath } from 'lucide-react';
 import { VerificationBadge } from '@/components/ui/VerificationBadge';
-import { SiGmail } from "react-icons/si";
-import {
-    FaWhatsapp,
-    FaInstagram,
-    FaFacebookF,
-    FaLinkedinIn,
-    FaYoutube,
-    FaLink,
-    FaXTwitter
-} from "react-icons/fa6";
+import { SocialQuickConnect } from '@/components/ui/SocialConnect';
 import { useCountry } from '@/context/CountryContext';
 import { toast } from 'sonner';
 import WishlistButton from '@/components/ui/WishlistButton';
@@ -129,49 +116,7 @@ export const PropertyCard = ({ property }) => {
 
     };
 
-    const handleSocialClick = (e, platform, value) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!value) return;
 
-        let url;
-
-        switch (platform) {
-            case "whatsapp": {
-                const phone = value.replace(/\D/g, "");
-                if (!phone) return;
-                url = `https://wa.me/${phone}`;
-                break;
-            }
-
-            case "instagram":
-                url = value.startsWith("http")
-                    ? value
-                    : `https://instagram.com/${value.replace(/^@/, "")}`;
-                break;
-
-            case "facebook":
-                url = value.startsWith("http")
-                    ? value
-                    : `https://facebook.com/${value}`;
-                break;
-
-            case "twitter":
-                url = value.startsWith("http")
-                    ? value
-                    : `https://twitter.com/${value.replace(/^@/, "")}`;
-                break;
-
-          case "email":
-    url = `https://mail.google.com/mail/?view=cm&fs=1&to=${value}`;
-    break;
-
-            default:
-                return;
-        }
-
-        window.open(url, "_blank", "noopener,noreferrer");
-    };
 
 
     return (
@@ -270,69 +215,7 @@ export const PropertyCard = ({ property }) => {
                     </div>
 
                     {/* Social Media Quick Connect (Price Section) */}
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2 items-center justify-end">
-
-                        {propertyData.socials.whatsapp && (
-                            <button
-                                onClick={(e) =>
-                                    handleSocialClick(e, "whatsapp", propertyData.socials.whatsapp)
-                                }
-                                className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#25D366] text-white flex items-center justify-center hover:scale-110 transition"
-                                title="WhatsApp"
-                            >
-                                <FaWhatsapp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            </button>
-                        )}
-
-                        {propertyData.socials.email && (
-                            <button
-                                onClick={(e) =>
-                                    handleSocialClick(e, "email", propertyData.socials.email)
-                                }
-                                className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-red-100 text-[#EA4335] flex items-center justify-center hover:bg-[#EA4335] hover:text-white transition"
-                                title="Gmail"
-                            >
-                                <SiGmail className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                            </button>
-                        )}
-
-                        {propertyData.socials.instagram && (
-                            <button
-                                onClick={(e) =>
-                                    handleSocialClick(e, "instagram", propertyData.socials.instagram)
-                                }
-                                className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-100 text-[#E4405F] flex items-center justify-center hover:bg-[#E4405F] hover:text-white transition"
-                                title="Instagram"
-                            >
-                                <FaInstagram className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            </button>
-                        )}
-
-                        {propertyData.socials.facebook && (
-                            <button
-                                onClick={(e) =>
-                                    handleSocialClick(e, "facebook", propertyData.socials.facebook)
-                                }
-                                className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-100 text-[#1877F2] flex items-center justify-center hover:bg-[#1877F2] hover:text-white transition"
-                                title="Facebook"
-                            >
-                                <FaFacebookF className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                            </button>
-                        )}
-
-                        {propertyData.socials.twitter && (
-                            <button
-                                onClick={(e) =>
-                                    handleSocialClick(e, "twitter", propertyData.socials.twitter)
-                                }
-                                className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-100 text-black flex items-center justify-center hover:bg-black hover:text-white transition"
-                                title="X (Twitter)"
-                            >
-                                <FaXTwitter className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                            </button>
-                        )}
-
-                    </div>
+                    <SocialQuickConnect socials={propertyData.socials} />
 
                 </div>
             </div>

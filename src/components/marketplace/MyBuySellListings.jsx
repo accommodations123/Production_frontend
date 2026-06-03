@@ -118,7 +118,7 @@ export function MyBuySellListings() {
                                     ${Number(item.price).toLocaleString()}
                                 </div>
                                 <div className="text-sm text-gray-500 mt-1 flex gap-3">
-                                    <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                                    <span>{(item.created_at || item.createdAt) ? new Date(item.created_at || item.createdAt).toLocaleDateString() : "Recently"}</span>
                                     <span>•</span>
                                     <span className="truncate">{item.category}</span>
                                 </div>

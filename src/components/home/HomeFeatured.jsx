@@ -84,20 +84,20 @@ const HomeFeatured = () => {
 
   const displayedEvents = useMemo(() => {
     if (!approvedEvents || approvedEvents.length === 0) return [];
-    
+
     // 1. Filter out expired events
     const upcoming = filterUpcomingEvents(approvedEvents);
-    
+
     // 2. Filter by country matching listing page logic
     return upcoming.filter(event => {
       if (!activeCountry?.name) return true;
       const eventCountry = (event.country || "").toLowerCase().trim();
       const selectedCountry = activeCountry.name.toLowerCase().trim();
       const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim();
-      
+
       // Allow online events to show globally
       if (event.event_mode?.toLowerCase() === "online") return true;
-      
+
       return eventCountry === selectedCountry || eventCountry === selectedCountryCode;
     }).slice(0, 4);
   }, [approvedEvents, activeCountry]);
@@ -262,7 +262,7 @@ const HomeFeatured = () => {
       </section>
 
       {/* 6. Safety Tips Section */}
-      <section className="py-4 sm:py-6 bg-[#F8F9FA]">
+      {/* <section className="py-4 sm:py-6 bg-[#F8F9FA]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             title="Safety Tips"
@@ -289,10 +289,10 @@ const HomeFeatured = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* 7. Feature Cards Section */}
-      <section className="py-4 sm:py-6 bg-white">
+      {/* <section className="py-4 sm:py-6 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {FEATURE_CARDS.map((card, idx) => (
@@ -317,10 +317,10 @@ const HomeFeatured = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* 8. Final Call to Action */}
-      <section className="py-6 sm:py-8 relative overflow-hidden bg-white">
+      {/* <section className="py-6 sm:py-8 relative overflow-hidden bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8">
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#00142E] tracking-tight">
@@ -341,7 +341,7 @@ const HomeFeatured = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
 
     </div>

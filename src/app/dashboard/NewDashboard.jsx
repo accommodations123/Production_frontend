@@ -20,11 +20,12 @@ import { WishlistManager } from "@/components/dashboard/WishlistManager";
 import {
   useGetHostProfileQuery,
   useGetMyListingsQuery,
-  useGetMyEventsQuery
+  useGetMyEventsQuery,
+  useUpdateHostMutation
 } from "@/store/api/hostApi";
 
 import { useDispatch, useSelector } from "react-redux";
-import { updateProfile } from "@/store/slices/authSlice";
+import { updateProfile, updateUserLocal } from "@/store/slices/authSlice";
 import { useGetMyTripsQuery } from "@/store/api/authApi";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -45,6 +46,7 @@ export default function NewDashboard() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
+  const [updateHost] = useUpdateHostMutation();
 
   const { user: reduxUser } = useSelector((state) => state.auth);
   const [refreshKey] = useState(() => Date.now());
@@ -102,9 +104,16 @@ export default function NewDashboard() {
   const handleUpdatePersonalInfo = async (formData) => {
     setIsUpdating(true);
     try {
-      const res = await dispatch(updateProfile(formData)).unwrap();
-      if (res?.success && hostProfile?.id) {
-        refetchHost();
+      if (hostProfile?.id) {
+        const res = await updateHost({ hostId: hostProfile.id, data: formData }).unwrap();
+        if (res?.success) {
+          refetchHost();
+          if (res.data?.user) {
+            dispatch(updateUserLocal(res.data.user));
+          }
+        }
+      } else {
+        await dispatch(updateProfile(formData)).unwrap();
       }
     } catch (err) {
       console.error("Failed to update profile:", err);

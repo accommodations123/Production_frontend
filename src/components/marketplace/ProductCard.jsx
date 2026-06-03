@@ -1,117 +1,177 @@
-import React from "react";
-import { MapPin, Clock, Heart, ImageOff } from "lucide-react";
+import React, { useState } from "react";
+import { MapPin, Clock, ShieldCheck, Tag } from "lucide-react";
 import { useCountry } from "@/context/CountryContext";
-
-import { Badge } from "@/components/ui/badge";
 import WishlistButton from "@/components/ui/WishlistButton";
+import { SocialQuickConnect } from "@/components/ui/SocialConnect";
 
-const FALLBACK_IMAGE = null;
+export const CardContainer = ({ children, onClick, className = "" }) => {
+  const navigate = (e) => {
+    // Ignore clicks on buttons/icons/links
+    if (e.target.closest("button") || e.target.closest("a")) return;
+    if (typeof onClick === "function") {
+      onClick(e);
+    }
+  };
+
+  return (
+    <div
+      onClick={navigate}
+      className={`group block h-full cursor-pointer select-none focus:outline-none`}
+    >
+      <div className={`bg-white rounded-[1.5rem] border border-[#E5E7EB] hover:border-[#CB2A25]/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden relative ${className}`}>
+        {children}
+      </div>
+    </div>
+  );
+};
 
 export function ProductCard({ product, onClick }) {
   const { formatPrice } = useCountry();
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
   if (!product || !product.title) return null;
+
+  const socials = {
+    whatsapp:
+      product.sellerPhone ||
+      product.phone ||
+      product.whatsapp ||
+      product.Host?.whatsapp ||
+      product.host?.whatsapp ||
+      product.Host?.phone ||
+      product.host?.phone ||
+      "",
+
+    email:
+      product.sellerEmail ||
+      product.email ||
+      product.seller_email ||
+      product.Host?.email ||
+      product.host?.email ||
+      "",
+
+    instagram:
+      product.sellerInstagram ||
+      product.instagram ||
+      product.seller_instagram ||
+      product.Host?.instagram ||
+      product.host?.instagram ||
+      "",
+
+    facebook:
+      product.sellerFacebook ||
+      product.facebook ||
+      product.seller_facebook ||
+      product.Host?.facebook ||
+      product.host?.facebook ||
+      "",
+  };
 
   const imageUrl =
     product?.images?.length > 0
       ? product.images[0]
-      : product?.image || FALLBACK_IMAGE;
+      : product?.image || null;
 
   const postedDate = product?.postedTime
     ? product.postedTime
-    : product?.createdAt
-      ? new Date(product.createdAt).toLocaleDateString()
+    : (product?.created_at || product?.createdAt)
+      ? new Date(product.created_at || product.createdAt).toLocaleDateString()
       : "Recently";
 
-  return (
-    <div
-      onClick={() => typeof onClick === "function" && onClick(product)}
-      className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group flex flex-col h-full cursor-pointer"
-    >
-      {/* Image */}
-      <div className="relative aspect-[4/3] bg-gray-100 text-stone-950 overflow-hidden">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={product?.title || "Marketplace product"}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-200">
-            <ImageOff className="w-12 h-12 text-gray-400" />
-          </div>
-        )}
+  const isVerified = product.status === "active";
 
-        {/* Wishlist */}
-        <div className="absolute top-2 right-2 z-10">
+  return (
+    <CardContainer onClick={() => typeof onClick === "function" && onClick(product)}>
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+        <img
+          src={imageUrl}
+          alt={product.title}
+          className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setIsImageLoaded(true)}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z'%3E%3C/path%3E%3Cline x1='7' y1='7' x2='7.01' y2='7'%3E%3C/line%3E%3C/svg%3E"; // SVG tag icon
+            e.target.className = "w-1/2 h-1/2 object-contain mx-auto my-auto opacity-50";
+            e.target.classList.remove('opacity-0');
+          }}
+          loading="lazy"
+        />
+
+        {/* Top Badges */}
+        <div className="absolute top-4 left-4 z-20 flex gap-2">
+          {isVerified ? (
+            <div className="bg-green-500/90 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-green-400/50">
+              <ShieldCheck className="w-3.5 h-3.5 text-white" />
+              <span className="text-xs font-bold text-white">Verified</span>
+            </div>
+          ) : (
+            <div className="bg-red-500/90 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-red-400/50">
+              <ShieldCheck className="w-3.5 h-3.5 text-white" />
+              <span className="text-xs font-bold text-white">Unverified</span>
+            </div>
+          )}
+        </div>
+
+        {/* Top Right Heart */}
+        <div className="absolute top-4 right-4 z-20">
           <WishlistButton
             itemId={product.id || product._id}
             itemType="buysell"
-            className="w-8 h-8 bg-white/80 backdrop-blur-sm hover:bg-white flex items-center justify-center"
+            className="h-9 w-9 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-sm border border-white/20 bg-black/20 hover:bg-white group"
             iconSize={16}
-            outlineColor="text-gray-400"
+            outlineColor="text-white group-hover:text-[#CB2A25]"
+            filledColor="fill-[#CB2A25] text-[#CB2A25]"
           />
-        </div>
-
-        {/* Tags */}
-        <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
-          {product?.tags?.includes("urgent") && (
-            <span className="px-1.5 sm:px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full shadow-sm">
-              Urgent
-            </span>
-          )}
-          {product?.tags?.includes("moving") && (
-            <span className="px-1.5 sm:px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-sm">
-              Moving
-            </span>
-          )}
-          {product?.status === "pending" && (
-            <span className="px-1.5 sm:px-2 py-0.5 bg-yellow-500 text-white text-[10px] font-bold rounded-full shadow-sm">
-              Unverified
-            </span>
-          )}
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-2.5 sm:p-3 flex flex-col flex-1">
-        <div className="flex justify-between items-start mb-1">
-          <h3 className="font-bold text-gray-900 text-xs sm:text-sm line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+      {/* Content Section */}
+      <div className="p-3.5 sm:p-4 md:p-5 flex-grow flex flex-col gap-3 sm:gap-4 min-w-0">
+        {/* Title & Location */}
+        <div className="space-y-1">
+          <h3 className="font-bold text-lg leading-tight line-clamp-1 text-[#00142E] group-hover:text-[#CB2A25] transition-colors">
             {product.title}
           </h3>
-          <span className="font-bold text-primary text-xs sm:text-sm whitespace-nowrap ml-2">
-            {formatPrice(product.price || 0)}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 mb-2">
-          {product.condition && (
-            <Badge
-              variant="secondary"
-              className="text-[10px] px-1.5 py-0 h-4 sm:h-5 bg-gray-100 text-gray-600 font-medium border-gray-200"
-            >
-              {product.condition}
-            </Badge>
-          )}
-          <span className="text-[10px] text-gray-400">•</span>
-          <span className="text-[10px] text-gray-500 flex items-center gap-0.5">
-            <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-            {postedDate}
-          </span>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-auto pt-2.5 sm:pt-3 border-t border-gray-50 flex items-center justify-between">
-          <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-gray-500 truncate max-w-[55%]">
-            <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" />
-            <span className="truncate">
+          <div className="flex items-center gap-1.5 text-[#00142E]/60 text-sm font-medium">
+            <MapPin className="w-3.5 h-3.5 shrink-0" />
+            <span className="line-clamp-1">
               {product.location || [product.city, product.state, product.country].filter(Boolean).join(", ") || "Location not specified"}
             </span>
           </div>
+        </div>
 
+        {/* Stats Row */}
+        <div className="flex items-center gap-2 sm:gap-3 text-xs text-[#00142E]/70 min-w-0">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#CB2A25]" />
+            <span className="font-medium">{product.condition || "Used"}</span>
+          </div>
+          <div className="w-px h-3 bg-[#00142E]/10 shrink-0" />
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            <Tag className="w-3.5 h-3.5 text-[#CB2A25] shrink-0" />
+            <span className="font-medium truncate">{product.category || "Furniture"}</span>
+          </div>
+          <div className="w-px h-3 bg-[#00142E]/10 shrink-0" />
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Clock className="w-3.5 h-3.5 text-[#CB2A25]" />
+            <span className="font-medium whitespace-nowrap">{postedDate}</span>
+          </div>
+        </div>
 
+        {/* Price & Actions Row */}
+        <div className="flex items-end justify-between mt-auto pt-4 border-t border-gray-100">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-black text-[#00142E]">
+                {formatPrice(product.price || 0)}
+              </span>
+            </div>
+          </div>
+
+          {/* Social Media Quick Connect */}
+          <SocialQuickConnect socials={socials} />
         </div>
       </div>
-    </div>
+    </CardContainer>
   );
 }

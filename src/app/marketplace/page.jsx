@@ -9,8 +9,13 @@ import { ProductCard } from "@/components/marketplace/ProductCard";
 import { SellForm } from "@/components/marketplace/SellForm";
 
 import { VerificationModal } from "@/components/marketplace/VerificationModal";
-import { ShieldCheck, Zap, Tag } from "lucide-react";
+import { ShieldCheck, Zap, Tag, MapPin, Clock, Shield, Share2, Calendar, MessageCircle, Phone, ArrowLeft } from "lucide-react";
 import { useCountry } from "@/context/CountryContext";
+import { SellerContactButtons, HostDetailSocials } from '@/components/ui/SocialConnect';
+import WishlistButton from "@/components/ui/WishlistButton";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { useGetBuySellListingsQuery, useGetHostProfileQuery, useGetBuySellByIdQuery } from "@/store/api/hostApi";
 import { useGetMeQuery } from "@/store/api/authApi";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -154,10 +159,12 @@ export default function MarketplacePage() {
           {activeTab === "buy" && (
             <div className="space-y-4 sm:space-y-5 md:space-y-6">
 
-              <FilterPanel
-                filters={filters}
-                onChange={setFilters}
-              />
+              {!viewProduct && (
+                <FilterPanel
+                  filters={filters}
+                  onChange={setFilters}
+                />
+              )}
 
               {loading ? (
                 <div className="flex justify-center py-12">
@@ -178,7 +185,7 @@ export default function MarketplacePage() {
                             key={product._id || product.id}
                             product={product}
                             onMessage={() => { }} // No-op or remove prop entirely
-                            onClick={() => setViewProduct(product)}
+                            onClick={() => setSearchParams({ product: product.id || product._id })}
                           />
                         ))}
                       </div>
@@ -237,6 +244,7 @@ export default function MarketplacePage() {
 
 const SingleProductView = ({ product: initialProduct, onBack }) => {
   const [imageError, setImageError] = useState(false);
+  const { formatPrice } = useCountry();
   const FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'%3E%3C/circle%3E%3Cpolyline points='21 15 16 10 5 21'%3E%3C/polyline%3E%3C/svg%3E";
 
   const { data: fetchedProduct, isLoading } = useGetBuySellByIdQuery(initialProduct.id || initialProduct._id, {
@@ -251,201 +259,260 @@ const SingleProductView = ({ product: initialProduct, onBack }) => {
     sellerPhone: rawProduct.sellerPhone || rawProduct.phone,
     sellerEmail: rawProduct.sellerEmail || rawProduct.email || rawProduct.seller_email,
     sellerInstagram: rawProduct.sellerInstagram || rawProduct.instagram || rawProduct.seller_instagram,
+    sellerFacebook: rawProduct.sellerFacebook || rawProduct.facebook || rawProduct.seller_facebook || rawProduct.Host?.facebook || rawProduct.host?.facebook,
     location: rawProduct.location || [rawProduct.city, rawProduct.state, rawProduct.country].filter(Boolean).join(", ") || "Location not specified",
-    postedTime: rawProduct.postedTime || (rawProduct.createdAt ? new Date(rawProduct.createdAt).toLocaleDateString() : "Recently"),
+    postedTime: rawProduct.postedTime || ((rawProduct.created_at || rawProduct.createdAt) ? new Date(rawProduct.created_at || rawProduct.createdAt).toLocaleDateString() : "Recently"),
+  };
+
+  const socials = {
+    whatsapp: product.sellerPhone || "",
+    email: product.sellerEmail || "",
+    instagram: product.sellerInstagram || "",
+    facebook: product.sellerFacebook || "",
+  };
+
+  const copyLink = () => {
+    const shareUrl = `${window.location.origin}/marketplace?product=${product.id || product._id}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast.success("Link copied to clipboard!");
   };
 
   return (
-    <div className="animate-in fade-in zoom-in-95 duration-300">
-      <div className="max-w-6xl mx-auto bg-white rounded-2xl sm:rounded-[2rem] shadow-xl overflow-hidden border border-gray-100 relative">
+    <div className="animate-in fade-in zoom-in-95 duration-300 bg-white rounded-[2rem] border border-gray-100 shadow-xl p-4 sm:p-6 md:p-10 relative overflow-hidden">
+      {/* Decorative Background Blob */}
+      <div className="absolute top-0 right-0 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-gradient-to-bl from-blue-50/50 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-        {/* Decorative Background Blob */}
-        <div className="absolute top-0 right-0 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-gradient-to-bl from-blue-50/50 to-transparent rounded-full blur-3xl pointer-events-none" />
+      {/* Back Button */}
+      <div className="mb-6 relative z-10">
+        <button
+          onClick={onBack}
+          className="group flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#CB2A25] transition-colors"
+        >
+          <div className="p-1.5 sm:p-2 rounded-full bg-gray-50 group-hover:bg-[#CB2A25]/10 transition-colors">
+            <ArrowLeft className="h-4 w-4" />
+          </div>
+          Back to Marketplace
+        </button>
+      </div>
 
-        <div className="p-4 sm:p-6 md:p-10 relative z-10">
-
-          {/* Back Button */}
-          <button
-            onClick={onBack}
-            className="group flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#CB2A25] mb-6 sm:mb-8 transition-colors"
-          >
-            <div className="p-1.5 sm:p-2 rounded-full bg-gray-50 group-hover:bg-[#CB2A25]/10 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
+      {/* Gallery Section - banner style */}
+      <div className="relative rounded-2xl md:rounded-3xl overflow-hidden h-[260px] sm:h-[360px] md:h-[400px] lg:h-[440px] shadow-sm group bg-slate-50 border border-slate-100 mb-8 z-10 flex items-center justify-center">
+        {isLoading && !product.image ? (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CB2A25]"></div>
+          </div>
+        ) : (
+          <>
+            {/* Blurred background image for ambient glassmorphism look */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center blur-2xl opacity-20 scale-110 pointer-events-none"
+              style={{ backgroundImage: `url(${imageError ? FALLBACK_IMAGE : (product.images?.[0] || product.image || FALLBACK_IMAGE)})` }}
+            />
+            
+            {/* Actual product image, fully visible and uncropped */}
+            <img
+              src={imageError ? FALLBACK_IMAGE : (product.images?.[0] || product.image || FALLBACK_IMAGE)}
+              className="relative z-10 max-w-full max-h-full object-contain transition-transform duration-700 group-hover:scale-[1.01]"
+              onError={() => setImageError(true)}
+              alt={product.title}
+            />
+            <div className="absolute top-4 left-4 z-20 flex gap-2">
+              <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/90 backdrop-blur-md rounded-full text-xs font-bold text-gray-900 shadow-sm border border-white/20">
+                {product.condition || "Used"}
+              </span>
             </div>
-            Back to Marketplace
+          </>
+        )}
+
+        {/* Share/Save floating buttons (Mobile) */}
+        <div className="absolute top-4 right-4 flex gap-2 md:hidden z-20">
+          <button onClick={copyLink} className="p-2 bg-white rounded-full shadow-md hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+            <Share2 className="w-4 h-4 text-slate-700" />
           </button>
-
-          <div className="grid md:grid-cols-12 gap-6 md:gap-8 lg:gap-10 xl:gap-14">
-
-            {/* Left Column: Image (Span 7) */}
-            <div className="md:col-span-7">
-              <div className="aspect-[4/3] bg-gray-50 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm border border-gray-100 relative group">
-                {isLoading && !product.image ? (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                  </div>
-                ) : (
-                  <>
-                    <img
-                      src={imageError ? FALLBACK_IMAGE : (product.images?.[0] || product.image || FALLBACK_IMAGE)}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      onError={() => setImageError(true)}
-                      alt={product.title}
-                    />
-                    <div className="absolute top-3 sm:top-4 left-3 sm:left-4">
-                      <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/90 backdrop-blur-md rounded-full text-xs font-bold text-gray-900 shadow-sm border border-white/20">
-                        {product.condition || "Used"}
-                      </span>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column: Details (Span 5) */}
-            <div className="md:col-span-5 flex flex-col justify-center space-y-5 sm:space-y-6 md:space-y-8">
-
-              <div>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#00142E] mb-3 leading-tight">
-                  {product.title}
-                </h1>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-gray-500 text-sm font-medium">
-                  <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-[#CB2A25]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {product.location || "Location not specified"}
-                  </div>
-                  <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {product.postedTime || "Recently"}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="text-4xl sm:text-5xl font-black text-[#CB2A25] tracking-tight">
-                  ${Number(product.price).toLocaleString()}
-                </div>
-                {product.negotiable && (
-                  <span className="inline-block text-sm font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">
-                    Negotiable Price
-                  </span>
-                )}
-              </div>
-
-              {/* Seller Card */}
-              <div className="bg-[#00142E] p-4 sm:p-6 rounded-2xl text-white relative overflow-hidden group">
-                {/* Glow effect */}
-                <div className="absolute -right-8 -top-8 w-32 h-32 sm:w-40 sm:h-40 bg-[#CB2A25]/20 rounded-full blur-3xl group-hover:bg-[#CB2A25]/30 transition-colors duration-500" />
-
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 rounded-xl sm:rounded-2xl flex items-center justify-center text-white border border-white/5 font-bold text-lg sm:text-xl">
-                      {product.sellerName ? product.sellerName.charAt(0).toUpperCase() : "S"}
-                    </div>
-                    <div>
-                      <div className="font-bold text-base sm:text-lg">{product.sellerName || "Seller Name"}</div>
-                      <div className="flex items-center gap-1.5 text-xs text-green-400 font-medium mt-1">
-                        <ShieldCheck size={14} />
-                        <span>Verified Seller</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-3">
-                    {/* Primary Row: WhatsApp & Call */}
-                    <div className="flex gap-2">
-                      {product.sellerPhone && (
-                        <button
-                          onClick={() => {
-                            // Strip non-numeric characters for the link
-                            const cleanNumber = product.sellerPhone.replace(/\D/g, '');
-                            window.open(`https://wa.me/${cleanNumber}`, '_blank');
-                          }}
-                          className="flex-1 h-11 sm:h-12 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/20 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 text-sm sm:text-base"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 448 512" fill="currentColor">
-                            <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L3 480l117.7-30.9c32.4 17.7 68.9 27 106.2 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7 .9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z" />
-                          </svg>
-                          WhatsApp
-                        </button>
-                      )}
-
-                      {product.sellerPhone && (
-                        <button
-                          onClick={() => window.open(`tel:${product.sellerPhone}`)}
-                          className="h-11 sm:h-12 w-11 sm:w-12 bg-white/10 hover:bg-white/20 text-white rounded-xl flex items-center justify-center border border-white/10 hover:scale-105 active:scale-95 transition-all shrink-0"
-                          title="Call Seller"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Secondary Row: Instagram & Gmail */}
-                    {(product.sellerEmail || product.sellerInstagram) && (
-                      <div className="flex gap-2 w-full">
-                        {product.sellerEmail && (
-                          <button
-                            onClick={() => window.open(`mailto:${product.sellerEmail}`)}
-                            className="flex-1 h-10 bg-white/5 hover:bg-red-500/10 text-gray-200 hover:text-red-400 rounded-xl font-bold flex items-center justify-center gap-2 border border-white/10 hover:border-red-500/20 transition-all hover:scale-[1.02] active:scale-95 text-xs sm:text-sm"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-red-400">
-                              <rect width="20" height="16" x="2" y="4" rx="2" />
-                              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                            </svg>
-                            Gmail
-                          </button>
-                        )}
-
-                        {product.sellerInstagram && (
-                          <button
-                            onClick={() => {
-                              const value = product.sellerInstagram.trim();
-                              const url = (value.startsWith("http://") || value.startsWith("https://") || value.includes("instagram.com"))
-                                ? (value.startsWith("http") ? value : `https://${value}`)
-                                : `https://instagram.com/${value.replace(/^@/, '')}`;
-                              window.open(url, '_blank');
-                            }}
-                            className="flex-1 h-10 bg-white/5 hover:bg-pink-500/10 text-gray-200 hover:text-pink-400 rounded-xl font-bold flex items-center justify-center gap-2 border border-white/10 hover:border-pink-500/20 transition-all hover:scale-[1.02] active:scale-95 text-xs sm:text-sm"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-pink-400">
-                              <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                              <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-                            </svg>
-                            Instagram
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Safety Tips */}
-              <div className="flex items-start gap-3 p-3 sm:p-4 bg-yellow-50 rounded-xl sm:rounded-2xl border border-yellow-100/50">
-                <div className="min-w-5 mt-0.5 text-yellow-600">
-                  <ShieldCheck size={18} />
-                </div>
-                <div className="text-xs sm:text-sm text-yellow-800 leading-relaxed font-medium">
-                  <span className="block font-bold mb-0.5 text-yellow-900">Safety First</span>
-                  Meet in public places. Inspect item before payment. Never send money in advance.
-                </div>
-              </div>
-
-            </div>
+          <div className="bg-white rounded-full shadow-md w-8 h-8 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform">
+            <WishlistButton
+              itemId={product.id || product._id}
+              itemType="buysell"
+              className="w-full h-full flex items-center justify-center"
+              iconSize={16}
+              outlineColor="text-gray-400"
+              filledColor="fill-[#CB2A25] text-[#CB2A25]"
+            />
           </div>
         </div>
       </div>
+
+      {/* Main Content Grid */}
+      <main className="relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] lg:grid-cols-[1fr_380px] gap-8 md:gap-10 lg:gap-12">
+          
+          {/* Left Column: Details */}
+          <div className="min-w-0 space-y-10">
+            {/* Title Header */}
+            <div className="border-b border-slate-100 pb-8">
+              <div className="flex justify-between items-start gap-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">
+                      {product.category || "General"}
+                    </Badge>
+                    {product.status === "active" ? (
+                      <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1 pl-1 pr-2 hover:bg-emerald-100">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Listing
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-red-50 text-red-700 border-red-200 gap-1 pl-1 pr-2 hover:bg-red-100">
+                        <ShieldCheck className="w-3.5 h-3.5 text-red-600" /> Unverified Listing
+                      </Badge>
+                    )}
+                  </div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight leading-tight">
+                    {product.title}
+                  </h1>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-slate-500 text-sm">
+                    <div className="flex items-center">
+                      <MapPin className="w-4 h-4 mr-1.5 text-[#CB2A25] shrink-0" />
+                      {product.location}
+                    </div>
+                    <div className="hidden sm:block w-px h-3 bg-slate-200" />
+                    <div className="flex items-center">
+                      <Clock className="w-4 h-4 mr-1.5 text-slate-400 shrink-0" />
+                      Listed {product.postedTime}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desktop Share/Save */}
+                <div className="hidden md:flex gap-2 shrink-0">
+                  <Button variant="outline" size="sm" onClick={copyLink} className="gap-2 text-slate-700">
+                    <Share2 className="w-4 h-4" /> Share
+                  </Button>
+                  <div className="flex items-center">
+                    <WishlistButton
+                      itemId={product.id || product._id}
+                      itemType="buysell"
+                      className="h-9 px-4 py-2 border border-slate-200 rounded-md hover:bg-slate-100 flex items-center gap-2 transition-colors"
+                      iconSize={16}
+                      outlineColor="text-slate-700"
+                      filledColor="fill-[#CB2A25] text-[#CB2A25]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Seller Promo Card (Styled to match host promo card) */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-6 rounded-2xl bg-gradient-to-r from-red-50/50 to-white border border-[#CB2A25]/10">
+              <div className="relative shrink-0">
+                <div className="w-16 h-16 rounded-full bg-[#00142E] flex items-center justify-center text-white font-bold text-xl border-2 border-white shadow-sm">
+                  {product.sellerName ? product.sellerName.charAt(0).toUpperCase() : "S"}
+                </div>
+                {product.status === "active" && (
+                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm">
+                    <ShieldCheck className="w-5 h-5 text-emerald-500 fill-emerald-50" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg text-slate-900">Listed by {product.sellerName}</h3>
+                <p className="text-slate-500 text-sm">Verified Seller · Responsive partner</p>
+              </div>
+              <HostDetailSocials socials={socials} />
+            </div>
+
+            {/* Highlights Stats Section */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center hover:shadow-sm transition-shadow">
+                <Shield className="w-6 h-6 text-slate-700 mb-2" />
+                <span className="font-semibold text-slate-900">{product.condition || "Used"}</span>
+                <span className="text-xs text-slate-500 uppercase tracking-wide">Condition</span>
+              </div>
+              <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center hover:shadow-sm transition-shadow">
+                <Tag className="w-6 h-6 text-slate-700 mb-2" />
+                <span className="font-semibold text-slate-900 truncate max-w-full px-2">{product.category || "General"}</span>
+                <span className="text-xs text-slate-500 uppercase tracking-wide">Category</span>
+              </div>
+              <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center hover:shadow-sm transition-shadow col-span-2 sm:col-span-1">
+                <Calendar className="w-6 h-6 text-slate-700 mb-2" />
+                <span className="font-semibold text-slate-900">{product.postedTime}</span>
+                <span className="text-xs text-slate-500 uppercase tracking-wide">Listed On</span>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-slate-900">About this item</h2>
+              <p className="text-slate-600 leading-relaxed whitespace-pre-wrap text-base">
+                {product.description || "No description provided."}
+              </p>
+            </div>
+
+            {/* Safety Disclaimer Box */}
+            <div className="flex items-start gap-4 p-5 bg-yellow-50 rounded-2xl border border-yellow-100/50">
+              <div className="min-w-6 mt-0.5 text-yellow-600">
+                <ShieldCheck size={20} />
+              </div>
+              <div className="text-sm text-yellow-800 leading-relaxed font-medium">
+                <span className="block font-bold mb-1 text-yellow-900 text-base">Safety First</span>
+                Meet in public places. Inspect item before payment. Never send money in advance.
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Sticky Sidebar */}
+          <div>
+            <div className="sticky top-28 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6 md:p-8">
+              <div className="flex flex-col gap-3 mb-6">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-3xl font-black text-[#00142E] tracking-tight">
+                    {formatPrice(product.price || 0)}
+                  </span>
+                  {product.negotiable && (
+                    <span className="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full border border-green-200 shrink-0">
+                      Negotiable
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-4">
+                <div className="flex flex-col gap-3">
+                  {product.sellerPhone && (
+                    <button
+                      onClick={() => {
+                        const cleanNumber = product.sellerPhone.replace(/\D/g, '');
+                        window.open(`https://wa.me/${cleanNumber}`, '_blank');
+                      }}
+                      className="w-full h-12 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/20 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 text-base cursor-pointer"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      Chat on WhatsApp
+                    </button>
+                  )}
+
+                  {product.sellerPhone && (
+                    <button
+                      onClick={() => window.open(`tel:${product.sellerPhone}`)}
+                      className="w-full h-12 bg-[#00142E] hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95 text-base border border-slate-700 cursor-pointer"
+                    >
+                      <Phone className="w-5 h-5" />
+                      Call Seller
+                    </button>
+                  )}
+
+                  {/* Other social connections */}
+                  <div className="pt-4 border-t border-slate-100 mt-2">
+                    <div className="text-xs text-slate-400 font-semibold mb-3 uppercase tracking-wider text-center">Other Channels</div>
+                    <HostDetailSocials socials={socials} className="justify-center" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
     </div>
   );
 };

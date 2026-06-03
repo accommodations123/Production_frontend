@@ -14,6 +14,7 @@ import WishlistButton from "@/components/ui/WishlistButton";
 import { ChatPopup } from "@/components/marketplace/ChatPopup";
 import { useCountry } from "@/context/CountryContext";
 import { toast } from "sonner";
+import { SellerContactButtons } from '@/components/ui/SocialConnect';
 
 // Placeholder for missing images
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'%3E%3C/circle%3E%3Cpolyline points='21 15 16 10 5 21'%3E%3C/polyline%3E%3C/svg%3E";
@@ -51,6 +52,7 @@ export default function ProductDetailsPage() {
         sellerPhone: rawProduct.sellerPhone || rawProduct.phone,
         sellerEmail: rawProduct.sellerEmail || rawProduct.email || rawProduct.seller_email,
         sellerInstagram: rawProduct.sellerInstagram || rawProduct.instagram || rawProduct.seller_instagram,
+        sellerFacebook: rawProduct.sellerFacebook || rawProduct.facebook || rawProduct.seller_facebook || rawProduct.Host?.facebook || rawProduct.host?.facebook,
     };
 
     if (activeCountry && product.country && product.country !== activeCountry.name) {
@@ -171,7 +173,7 @@ export default function ProductDetailsPage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Clock className="h-4 w-4 text-gray-400" />
-                                    <span>Posted {new Date(product.createdAt).toLocaleDateString()}</span>
+                                    <span>Posted {(product.created_at || product.createdAt) ? new Date(product.created_at || product.createdAt).toLocaleDateString() : "Recently"}</span>
                                 </div>
                             </div>
                         </div>
@@ -229,54 +231,13 @@ export default function ProductDetailsPage() {
                                      )}
                                  </div>
 
-                                 {/* Secondary Row: Call, Gmail, Instagram */}
-                                 <div className="flex gap-2 w-full">
-                                     {product.sellerPhone && (
-                                         <button
-                                             onClick={() => window.open(`tel:${product.sellerPhone}`)}
-                                             className="flex-1 h-10 bg-white/5 hover:bg-white/15 text-white rounded-xl flex items-center justify-center gap-1.5 border border-white/10 hover:scale-[1.02] active:scale-95 transition-all text-xs font-semibold"
-                                             title="Call Seller"
-                                         >
-                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                             </svg>
-                                             Call
-                                         </button>
-                                     )}
-
-                                     {product.sellerEmail && (
-                                         <button
-                                             onClick={() => window.open(`mailto:${product.sellerEmail}`)}
-                                             className="flex-1 h-10 bg-white/5 hover:bg-red-500/10 text-gray-200 hover:text-red-400 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-white/10 hover:border-red-500/20 hover:scale-[1.02] active:scale-95 transition-all text-xs"
-                                         >
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-red-400">
-                                                 <rect width="20" height="16" x="2" y="4" rx="2" />
-                                                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                                             </svg>
-                                             Gmail
-                                         </button>
-                                     )}
-
-                                     {product.sellerInstagram && (
-                                         <button
-                                             onClick={() => {
-                                                 const value = product.sellerInstagram.trim();
-                                                 const url = (value.startsWith("http://") || value.startsWith("https://") || value.includes("instagram.com"))
-                                                     ? (value.startsWith("http") ? value : `https://${value}`)
-                                                     : `https://instagram.com/${value.replace(/^@/, '')}`;
-                                                 window.open(url, '_blank');
-                                             }}
-                                             className="flex-1 h-10 bg-white/5 hover:bg-pink-500/10 text-gray-200 hover:text-pink-400 rounded-xl font-semibold flex items-center justify-center gap-1.5 border border-white/10 hover:border-pink-500/20 hover:scale-[1.02] active:scale-95 transition-all text-xs"
-                                         >
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-pink-400">
-                                                 <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                                                 <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                                                 <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-                                             </svg>
-                                             Instagram
-                                         </button>
-                                     )}
-                                 </div>
+                                  {/* Secondary Row: Contact Channels (Call, Gmail, Instagram, Facebook) */}
+                                  <SellerContactButtons
+                                      phone={product.sellerPhone}
+                                      email={product.sellerEmail}
+                                      instagram={product.sellerInstagram}
+                                      facebook={product.sellerFacebook}
+                                  />
 
                                  {/* Share Button */}
                                  <Button
