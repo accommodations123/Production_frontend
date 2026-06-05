@@ -17,7 +17,7 @@ const EventsPage = lazy(() => import("@/app/events/page"));
 const EventDetailsPage = lazy(() => import("@/app/events/[id]/page"));
 const HostEventPage = lazy(() => import("@/app/events/host/page"));
 const Groups = lazy(() => import("@/app/groups/page"));
-const CreateGroupPage = lazy(() => import("@/app/groups/create/page"));
+const CreateGroupPage = lazy(() => import("@/app/groups/create/page"))
 const GroupDetailsPage = lazy(() => import("@/app/groups/[id]/page"));
 const AddResource = lazy(() => import("@/app/groups/add-resource/page"));
 const RoomDetails = lazy(() => import("@/app/rooms/[id]/page"));
