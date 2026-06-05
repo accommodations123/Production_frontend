@@ -5,8 +5,6 @@ import ScrollToTop from "@/components/layout/ScrollToTop";
 import RootLayout from "@/app/layout";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import HostGuard from "@/components/auth/HostGuard";
-import HostOnboardingForm from "./components/host/Host";
-import { TravelCommunity } from "./components/dashboard/TravelCommunity";
 
 // Lazy-loaded pages
 const Home = lazy(() => import("@/app/page"));
@@ -38,6 +36,8 @@ const NewDashboard = lazy(() => import("@/app/dashboard/NewDashboard"));
 const PrivacyPage = lazy(() => import("@/app/privacy/page"));
 const TermsPage = lazy(() => import("@/app/terms/page"));
 const WishlistPage = lazy(() => import("@/app/wishlist/page"));
+const HostOnboardingForm = lazy(() => import("./components/host/Host"));
+const TravelCommunity = lazy(() => import("./components/dashboard/TravelCommunity").then(module => ({ default: module.TravelCommunity })));
 
 export default function App() {
     return (

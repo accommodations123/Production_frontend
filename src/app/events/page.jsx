@@ -38,7 +38,7 @@ const parsePrice = (priceVal) => {
 const EventsPage = () => {
   const navigate = useNavigate()
   const { activeCountry } = useCountry()
-  const { data: apiEvents = [], isLoading, isError } = useGetApprovedEventsQuery(activeCountry?.name)
+  const { data: apiEvents = [], isLoading, isError, refetch } = useGetApprovedEventsQuery(activeCountry?.name)
 
   // (Removed handleScroll and visibleSections logic)
   const [activeFilter, setActiveFilter] = useState("all")
@@ -352,6 +352,30 @@ const filteredEventsDisplay = useMemo(() => {
   }, [navigate])
 
   const isSearchingOrFiltering = activeFilter !== "all" || searchQuery !== "" || hasActiveFilters;
+
+  if (isError) {
+    return (
+      <main className="min-h-screen bg-white font-sans flex flex-col justify-between">
+        <div>
+          <Navbar />
+          <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+            <div className="bg-red-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+              <Sparkles className="h-10 w-10 text-red-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-[#00142E] mb-2">Unable to load events</h2>
+            <p className="text-gray-500 mb-6 max-w-sm text-sm">We couldn't connect to the server. Please check your internet connection and try again.</p>
+            <button
+              onClick={() => refetch()}
+              className="px-6 py-2.5 bg-[#00142E] text-white font-semibold rounded-xl hover:bg-[#00142E]/90 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-white font-sans">

@@ -15,7 +15,8 @@ export async function fetchAddressByPincode(pincode) {
     try {
         const response =
             await axios.get(
-                `https://api.postalpincode.in/pincode/${pincode}`
+                `https://api.postalpincode.in/pincode/${pincode}`,
+                { timeout: 5000 }
             );
 
         const data = response.data;

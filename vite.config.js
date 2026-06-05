@@ -87,6 +87,17 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('country-state-city')) {
+              return 'vendor-location';
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons';
+            }
+            return 'vendor';
+          }
+        }
       },
     },
     chunkSizeWarningLimit: 1000,

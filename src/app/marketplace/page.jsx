@@ -76,7 +76,7 @@ export default function MarketplacePage() {
   const [prevProductFromUrl, setPrevProductFromUrl] = useState(null);
   const [isVerificationOpen, setIsVerificationOpen] = useState(false);
   // products state is now managed by RTK Query
-  const { data: productsData, isLoading: loading, error } = useGetBuySellListingsQuery({
+  const { data: productsData, isLoading: loading, error, refetch } = useGetBuySellListingsQuery({
     country: filters.country || activeCountry?.name,
     state: filters.state === "All States" ? "" : filters.state,
     city: filters.city === "All Cities" ? "" : filters.city,
@@ -169,6 +169,17 @@ export default function MarketplacePage() {
               {loading ? (
                 <div className="flex justify-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+                </div>
+              ) : error ? (
+                <div className="text-center py-16 max-w-md mx-auto">
+                  <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Tag className="h-8 w-8 text-red-400" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Unable to load products</h3>
+                  <p className="text-gray-500 mb-6 text-sm">Please check your connection and try again.</p>
+                  <Button onClick={() => refetch()} className="bg-[#CB2A25] hover:bg-[#a82220] text-white">
+                    Try Again
+                  </Button>
                 </div>
               ) : (
                 <>
