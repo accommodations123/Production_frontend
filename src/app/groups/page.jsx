@@ -144,9 +144,13 @@ if (community.topics?.length) {
       <main className="min-h-screen bg-background pt-20">
         <Navbar />
         <div className="flex justify-center items-center h-96">
-          <div className="text-center">
-            <p className="text-red-500 mb-4">Error loading communities: {error.error || error.data?.message || "Unknown error"}</p>
-            <button onClick={() => window.location.reload()} className="px-4 py-2 bg-[#C93A30] text-white rounded-lg hover:bg-[#B82E28]">Try Again</button>
+          <div className="text-center max-w-md">
+            <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="h-8 w-8 text-red-400" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Unable to load communities</h2>
+            <p className="text-gray-500 mb-6 text-sm">Please check your connection and try again.</p>
+            <button onClick={() => refetchList()} className="px-6 py-2.5 bg-[#C93A30] text-white rounded-lg hover:bg-[#B82E28] transition-colors font-medium">Try Again</button>
           </div>
         </div>
         <Footer />

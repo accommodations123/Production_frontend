@@ -1,245 +1,191 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Plane, Clock, Shield, Star, UserPlus, Navigation, ChevronDown } from "lucide-react";
+import { Plane, MapPin, Calendar, Globe, Shield } from "lucide-react";
 import WishlistButton from "@/components/ui/WishlistButton";
+import { SocialQuickConnect } from "@/components/ui/SocialConnect";
 
-export default function TripCard({ plan, isSelected, onSelect, onMatchRequest }) {
+export default function TripCard({ plan }) {
+    if (!plan || !plan.user) return null;
+
     const formatTime12h = (t) => {
-        if (!t) return '';
-        const [h, m] = t.split(':').map(Number);
+        if (!t) return "";
+        const [h, m] = t.split(":").map(Number);
         if (isNaN(h) || isNaN(m)) return t;
-        const period = h >= 12 ? 'PM' : 'AM';
+        const period = h >= 12 ? "PM" : "AM";
         const hour12 = h % 12 || 12;
-        return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
+        return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
     };
 
+    const formattedDate = plan.date
+        ? new Date(plan.date).toLocaleDateString("en-US", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+          })
+        : "";
+
+    const fromCity = plan.flight?.from || plan.flight?.from_country || "";
+    const toCity = plan.flight?.to || "";
+    const depTime = formatTime12h(plan.flight?.departureTime);
+    const arrTime = formatTime12h(plan.flight?.arrivalTime);
+    const airline = [plan.flight?.airline, plan.flight?.flightNumber]
+        .filter(Boolean)
+        .join(" ");
+
     return (
-        <motion.div
-            layout
-            className={`relative rounded-xl overflow-hidden transition-all duration-300 border-2 ${isSelected ? "shadow-2xl" : "hover:shadow-xl"
-                }`}
-            style={{
-                backgroundColor: 'var(--color-background)',
-                borderColor: isSelected ? 'var(--color-accent)' : 'var(--color-neutral)'
-            }}
-        >
-            {/* Header Info */}
-            <div className="p-4 flex items-center justify-between border-b" style={{ borderColor: 'var(--color-neutral)' }}>
-                <div className="flex items-center gap-3">
-                    <div className="relative">
-                        {plan.user.image ? (
-                            <img
-                                src={plan.user.image}
-                                className="w-12 h-12 rounded-full object-cover border-2"
-                                style={{ borderColor: 'var(--color-neutral)' }}
-                                alt={plan.user.fullName}
-                                loading="lazy"
-                            />
-                        ) : (
-                            <div
-                                className="w-12 h-12 rounded-full border-2 flex items-center justify-center font-bold text-lg text-primary bg-primary/10"
-                                style={{ borderColor: 'var(--color-neutral)' }}
-                            >
-                                {plan.user.fullName?.[0] || "U"}
-                            </div>
-                        )}
-                        <div className="absolute -bottom-1 -right-1 bg-green-500 w-3 h-3 rounded-full border-2 border-white"></div>
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-lg leading-tight" style={{ color: 'var(--color-foreground)' }}>{plan.user.fullName || "Community Member"}</h3>
-                        <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-secondary)' }}>
-                            <span>{plan.user.age} • {plan.user.gender}</span>
-                            <span className="flex items-center gap-1">
-                                <Shield size={10} className="text-blue-500" /> Verified
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex flex-col items-end gap-2">
+        <div className="group bg-white rounded-2xl border border-gray-200/80 hover:border-[#CB2A25]/25 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden">
+            {/* Flight Route Header — compact gradient banner */}
+            <div className="relative bg-gradient-to-br from-[#00142E] to-[#0A2847] px-4 pt-4 pb-5 text-white">
+                {/* Wishlist top-right */}
+                <div className="absolute top-3 right-3 z-10">
                     <WishlistButton
                         itemId={plan.id || plan._id}
                         itemType="trip"
-                        className="w-8 h-8 bg-gray-100 hover:bg-gray-200 flex items-center justify-center"
-                        iconSize={16}
-                        outlineColor="text-gray-400"
+                        className="h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-sm border border-white/15 bg-white/10 hover:bg-white group/btn"
+                        iconSize={14}
+                        outlineColor="text-white/70 group-hover/btn:text-[#CB2A25]"
+                        filledColor="fill-[#CB2A25] text-[#CB2A25]"
                     />
-                    {plan.user.rating && (
-                        <div className="flex flex-col items-end">
-                            <div className="flex gap-0.5 text-yellow-400">
-                                {[...Array(Math.round(plan.user.rating))].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
-                            </div>
-                            <span className="text-[10px]" style={{ color: 'var(--color-secondary)' }}>{plan.user.rating} ({plan.user.reviews || 0} reviews)</span>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Main Trip Info */}
-            <div className="p-5">
-                <div className="flex justify-between items-start mb-6">
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-accent)' }}></span>
-                            <p className="text-xs uppercase font-bold tracking-wider" style={{ color: 'var(--color-secondary)' }}>Destination</p>
-                        </div>
-                        <p className="text-xl font-black flex items-center gap-2" style={{ color: 'var(--color-foreground)' }}>
-                            <Navigation size={18} className="text-blue-600" /> {plan.destination}
-                        </p>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-xs uppercase font-bold tracking-wider mb-1" style={{ color: 'var(--color-secondary)' }}>Travel Date</p>
-                        <p className="text-sm font-bold bg-gray-100 px-3 py-1 rounded-full inline-block" style={{ color: 'var(--color-foreground)' }}>
-                            {new Date(plan.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </p>
-                    </div>
                 </div>
 
-                {/* Flight Path Illustration */}
-                <div className="relative py-4 mb-6">
-                    <div className="absolute left-0 right-0 top-1/2 h-px border-t-2 border-dashed" style={{ borderColor: 'var(--color-neutral)' }}></div>
-                    <div className="relative flex justify-between items-center z-10">
-                        <div className="bg-white p-2 rounded-full border shadow-sm" style={{ borderColor: 'var(--color-neutral)' }}>
-                            <MapPin size={16} className="text-red-500" />
-                        </div>
-                        <motion.div
-                            animate={{ x: [0, 5, 0] }}
-                            transition={{ repeat: Infinity, duration: 3 }}
-                            className="bg-white p-2 rounded-full border shadow-sm mx-auto"
-                            style={{ borderColor: 'var(--color-neutral)' }}>
-                            <Plane size={18} className="text-blue-600 rotate-45" />
-                        </motion.div>
-                        <div className="bg-white p-2 rounded-full border shadow-sm" style={{ borderColor: 'var(--color-neutral)' }}>
-                            <MapPin size={16} className="text-blue-600" />
-                        </div>
-                    </div>
-                    <div className="flex justify-between mt-2 text-[10px] font-bold uppercase tracking-tighter" style={{ color: 'var(--color-secondary)' }}>
-                        <span>{plan.flight.from}</span>
-                        <span>{plan.flight.airline} {plan.flight.flightNumber}</span>
-                        <span>{plan.flight.to}</span>
-                    </div>
-                </div>
-
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2 mb-6">
-                    {plan.user.languages && plan.user.languages.map((lang, idx) => (
-                        <span key={idx} className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">
-                            {lang}
+                {/* Route visual */}
+                <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-col min-w-0 flex-1">
+                        <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">
+                            From
                         </span>
-                    ))}
-                    {plan.user.tags ? plan.user.tags.map((tag, idx) => (
-                        <span key={idx} className="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-bold">
-                            {tag}
+                        <span className="text-sm font-bold truncate leading-tight mt-0.5">
+                            {fromCity}
                         </span>
-                    )) : (
-                        <span className="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-bold">
-                            Community Member
-                        </span>
-                    )}
-                </div>
+                        {depTime && (
+                            <span className="text-[10px] text-[#CB2A25] font-semibold mt-0.5">
+                                {depTime}
+                            </span>
+                        )}
+                    </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                    <motion.button
-                        whileHover={{ scale: 1.05, backgroundColor: 'var(--color-primary)', color: 'white' }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={onSelect}
-                        className="flex-1 py-3 px-4 rounded-xl border-2 font-bold transition-all text-xs"
-                        style={{ borderColor: 'var(--color-primary)', backgroundColor: isSelected ? 'var(--color-primary)' : 'transparent', color: isSelected ? 'white' : 'var(--color-primary)' }}
-                    >
-                        {isSelected ? "Hide Details" : "View Details"}
-                    </motion.button>
-
-                </div>
-            </div>
-
-            {/* Expanded Details Section */}
-            <AnimatePresence>
-                {isSelected && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.4, ease: "circOut" }}
-                        className="overflow-hidden bg-gray-50/50 border-t"
-                        style={{ borderColor: 'var(--color-neutral)' }}
-                    >
-                        <div className="p-6 space-y-6">
-                            {/* Personal Summary */}
-                            <div className="flex flex-wrap gap-8 items-start">
-                                <div>
-                                    <h4 className="text-[10px] uppercase font-black tracking-widest mb-1 text-gray-400">Traveler Name</h4>
-                                    <p className="font-bold text-lg text-gray-900 leading-none">{plan.user.fullName}</p>
-                                </div>
-                                <div>
-                                    <h4 className="text-[10px] uppercase font-black tracking-widest mb-1 text-gray-400">Age</h4>
-                                    <p className="font-bold text-lg text-gray-900 leading-none">{plan.user.age || 'N/A'} yrs</p>
-                                </div>
-                                <div>
-                                    <h4 className="text-[10px] uppercase font-black tracking-widest mb-1 text-gray-400">Languages</h4>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                        {(plan.user.languages && plan.user.languages.length > 0) ? plan.user.languages.map((lang, idx) => (
-                                            <span key={idx} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-bold">
-                                                {lang}
-                                            </span>
-                                        )) : <span className="text-xs text-gray-400 italic">Not specified</span>}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Trip Path */}
-                            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
-                                <div className="absolute left-8 top-10 bottom-10 w-0.5 bg-gradient-to-b from-blue-400 to-red-400 opacity-20"></div>
-                                <h4 className="text-[10px] uppercase font-black tracking-widest mb-4 text-gray-400 flex items-center gap-2">
-                                    <Navigation size={12} /> Trip Route
-                                </h4>
-                                <div className="space-y-6">
-                                    <div className="flex gap-4 relative z-10">
-                                        <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-sm mt-1"></div>
-                                        <div>
-                                            <p className="font-black text-sm text-gray-900 leading-none">{plan.flight.from}</p>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Departure • {formatTime12h(plan.flight.departureTime)}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 relative z-10">
-                                        <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow-sm mt-1"></div>
-                                        <div>
-                                            <p className="font-black text-sm text-gray-900 leading-none">{plan.flight.to}</p>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Arrival • {formatTime12h(plan.flight.arrivalTime)}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Bio */}
-                            <div className="bg-white p-4 rounded-xl border-l-4 border-accent shadow-sm">
-                                <p className="text-xs italic text-gray-600">
-                                    "{plan.user.bio || `I'm exciting to explore ${plan.destination}!`}"
-                                </p>
-                            </div>
-
-                            {/* Connect Button (Inline) */}
-                            <motion.button
-                                whileHover={{ scale: plan.matchStatus ? 1 : 1.02 }}
-                                whileTap={{ scale: plan.matchStatus ? 1 : 0.98 }}
-                                onClick={() => !plan.matchStatus && onMatchRequest(plan)}
-                                disabled={!!plan.matchStatus}
-                                className={`w-full py-3 rounded-xl font-bold text-sm shadow-lg flex items-center justify-center gap-2 text-white transition-all ${plan.matchStatus
-                                    ? "bg-gray-400 cursor-not-allowed opacity-80 shadow-none"
-                                    : "bg-[#CB2A25] shadow-red-500/30 hover:bg-red-600"
-                                    }`}
-                            >
-                                {plan.matchStatus === 'pending' ? (
-                                    <>Requested <UserPlus size={18} /></>
-                                ) : plan.matchStatus === 'accepted' ? (
-                                    <>Connected <UserPlus size={18} /></>
-                                ) : (
-                                    <>Connect <UserPlus size={18} /></>
-                                )}
-                            </motion.button>
+                    {/* Flight path line */}
+                    <div className="flex items-center gap-1 shrink-0 px-1">
+                        <div className="w-2 h-2 rounded-full border-2 border-white/40" />
+                        <div className="w-8 sm:w-12 h-px bg-white/25 relative">
+                            <Plane
+                                size={12}
+                                className="absolute -top-[5px] left-1/2 -translate-x-1/2 text-white/80 rotate-0"
+                            />
                         </div>
-                    </motion.div>
+                        <div className="w-2 h-2 rounded-full bg-[#CB2A25]" />
+                    </div>
+
+                    <div className="flex flex-col items-end min-w-0 flex-1">
+                        <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">
+                            To
+                        </span>
+                        <span className="text-sm font-bold truncate leading-tight mt-0.5 text-right">
+                            {toCity || plan.destination}
+                        </span>
+                        {arrTime && (
+                            <span className="text-[10px] text-blue-300 font-semibold mt-0.5">
+                                {arrTime}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Airline tag */}
+                {airline && (
+                    <div className="mt-2.5 flex items-center gap-1.5">
+                        <span className="text-[10px] bg-white/10 backdrop-blur-sm text-white/70 px-2 py-0.5 rounded-full font-medium border border-white/10">
+                            {airline}
+                        </span>
+                    </div>
                 )}
-            </AnimatePresence>
-        </motion.div>
+            </div>
+
+            {/* Card Body */}
+            <div className="p-4 flex-grow flex flex-col gap-3">
+                {/* User Info */}
+                <div className="flex items-center gap-3">
+                    {plan.user.image ? (
+                        <img
+                            src={plan.user.image}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-gray-100 shrink-0"
+                            alt={plan.user.fullName}
+                            loading="lazy"
+                        />
+                    ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#CB2A25] to-[#E04642] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                            {plan.user.fullName?.[0] || "U"}
+                        </div>
+                    )}
+                    <div className="min-w-0">
+                        <h3 className="font-bold text-sm text-[#00142E] leading-tight truncate">
+                            {plan.user.fullName || "Traveler"}
+                        </h3>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            {plan.user.age && (
+                                <span className="text-[11px] text-gray-500 font-medium">
+                                    {plan.user.age} yrs
+                                </span>
+                            )}
+                            {plan.user.gender && (
+                                <span className="text-[11px] text-gray-400">
+                                    • {plan.user.gender}
+                                </span>
+                            )}
+                            {plan.user.verified && (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded-full">
+                                    <Shield size={8} className="fill-blue-100" />
+                                    Verified
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Destination */}
+                {plan.destination && (
+                    <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                        <Globe size={14} className="text-[#CB2A25] shrink-0" />
+                        <span className="text-xs font-semibold text-[#00142E] truncate">
+                            {plan.destination}
+                        </span>
+                    </div>
+                )}
+
+                {/* Language tags */}
+                {plan.user.languages && plan.user.languages.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                        {plan.user.languages.slice(0, 3).map((lang, idx) => (
+                            <span
+                                key={idx}
+                                className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-semibold"
+                            >
+                                {lang}
+                            </span>
+                        ))}
+                        {plan.user.languages.length > 3 && (
+                            <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">
+                                +{plan.user.languages.length - 3}
+                            </span>
+                        )}
+                    </div>
+                )}
+
+                {/* Footer: Date & Social Icons */}
+                <div className="flex items-end justify-between mt-auto pt-3 border-t border-gray-100">
+                    {formattedDate && (
+                        <div className="flex items-center gap-1.5">
+                            <Calendar
+                                size={13}
+                                className="text-[#CB2A25] shrink-0"
+                            />
+                            <span className="text-xs font-bold text-[#00142E]">
+                                {formattedDate}
+                            </span>
+                        </div>
+                    )}
+                    <SocialQuickConnect socials={plan.socials} />
+                </div>
+            </div>
+        </div>
     );
 }

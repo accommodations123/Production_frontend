@@ -78,8 +78,8 @@ export function FilterPanel({ filters, onChange }) {
       priceMax: "",
       category: "",
       country: "",
-      state: "",
-      city: "",
+      state: "All States",
+      city: "All Cities",
       search: "",
     });
     setStatesList([]);
@@ -138,27 +138,35 @@ export function FilterPanel({ filters, onChange }) {
               <SearchableDropdown
                 label="State"
                 placeholder="All States"
-                options={statesList}
+                options={[
+                  { name: "All States", isoCode: "ALL_STATES" },
+                  ...statesList
+                ]}
                 value={filters.state}
                 disabled={!filters.country}
                 onChange={(s) => {
                   onChange({
                     ...filters,
                     state: s.name,
-                    city: ""
+                    city: "All Cities"
                   });
                   const cCode = countriesList.find(c => c.name === filters.country)?.isoCode;
-                  if (cCode) {
+                  if (cCode && s.isoCode && s.isoCode !== "ALL_STATES") {
                     setCitiesList(City.getCitiesOfState(cCode, s.isoCode));
+                  } else {
+                    setCitiesList([]);
                   }
                 }}
               />
               <SearchableDropdown
                 label="City"
                 placeholder="All Cities"
-                options={citiesList}
+                options={[
+                  { name: "All Cities" },
+                  ...citiesList
+                ]}
                 value={filters.city}
-                disabled={!filters.state}
+                disabled={!filters.state || filters.state === "All States"}
                 onChange={(c) => {
                   onChange({
                     ...filters,

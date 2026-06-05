@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { X, MapPin, Clock, ArrowUpRight, Search, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import axios from 'axios';
 
 const RECENT_SEARCHES_KEY = 'recentLocationSearches';
@@ -131,7 +132,7 @@ export function SearchOverlay({ isOpen, onClose }) {
 
     const handleUseCurrentLocation = useCallback(async () => {
         if (!navigator.geolocation) {
-            alert('Geolocation is not supported by your browser');
+            toast.error('Geolocation is not supported by your browser');
             return;
         }
 
@@ -139,12 +140,16 @@ export function SearchOverlay({ isOpen, onClose }) {
 
         navigator.geolocation.getCurrentPosition(
             async (position) => {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+
                 try {
                     // Reverse geocode to get city name
                     const { latitude, longitude } = position.coords;
                     const response =
                         await axios.get(
-                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+                            { signal: controller.signal, timeout: 8000 }
                         );
 
                     const data = response.data;
@@ -153,21 +158,26 @@ export function SearchOverlay({ isOpen, onClose }) {
                     if (city) {
                         handleSearch(city);
                     } else {
-                        alert('Could not determine your city. Please search manually.');
+                        toast.error('Could not determine your city. Please search manually.');
                     }
                 } catch (error) {
-                    console.error(
-                        'Error getting current location details:',
-                        error
-                    );
-
-                    alert('Failed to get location details. Please search manually.');
+                    // Silently handle timeout/abort errors
+                    if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+                        toast.error('Location lookup timed out. Please search manually.');
+                    } else {
+                        console.error(
+                            'Error getting current location details:',
+                            error
+                        );
+                        toast.error('Failed to get location details. Please search manually.');
+                    }
                 } finally {
+                    clearTimeout(timeoutId);
                     setIsGettingLocation(false);
                 }
             },
             () => {
-                alert('Unable to get your location. Please enable location access.');
+                toast.error('Unable to get your location. Please enable location access.');
                 setIsGettingLocation(false);
             },
             { timeout: 10000 }

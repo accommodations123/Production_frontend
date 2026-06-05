@@ -34,9 +34,25 @@ const rawBase = fetchBaseQuery({
     },
 })
 
+const isNetworkError = (result) => {
+    if (!result?.error) return false;
+    const { status, error } = result.error;
+    return (
+        status === 'FETCH_ERROR' ||
+        status === 'TIMEOUT_ERROR' ||
+        (typeof error === 'string' && /load failed|network|fetch/i.test(error))
+    );
+};
+
 const baseQueryWithLogger = async (args, api, extraOptions) => {
     try {
-        const result = await rawBase(args, api, extraOptions)
+        let result = await rawBase(args, api, extraOptions);
+
+        // Retry once on network-level errors (iOS Safari throws TypeError: Load failed)
+        if (isNetworkError(result)) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            result = await rawBase(args, api, extraOptions);
+        }
 
         if (result.error) {
             const status = result.error.status;
@@ -58,11 +74,30 @@ const baseQueryWithLogger = async (args, api, extraOptions) => {
             if (status === 401 || status === 403) {
                 localStorage.removeItem("user");
             }
+
+            // Replace raw network error messages with user-friendly text
+            if (isNetworkError(result)) {
+                return {
+                    error: {
+                        status: 'FETCH_ERROR',
+                        error: 'Unable to connect. Please check your internet connection and try again.'
+                    }
+                };
+            }
         }
         return result
     } catch (err) {
+        // Suppress abort errors from navigation race conditions
+        if (err.name === 'AbortError') {
+            return { error: { status: 'CUSTOM_ERROR', error: 'Request was cancelled.' } };
+        }
         console.error("❌ RTK baseQuery fatal error", err)
-        return { error: { status: 'CUSTOM_ERROR', error: err.message } }
+        return {
+            error: {
+                status: 'CUSTOM_ERROR',
+                error: 'Something went wrong. Please try again.'
+            }
+        }
     }
 }
 
@@ -898,19 +933,7 @@ export const hostApi = createApi({
             invalidatesTags: ["Trips"]
         }),
 
-        getMatches: builder.query({
-            query: () => "travel/matches/received",
-            providesTags: ["Match"],
-        }),
 
-        travelMatchAction: builder.mutation({
-            query: (data) => ({
-                url: "travel/matches/action",
-                method: "POST",
-                body: data
-            }),
-            invalidatesTags: ["Match", "Trips"]
-        }),
 
         // Notifications
         getNotifications: builder.query({
@@ -1098,8 +1121,6 @@ export const {
     useSearchTripsQuery,
     useLazySearchTripsQuery,
     useCreateTripMutation,
-    useGetMatchesQuery,
-    useTravelMatchActionMutation,
     useGetNotificationsQuery,
     useMarkNotificationAsReadMutation,
     useMarkAllNotificationsAsReadMutation,

@@ -37,7 +37,7 @@ export default function CareerPage() {
     const { activeCountry } = useCountry()
 
     // Fetch data
-    const { data: apiResponse, isLoading, isError } = useGetJobsQuery()
+    const { data: apiResponse, isLoading, isError, refetch } = useGetJobsQuery()
 
     // --- CRITICAL FIX: DATA NORMALIZATION ---
     // The API returns 'experience_level', 'employment_type', etc., but the UI expects 'experience', 'type'.
@@ -205,12 +205,12 @@ export default function CareerPage() {
                 <div className="flex-1 flex items-center justify-center px-4">
                     <div className="text-center max-w-md">
                         <div className="bg-red-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <X className="h-10 w-10 text-red-500" />
+                            <Briefcase className="h-10 w-10 text-red-400" />
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">Unable to load jobs</h2>
-                        <p className="text-gray-600 mb-6">There was a problem fetching the job listings. Please try again later.</p>
-                        <Button onClick={() => window.location.reload()} className="bg-[#CB2A25] hover:bg-[#a82220] text-white">
-                            Retry
+                        <p className="text-gray-600 mb-6">Please check your connection and try again.</p>
+                        <Button onClick={() => refetch()} className="bg-[#CB2A25] hover:bg-[#a82220] text-white">
+                            Try Again
                         </Button>
                     </div>
                 </div>

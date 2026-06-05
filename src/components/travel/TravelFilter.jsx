@@ -1,7 +1,6 @@
 import React from "react";
 import {
     Search,
-    Filter,
     X,
     ChevronDown,
     Globe
@@ -169,70 +168,35 @@ export default function TravelFilter({
     return (
         <>
             <motion.div
-                initial={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl mt-6 mb-12 border border-white/50 relative z-20"
+                className="bg-white rounded-2xl shadow-sm border border-gray-200/80 relative z-20"
             >
-                <div className="p-6 lg:p-8">
+                <div className="p-3 sm:p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
 
-                    <div className="flex flex-col gap-6">
-
-                        {/* Header */}
-                        <div className="flex items-center justify-between">
-
-                            <div className="flex items-center gap-2 text-primary/60 pointer-events-none">
-                                <Filter size={18} />
-                                <span className="text-sm font-bold uppercase tracking-wider">
-                                    Refine Search
-                                </span>
-                            </div>
-
-                            {hasActiveFilters && (
-                                <button
-                                    onClick={onReset}
-                                    className="flex items-center gap-1.5 text-xs font-bold text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full transition-colors"
-                                >
-                                    <X size={14} />
-                                    Clear All
-                                </button>
-                            )}
+                        {/* Search */}
+                        <div className="flex-1 min-w-0 relative">
+                            <Search
+                                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                                size={16}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Search traveler, airline, city..."
+                                className="w-full pl-10 pr-4 h-10 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#CB2A25]/30 focus:bg-white focus:ring-4 focus:ring-[#CB2A25]/5 outline-none transition-all font-medium text-sm text-[#00142E] placeholder:text-gray-400"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </div>
 
-                        {/* Filters */}
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-
-                            {/* Search */}
-                            <div className="md:col-span-12 lg:col-span-5 relative group">
-
-                                <Search
-                                    className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/40"
-                                    size={20}
-                                />
-
-                                <input
-                                    type="text"
-                                    placeholder="Search traveler name, airline..."
-                                    className="w-full pl-14 pr-4 h-14 rounded-2xl bg-neutral/5 border border-neutral/10 focus:border-accent/30 focus:bg-white focus:ring-4 focus:ring-accent/5 outline-none transition-all font-medium text-primary placeholder:text-primary/30"
-                                    value={searchQuery}
-                                    onChange={(e) =>
-                                        setSearchQuery(e.target.value)
-                                    }
-                                />
-                            </div>
-
-                            {/* Country */}
-                            <div
-                                className="md:col-span-4 lg:col-span-3 relative"
-                                ref={countryRef}
+                        {/* Country */}
+                        <div className="relative sm:w-48 lg:w-56" ref={countryRef}>
+                            <button
+                                type="button"
+                                onClick={() => setIsCountryOpen(!isCountryOpen)}
+                                className="w-full h-10 px-3.5 rounded-xl bg-gray-50 border border-gray-200 hover:border-[#CB2A25]/30 focus:border-[#CB2A25]/30 focus:bg-white focus:ring-4 focus:ring-[#CB2A25]/5 outline-none transition-all font-medium text-sm text-[#00142E] flex items-center justify-between gap-2"
                             >
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setIsCountryOpen(!isCountryOpen)
-                                    }
-                                    className="w-full h-14 px-5 rounded-2xl bg-neutral/5 border border-neutral/10 hover:border-accent/30 focus:border-accent/30 focus:bg-white focus:ring-4 focus:ring-accent/5 outline-none transition-all font-medium text-primary flex items-center justify-between gap-2"
-                                >
 
                                     <div className="flex items-center gap-3">
 
@@ -393,23 +357,18 @@ export default function TravelFilter({
                                 </AnimatePresence>
                             </div>
 
-                            {/* City Dropdown */}
-                            <div
-                                className="md:col-span-4 lg:col-span-4 relative"
-                                ref={cityRef}
+                        {/* City Dropdown */}
+                        <div className="relative sm:w-48 lg:w-56" ref={cityRef}>
+                            <button
+                                type="button"
+                                disabled={!filters.country}
+                                onClick={() => setIsCityOpen(!isCityOpen)}
+                                className={`w-full h-10 px-3.5 rounded-xl border transition-all font-medium text-sm flex items-center justify-between gap-2 ${
+                                    !filters.country
+                                        ? "bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed text-gray-400"
+                                        : "bg-gray-50 border-gray-200 hover:border-[#CB2A25]/30 focus:border-[#CB2A25]/30 focus:bg-white focus:ring-4 focus:ring-[#CB2A25]/5 text-[#00142E]"
+                                }`}
                             >
-                                <button
-                                    type="button"
-                                    disabled={!filters.country}
-                                    onClick={() =>
-                                        setIsCityOpen(!isCityOpen)
-                                    }
-                                    className={`w-full h-14 px-5 rounded-2xl border transition-all font-medium flex items-center justify-between gap-2 ${
-                                        !filters.country
-                                            ? "bg-neutral/5 border-neutral/10 opacity-50 cursor-not-allowed text-primary/30"
-                                            : "bg-neutral/5 border-neutral/10 hover:border-accent/30 focus:border-accent/30 focus:bg-white focus:ring-4 focus:ring-accent/5 text-primary"
-                                    }`}
-                                >
                                     <div className="flex items-center gap-3">
                                         <Globe
                                             size={18}
@@ -513,46 +472,19 @@ export default function TravelFilter({
                                     )}
                                 </AnimatePresence>
                             </div>
-                        </div>
+                        {/* Clear button */}
+                        {hasActiveFilters && (
+                            <button
+                                onClick={onReset}
+                                className="flex items-center gap-1.5 text-xs font-bold text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl transition-colors shrink-0 h-10"
+                            >
+                                <X size={14} />
+                                Clear
+                            </button>
+                        )}
                     </div>
                 </div>
-
-                <div
-                    className={`h-1 w-full bg-gradient-to-r from-transparent via-accent to-transparent transition-opacity duration-500 ${hasActiveFilters
-                        ? "opacity-100"
-                        : "opacity-0"
-                        }`}
-                />
             </motion.div>
-
-            {/* ========================= */}
-            {/* FILTERED DATA */}
-            {/* ========================= */}
-
-            <div className="grid gap-6">
-                {filteredTravels.length > 0 ? (
-                    filteredTravels.map((item) => (
-                        <div
-                            key={item.id}
-                            className="p-5 bg-white rounded-2xl shadow"
-                        >
-                            <h2 className="font-bold text-lg">
-                                {item.travelerName}
-                            </h2>
-
-                            <p>{item.airlineName}</p>
-
-                            <p>
-                                {item.country} / {item.state} / {item.city}
-                            </p>
-                        </div>
-                    ))
-                ) : (
-                    <div className="text-center py-10 text-gray-500">
-                        No results found
-                    </div>
-                )}
-            </div>
         </>
     );
 }

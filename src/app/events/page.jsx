@@ -157,10 +157,10 @@ const EventsPage = () => {
   }, [eventsByCategory]);
 
   const uniqueLocations = useMemo(() => {
-    if (!apiEvents || apiEvents.length === 0) return [];
+    if (!allEventsList || allEventsList.length === 0) return [];
     const locations = new Set();
-    apiEvents.forEach(event => {
-      if (event.event_mode?.toLowerCase() === "online") {
+    allEventsList.forEach(event => {
+      if (event.category === "online") {
         return;
       }
       const city = event.city?.trim();
@@ -174,7 +174,7 @@ const EventsPage = () => {
       }
     });
     return Array.from(locations).sort();
-  }, [apiEvents]);
+  }, [allEventsList]);
 
   const totalEvents = useMemo(() => allEventsList.length, [allEventsList])
   const featuredEvents = useMemo(() => allEventsList.slice(0, 5), [allEventsList])

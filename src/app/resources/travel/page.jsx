@@ -1,24 +1,15 @@
 import React, { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plane,
-  Users,
-  ChevronRight,
-  Search,
-  Filter
-} from "lucide-react";
+import { Plane } from "lucide-react";
 import { Navbar } from "../../../components/layout/Navbar";
 import { Footer } from "../../../components/layout/Footer";
 import { useAuth } from "../../../app/events/[id]/hooks/useAuth";
 import {
   useGetMyTripsQuery,
   useGetPublicTripsQuery,
-  useGetMatchesQuery,
   useLazySearchTripsQuery,
-  useTravelMatchActionMutation,
   useGetHostProfileQuery
 } from "../../../store/api/hostApi";
-import { useCountry } from "@/context/CountryContext";
 import { resolveImageUrl } from "@/lib/imageUtils";
 
 // Extracted Constants
@@ -30,12 +21,9 @@ import {
 // Child Components
 import TravelFilter from "../../../components/travel/TravelFilter";
 import TripCard from "../../../components/travel/TripCard";
-import TripDetailModal from "../../../components/travel/TripDetailModal";
 
 // Lazy Loaded Modals for Performance
 const PostTripModal = lazy(() => import("../../../components/travel/PostTripModal"));
-const MatchRequestModal = lazy(() => import("../../../components/travel/MatchRequestModal"));
-const MatchRequestsModal = lazy(() => import("../../../components/travel/MatchRequestsModal"));
 
 import { toast, Toaster } from "sonner";
 
@@ -43,12 +31,8 @@ export default function TravelPage() {
   const { user: currentUser } = useAuth();
   const [plans, setPlans] = useState([]);
   const [myTrips, setMyTrips] = useState([]);
-  const [matches, setMatches] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [showMatchModal, setShowMatchModal] = useState(false);
-  const [showRequestsModal, setShowRequestsModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [expandedPlanId, setExpandedPlanId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     country: "",
@@ -60,12 +44,8 @@ export default function TravelPage() {
   const { data: myTripsData, refetch: refetchMyTrips } = useGetMyTripsQuery(undefined, {
     skip: !currentUser
   });
-  const { data: matchesData, refetch: refetchMatches } = useGetMatchesQuery(undefined, {
-    skip: !currentUser
-  });
   const { data: hostProfile } = useGetHostProfileQuery();
   const [triggerSearch, { data: searchResults }] = useLazySearchTripsQuery();
-  const [performMatchAction] = useTravelMatchActionMutation();
 
   // Mapping utility to transform backend trip to frontend structure
   const mapTripToPlan = (trip) => {
@@ -77,6 +57,69 @@ export default function TravelPage() {
       }
       return c;
     };
+
+    const extractSocials = (t, u = null) => {
+      const getVal = (val) => {
+        if (val === undefined || val === null) return "";
+        return String(val).trim();
+      };
+      return {
+        whatsapp: getVal(
+          t.host?.whatsapp ||
+          t.host?.phone ||
+          t.host?.User?.phone ||
+          t.user?.whatsapp ||
+          t.user?.phone ||
+          t.user?.User?.phone ||
+          t.whatsapp ||
+          t.phone ||
+          u?.phone ||
+          u?.whatsapp ||
+          ""
+        ),
+        email: getVal(
+          t.host?.email ||
+          t.host?.User?.email ||
+          t.user?.email ||
+          t.user?.User?.email ||
+          t.email ||
+          u?.email ||
+          ""
+        ),
+        instagram: getVal(
+          t.host?.instagram ||
+          t.host?.User?.instagram ||
+          t.user?.instagram ||
+          t.user?.User?.instagram ||
+          t.instagram ||
+          u?.instagram ||
+          ""
+        ),
+        facebook: getVal(
+          t.host?.facebook ||
+          t.host?.User?.facebook ||
+          t.user?.facebook ||
+          t.user?.User?.facebook ||
+          t.facebook ||
+          u?.facebook ||
+          ""
+        ),
+        twitter: getVal(
+          t.host?.twitter ||
+          t.host?.x ||
+          t.host?.User?.twitter ||
+          t.user?.twitter ||
+          t.user?.x ||
+          t.user?.User?.twitter ||
+          t.twitter ||
+          u?.twitter ||
+          u?.x ||
+          ""
+        )
+      };
+    };
+
+    const socials = extractSocials(trip, currentUser);
 
     // Handle user's new "My Trips" structure (Lightweight response)
     if (trip.sent_matches || trip.received_matches) {
@@ -96,7 +139,8 @@ export default function TravelPage() {
         },
         destination: trip.to_city ? `${trip.to_city}` : "",
         date: trip.travel_date,
-        status: trip.status || "active"
+        status: trip.status || "active",
+        socials: socials
       };
     }
 
@@ -120,7 +164,8 @@ export default function TravelPage() {
           city: trip.host.city,
           image: resolveImageUrl(trip.host.profile_image || null),
           verified: trip.host.verified || false
-        }
+        },
+        socials: socials
       };
     }
 
@@ -136,7 +181,8 @@ export default function TravelPage() {
         user: {
           ...trip.user,
           image: resolveImageUrl(trip.user.image || trip.user.profile_image || null)
-        }
+        },
+        socials: socials
       };
     }
 
@@ -188,11 +234,12 @@ export default function TravelPage() {
         departureTime: trip.departure_time,
         arrivalDate: trip.arrival_date,
         arrivalTime: trip.arrival_time
-      }
+      },
+      socials: socials
     };
   };
 
-  const { activeCountry } = useCountry();
+  // const { activeCountry } = useCountry();
 
   // Filter by ORIGIN country (from_country) - Shows travelers departing FROM the selected country
   // This helps users find CO-TRAVELERS going on the same journey
@@ -211,7 +258,7 @@ export default function TravelPage() {
   const { data: publicTripsData } = useGetPublicTripsQuery({
     page: 1,
     limit: 50,
-    from_country: getBackendCountryName(filters.country || activeCountry?.name),
+    from_country: getBackendCountryName(filters.country),
     // status: 'active' // Keep commented out for now to see cancelled/pending trips for debugging
   });
 
@@ -222,16 +269,6 @@ export default function TravelPage() {
       setMyTrips(mapped);
     }
   }, [myTripsData, currentUser]);
-
-  // Sync Matches
-  useEffect(() => {
-    // Backend returns 'requests' array from getReceivedMatchRequests
-    if (matchesData?.requests) {
-      setMatches(matchesData.requests);
-    } else if (matchesData?.matches) {
-      setMatches(matchesData.matches);
-    }
-  }, [matchesData]);
 
   // Sync Plans (Public Feed or Search Results)
   useEffect(() => {
@@ -246,9 +283,8 @@ export default function TravelPage() {
       combined = publicTripsData.results.map(mapTripToPlan);
     }
 
-    // Deduplicate by ID and filter out own trips (Compare Host IDs)
-    const uniqueCombined = Array.from(new Map(combined.map(item => [item.id, item])).values())
-      .filter(trip => trip.host_id !== hostProfile?.id);
+    // Deduplicate by ID
+    const uniqueCombined = Array.from(new Map(combined.map(item => [item.id, item])).values());
 
     setPlans(uniqueCombined);
 
@@ -270,21 +306,7 @@ export default function TravelPage() {
 
   // Filter Logic (Local for now, could be API-driven)
   const filteredPlans = useMemo(() => {
-    return plans.map(plan => {
-      // 1. Check Incoming Requests (someone matched WITH ME)
-      const incomingMatch = matches.find(m => m.matched_trip_id === plan.id);
-
-      // 2. Check Outgoing Requests (I matched WITH THEM)
-      // Iterate through my trips and find if any has a match targeting this plan
-      const outgoingMatch = myTrips.flatMap(t => t.matches || []).find(m => m.matched_trip_id === plan.id);
-
-      const status = outgoingMatch ? outgoingMatch.status : incomingMatch ? incomingMatch.status : null;
-
-      return {
-        ...plan,
-        matchStatus: status
-      };
-    }).filter((plan) => {
+    return plans.filter((plan) => {
       const matchesSearch =
         !searchTerm ||
         plan.user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -308,102 +330,11 @@ export default function TravelPage() {
 
       return matchesSearch && matchesCountry && matchesState && matchesCity;
     });
-  }, [plans, searchTerm, filters, matches, myTrips]);
-
-  const handleSendMatchRequest = async (remoteTripId, message, consentGiven) => {
-    // 1. Find user's trip to use as requester
-    const activeTrip = myTrips[0] || plans.find(p => p.host_id === currentUser?.id);
-
-    if (!activeTrip) {
-      alert("You need to post a trip before you can request a match!");
-      return;
-    }
-
-    const myTripId = activeTrip.id;
-
-    const payload = {
-      trip_id: myTripId,
-      matched_trip_id: remoteTripId,
-      action: "request"
-    };
-
-    try {
-      const response = await performMatchAction(payload).unwrap();
-      if (response.success) {
-        // Optimistic update or wait for refetch (RTK Query tags handle refetch)
-        const newMatch = {
-          id: Date.now(),
-          trip_id: myTripId,
-          matched_trip_id: remoteTripId,
-          status: response.status || "pending",
-          consent_given: consentGiven,
-          message,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        // We can rely on refetchMatches but adding manually for instant feedback if needed
-        setMatches(prev => [...prev, newMatch]);
-      }
-    } catch (error) {
-      console.error("Failed to send match request:", error);
-      alert(error?.data?.message || "Failed to send match request. Please try again.");
-    }
-  };
-
-  const updateMatchStatus = async (matchId, tripId, matchedTripId, status) => {
-    // Find match - handle both backend formats (match_id vs id)
-    const match = matches.find(m => m.match_id === matchId || m.id === matchId);
-
-    // Use provided tripId/matchedTripId or fall back to match object
-    const actualTripId = tripId || match?.trip_id || match?.requester_trip?.id;
-    const actualMatchedTripId = matchedTripId || match?.matched_trip_id || match?.receiver_trip?.id;
-
-    if (!actualTripId || !actualMatchedTripId) {
-      console.error("Missing trip IDs for match action");
-      return;
-    }
-
-    // Mapping UI status to backend action
-    const action = status === "accepted" ? "accept" : status === "rejected" ? "reject" : status;
-
-    const payload = {
-      trip_id: actualTripId,
-      matched_trip_id: actualMatchedTripId,
-      action: action
-    };
-
-    try {
-      const response = await performMatchAction(payload).unwrap();
-      if (response.success) {
-        // Remove from local matches array for instant UI feedback
-        setMatches(matches.filter(m => (m.match_id || m.id) !== matchId));
-        // Refetch to get fresh data
-        refetchMatches();
-      }
-    } catch (error) {
-      console.error("Failed to update match status:", error);
-      alert(error?.data?.message || "Failed to update match status. Please try again.");
-    }
-  };
+  }, [plans, searchTerm, filters]);
 
   const resetFilters = () => {
     setSearchTerm("");
     setFilters({ country: "", state: "", city: "" });
-  };
-
-  const handlePlanSelect = (id) => {
-    setExpandedPlanId(expandedPlanId === id ? null : id);
-  };
-
-  const handleOpenMatchModal = (plan) => {
-    toast.promise(
-      handleSendMatchRequest(plan.id, "", true),
-      {
-        loading: 'Sending connect request...',
-        success: `Request sent to ${plan.user.fullName}!`,
-        error: 'Failed to send request. Please try again.',
-      }
-    );
   };
 
   return (
@@ -412,68 +343,40 @@ export default function TravelPage() {
       <style>{colorStyles}</style>
       <Navbar />
 
-      <main className="min-h-screen pt-15 md:pt-20" style={{ backgroundColor: 'var(--color-background)' }}>
+      <main className="min-h-screen pt-16 md:pt-[72px]" style={{ backgroundColor: 'var(--color-background)' }}>
 
-        {/* Hero Section */}
-        <section className="relative min-h-[75vh] flex items-center bg-cover bg-center"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80')" }}>
-          <div className="absolute inset-0 bg-gradient-to-r from-[#00142E]/90 to-transparent"></div>
-
-          <div className="relative z-10 container mx-auto px-6 pb-20">
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl text-white">
-              <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
-                Find Your Perfect <br /> <span style={{ color: 'var(--color-accent)' }}>Travel Partner</span>
-              </h1>
-              <p className="text-xl text-gray-200 mb-10 font-medium">
-                Connect with fellow travelers sharing your flight path. <br />
-                Safe, verified, and community-driven matching.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="
-    w-full sm:w-auto
-    px-4 py-2 text-sm 
-    sm:px-6 sm:py-3 sm:text-base 
-    md:px-8 md:py-4
-    rounded-xl font-bold flex items-center justify-center gap-2 
-    shadow-2xl transition-transform hover:scale-105 active:scale-95 text-white
-  "
-                  style={{ backgroundColor: 'var(--color-accent)' }}
-                >
-                  <Plane className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="truncate">Post Your Trip</span>
-                </button>
-                {currentUser && (
-                  <button
-                    onClick={() => setShowRequestsModal(true)}
-                    className="
-      w-full sm:w-auto
-      px-4 py-2 text-sm 
-      sm:px-6 sm:py-3 sm:text-base 
-      md:px-8 md:py-4
-      rounded-xl font-bold flex items-center justify-center gap-2 
-      shadow-2xl transition-transform hover:scale-105 active:scale-95 
-      bg-white/10 backdrop-blur-md text-white border border-white/20 relative
-    "
-                  >
-                    <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span className="truncate">Match Requests</span>
-
-                    {matches.filter(m => m.status === 'pending' && myTrips.some(t => t.id === m.matched_trip_id)).length > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center animate-pulse">
-                        {matches.filter(m => m.status === 'pending' && myTrips.some(t => t.id === m.matched_trip_id)).length}
-                      </span>
-                    )}
-                  </button>
-                )}
+        {/* Clean Header Bar (Marketplace-style) */}
+        <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-[0_4px_30px_rgba(0,0,0,0.05)]">
+          <div className="container mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#CB2A25] to-[#E04642] flex items-center justify-center shadow-md shadow-[#CB2A25]/20">
+                <Plane className="w-4 h-4 text-white" />
               </div>
-            </motion.div>
+              <div>
+                <h1 className="text-base sm:text-lg font-bold text-[#00142E] leading-tight">
+                  Travel Partners
+                </h1>
+                <p className="text-[10px] sm:text-xs text-gray-500 font-medium hidden sm:block">
+                  Find co-travelers on your flight path
+                </p>
+              </div>
+            </div>
+
+            <motion.button
+              onClick={() => setShowModal(true)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-lg shadow-[#CB2A25]/25 hover:shadow-[#CB2A25]/40 transition-all duration-300 cursor-pointer bg-gradient-to-r from-[#CB2A25] to-[#E04642]"
+            >
+              <Plane className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Post Your Trip</span>
+              <span className="sm:hidden">Post Trip</span>
+            </motion.button>
           </div>
-        </section>
+        </div>
 
         {/* Search & Filter Section */}
-        <div className="container mx-auto px-6 -mt-24 relative z-30">
+        <div className="container mx-auto px-4 sm:px-6 pt-5">
           <TravelFilter
             searchQuery={searchTerm}
             setSearchQuery={setSearchTerm}
@@ -484,29 +387,27 @@ export default function TravelPage() {
         </div>
 
         {/* Trips Grid */}
-        <section className="container mx-auto px-6 py-12">
+        <section className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {filteredPlans.length === 0 ? (
-            <div className="text-center py-24 bg-gray-50 rounded-3xl border-4 border-dashed border-gray-200">
-              <Plane size={64} className="mx-auto mb-6 text-gray-300" />
-              <h3 className="text-2xl font-bold mb-2">No matching travelers found</h3>
-              <p className="text-gray-500 mb-8">Try adjusting your filters or be the first to post a trip!</p>
+            <div className="text-center py-16 sm:py-20 bg-gray-50/80 rounded-2xl border-2 border-dashed border-gray-200">
+              <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-5">
+                <Plane size={28} className="text-gray-300" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-[#00142E] mb-1.5">No travelers found</h3>
+              <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">Try adjusting your filters or be the first to post a trip!</p>
               <button
                 onClick={() => setShowModal(true)}
-                className="px-8 py-3 rounded-xl font-bold text-white shadow-lg mx-auto cursor-pointer"
-                style={{ backgroundColor: 'var(--color-accent)' }}
+                className="px-6 py-2.5 rounded-xl font-bold text-sm text-white shadow-lg cursor-pointer bg-gradient-to-r from-[#CB2A25] to-[#E04642] hover:shadow-xl transition-all"
               >
                 Post a New Trip
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {filteredPlans.map((plan) => (
                 <TripCard
                   key={plan.id}
                   plan={plan}
-                  isSelected={expandedPlanId === plan.id}
-                  onSelect={() => handlePlanSelect(plan.id)}
-                  onMatchRequest={handleOpenMatchModal}
                 />
               ))}
             </div>
@@ -529,17 +430,6 @@ export default function TravelPage() {
                 // Let's call it just in case, or leave empty.
                 refetchMyTrips();
               }}
-            />
-          )}
-
-          {showRequestsModal && (
-            <MatchRequestsModal
-              onClose={() => setShowRequestsModal(false)}
-              matches={matches}
-              plans={plans}
-              myTrips={myTrips}
-              onAcceptRequest={(matchId, tripId, matchedTripId) => updateMatchStatus(matchId, tripId, matchedTripId, "accepted")}
-              onRejectRequest={(matchId, tripId, matchedTripId) => updateMatchStatus(matchId, tripId, matchedTripId, "rejected")}
             />
           )}
         </AnimatePresence>

@@ -43,11 +43,15 @@ export const CountryProvider = ({ children }) => {
   }, [isSelected]);
 
   const initializeWithGeolocation = async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
     try {
       setIsGeolocationLoading(true);
 
       const response = await axios.get(
-        "https://ipapi.co/json/"
+        "https://ipapi.co/json/",
+        { signal: controller.signal, timeout: 5000 }
       );
 
       const data = response.data;
@@ -74,11 +78,15 @@ export const CountryProvider = ({ children }) => {
         }
       }
     } catch (e) {
-      console.error(
-        "Geolocation network request failed:",
-        e.message
-      );
+      // Silently handle AbortError (timeout) and network failures (iOS content blockers)
+      if (e.name !== 'AbortError') {
+        console.error(
+          "Geolocation network request failed:",
+          e.message
+        );
+      }
     } finally {
+      clearTimeout(timeoutId);
       setIsGeolocationLoading(false);
       setIsSelected(true);
     }

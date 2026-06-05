@@ -78,8 +78,8 @@ export default function MarketplacePage() {
   // products state is now managed by RTK Query
   const { data: productsData, isLoading: loading, error } = useGetBuySellListingsQuery({
     country: filters.country || activeCountry?.name,
-    state: filters.state,
-    city: filters.city,
+    state: filters.state === "All States" ? "" : filters.state,
+    city: filters.city === "All Cities" ? "" : filters.city,
     category: filters.category,
     minPrice: filters.priceMin,
     maxPrice: filters.priceMax,
