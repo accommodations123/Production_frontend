@@ -71,7 +71,7 @@ export const CountryProvider = ({ children }) => {
           );
 
           dispatch(
-            hostApi.util.invalidateTags(["Event"])
+            hostApi.util.invalidateTags(["Event", "Job"])
           );
 
           return;
@@ -103,9 +103,9 @@ export const CountryProvider = ({ children }) => {
       JSON.stringify(country)
     );
 
-    // Refetch event queries
+    // Refetch event and job queries
     dispatch(
-      hostApi.util.invalidateTags(["Event"])
+      hostApi.util.invalidateTags(["Event", "Job"])
     );
 
   }, [dispatch]);

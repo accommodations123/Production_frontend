@@ -1,164 +1,170 @@
-import React, { useState } from "react"
-import { MapPin, Briefcase, DollarSign, Clock, ChevronRight, Building, Wifi } from "lucide-react"
+import React, { useState, useMemo } from "react"
+import { MapPin, Briefcase, DollarSign, Clock, Building, Wifi, Sparkles, User, Calendar, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-// Function to generate a consistent color based on company name
-const getCompanyColor = (companyName) => {
-    const colors = [
-        "bg-blue-500", "bg-green-500", "bg-red-500", "bg-purple-500",
-        "bg-yellow-500", "bg-pink-500", "bg-indigo-500", "bg-teal-500"
-    ];
-
-    let hash = 0;
-    if (!companyName) return colors[0];
-    for (let i = 0; i < companyName.length; i++) {
-        hash = companyName.charCodeAt(i) + ((hash << 5) - hash);
-    }
-
-    return colors[Math.abs(hash) % colors.length];
-}
-
-// Function to get company initial
-const getCompanyInitial = (companyName) => {
-    return companyName ? companyName.charAt(0).toUpperCase() : '';
-}
-
-// Function to get work style icon
-const getWorkStyleIcon = (workStyle) => {
-    switch (workStyle?.toLowerCase()) {
-        case 'remote':
-            return <Wifi className="h-4 w-4" />;
-        case 'hybrid':
-            return <Wifi className="h-4 w-4" />;
-        case 'on-site':
-        default:
-            return <Building className="h-4 w-4" />;
-    }
-}
-
-// Function to get work style label
-const getWorkStyleLabel = (workStyle) => {
-    switch (workStyle?.toLowerCase()) {
-        case 'remote':
-            return 'Remote';
-        case 'hybrid':
-            return 'Hybrid';
-        case 'on-site':
-            return 'On-site';
-        default:
-            return workStyle || 'Not specified';
-    }
-}
-
-export function JobCard({ job, onViewDetails }) {
-    // State to track if image has loaded successfully
+export function JobCard({ job, onViewDetails, onApply }) {
     const [imageError, setImageError] = useState(false)
 
+    // Fallback initials or logo
+    const companyInitial = job?.vendorName ? job.vendorName.charAt(0).toUpperCase() : 'N'
+
+    // Visa badges
+    const visaList = useMemo(() => {
+        if (Array.isArray(job?.visaStatus)) return job.visaStatus;
+        if (typeof job?.visaStatus === 'string') {
+            return job.visaStatus.split('/').map(v => v.trim()).filter(Boolean);
+        }
+        return [];
+    }, [job?.visaStatus]);
+
+    // Color indicators for work mode
+    const workModeConfig = useMemo(() => {
+        const mode = (job?.workStyle || '').toLowerCase().trim();
+        if (mode === 'remote') {
+            return {
+                bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                icon: Wifi,
+                label: 'Remote'
+            };
+        } else if (mode === 'hybrid') {
+            return {
+                bg: 'bg-blue-50 text-blue-700 border-blue-200',
+                icon: Wifi,
+                label: 'Hybrid'
+            };
+        }
+        return {
+            bg: 'bg-amber-50 text-amber-700 border-amber-200',
+            icon: Building,
+            label: job?.workStyle || 'On-site'
+        };
+    }, [job?.workStyle]);
+
+    // Position type styling
+    const positionTypeClass = useMemo(() => {
+        const type = (job?.positionType || job?.type || '').toLowerCase();
+        if (type.includes('c2c')) return 'bg-purple-50 text-purple-700 border-purple-200';
+        if (type.includes('w2')) return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+        if (type.includes('contract')) return 'bg-cyan-50 text-cyan-700 border-cyan-200';
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+    }, [job?.positionType, job?.type]);
+
     return (
-        <div className="bg-white rounded-xl p-6 border border-gray-100 hover:shadow-lg transition-all group relative overflow-hidden">
-            <div className="flex flex-col md:flex-row gap-6">
-                {/* Logo */}
-                <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-50 flex-shrink-0 border border-gray-100">
-                    {job.logo && !imageError ? (
-                        <img
-                            src={job.logo}
-                            alt={job.company}
-                            className="w-full h-full object-cover"
-                            onError={() => {
-                                setImageError(true);
-                            }}
-                        />
-                    ) : (
-                        <div className={`w-full h-full flex items-center justify-center ${getCompanyColor(job.company)}`}>
-                            <span className="text-white font-bold text-xl">
-                                {getCompanyInitial(job.company)}
-                            </span>
+        <div className="group relative bg-white rounded-2xl border border-gray-100 hover:border-[#CB2A25]/20 transition-all duration-300 hover:shadow-xl hover:shadow-[#CB2A25]/5 overflow-hidden flex flex-col justify-between">
+            {/* New / Featured Header Pill */}
+            {job?.featured && (
+                <div className="absolute top-0 right-6 z-10">
+                    <div className="bg-gradient-to-r from-[#CB2A25] to-[#e04440] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-b-lg shadow-sm flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        Featured
+                    </div>
+                </div>
+            )}
+
+            <div className="p-6 flex-1">
+                {/* Title and Top Metas */}
+                <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00142E] to-[#00224b] text-white flex items-center justify-center font-bold text-lg shadow-sm shrink-0">
+                        {companyInitial}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <h3 className="text-base font-bold text-gray-900 group-hover:text-[#CB2A25] transition-colors duration-200 line-clamp-1">
+                            {job?.title || 'Senior Developer'}
+                        </h3>
+                        
+                        {/* Client & Vendor details */}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-gray-500 font-medium">
+                            {job?.clientName && (
+                                <>
+                                    <span className="text-gray-900">Client: {job.clientName}</span>
+                                    <span className="text-gray-300">•</span>
+                                </>
+                            )}
+                            <span>Vendor: {job?.vendorName || 'NextKinLife LLC'}</span>
                         </div>
-                    )}
+                    </div>
                 </div>
 
-                {/* Content */}
-                <div className="flex-1">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
-                        <div>
-                            <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                                {job.title}
-                            </h3>
-                            <p className="text-gray-500 font-medium">{job.company}</p>
-                        </div>
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                            {job.posted}
+                {/* Badges row */}
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                    {/* Position Type Badge */}
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border ${positionTypeClass}`}>
+                        {job?.positionType || job?.type || 'Contract'}
+                    </span>
+
+                    {/* Work Mode Badge */}
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold border ${workModeConfig.bg}`}>
+                        <workModeConfig.icon className="h-3 w-3" />
+                        {workModeConfig.label}
+                    </span>
+
+                    {/* Visa Eligibility Badges */}
+                    {visaList.map((visa, idx) => (
+                        <span key={idx} className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded bg-gray-50 text-gray-600 text-[11px] font-semibold border border-gray-200">
+                            <ShieldCheck className="h-3 w-3 text-emerald-500" />
+                            {visa}
                         </span>
+                    ))}
+                </div>
+
+                {/* Structured Metadata Grid */}
+                <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 py-3 border-t border-b border-gray-50 mb-4 text-xs font-medium text-gray-600">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
+                        <span className="truncate">{job?.location || 'Remote'}</span>
                     </div>
-
-                    {/* Meta Info */}
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-4">
-                        <div className="flex items-center gap-1.5">
-                            <MapPin className="h-4 w-4" />
-                            {job.location}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <Briefcase className="h-4 w-4" />
-                            {job.experience}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <DollarSign className="h-4 w-4" />
-                            {job.salary}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <Clock className="h-4 w-4" />
-                            {job.type}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            {getWorkStyleIcon(job.workStyle)}
-                            <span>{getWorkStyleLabel(job.workStyle)}</span>
-                        </div>
+                    <div className="flex items-center gap-2 min-w-0">
+                        <Briefcase className="h-4 w-4 text-gray-400 shrink-0" />
+                        <span className="truncate">{job?.experience || '8+ Years'}</span>
                     </div>
-
-                    {/* Description */}
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                        {job.description}
-                    </p>
-
-                    {/* Technologies */}
-                    {job.technologies && Array.isArray(job.technologies) && job.technologies.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-4">
-                            {job.technologies.slice(0, 4).map((tech, index) => (
-                                <span
-                                    key={index}
-                                    className="px-2 py-1 rounded-md bg-gray-50 text-gray-600 text-xs font-medium"
-                                >
-                                    {tech}
-                                </span>
-                            ))}
-                            {job.technologies.length > 4 && (
-                                <span className="px-2 py-1 rounded-md bg-gray-50 text-gray-600 text-xs font-medium">
-                                    +{job.technologies.length - 4} more
-                                </span>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Skills & Action */}
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-50">
-                        <div className="flex flex-wrap gap-2">
-                            {job.skills && Array.isArray(job.skills) && job.skills.map((skill, index) => (
-                                <span
-                                    key={index}
-                                    className="px-2 py-1 rounded-md bg-gray-50 text-gray-600 text-xs font-medium"
-                                >
-                                    {skill}
-                                </span>
-                            ))}
-                        </div>
-                        <Button
-                            onClick={() => onViewDetails(job)}
-                            className="w-full md:w-auto bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition-all"
-                        >
-                            View Details
-                            <ChevronRight className="h-4 w-4 ml-2" />
-                        </Button>
+                    <div className="flex items-center gap-2 min-w-0">
+                        <Clock className="h-4 w-4 text-gray-400 shrink-0" />
+                        <span className="truncate">{job?.duration || '12+ Months'}</span>
                     </div>
+                    <div className="flex items-center gap-2 min-w-0">
+                        <DollarSign className="h-4 w-4 text-emerald-500 shrink-0" />
+                        <span className="truncate font-semibold text-gray-900">{job?.salary || 'Competitive'}</span>
+                    </div>
+                </div>
+
+                {/* Skills Preview */}
+                {Array.isArray(job?.skills) && job.skills.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                        {job.skills.slice(0, 3).map((skill, idx) => (
+                            <span key={idx} className="px-2 py-0.5 rounded bg-[#CB2A25]/5 text-[#CB2A25] text-[10px] font-medium border border-[#CB2A25]/10">
+                                {skill}
+                            </span>
+                        ))}
+                        {job.skills.length > 3 && (
+                            <span className="px-2 py-0.5 rounded bg-gray-50 text-gray-500 text-[10px] font-medium">
+                                +{job.skills.length - 3} more
+                            </span>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="px-6 pb-6 pt-2 border-t border-gray-50 flex items-center justify-between gap-3 bg-gray-50/50">
+                <span className="text-[10px] text-gray-400 flex items-center gap-1 font-medium">
+                    <Calendar className="h-3 w-3" />
+                    {job?.posted || '2 Days Ago'}
+                </span>
+                
+                <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                        variant="outline"
+                        onClick={() => onViewDetails?.(job)}
+                        className="h-8 text-[11px] font-bold px-3 border-gray-200 text-[#00142E] hover:bg-gray-50 rounded-lg transition-all"
+                    >
+                        View Details
+                    </Button>
+                    <Button
+                        onClick={() => onApply?.(job)}
+                        className="h-8 text-[11px] font-bold px-3.5 bg-[#CB2A25] hover:bg-[#b0221e] text-white rounded-lg shadow-sm hover:shadow transition-all"
+                    >
+                        Apply Now
+                    </Button>
                 </div>
             </div>
         </div>

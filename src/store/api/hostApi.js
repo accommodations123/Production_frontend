@@ -785,7 +785,26 @@ export const hostApi = createApi({
             invalidatesTags: (result, error, id) => [{ type: "Event", id }],
         }),
         getJobs: builder.query({
-            query: (country) => country ? `carrer/jobs?location=${encodeURIComponent(country)}` : "carrer/jobs",
+            query: (params) => {
+                if (typeof params === 'string') {
+                    return params ? `carrer/jobs?location=${encodeURIComponent(params)}` : "carrer/jobs";
+                }
+                const parts = [];
+                if (params) {
+                    if (params.country) parts.push(`location=${encodeURIComponent(params.country)}`);
+                    if (params.positionType) parts.push(`positionType=${encodeURIComponent(params.positionType)}`);
+                    if (params.workMode) parts.push(`workMode=${encodeURIComponent(params.workMode)}`);
+                    if (params.experience) parts.push(`experience=${encodeURIComponent(params.experience)}`);
+                    if (params.state) parts.push(`state=${encodeURIComponent(params.state)}`);
+                    if (params.city) parts.push(`city=${encodeURIComponent(params.city)}`);
+                    if (params.payType) parts.push(`payType=${encodeURIComponent(params.payType)}`);
+                    if (params.search) parts.push(`search=${encodeURIComponent(params.search)}`);
+                    if (params.sort) parts.push(`sort=${encodeURIComponent(params.sort)}`);
+                    if (params.status) parts.push(`status=${encodeURIComponent(params.status)}`);
+                }
+                const qs = parts.join('&');
+                return qs ? `carrer/jobs?${qs}` : "carrer/jobs";
+            },
             providesTags: ["Job"],
             transformResponse: (response) => {
                 const jobs = response?.jobs || response?.data || response || [];
@@ -823,28 +842,58 @@ export const hostApi = createApi({
                     return map[val.toLowerCase()] || val;
                 };
 
-                return jobs.map(job => ({
-                    ...job,
-                    id: job.id || job._id,
-                    title: job.title || "Untitled Position",
-                    company: job.company || "Company",
-                    description: job.description || "",
-                    department: job.department || "General",
-                    location: job.location || "Remote",
-                    experience: normalizeExperience(job.experience_level),
-                    type: normalizeType(job.employment_type),
-                    workStyle: normalizeWorkStyle(job.work_style),
-                    salary: job.salary_range || job.salary || "Competitive",
-                    postedDate: job.createdAt || job.created_at || new Date().toISOString(),
-                    posted: getTimeAgo(job.createdAt || job.created_at),
-                    applicants: job.applications_count || job.applicants || 0,
-                    responsibilities: job.responsibilities || [],
-                    requirements: job.requirements || [],
-                    benefits: job.benefits || [],
-                    skills: job.skills || [],
-                    featured: job.featured || false,
-                    isNew: (new Date() - new Date(job.createdAt || job.created_at || 0)) < 7 * 24 * 60 * 60 * 1000,
-                }));
+                const normalizeJob = (jobItem) => {
+                    const visaStatus = Array.isArray(jobItem.visa_status) ? jobItem.visa_status : [];
+                    const preferredSkills = Array.isArray(jobItem.preferred_skills) ? jobItem.preferred_skills : [];
+                    const responsibilities = Array.isArray(jobItem.responsibilities) ? jobItem.responsibilities : [];
+                    const requirements = Array.isArray(jobItem.requirements) ? jobItem.requirements : [];
+                    const benefits = Array.isArray(jobItem.benefits) ? jobItem.benefits : [];
+
+                    let salaryText = jobItem.salary_range || jobItem.salary;
+                    if (!salaryText && jobItem.pay_min && jobItem.pay_max) {
+                        salaryText = `$${Math.round(jobItem.pay_min)}-$${Math.round(jobItem.pay_max)}/${jobItem.pay_type === 'salary' ? 'yr' : 'hr'}`;
+                    }
+
+                    return {
+                        ...jobItem,
+                        id: jobItem.id || jobItem._id,
+                        title: jobItem.title || "Untitled Position",
+                        company: jobItem.company || "NextKinLife LLC",
+                        clientName: jobItem.client_name || "",
+                        vendorName: jobItem.vendor_name || "NextKinLife LLC",
+                        location: jobItem.location || "Remote",
+                        department: jobItem.department || "General",
+                        description: jobItem.description || "",
+                        experience: jobItem.experience_level || "Not specified",
+                        type: jobItem.position_type || jobItem.employment_type || "Full Time",
+                        positionType: jobItem.position_type || jobItem.employment_type || "Full Time",
+                        workStyle: normalizeWorkStyle(jobItem.work_style),
+                        duration: jobItem.contract_duration || "Long Term",
+                        salary: salaryText || "Competitive",
+                        payMin: jobItem.pay_min,
+                        payMax: jobItem.pay_max,
+                        payType: jobItem.pay_type || "hourly",
+                        visaStatus,
+                        startDate: jobItem.start_date,
+                        preferredSkills,
+                        responsibilities,
+                        requirements,
+                        benefits,
+                        recruiterName: jobItem.recruiter_name || "Vinod Kumar",
+                        recruiterEmail: jobItem.recruiter_email || "careers@nextkinlife.com",
+                        recruiterPhone: jobItem.recruiter_phone || "+1 (555) 123-4567",
+                        recruiterLinkedin: jobItem.recruiter_linkedin || "linkedin.com/company/nextkinlife",
+                        companyLinkedin: jobItem.company_linkedin || "https://linkedin.com/company/nextkinlife",
+                        postedDate: jobItem.createdAt || jobItem.created_at || new Date().toISOString(),
+                        posted: getTimeAgo(jobItem.createdAt || jobItem.created_at),
+                        applicants: jobItem.applications_count || jobItem.applicants || 0,
+                        skills: Array.isArray(jobItem.skills) ? jobItem.skills : [],
+                        featured: jobItem.featured || false,
+                        isNew: (new Date() - new Date(jobItem.createdAt || jobItem.created_at || 0)) < 7 * 24 * 60 * 60 * 1000,
+                    };
+                };
+
+                return jobs.map(normalizeJob);
             },
         }),
         getJobById: builder.query({
@@ -853,19 +902,56 @@ export const hostApi = createApi({
             transformResponse: (response) => {
                 const job = response?.job || response?.data || response;
                 if (!job) return null;
+
+                const normalizeWorkStyle = (val) => {
+                    if (!val) return "Not specified";
+                    const map = { remote: "Remote", hybrid: "Hybrid", onsite: "On-site" };
+                    return map[val.toLowerCase()] || val;
+                };
+
+                const visaStatus = Array.isArray(job.visa_status) ? job.visa_status : [];
+                const preferredSkills = Array.isArray(job.preferred_skills) ? job.preferred_skills : [];
+                const responsibilities = Array.isArray(job.responsibilities) ? job.responsibilities : [];
+                const requirements = Array.isArray(job.requirements) ? job.requirements : [];
+                const benefits = Array.isArray(job.benefits) ? job.benefits : [];
+
+                let salaryText = job.salary_range || job.salary;
+                if (!salaryText && job.pay_min && job.pay_max) {
+                    salaryText = `$${Math.round(job.pay_min)}-$${Math.round(job.pay_max)}/${job.pay_type === 'salary' ? 'yr' : 'hr'}`;
+                }
+
                 return {
                     ...job,
                     id: job.id || job._id,
-                    experience: job.experience_level || job.experience,
-                    type: job.employment_type || job.type,
-                    workStyle: job.work_style || job.workStyle,
-                    salary: job.salary_range || job.salary,
+                    title: job.title || "Untitled Position",
+                    company: job.company || "NextKinLife LLC",
+                    clientName: job.client_name || "",
+                    vendorName: job.vendor_name || "NextKinLife LLC",
+                    location: job.location || "Remote",
+                    department: job.department || "General",
+                    description: job.description || "",
+                    experience: job.experience_level || job.experience || "Not specified",
+                    type: job.position_type || job.employment_type || job.type || "Full Time",
+                    positionType: job.position_type || job.employment_type || job.type || "Full Time",
+                    workStyle: normalizeWorkStyle(job.work_style || job.workStyle),
+                    duration: job.contract_duration || "Long Term",
+                    salary: salaryText || "Competitive",
+                    payMin: job.pay_min,
+                    payMax: job.pay_max,
+                    payType: job.pay_type || "hourly",
+                    visaStatus,
+                    startDate: job.start_date,
+                    preferredSkills,
+                    responsibilities,
+                    requirements,
+                    benefits,
+                    recruiterName: job.recruiter_name || "Vinod Kumar",
+                    recruiterEmail: job.recruiter_email || "careers@nextkinlife.com",
+                    recruiterPhone: job.recruiter_phone || "+1 (555) 123-4567",
+                    recruiterLinkedin: job.recruiter_linkedin || "linkedin.com/company/nextkinlife",
+                    companyLinkedin: job.company_linkedin || "https://linkedin.com/company/nextkinlife",
                     postedDate: job.createdAt || job.postedDate,
                     applicants: job.applications_count || job.applicants,
-                    // Ensure arrays are present
-                    responsibilities: job.responsibilities || [],
-                    requirements: job.requirements || [],
-                    benefits: job.benefits || [],
                 };
             },
         }),

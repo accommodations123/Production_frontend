@@ -1,17 +1,17 @@
 "use client"
 
-import React, { useState, useMemo, useRef, useEffect } from "react"
+import React, { useState, useMemo, useEffect, useRef } from "react"
+import { useParams, useNavigate } from "react-router-dom"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { JobCard } from "@/components/career/JobCard"
 import { FilterSection } from "@/components/career/FilterSection"
 import { JobDetailsModal } from "@/components/career/JobDetailsModal"
-import { FILTERS } from "@/lib/mock-jobs"
 import { useGetJobsQuery } from "@/store/api/hostApi"
 import {
     Search, MapPin, Filter, X, Briefcase, Building, Globe,
     TrendingUp, Users, Coffee, Award, Shield, Zap, Target, Wifi,
-    ChevronRight, Star, Sparkles, Home, ArrowRight, Loader2
+    ChevronDown, ArrowRight, Loader2, Star, Sparkles
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
@@ -19,69 +19,81 @@ import { usePagination } from "@/hooks/usePagination"
 import { Pagination } from "@/components/ui/Pagination"
 import { useCountry } from "@/context/CountryContext"
 
+const BENEFITS = [
+    { icon: TrendingUp, title: "Career Growth", desc: "Consulting career pathways" },
+    { icon: Users, title: "Top Vendors", desc: "Collaborate with direct tier-1 clients" },
+    { icon: Coffee, title: "Work-Life Balance", desc: "Flexible hours & remote work modes" },
+    { icon: Award, title: "Competitive Rates", desc: "Top consulting industry pricing" },
+    { icon: Shield, title: "Health Plans", desc: "W2 medical coverage options" },
+    { icon: Zap, title: "Cutting Edge Technology", desc: "Work on advanced enterprise stacks" },
+    { icon: Target, title: "Placement Speed", desc: "Fast-track onboarding with clients" },
+    { icon: Wifi, title: "Nationwide Support", desc: "Opportunities across the USA" },
+]
+
+const ITEMS_PER_PAGE = 9
+
 export default function CareerPage() {
+    const { id: routeJobId } = useParams()
+    const navigate = useNavigate()
     const jobListRef = useRef(null)
+
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedFilters, setSelectedFilters] = useState({
-        locations: [],
+        positionType: [],
+        workMode: [],
         experience: [],
-        salary: [],
-        type: [],
-        department: [],
-        workStyle: []
+        payType: [],
+        state: "",
+        city: "",
+        sort: "newest"
     })
+
     const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false)
     const [selectedJob, setSelectedJob] = useState(null)
-    const [activeTab, setActiveTab] = useState("all")
+    const [openApplyDirectly, setOpenApplyDirectly] = useState(false)
 
     const { activeCountry } = useCountry()
 
-    // Fetch data
-    const { data: apiResponse, isLoading, isError, refetch } = useGetJobsQuery()
+    // ─── DIRECT SEO ROUTE DETECTOR ──────────────────────────────────
+    useEffect(() => {
+        if (routeJobId) {
+            setSelectedJob({ id: routeJobId })
+        }
+    }, [routeJobId])
 
-    // --- CRITICAL FIX: DATA NORMALIZATION ---
-    // The API returns 'experience_level', 'employment_type', etc., but the UI expects 'experience', 'type'.
-    // The API returns skills as an object, but the UI expects an array.
-    // This hook transforms the raw API data into the shape the components need.
-    // apiResponse is already the transformed jobs array from hostApi's transformResponse
-   const jobs = useMemo(() => {
-  const rawJobs = Array.isArray(apiResponse) ? apiResponse : [];
+    // ─── QUERY PARAMS FOR BACKEND API ──────────────────────────────
+    const queryParams = useMemo(() => {
+        return {
+            country: activeCountry?.name || undefined,
+            positionType: selectedFilters.positionType.join(","),
+            workMode: selectedFilters.workMode.join(","),
+            experience: selectedFilters.experience.join(","),
+            payType: selectedFilters.payType.join(","),
+            state: selectedFilters.state,
+            city: selectedFilters.city,
+            search: searchQuery,
+            sort: selectedFilters.sort
+        }
+    }, [activeCountry, selectedFilters, searchQuery])
 
-  if (!rawJobs.length) return [];
+    // ─── FETCH JOBS FROM BACKEND API ────────────────────────────────
+    const { data: apiJobsResponse, isLoading, isError, refetch } = useGetJobsQuery(queryParams)
 
-  return rawJobs.map((job) => {
-    const skillsArray = Array.isArray(job.skills)
-      ? job.skills
-      : [
-          ...(job.skills?.primary || []),
-          ...(job.skills?.secondary || []),
-          ...(job.skills?.nice_to_have || [])
-        ];
+    // Normalize jobs array from response
+    const jobs = useMemo(() => {
+        const rawJobs = apiJobsResponse?.jobs || apiJobsResponse?.data || apiJobsResponse
+        return Array.isArray(rawJobs) ? rawJobs : []
+    }, [apiJobsResponse])
 
-    return {
-      ...job,
-      skills: skillsArray,
+    // ─── PAGINATION ─────────────────────────────────────────────────
+    const {
+        currentItems: paginatedJobs,
+        currentPage,
+        totalPages,
+        goToPage
+    } = usePagination(jobs, ITEMS_PER_PAGE)
 
-      // ✅ ADD THESE (CRITICAL FIX)
-      experience: job.experience_level,
-      type: job.employment_type,
-        workStyle:
-        job.work_style === "remote"
-          ? "Remote"
-          : job.work_style === "hybrid"
-          ? "Hybrid"
-          : "On-site",
-
-      salary: job.salary_range
-    };
-  });
-}, [apiResponse]);
-
-    const handleViewDetails = (job) => {
-        setSelectedJob(job)
-    }
-
-    // Toggle filter selection
+    // ─── FILTER HANDLERS ────────────────────────────────────────────
     const toggleFilter = (category, value) => {
         setSelectedFilters(prev => {
             const current = prev[category]
@@ -90,449 +102,369 @@ export default function CareerPage() {
                 : [...current, value]
             return { ...prev, [category]: updated }
         })
-
-        // Scroll to job results after filter change (debounced slightly)
-        setTimeout(() => {
-            if (jobListRef.current) {
-                const yOffset = -150;
-                const element = jobListRef.current;
-                const y = element.getBoundingClientRect().top + window.scrollY + yOffset;
-                window.scrollTo({ top: y, behavior: 'smooth' });
-            }
-        }, 100)
     }
 
-    // Clear all filters
+    const handleFilterTextChange = (field, value) => {
+        setSelectedFilters(prev => ({ ...prev, [field]: value }))
+    }
+
     const clearFilters = () => {
         setSelectedFilters({
-            locations: [],
+            positionType: [],
+            workMode: [],
             experience: [],
-            salary: [],
-            type: [],
-            department: [],
-            workStyle: []
+            payType: [],
+            state: "",
+            city: "",
+            sort: "newest"
         })
         setSearchQuery("")
     }
 
-    // Filter jobs logic
-    const filteredJobs = useMemo(() => {
-        return jobs.filter(job => {
-            // Search Query
-            const searchLower = searchQuery.toLowerCase();
-            const matchesSearch = !searchQuery ||
-                (job.title?.toLowerCase() || '').includes(searchLower) ||
-                (job.company?.toLowerCase() || '').includes(searchLower) ||
-                (job.department?.toLowerCase() || '').includes(searchLower) ||
-                (job.description?.toLowerCase() || '').includes(searchLower) ||
-                // Safe check for skills array
-                (Array.isArray(job.skills) && job.skills.some(skill => (skill?.toLowerCase() || '').includes(searchLower)))
-
-            // Filters
-            // Note: Ensure the values in your FILTERS constant match the API values exactly (case-sensitive)
-            const matchesLocation = selectedFilters.locations.length === 0 || selectedFilters.locations.includes(job.location)
-            const matchesExperience = selectedFilters.experience.length === 0 || selectedFilters.experience.includes(job.experience)
-            const matchesSalary = selectedFilters.salary.length === 0 || selectedFilters.salary.includes(job.salary)
-            const matchesType = selectedFilters.type.length === 0 || selectedFilters.type.includes(job.type)
-            const matchesDepartment = selectedFilters.department.length === 0 || selectedFilters.department.includes(job.department)
-            const matchesWorkStyle = selectedFilters.workStyle.length === 0 || selectedFilters.workStyle.includes(job.workStyle)
-
-            // Tab filter
-            const matchesTab = activeTab === "all" ||
-                (activeTab === "featured" && job.featured) ||
-                (activeTab === "remote" && job.workStyle === "Remote") ||
-                (activeTab === "new" && job.isNew)
-
-            return matchesSearch && matchesLocation && matchesExperience && matchesType &&
-                matchesDepartment && matchesWorkStyle && matchesTab
-        })
-    }, [searchQuery, selectedFilters, activeTab, jobs])
-
-    // Pagination
-    const {
-        currentItems: paginatedJobs,
-        currentPage,
-        totalPages,
-        goToPage
-    } = usePagination(filteredJobs, 10);
-
-    // Animation variants
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
+    const handleViewDetails = (job) => {
+        setOpenApplyDirectly(false)
+        setSelectedJob(job)
+        if (job.id) {
+            navigate(`/career/job/${job.id}`)
         }
     }
 
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: {
-            y: 0,
-            opacity: 1,
-            transition: { duration: 0.4 }
+    const handleApplyNow = (job) => {
+        setOpenApplyDirectly(true)
+        setSelectedJob(job)
+        if (job.id) {
+            navigate(`/career/job/${job.id}`)
         }
     }
 
-    const tabs = [
-        { id: "all", label: "All Jobs", icon: Briefcase },
-        { id: "featured", label: "Featured", icon: Star },
-        { id: "remote", label: "Remote", icon: Home },
-        { id: "new", label: "New", icon: Sparkles }
-    ]
-
-    // --- LOADING STATE ---
-    if (isLoading) {
-        return (
-            <main className="min-h-screen bg-gradient-to-br from-gray-50 via-[#D1CBB7]/10 to-gray-50 font-sans flex flex-col">
-                <Navbar />
-                <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                        <Loader2 className="h-12 w-12 animate-spin text-[#CB2A25] mx-auto mb-4" />
-                        <p className="text-gray-500 text-lg">Loading opportunities...</p>
-                    </div>
-                </div>
-                <Footer />
-            </main>
-        )
+    const handleCloseModal = () => {
+        setSelectedJob(null)
+        setOpenApplyDirectly(false)
+        if (routeJobId) {
+            navigate("/career")
+        }
     }
 
-    // --- ERROR STATE ---
-    if (isError) {
-        return (
-            <main className="min-h-screen bg-gradient-to-br from-gray-50 via-[#D1CBB7]/10 to-gray-50 font-sans flex flex-col">
-                <Navbar />
-                <div className="flex-1 flex items-center justify-center px-4">
-                    <div className="text-center max-w-md">
-                        <div className="bg-red-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <Briefcase className="h-10 w-10 text-red-400" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Unable to load jobs</h2>
-                        <p className="text-gray-600 mb-6">Please check your connection and try again.</p>
-                        <Button onClick={() => refetch()} className="bg-[#CB2A25] hover:bg-[#a82220] text-white">
-                            Try Again
-                        </Button>
-                    </div>
+    const activeFilterCount = useMemo(() => {
+        let count = 0
+        count += selectedFilters.positionType.length
+        count += selectedFilters.workMode.length
+        count += selectedFilters.experience.length
+        count += selectedFilters.payType.length
+        if (selectedFilters.state) count += 1
+        if (selectedFilters.city) count += 1
+        return count
+    }, [selectedFilters])
+
+    // Render filter sidebar contents
+    const renderFilterContent = () => (
+        <div className="space-y-5">
+            {/* Search Input in Filters */}
+            <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Search</label>
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Keyword, skill, title..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full h-10 pl-9 pr-4 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/5 outline-none transition-all text-xs font-semibold"
+                    />
                 </div>
-                <Footer />
-            </main>
-        )
-    }
+            </div>
+
+            {/* Position Type Filter */}
+            <FilterSection
+                title="Position Type"
+                options={["C2C", "W2", "Contract", "Full Time"]}
+                selected={selectedFilters.positionType}
+                onChange={(val) => toggleFilter('positionType', val)}
+            />
+
+            {/* Work Mode Filter */}
+            <FilterSection
+                title="Work Mode"
+                options={["Remote", "Hybrid", "Onsite"]}
+                selected={selectedFilters.workMode}
+                onChange={(val) => toggleFilter('workMode', val)}
+            />
+
+            {/* Experience Filter */}
+            <FilterSection
+                title="Experience"
+                options={["0–3 Years", "4–7 Years", "8+ Years"]}
+                selected={selectedFilters.experience}
+                onChange={(val) => toggleFilter('experience', val)}
+            />
+
+            {/* Pay Type Filter */}
+            <FilterSection
+                title="Pay Type"
+                options={["Hourly", "Salary"]}
+                selected={selectedFilters.payType}
+                onChange={(val) => toggleFilter('payType', val)}
+            />
+
+            {/* Location Filters */}
+            <div className="border-t border-gray-100 pt-4 space-y-3">
+                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Location</h4>
+                
+                <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase">State</label>
+                    <input
+                        type="text"
+                        placeholder="e.g. Texas"
+                        value={selectedFilters.state}
+                        onChange={(e) => handleFilterTextChange('state', e.target.value)}
+                        className="w-full h-10 px-3.5 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/5 outline-none text-xs font-semibold"
+                    />
+                </div>
+
+                <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase">City</label>
+                    <input
+                        type="text"
+                        placeholder="e.g. Dallas"
+                        value={selectedFilters.city}
+                        onChange={(e) => handleFilterTextChange('city', e.target.value)}
+                        className="w-full h-10 px-3.5 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/5 outline-none text-xs font-semibold"
+                    />
+                </div>
+            </div>
+        </div>
+    )
 
     return (
-<main className="min-h-screen bg-gradient-to-br from-gray-50 via-[#D1CBB7]/10 to-gray-50 font-sans pb-32 lg:pb-0 overflow-x-hidden">            <Navbar />
+        <main className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100/30 to-gray-50 font-sans pb-32 lg:pb-0 overflow-x-hidden">
+            <Navbar />
 
-            {/* Hero Section */}
-            <div className="bg-gradient-to-br from-[#00142E] via-[#0A1C30] to-[#02152B] pt-24 sm:pt-28 pb-12 sm:pb-16 md:pb-20 px-4 relative overflow-hidden">
-                {/* Animated background elements */}
+            {/* ═══════════════════ HERO SECTION ═══════════════════ */}
+            <div className="bg-gradient-to-br from-[#00142E] via-[#0A1C30] to-[#02152B] pt-28 pb-16 px-4 relative overflow-hidden">
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#CB2A25] rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#D1CBB7] rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-pulse animation-delay-2000"></div>
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#0A1C30] rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse animation-delay-4000"></div>
+                    <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#CB2A25] rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" />
+                    <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#CB2A25] rounded-full mix-blend-multiply filter blur-xl opacity-10" />
                 </div>
 
-                <div className="container mx-auto max-w-6xl relative z-10">
+                <div className="container mx-auto max-w-5xl relative z-10 text-center">
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="text-center mb-8 sm:mb-10 md:mb-12"
                     >
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
-                            Find Your Dream Job at <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CB2A25] to-[#D1CBB7] whitespace-nowrap">NextKinLife LLC</span>
+                        {/* Country indicator */}
+                        {activeCountry?.name && (
+                            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-bold mb-6">
+                                {activeCountry.flag && (
+                                    <img
+                                        src={activeCountry.flag}
+                                        alt={activeCountry.name}
+                                        className="w-5 h-3.5 object-cover rounded-sm"
+                                        loading="lazy"
+                                    />
+                                )}
+                                <span>Showing jobs in {activeCountry.name}</span>
+                                <Globe className="h-3 w-3 text-white/60" />
+                            </div>
+                        )}
+
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-4 max-w-4xl mx-auto">
+                            Explore IT Consulting Opportunities with{' '}
+                            <span className="text-[#CB2A25]">NextKinLife LLC</span>
                         </h1>
-                        <p className="text-white/90 max-w-3xl mx-auto text-base sm:text-lg md:text-xl leading-relaxed">
-                            Join our team of innovators and change-makers. Discover opportunities that align with your passion and skills.
+                        <p className="text-white/80 max-w-3xl mx-auto text-sm sm:text-base leading-relaxed mb-8">
+                            Connect with client and vendor opportunities across the United States. Apply for C2C, W2, Contract, and Full-Time positions.
                         </p>
                     </motion.div>
 
-                    {/* Search Bar */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                        className="bg-white/10 backdrop-blur-md p-3 rounded-2xl shadow-2xl flex flex-col md:flex-row gap-3 max-w-4xl mx-auto border border-white/20"
-                    >
+                    {/* Search Bar in Hero */}
+                    <div className="bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/15 max-w-3xl mx-auto flex flex-col sm:flex-row gap-2.5 shadow-xl">
                         <div className="flex-1 relative">
-                            <Search className="absolute left-4 top-3 h-4 w-4 text-white/70" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
                             <input
                                 type="text"
-                                placeholder="Search by title, skill, or keyword..."
-                                className="w-full h-12 pl-12 pr-4 rounded-xl outline-none bg-white/90 text-gray-900 placeholder:text-gray-500 focus:ring-4 focus:ring-white/30 transition-all text-base"
+                                placeholder="Search by job title, description, vendor, or skills..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full h-11 pl-12 pr-4 rounded-xl outline-none bg-white/10 text-white placeholder:text-gray-400 focus:bg-white focus:text-gray-900 transition-all text-sm font-semibold"
                             />
                         </div>
-                        <div className="h-px md:h-12 w-full md:w-px bg-white/20" />
-                        <div className="flex-1 relative hidden md:block">
-                            <MapPin className="absolute left-4 top-3 h-4 w-4 text-white/70" />
-                            <input
-                                type="text"
-                                placeholder="Location or Remote"
-                                className="w-full h-12 pl-12 pr-4 rounded-xl outline-none bg-white/90 text-gray-900 placeholder:text-gray-500 focus:ring-4 focus:ring-white/30 transition-all text-base"
-                            // Note: Implement location search logic if needed
-                            />
-                        </div>
-                        <Button className="h-12 px-8 bg-[#CB2A25] hover:bg-[#a82220] text-white rounded-xl font-bold text-base shadow-xl transition-all hover:shadow-2xl flex items-center gap-2">
+                        <Button className="h-11 px-6 bg-[#CB2A25] hover:bg-[#b0221e] text-white rounded-xl font-bold text-xs shadow-md flex items-center justify-center gap-2">
                             Search Jobs
                             <ArrowRight className="h-4 w-4" />
                         </Button>
-                    </motion.div>
-
-                    {/* Stats */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.4 }}
-                        className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 mt-8 sm:mt-10 md:mt-12"
-                    >
-                        <div className="flex items-center gap-3 text-white/90 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20">
-                            <Briefcase className="h-6 w-6" />
-                            <span className="font-semibold text-lg">{jobs.length}+ Open Positions</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-white/90 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20">
-                            <Building className="h-6 w-6" />
-                            <span className="font-semibold text-lg">8 Departments</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-white/90 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full border border-white/20">
-                            <Globe className="h-6 w-6" />
-                            <span className="font-semibold text-lg">12 Locations</span>
-                        </div>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
 
-{/* Job Category Tabs */}
-<div className="sticky top-[72px] z-30 w-full bg-white border-b border-gray-100 shadow-sm">
-  <div className="max-w-6xl mx-auto px-4">
-    <div className="flex items-center justify-between py-3">
-
-      {/* SCROLLABLE TABS */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1">
-        <div className="flex gap-2 min-w-max">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
-                activeTab === tab.id
-                  ? "bg-[#00142E] text-white shadow"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-            >
-              <tab.icon className="h-4 w-4 shrink-0" />
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* DESKTOP COUNT */}
-      <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 ml-4 whitespace-nowrap">
-        <span>
-          Showing {filteredJobs.length} of {jobs.length} jobs
-        </span>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-            {/* Benefits Section */}
-            <section className="py-10 sm:py-12 md:py-16 px-4 bg-gradient-to-br from-gray-50 to-white">
-                <div className="container mx-auto max-w-6xl">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5 }}
-                        className="text-center mb-12"
-                    >
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">Why Work With Us</h2>
-                        <p className="text-gray-600 max-w-3xl mx-auto text-lg">
-                            We offer competitive benefits, a supportive work environment, and opportunities for growth.
-                        </p>
-                    </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5 }}
-                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8"
-                    >
-                        {[
-                            { icon: TrendingUp, title: "Career Growth", desc: "Clear advancement paths", color: "from-[#00142E] to-[#0A1C30]" },
-                            { icon: Users, title: "Great Team", desc: "Collaborative environment", color: "from-[#CB2A25] to-[#a82220]" },
-                            { icon: Coffee, title: "Work-Life Balance", desc: "Flexible schedules", color: "from-[#D1CBB7] to-[#b8b29e]" },
-                            { icon: Award, title: "Recognition", desc: "Achievements rewarded", color: "from-[#0A1C30] to-[#02152B]" },
-                            { icon: Shield, title: "Health & Wellness", desc: "Comprehensive benefits", color: "from-[#CB2A25] to-[#a82220]" },
-                            { icon: Zap, title: "Innovation", desc: "Cutting-edge projects", color: "from-[#00142E] to-[#0A1C30]" },
-                            { icon: Target, title: "Impact", desc: "Make a difference", color: "from-[#02152B] to-[#00142E]" },
-                            { icon: Wifi, title: "Modern Office", desc: "State-of-the-art facilities", color: "from-[#CB2A25] to-[#a82220]" }
-                        ].map((benefit, index) => (
-                            <motion.div
-                                key={index}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.3, delay: index * 0.1 }}
-                                className="group"
-                            >
-                                <div className="bg-white rounded-2xl p-5 sm:p-6 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-transparent h-full">
-                                    <div className={`w-16 h-16 bg-gradient-to-br ${benefit.color} rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                                        <benefit.icon className="h-8 w-8 text-white" />
-                                    </div>
-                                    <h3 className="font-bold text-xl text-gray-900 mb-3 text-center">{benefit.title}</h3>
-                                    <p className="text-gray-600 text-center">{benefit.desc}</p>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                </div>
-            </section>
-
-            <div className="container mx-auto max-w-7xl px-4 py-12">
+            {/* ═══════════════════ MAIN CONTENT GRID ═══════════════════ */}
+            <div className="container mx-auto max-w-7xl px-4 py-10 sm:py-12">
                 <div className="flex flex-col lg:flex-row gap-8">
-
-                    {/* LEFT SIDEBAR - FILTERS */}
-                    <aside className="hidden lg:block w-80 flex-shrink-0">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sticky top-24"
-                        >
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="font-bold text-xl text-gray-900 flex items-center gap-2">
-                                    <Filter className="h-5 w-5" />
-                                    Filters
+                    
+                    {/* Filters Sidebar (Desktop) */}
+                    <aside className="hidden lg:block w-72 flex-shrink-0">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-28 space-y-5">
+                            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                                <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                                    <Filter className="h-4.5 w-4.5 text-[#CB2A25]" />
+                                    Filter Positions
+                                    {activeFilterCount > 0 && (
+                                        <span className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1 rounded-full bg-[#CB2A25] text-white text-[10px] font-bold">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
                                 </h3>
-                                {(Object.values(selectedFilters).some(arr => arr.length > 0)) && (
-                                    <button
-                                        onClick={clearFilters}
-                                        className="text-sm font-medium text-[#CB2A25] hover:text-[#a82220] transition-colors"
-                                    >
+                                {activeFilterCount > 0 && (
+                                    <button onClick={clearFilters} className="text-[11px] font-bold text-[#CB2A25] hover:underline">
                                         Clear All
                                     </button>
                                 )}
                             </div>
-
-                            <div className="space-y-4">
-                                <FilterSection
-                                    title="Department"
-                                    options={FILTERS.department}
-                                    selected={selectedFilters.department}
-                                    onChange={(val) => toggleFilter('department', val)}
-                                />
-                                <FilterSection
-                                    title="Location"
-                                    options={FILTERS.locations}
-                                    selected={selectedFilters.locations}
-                                    onChange={(val) => toggleFilter('locations', val)}
-                                />
-                                <FilterSection
-                                    title="Work Style"
-                                    options={FILTERS.workStyle}
-                                    selected={selectedFilters.workStyle}
-                                    onChange={(val) => toggleFilter('workStyle', val)}
-                                />
-                                <FilterSection
-                                    title="Experience"
-                                    options={FILTERS.experience}
-                                    selected={selectedFilters.experience}
-                                    onChange={(val) => toggleFilter('experience', val)}
-                                />
-                                <FilterSection
-                                    title="Job Type"
-                                    options={FILTERS.type}
-                                    selected={selectedFilters.type}
-                                    onChange={(val) => toggleFilter('type', val)}
-                                />
-                                <FilterSection
-                                    title="Salary Range"
-                                    options={FILTERS.salary}
-                                    selected={selectedFilters.salary}
-                                    onChange={(val) => toggleFilter('salary', val)}
-                                />
-                            </div>
-                        </motion.div>
+                            {renderFilterContent()}
+                        </div>
                     </aside>
 
-                    {/* MOBILE FILTER TOGGLE */}
-                    <div className="lg:hidden mb-6">
+                    {/* Mobile Filter Trigger */}
+                    <div className="lg:hidden">
                         <Button
                             onClick={() => setIsMobileFiltersOpen(true)}
                             variant="outline"
-                            className="w-full flex items-center justify-center gap-2 border-[#CB2A25]/30 text-[#CB2A25] hover:bg-[#CB2A25]/5 transition-all h-14 text-base font-medium"
+                            className="w-full h-11 flex items-center justify-center gap-2 border-gray-200 text-gray-700 font-bold text-xs rounded-xl"
                         >
-                            <Filter className="h-5 w-5" />
+                            <Filter className="h-4 w-4" />
                             Filters
-                            {Object.values(selectedFilters).filter(arr => arr.length > 0).length > 0 && (
-                                <span className="ml-2 px-3 py-1 bg-[#CB2A25] text-white text-sm rounded-full">
-                                    {Object.values(selectedFilters).filter(arr => arr.length > 0).length}
+                            {activeFilterCount > 0 && (
+                                <span className="ml-1 px-2 py-0.5 bg-[#CB2A25] text-white text-[10px] rounded-full font-bold">
+                                    {activeFilterCount}
                                 </span>
                             )}
                         </Button>
                     </div>
 
-                    {/* RIGHT CONTENT - JOB LIST */}
-                    <div className="flex-1 scroll-mt-32" ref={jobListRef}>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className="flex items-center justify-between mb-8"
-                        >
-                            <h2 className="text-3xl font-bold text-gray-900">
-                                {filteredJobs.length} {filteredJobs.length === 1 ? 'Job' : 'Jobs'} Available
+                    {/* Job Listings Column */}
+                    <div className="flex-1 min-w-0" ref={jobListRef}>
+                        {/* Header controls & sorting */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-100">
+                            <h2 className="text-lg font-bold text-gray-900">
+                                {isLoading ? "Searching Careers..." : `${jobs.length} Opportunities Found`}
                             </h2>
-                            <div className="text-sm text-gray-500 flex items-center gap-1 cursor-pointer hover:text-[#CB2A25] transition-colors">
-                                Sort by: <span className="font-medium text-gray-900">Most Relevant</span>
-                                <ChevronRight className="h-4 w-4" />
-                            </div>
-                        </motion.div>
 
-                        <div className="space-y-6">
-                            {filteredJobs.length > 0 ? (
-                                <>
-                                    {paginatedJobs.map((job, index) => (
-                                        <div key={job.id || index}>
-                                            <JobCard
-                                                job={job}
-                                                onViewDetails={handleViewDetails}
-                                            />
-                                        </div>
-                                    ))}
-                                    <Pagination
-                                        currentPage={currentPage}
-                                        totalPages={totalPages}
-                                        onPageChange={goToPage}
-                                    />
-                                </>
-                            ) : (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5 }}
-                                    className="text-center py-20 bg-white rounded-2xl border border-gray-100"
-                                >
-                                    <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8">
-                                        <Search className="h-12 w-12 text-gray-400" />
+                            {!isLoading && (
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                                        <span>Sort by:</span>
+                                        <select
+                                            value={selectedFilters.sort}
+                                            onChange={(e) => setSelectedFilters(prev => ({ ...prev, sort: e.target.value }))}
+                                            className="bg-transparent text-[#00142E] font-bold border-none outline-none cursor-pointer focus:ring-0 text-xs"
+                                        >
+                                            <option value="newest">Newest</option>
+                                            <option value="highest_pay">Highest Pay</option>
+                                            <option value="remote_first">Remote First</option>
+                                        </select>
                                     </div>
-                                    <h3 className="text-2xl font-medium text-gray-900 mb-4">No jobs found</h3>
-                                    <p className="text-gray-500 mb-8 max-w-md mx-auto text-lg">Try adjusting your search or filters to find what you're looking for.</p>
-                                    <Button onClick={clearFilters} variant="outline" className="border-[#CB2A25]/30 text-[#CB2A25] hover:bg-[#CB2A25]/5 transition-all h-14 px-8 text-base font-medium">
-                                        Clear Filters
-                                    </Button>
-                                </motion.div>
+                                </div>
                             )}
                         </div>
+
+                        {/* Loading Spinner */}
+                        {isLoading && (
+                            <div className="flex flex-col items-center justify-center py-20">
+                                <Loader2 className="h-8 w-8 text-[#CB2A25] animate-spin mb-4" />
+                                <p className="text-xs text-gray-400 font-semibold">Fetching NextKinLife job listings...</p>
+                            </div>
+                        )}
+
+                        {/* Error state */}
+                        {isError && (
+                            <div className="text-center py-16 bg-white border border-gray-100 rounded-2xl p-6">
+                                <Building className="h-10 w-10 text-red-400 mx-auto mb-4" />
+                                <h3 className="text-base font-bold text-gray-900 mb-1">Failed to retrieve listings</h3>
+                                <p className="text-xs text-gray-500 mb-4">Please check your backend connection or refresh the page.</p>
+                                <Button onClick={() => refetch()} className="bg-[#CB2A25] hover:bg-[#b0221e] text-white text-xs font-bold h-9">
+                                    Try Again
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Jobs Grid list */}
+                        {!isLoading && !isError && (
+                            <>
+                                {jobs.length > 0 ? (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {paginatedJobs.map((job) => (
+                                            <JobCard
+                                                key={job.id}
+                                                job={job}
+                                                onViewDetails={handleViewDetails}
+                                                onApply={handleApplyNow}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-20 bg-white border border-gray-100 rounded-2xl">
+                                        <Search className="h-10 w-10 text-gray-300 mx-auto mb-4" />
+                                        <h3 className="text-base font-bold text-gray-900 mb-1">No positions match your search</h3>
+                                        <p className="text-xs text-gray-500 max-w-sm mx-auto mb-6">
+                                            Try adjusting filters or checking other locations.
+                                        </p>
+                                        {activeFilterCount > 0 && (
+                                            <Button onClick={clearFilters} variant="outline" className="border-gray-200 text-gray-700 h-9 font-bold text-xs rounded-xl">
+                                                Reset Filters
+                                            </Button>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Pagination */}
+                                {totalPages > 1 && (
+                                    <div className="mt-8 flex justify-center">
+                                        <Pagination
+                                            currentPage={currentPage}
+                                            totalPages={totalPages}
+                                            onPageChange={goToPage}
+                                        />
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
+
+                {/* ═══════════════════ ABOUT SECTION ═══════════════════ */}
+                <section className="bg-gradient-to-br from-[#00142E] to-[#0A1C30] text-white p-6 sm:p-10 md:p-12 rounded-[2rem] my-16 shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#CB2A25]/15 rounded-full filter blur-3xl pointer-events-none" />
+                    <div className="relative z-10 max-w-4xl">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-[#CB2A25] bg-white/5 px-3.5 py-1.5 rounded-full border border-white/10 mb-4 inline-block">
+                            About NextKinLife Section
+                        </span>
+                        <h2 className="text-xl sm:text-2xl font-black mb-4 leading-tight">
+                            US-Based IT Staffing & Technology Consulting Partners
+                        </h2>
+                        <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
+                            NextKinLife LLC is a US-based IT Consulting and Staffing company helping organizations connect with qualified technology professionals. We support client and vendor requirements across software development, cloud engineering, data engineering, QA, DevOps, AI, and enterprise technology roles.
+                        </p>
+                    </div>
+                </section>
+
+                {/* ═══════════════════ WHY WORK WITH US BENEFITS ═══════════════════ */}
+                <section className="py-6 border-t border-gray-100">
+                    <h2 className="text-base font-bold text-gray-900 mb-6 text-center">Benefits of Consulting with NextKinLife</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {BENEFITS.map((benefit, index) => (
+                            <div key={index} className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-all duration-300">
+                                <div className="w-8 h-8 rounded-lg bg-red-50 text-[#CB2A25] flex items-center justify-center mb-3">
+                                    <benefit.icon className="w-4.5 h-4.5" />
+                                </div>
+                                <h4 className="text-xs font-bold text-gray-900 mb-1">{benefit.title}</h4>
+                                <p className="text-[10px] text-gray-400 font-medium leading-relaxed">{benefit.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
             </div>
 
-            {/* MOBILE FILTERS MODAL */}
+            {/* Mobile Filters Drawer */}
             <AnimatePresence>
                 {isMobileFiltersOpen && (
                     <>
@@ -540,91 +472,51 @@ export default function CareerPage() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-black/60 z-50 lg:hidden backdrop-blur-sm"
+                            className="fixed inset-0 bg-black/55 z-[1000] backdrop-blur-xs"
                             onClick={() => setIsMobileFiltersOpen(false)}
                         />
                         <motion.div
                             initial={{ x: "100%" }}
                             animate={{ x: 0 }}
                             exit={{ x: "100%" }}
-                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="fixed inset-y-0 right-0 w-[85vw] sm:w-[65vw] max-w-sm bg-white shadow-2xl z-50 lg:hidden overflow-y-auto"
+                            transition={{ type: "spring", damping: 25, stiffness: 220 }}
+                            className="fixed inset-y-0 right-0 w-[85vw] max-w-sm bg-white shadow-2xl z-[1001] overflow-y-auto p-6 flex flex-col justify-between"
                         >
-                            <div className="p-6">
-                                <div className="flex items-center justify-between mb-8">
-                                    <h3 className="font-bold text-xl text-gray-900">Filters</h3>
-                                    <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                                        <X className="h-6 w-6 text-gray-500" />
+                            <div>
+                                <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-6">
+                                    <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                                        <Filter className="h-4.5 w-4.5 text-[#CB2A25]" />
+                                        Filter Positions
+                                    </h3>
+                                    <button onClick={() => setIsMobileFiltersOpen(false)} className="p-1 rounded-full hover:bg-gray-100">
+                                        <X className="h-4 w-4 text-gray-400" />
                                     </button>
                                 </div>
+                                {renderFilterContent()}
+                            </div>
 
-                                <div className="space-y-6">
-                                    <FilterSection
-                                        title="Department"
-                                        options={FILTERS.department}
-                                        selected={selectedFilters.department}
-                                        onChange={(val) => toggleFilter('department', val)}
-                                    />
-                                    <FilterSection
-                                        title="Location"
-                                        options={FILTERS.locations}
-                                        selected={selectedFilters.locations}
-                                        onChange={(val) => toggleFilter('locations', val)}
-                                    />
-                                    <FilterSection
-                                        title="Work Style"
-                                        options={FILTERS.workStyle}
-                                        selected={selectedFilters.workStyle}
-                                        onChange={(val) => toggleFilter('workStyle', val)}
-                                    />
-                                    <FilterSection
-                                        title="Experience"
-                                        options={FILTERS.experience}
-                                        selected={selectedFilters.experience}
-                                        onChange={(val) => toggleFilter('experience', val)}
-                                    />
-                                    <FilterSection
-                                        title="Job Type"
-                                        options={FILTERS.type}
-                                        selected={selectedFilters.type}
-                                        onChange={(val) => toggleFilter('type', val)}
-                                    />
-                                    <FilterSection
-                                        title="Salary Range"
-                                        options={FILTERS.salary}
-                                        selected={selectedFilters.salary}
-                                        onChange={(val) => toggleFilter('salary', val)}
-                                    />
-                                </div>
-
-                                <div className="mt-8 pt-6 border-t border-gray-100 space-y-3">
-                                    <Button
-                                        onClick={clearFilters}
-                                        variant="outline"
-                                        className="w-full border-[#CB2A25]/30 text-[#CB2A25] hover:bg-[#CB2A25]/5 transition-all h-12"
-                                    >
-                                        Clear All Filters
-                                    </Button>
-                                    <Button
-                                        onClick={() => setIsMobileFiltersOpen(false)}
-                                        className="w-full bg-[#00142E] hover:bg-[#0A1C30] text-white transition-all h-12"
-                                    >
-                                        Show {filteredJobs.length} Jobs
-                                    </Button>
-                                </div>
+                            <div className="pt-6 border-t border-gray-100 space-y-2 mt-8">
+                                <Button onClick={clearFilters} variant="outline" className="w-full h-11 text-xs font-bold border-gray-200">
+                                    Reset Filters
+                                </Button>
+                                <Button onClick={() => setIsMobileFiltersOpen(false)} className="w-full h-11 text-xs font-bold bg-[#00142E] text-white">
+                                    Apply Filters ({jobs.length} jobs)
+                                </Button>
                             </div>
                         </motion.div>
                     </>
                 )}
             </AnimatePresence>
 
-            <Footer />
-
+            {/* Details Modal */}
             <JobDetailsModal
                 job={selectedJob}
                 isOpen={!!selectedJob}
-                onClose={() => setSelectedJob(null)}
+                preOpenApply={openApplyDirectly}
+                onClose={handleCloseModal}
             />
+
+            <Footer />
         </main>
     )
 }
