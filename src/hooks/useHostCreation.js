@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -55,6 +55,9 @@ const getFormDataStructure = (type = 'property') => {
         pincode: "",
         country: "",
         state: "",
+        latitude: null,
+        longitude: null,
+        locationPrivacy: "approximate",
 
         // Step 5: Media & Proofs
         images: [],
@@ -75,6 +78,7 @@ const getFormDataStructure = (type = 'property') => {
                 currency: "INR",
                 pricePerHour: "",
                 priceNight: "",
+                priceWeek: "",
                 priceMonth: "",
                 hostPreference: "cultural_exchange", // 'cultural_exchange', 'community_stay', 'long_term'
                 maxGuests: "",
@@ -201,15 +205,29 @@ export function useHostCreation() {
         }
     }, [contributionType]);
 
-    // Update Country in Form
+    // Update Country in Form & Clear stale location fields when changed
+    const lastCountryRef = useRef(null);
     useEffect(() => {
         if (activeCountry) {
+            const lastCountryName = lastCountryRef.current;
+            const currentCountryName = activeCountry.name;
+            const countryChanged = lastCountryName && lastCountryName !== currentCountryName;
+
             setFormData(prev => ({
                 ...prev,
                 country: activeCountry,
                 hostCountry: activeCountry.name,
-                currency: activeCountry.currency || "INR" // Auto-set currency
+                currency: activeCountry.currency || "INR",
+                ...(countryChanged ? {
+                    address: "",
+                    city: "",
+                    state: "",
+                    pincode: "",
+                    latitude: null,
+                    longitude: null
+                } : {})
             }));
+            lastCountryRef.current = currentCountryName;
         }
     }, [activeCountry]);
 
@@ -285,17 +303,17 @@ export function useHostCreation() {
                         const val = prop.property_type || prop.type || prev.type;
                         if (!val) return "";
                         const lower = val.toLowerCase().trim();
-                        if (lower === "pg") return "PG";
-                        const types = ["Apartment", "House", "Villa", "PG", "Hostel", "Shared Room", "Studio", "Townhouse", "Entire Place"];
+                        if (lower === "pg" || lower === "hostel" || lower === "pg / hostel") return "PG / Hostel";
+                        const types = ["Apartment", "House", "Private Room", "Shared Room", "Studio", "PG / Hostel", "Villa", "Townhouse"];
                         const match = types.find(t => t.toLowerCase() === lower);
                         return match || val;
                     })(),
                     privacyType: prop.privacy_type || prev.privacyType,
-                    petsAllowed: prop.pets_allowed ? "1" : "0",
+                    petsAllowed: prop.pets_allowed !== undefined && prop.pets_allowed !== null ? String(prop.pets_allowed) : prev.petsAllowed,
                     sqft: prop.specs?.area || prop.area || prev.sqft,
-                    capacity: prop.specs?.guests || prop.guests || prev.capacity,
-                    bedrooms: prop.specs?.bedrooms || prop.bedrooms || prev.bedrooms,
-                    bathrooms: prop.specs?.bathrooms || prop.bathrooms || prev.bathrooms,
+                    capacity: prop.specs?.guests !== undefined ? String(prop.specs.guests) : (prop.guests !== undefined ? String(prop.guests) : prev.capacity),
+                    bedrooms: prop.specs?.bedrooms !== undefined ? String(prop.specs.bedrooms) : (prop.bedrooms !== undefined ? String(prop.bedrooms) : prev.bedrooms),
+                    bathrooms: prop.specs?.bathrooms !== undefined ? String(prop.specs.bathrooms) : (prop.bathrooms !== undefined ? String(prop.bathrooms) : prev.bathrooms),
                     description: prop.description || prev.description,
 
                     // Location - handle flattened or nested
@@ -304,11 +322,15 @@ export function useHostCreation() {
                     state: prop.location?.state || prop.state || prev.state,
                     country: prop.location?.country || prop.country || prev.country,
                     pincode: prop.location?.zip_code || prop.zip_code || prev.pincode,
+                    latitude: prop.latitude !== undefined && prop.latitude !== null ? prop.latitude : (prop.location?.latitude || prev.latitude),
+                    longitude: prop.longitude !== undefined && prop.longitude !== null ? prop.longitude : (prop.location?.longitude || prev.longitude),
+                    locationPrivacy: prop.location_privacy || prop.locationPrivacy || prev.locationPrivacy || "approximate",
 
                     // Pricing
                     currency: prop.pricing?.currency || prop.currency || "INR",
                     pricePerHour: prop.pricing?.price_per_hour || prop.price_per_hour || prev.pricePerHour,
                     priceNight: prop.pricing?.price_per_night || prop.price_per_night || prev.priceNight,
+                    priceWeek: prop.price_per_week !== undefined && prop.price_per_week !== null ? prop.price_per_week : (prop.pricing?.price_per_week || prev.priceWeek),
                     priceMonth: prop.pricing?.price_per_month || prop.price_per_month || prev.priceMonth,
 
                     // Media
@@ -435,6 +457,20 @@ export function useHostCreation() {
         setCustomRuleInput("");
     };
 
+    // Zip code required countries helper
+    const isZipCodeRequired = (country) => {
+        if (!country) return false;
+        const code = (typeof country === 'object' ? country.code : '') || '';
+        const name = (typeof country === 'object' ? country.name : country) || '';
+        const codeUpper = code.toUpperCase().trim();
+        const nameLower = name.toLowerCase().trim();
+        
+        const requiredCodes = ["US", "IN", "GB", "CA", "AU", "DE", "FR"];
+        const requiredNames = ["united states", "united states of america", "india", "united kingdom", "great britain", "canada", "australia", "germany", "france"];
+        
+        return requiredCodes.includes(codeUpper) || requiredNames.includes(nameLower);
+    };
+
     // Updated validation for different contribution types
     const validateStep = (step) => {
         switch (step) {
@@ -443,15 +479,34 @@ export function useHostCreation() {
                 const hasCategory = !!formData.category;
                 const hasDescription = formData.description && formData.description.trim() !== "";
 
-                // conditional checks based on type could be added here
+                if (contributionType === 'property') {
+                    const isValidNumeric = (val) => {
+                        if (val === "" || val === null || val === undefined) return false;
+                        const num = Number(val);
+                        return Number.isFinite(num) && num >= 0;
+                    };
+                    const hasCapacity = isValidNumeric(formData.capacity);
+                    const hasBedrooms = isValidNumeric(formData.bedrooms);
+                    const hasBathrooms = isValidNumeric(formData.bathrooms);
+                    const hasPropertyType = formData.type && formData.type.trim() !== "";
+                    const hasPrivacyType = formData.privacyType && formData.privacyType.trim() !== "";
+                    
+                    return hasTitle && hasCategory && hasDescription && hasCapacity && hasBedrooms && hasBathrooms && hasPropertyType && hasPrivacyType;
+                }
+
                 return hasTitle && hasCategory && hasDescription;
             }
 
             case 2: { // Location
                 const hasAddress = formData.address && formData.address.trim() !== "";
                 const hasCity = formData.city && formData.city.trim() !== "";
-                // const hasPincode = formData.pincode && formData.pincode.trim() !== "";
-                return hasAddress && hasCity; // Relax pincode check if needed
+                const hasState = formData.state && formData.state.trim() !== "";
+                const hasCountry = formData.country && (typeof formData.country === 'object' ? !!formData.country.name : !!formData.country);
+                
+                const zipRequired = isZipCodeRequired(formData.country);
+                const hasZip = !zipRequired || (formData.pincode && formData.pincode.trim() !== "");
+                
+                return hasAddress && hasCity && hasState && hasCountry && hasZip;
             }
 
             case 3: { // Pricing

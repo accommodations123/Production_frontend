@@ -302,23 +302,23 @@ export function StepPricing({ formData, setFormData, contributionType = 'propert
                     </div>
 
                     <div className="bg-black/20 rounded-xl p-4 border border-white/10">
-                        <label className="text-xs font-medium text-gray-400 block mb-1">Per Hour</label>
+                        <label className="text-xs font-medium text-gray-400 block mb-1">Per Week (Optional)</label>
                         <input
                             type="number"
                             placeholder="0"
-                            className="w-full bg-transparent border-none text-lg font-bold focus:outline-none placeholder:text-gray-600"
-                            value={formData.pricePerHour}
-                            onChange={e => setFormData({ ...formData, pricePerHour: e.target.value })}
+                            className="w-full bg-transparent border-none text-lg font-bold focus:outline-none placeholder:text-gray-600 text-white"
+                            value={formData.priceWeek || ''}
+                            onChange={e => setFormData({ ...formData, priceWeek: e.target.value })}
                         />
                     </div>
 
                     <div className="bg-black/20 rounded-xl p-4 border border-white/10">
-                        <label className="text-xs font-medium text-gray-400 block mb-1">Per Night</label>
+                        <label className="text-xs font-medium text-gray-400 block mb-1">Per Night (Optional)</label>
                         <input
                             type="number"
-                            placeholder="60"
-                            className="w-full bg-transparent border-none text-lg font-bold focus:outline-none placeholder:text-gray-600"
-                            value={formData.priceNight}
+                            placeholder="0"
+                            className="w-full bg-transparent border-none text-lg font-bold focus:outline-none placeholder:text-gray-600 text-white"
+                            value={formData.priceNight || ''}
                             onChange={e => setFormData({ ...formData, priceNight: e.target.value })}
                         />
                     </div>

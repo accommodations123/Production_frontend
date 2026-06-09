@@ -10,6 +10,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useCountry } from '@/context/CountryContext';
 import { filterUpcomingEvents } from '@/lib/eventUtils';
+import { getHostPath } from '@/lib/navigationUtils';
 
 // API Hooks
 import {
@@ -76,6 +77,7 @@ const Skeleton = ({ className = "" }) => (
 
 const HomeFeatured = () => {
   const navigate = useNavigate();
+  const isAuthenticated = !!localStorage.getItem("user");
   const { activeCountry } = useCountry();
   const { data: allProperties, isLoading: propertiesLoading } = useGetAllPropertiesQuery({ country: activeCountry?.name, limit: 4 });
   const { data: approvedEvents, isLoading: eventsLoading } = useGetApprovedEventsQuery({ name: activeCountry?.name, limit: 4 });
@@ -125,6 +127,8 @@ const HomeFeatured = () => {
             subtitle="Explore verified homes with Indian hosts and cultural amenities."
             linkText="View All Stays"
             linkTo="/search"
+            actionText="Host Stay"
+            actionTo={getHostPath('property', isAuthenticated)}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
@@ -167,6 +171,8 @@ const HomeFeatured = () => {
             subtitle="Connect with fellows based on interests, location, and profession."
             linkText="Explore Groups"
             linkTo="/groups"
+            actionText="Start Group"
+            actionTo={getHostPath('group', isAuthenticated)}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
@@ -200,6 +206,8 @@ const HomeFeatured = () => {
             subtitle="Discover festivals, meetups, and cultural celebrations near you."
             linkText="View All Events"
             linkTo="/events"
+            actionText="Host Event"
+            actionTo={getHostPath('event', isAuthenticated)}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
@@ -244,6 +252,8 @@ const HomeFeatured = () => {
             subtitle="Buy, sell, and trade with trusted community members."
             linkText="Browse Marketplace"
             linkTo="/marketplace"
+            actionText="Sell Item"
+            actionTo={getHostPath('marketplace', isAuthenticated)}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {marketplaceLoading ? (

@@ -31,12 +31,15 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                     <div className="relative">
                         <Layout className="absolute left-4 top-3 h-5 w-5 text-gray-400" />
                         <textarea
-                            placeholder="Describe your place..."
+                            placeholder="Fully furnished private room near metro station. Includes WiFi, electricity, kitchen access, and parking. Walking distance to grocery stores, universities, and offices."
                             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:border-accent outline-none min-h-[100px]"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         />
                     </div>
+                    <p className="text-xs text-gray-400 mt-1 leading-relaxed bg-white/5 border border-white/5 p-3 rounded-lg">
+                        Mention nearby university, office, metro station, grocery stores, included utilities, parking, internet, and house rules.
+                    </p>
                 </div>
             </div>
 
@@ -107,7 +110,7 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                 <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-2">
                     <div className="flex items-center gap-2 text-gray-400 mb-2">
                         <Sparkles className="h-4 w-4" />
-                        <span className="text-xs">Sq Ft <span className="text-red-500 ml-1">*</span></span>
+                        <span className="text-xs">Sq Ft</span>
                     </div>
                     <input
                         type="number"
@@ -175,23 +178,23 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                 </div>
             </div>
 
-            {/* Pets Allowed Input (Integer) */}
+            {/* Pets Allowed Input (Select Dropdown, Optional) */}
             <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-2">
                 <div className="flex items-center gap-2 mb-2">
                     <Sparkles className="h-5 w-5 text-yellow-400" />
-                    <label className="text-sm font-bold text-white">Pets Allowed <span className="text-red-500 ml-1">*</span></label>
+                    <label className="text-sm font-bold text-white">Pets Allowed</label>
                 </div>
                 <div className="relative">
-                    <input
-                        type="number"
-                        placeholder="0 (No pets) or Number of pets"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:border-accent outline-none text-white placeholder:text-gray-500"
+                    <select
+                        className="w-full bg-[#1A2B45] border border-[#2C3E5D] rounded-xl py-3 px-4 focus:border-accent outline-none text-white [&>option]:bg-gray-800"
                         value={formData.petsAllowed}
                         onChange={(e) => setFormData({ ...formData, petsAllowed: e.target.value })}
-                        min="0"
-                    />
+                    >
+                        <option value="">Select Option</option>
+                        <option value="0">No Pets</option>
+                        <option value="1">Pets Allowed</option>
+                    </select>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Enter 0 if no pets are allowed.</p>
             </div>
         </div>
     );

@@ -61,6 +61,7 @@ export function useHostSubmission({
             id: propertyId, data: {
                 pricePerHour: Number(formData.pricePerHour) || 0,
                 pricePerNight: Number(formData.priceNight) || 0,
+                pricePerWeek: Number(formData.priceWeek) || 0,
                 pricePerMonth: Number(formData.priceMonth) || 0,
                 currency: formData.currency || 'INR'
             }
@@ -273,11 +274,14 @@ export function useHostSubmission({
 
                     await updatePropertyAddress({
                         id: propertyId, data: {
-                            country: formData.country?.name || 'India',
+                            country: formData.country?.name || (typeof formData.country === 'string' ? formData.country : 'India'),
                             state: formData.state || '',
                             city: formData.city || '',
                             zip_code: formData.pincode || '',
-                            street_address: formData.address || ''
+                            street_address: formData.address || '',
+                            latitude: formData.latitude !== undefined && formData.latitude !== null ? Number(formData.latitude) : null,
+                            longitude: formData.longitude !== undefined && formData.longitude !== null ? Number(formData.longitude) : null,
+                            location_privacy: formData.locationPrivacy || 'approximate'
                         }
                     }).unwrap();
 

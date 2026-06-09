@@ -1,4 +1,4 @@
-import { Home, GraduationCap, Users, Backpack, Building, Heart, Plane } from "lucide-react"
+import { Home, GraduationCap, Users, Backpack, Building, Heart, Plane, Briefcase, HeartHandshake } from "lucide-react"
 
 export const CATEGORIES = [
     { name: "Student", icon: GraduationCap, slug: "student" },
@@ -8,6 +8,8 @@ export const CATEGORIES = [
     { name: "Long-term", icon: Building, slug: "long-term" },
     { name: "Short-term", icon: Home, slug: "short-term" },
     { name: "Sharing", icon: Heart, slug: "sharing" },
+    { name: "Professionals", icon: Briefcase, slug: "professionals" },
+    { name: "Couple Friendly", icon: HeartHandshake, slug: "couple-friendly" },
 ]
 
 export const COUNTRIES = [

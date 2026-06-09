@@ -26,6 +26,143 @@ import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
 import { useCountry } from "@/context/CountryContext";
 import { compressImage } from "@/lib/imageUtils";
 
+const CATEGORY_MAP = {
+  Furniture: [
+    "Bed",
+    "Mattress",
+    "Sofa",
+    "Chair",
+    "Study Table",
+    "Dining Table",
+    "Wardrobe",
+    "TV Stand",
+    "Other"
+  ],
+  Electronics: [
+    "TV",
+    "Monitor",
+    "Gaming Console",
+    "Speaker",
+    "Headphones",
+    "Camera",
+    "Printer",
+    "Smart Watch",
+    "Projector",
+    "Other"
+  ],
+  Vehicles: [
+    "Car",
+    "Bike",
+    "Scooter",
+    "Bicycle",
+    "Truck",
+    "SUV",
+    "Electric Vehicle",
+    "Other"
+  ],
+  "Mobile Phones": [
+    "iPhone",
+    "Samsung",
+    "Google Pixel",
+    "OnePlus",
+    "Motorola",
+    "Xiaomi",
+    "Oppo",
+    "Vivo",
+    "Accessories",
+    "Other"
+  ],
+  "Laptops & Computers": [
+    "Laptop",
+    "Desktop",
+    "MacBook",
+    "Gaming PC",
+    "Monitor",
+    "Keyboard",
+    "Mouse",
+    "Accessories",
+    "Other"
+  ],
+  "Home & Garden": [
+    "Home Decor",
+    "Plants",
+    "Garden Tools",
+    "Storage",
+    "Cleaning Supplies",
+    "Furniture",
+    "Other"
+  ],
+  "Kitchen & Appliances": [
+    "Refrigerator",
+    "Microwave",
+    "Washing Machine",
+    "Mixer Grinder",
+    "Cookware",
+    "Utensils",
+    "Water Purifier",
+    "Coffee Maker",
+    "Other"
+  ],
+  "Books & Study Materials": [
+    "Textbooks",
+    "GRE",
+    "GMAT",
+    "TOEFL",
+    "IELTS",
+    "Programming",
+    "Novels",
+    "Academic Notes",
+    "Other"
+  ],
+  "Clothing & Accessories": [
+    "Men Clothing",
+    "Women Clothing",
+    "Kids Clothing",
+    "Shoes",
+    "Bags",
+    "Watches",
+    "Jewelry",
+    "Accessories",
+    "Other"
+  ],
+  "Sports & Fitness": [
+    "Gym Equipment",
+    "Dumbbells",
+    "Yoga Equipment",
+    "Cycling",
+    "Sports Gear",
+    "Fitness Tracker",
+    "Other"
+  ],
+  "Baby & Kids": [
+    "Baby Clothes",
+    "Toys",
+    "Baby Care",
+    "Strollers",
+    "Study Materials",
+    "Furniture",
+    "Other"
+  ],
+  "Tickets & Events": [
+    "Concert Tickets",
+    "Movie Tickets",
+    "Sports Events",
+    "Travel Tickets",
+    "College Events",
+    "Other"
+  ],
+  Services: [
+    "Tutoring",
+    "Cleaning",
+    "Repair Services",
+    "Moving Services",
+    "Freelance Services",
+    "Home Services",
+    "Other"
+  ],
+  Other: ["Other"]
+};
+
 /* =========================================================
    BASIC UI COMPONENTS (MUST BE ABOVE SellForm)
    ========================================================= */
@@ -196,8 +333,15 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
   const [phone, setPhone] = useState("");
   const [phoneCode, setPhoneCode] = useState("+91");
   const [phoneIso, setPhoneIso] = useState("");
-  const [category, setCategory] = useState("Furniture");
+  const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
+  const [condition, setCondition] = useState("");
+  const [make, setMake] = useState("");
+  const [model, setModel] = useState("");
+  const [year, setYear] = useState("");
+  const [mileage, setMileage] = useState("");
+  const [fuelType, setFuelType] = useState("");
+  const [transmission, setTransmission] = useState("");
 
   const [isPincodeLoading, setIsPincodeLoading] = useState(false);
   const [validationError, setValidationError] = useState("");
@@ -234,6 +378,13 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
       setName(initialData.name || "");
       setCategory(initialData.category || "Furniture");
       setSubcategory(initialData.subcategory || "");
+      setCondition(initialData.condition || "New");
+      setMake(initialData.make || "");
+      setModel(initialData.model || "");
+      setYear(initialData.year || "");
+      setMileage(initialData.mileage || "");
+      setFuelType(initialData.fuel_type || "");
+      setTransmission(initialData.transmission || "");
 
       // Phone
       if (initialData.phone) {
@@ -378,8 +529,15 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
     setValidationError("");
 
     // Client-side validation
-    if (!title || !price || !description || !country || !state || !city || !streetAddress || !name || !phone) {
-      setValidationError("Please fill in all required fields (Address, Name, Phone, etc.)");
+    if (!title || !price || !description || !country || !state || !city || !streetAddress || !name || !phone || !category || !subcategory || !condition) {
+      setValidationError("Please fill in all required fields (Category, Subcategory, Condition, Address, Name, Phone, etc.)");
+      return;
+    }
+
+    // Prevent invalid subcategory selection outside the selected category
+    const validSubs = CATEGORY_MAP[category] || ["Other"];
+    if (!validSubs.includes(subcategory)) {
+      setValidationError(`Invalid subcategory selected for category "${category}".`);
       return;
     }
 
@@ -398,7 +556,17 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
     appendIfExists(formData, "street_address", streetAddress);
 
     appendIfExists(formData, "category", category);
-    appendIfExists(formData, "subcategory", subcategory || category);
+    appendIfExists(formData, "subcategory", subcategory);
+    appendIfExists(formData, "condition", condition);
+
+    if (category === "Vehicles") {
+      appendIfExists(formData, "make", make);
+      appendIfExists(formData, "model", model);
+      appendIfExists(formData, "year", year);
+      appendIfExists(formData, "mileage", mileage);
+      appendIfExists(formData, "fuel_type", fuelType);
+      appendIfExists(formData, "transmission", transmission);
+    }
 
     appendIfExists(formData, "name", name);
     appendIfExists(formData, "phone", `${phoneCode}${phone}`);
@@ -604,20 +772,107 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
           <Label>Title</Label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} />
 
-          <Label>Category</Label>
-          <Select value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option>Furniture</option>
-            <option>Electronics</option>
-            <option>Home & Garden</option>
-            <option>Clothing</option>
-            <option>Other</option>
-          </Select>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label>Category</Label>
+              <Select value={category} onChange={(e) => {
+                const newCat = e.target.value;
+                setCategory(newCat);
+                setSubcategory("");
+              }}>
+                <option value="">Select Category</option>
+                {Object.keys(CATEGORY_MAP).map((catName) => (
+                  <option key={catName} value={catName}>{catName}</option>
+                ))}
+              </Select>
+            </div>
 
-          <Label>Subcategory</Label>
-          <Input
-            value={subcategory}
-            onChange={(e) => setSubcategory(e.target.value)}
-          />
+            <div>
+              <Label>Subcategory</Label>
+              <Select value={subcategory} onChange={(e) => setSubcategory(e.target.value)}>
+                <option value="">Select Subcategory</option>
+                {category && (CATEGORY_MAP[category] || []).map((sub) => (
+                  <option key={sub} value={sub}>{sub}</option>
+                ))}
+              </Select>
+            </div>
+
+            <div>
+              <Label>Condition</Label>
+              <Select value={condition} onChange={(e) => setCondition(e.target.value)}>
+                <option value="">Select Condition</option>
+                <option value="New">New</option>
+                <option value="Like New">Like New</option>
+                <option value="Good">Good</option>
+                <option value="Fair">Fair</option>
+                <option value="Used">Used</option>
+              </Select>
+            </div>
+          </div>
+
+          {/* Conditional Vehicle Fields */}
+          {category === "Vehicles" && (
+            <div className="border border-indigo-100 rounded-xl p-4 bg-indigo-50/20 space-y-3 mt-3 animate-in fade-in slide-in-from-top-1 duration-200">
+              <h4 className="font-semibold text-sm text-indigo-900 flex items-center gap-1.5">
+                🚗 Vehicle Specifications
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div>
+                  <Label required={false}>Make</Label>
+                  <Input 
+                    value={make} 
+                    onChange={(e) => setMake(e.target.value)} 
+                    placeholder="e.g. Honda" 
+                  />
+                </div>
+                <div>
+                  <Label required={false}>Model</Label>
+                  <Input 
+                    value={model} 
+                    onChange={(e) => setModel(e.target.value)} 
+                    placeholder="e.g. Civic" 
+                  />
+                </div>
+                <div>
+                  <Label required={false}>Year</Label>
+                  <Input 
+                    value={year} 
+                    onChange={(e) => setYear(e.target.value)} 
+                    placeholder="e.g. 2022" 
+                  />
+                </div>
+                <div>
+                  <Label required={false}>Mileage (mi / km)</Label>
+                  <Input 
+                    value={mileage} 
+                    onChange={(e) => setMileage(e.target.value)} 
+                    placeholder="e.g. 45000" 
+                  />
+                </div>
+                <div>
+                  <Label required={false}>Fuel Type</Label>
+                  <Select value={fuelType} onChange={(e) => setFuelType(e.target.value)}>
+                    <option value="">Select Fuel Type</option>
+                    <option value="Petrol">Petrol</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="Electric">Electric</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="CNG">CNG</option>
+                    <option value="Other">Other</option>
+                  </Select>
+                </div>
+                <div>
+                  <Label required={false}>Transmission</Label>
+                  <Select value={transmission} onChange={(e) => setTransmission(e.target.value)}>
+                    <option value="">Select Transmission</option>
+                    <option value="Manual">Manual</option>
+                    <option value="Automatic">Automatic</option>
+                    <option value="Other">Other</option>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
 
           <Label>Price</Label>
           <div className="relative">

@@ -4,12 +4,13 @@ import { FilterSidebar } from '@/components/search/FilterSidebar';
 import { Navbar } from '@/components/layout/Navbar';
 import { PropertyCard } from '@/components/home/featured/PropertyCard';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Search, SlidersHorizontal, ChevronDown, MapPin, Globe, AlignLeft, Filter, X } from 'lucide-react';
+import { ArrowLeft, Search, SlidersHorizontal, ChevronDown, MapPin, Globe, AlignLeft, Filter, X, Plus } from 'lucide-react';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { useCountry } from "@/context/CountryContext";
 import { COUNTRIES } from "@/lib/mock-data";
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
+import { getHostPath } from '@/lib/navigationUtils';
 
 import { useGetApprovedHostDetailsQuery, useGetAllPropertiesQuery } from '@/store/api/hostApi';
 import { UserCheck, User } from 'lucide-react';
@@ -214,14 +215,22 @@ export default function SearchPage() {
                     <h1 className="text-xl font-bold text-gray-900">
                         {total > 0 ? `${total} Stays` : 'Access Stays'}
                     </h1>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSidebarOpen(true)}
-                        className="gap-2 border-gray-300"
-                    >
-                        <Filter size={16} /> Filters
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            onClick={() => navigate(getHostPath('property', !!localStorage.getItem("user")))}
+                            className="gap-1.5 bg-[#C93A30] hover:bg-[#C93A30]/90 text-white rounded-xl font-bold h-9 px-3 text-xs cursor-pointer"
+                        >
+                            <Plus size={14} /> List Stay
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSidebarOpen(true)}
+                            className="gap-2 border-gray-300 h-9"
+                        >
+                            <Filter size={16} /> Filters
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
@@ -238,25 +247,33 @@ export default function SearchPage() {
                                 {total > 0 ? `${total} Stays found` : 'Find your requested stay'}
                                 {filters.location && <span className="text-gray-500 font-normal ml-2">in {filters.location}</span>}
                             </h1>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-500">Sort by:</span>
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className="text-sm font-bold bg-transparent border-none outline-none cursor-pointer"
+                            <div className="flex items-center gap-4">
+                                <Button
+                                    onClick={() => navigate(getHostPath('property', !!localStorage.getItem("user")))}
+                                    className="gap-2 bg-[#C93A30] hover:bg-[#C93A30]/90 text-white rounded-xl font-bold transition-all duration-300 shadow-md hover:shadow-lg h-10 px-5 text-sm cursor-pointer"
                                 >
-                                    <option value="recommended">
-                                        Recommended
-                                    </option>
+                                    <Plus size={16} /> List Stay
+                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-500">Sort by:</span>
+                                    <select
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value)}
+                                        className="text-sm font-bold bg-transparent border-none outline-none cursor-pointer"
+                                    >
+                                        <option value="recommended">
+                                            Recommended
+                                        </option>
 
-                                    <option value="low-to-high">
-                                        Price: Low to High
-                                    </option>
+                                        <option value="low-to-high">
+                                            Price: Low to High
+                                        </option>
 
-                                    <option value="high-to-low">
-                                        Price: High to Low
-                                    </option>
-                                </select>
+                                        <option value="high-to-low">
+                                            Price: High to Low
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 

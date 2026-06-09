@@ -432,7 +432,7 @@ const SingleProductView = ({ product: initialProduct, onBack }) => {
             </div>
 
             {/* Highlights Stats Section */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center hover:shadow-sm transition-shadow">
                 <Shield className="w-6 h-6 text-slate-700 mb-2" />
                 <span className="font-semibold text-slate-900">{product.condition || "Used"}</span>
@@ -443,12 +443,64 @@ const SingleProductView = ({ product: initialProduct, onBack }) => {
                 <span className="font-semibold text-slate-900 truncate max-w-full px-2">{product.category || "General"}</span>
                 <span className="text-xs text-slate-500 uppercase tracking-wide">Category</span>
               </div>
-              <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center hover:shadow-sm transition-shadow col-span-2 sm:col-span-1">
+              <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center hover:shadow-sm transition-shadow">
+                <span className="text-xl mb-1.5 leading-none">📁</span>
+                <span className="font-semibold text-slate-900 truncate max-w-full px-2">{product.subcategory || "Other"}</span>
+                <span className="text-xs text-slate-500 uppercase tracking-wide">Subcategory</span>
+              </div>
+              <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center hover:shadow-sm transition-shadow">
                 <Calendar className="w-6 h-6 text-slate-700 mb-2" />
                 <span className="font-semibold text-slate-900">{product.postedTime}</span>
                 <span className="text-xs text-slate-500 uppercase tracking-wide">Listed On</span>
               </div>
             </div>
+
+            {/* Vehicle Specifications */}
+            {product.category === "Vehicles" && (product.make || product.model || product.year || product.mileage || product.fuel_type || product.transmission) && (
+              <div className="bg-slate-50/50 rounded-2xl border border-slate-100 p-6 space-y-4">
+                <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                  🚗 Vehicle Specifications
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {product.make && (
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                      <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Make</span>
+                      <span className="text-sm font-semibold text-slate-800">{product.make}</span>
+                    </div>
+                  )}
+                  {product.model && (
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                      <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Model</span>
+                      <span className="text-sm font-semibold text-slate-800">{product.model}</span>
+                    </div>
+                  )}
+                  {product.year && (
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                      <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Year</span>
+                      <span className="text-sm font-semibold text-slate-800">{product.year}</span>
+                    </div>
+                  )}
+                  {product.mileage && (
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                      <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Mileage</span>
+                      <span className="text-sm font-semibold text-slate-800">{product.mileage}</span>
+                    </div>
+                  )}
+                  {product.fuel_type && (
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                      <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Fuel Type</span>
+                      <span className="text-sm font-semibold text-slate-800">{product.fuel_type}</span>
+                    </div>
+                  )}
+                  {product.transmission && (
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                      <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Transmission</span>
+                      <span className="text-sm font-semibold text-slate-800">{product.transmission}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Description */}
             <div className="space-y-4">

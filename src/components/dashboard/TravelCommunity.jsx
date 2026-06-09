@@ -5,6 +5,7 @@ import { useCountry } from "@/context/CountryContext";
 import { Loader2, ExternalLink, MapPin, Calendar, MessageCircle, ShieldCheck, User } from 'lucide-react';
 import { SectionHeader } from '../home/featured/SectionHeader';
 import { resolveImageUrl } from '@/lib/imageUtils';
+import { getHostPath } from '@/lib/navigationUtils';
 
 const CommunityCard = ({ match, onConnect }) => {
     const [isImageLoaded, setIsImageLoaded] = React.useState(false);
@@ -165,6 +166,8 @@ export const TravelCommunity = ({ onConnect }) => {
 
     if (communityMatches.length === 0) return null;
 
+    const isAuthenticated = !!localStorage.getItem("user");
+
     return (
         <section className="py-6 sm:py-8 lg:py-12 relative overflow-hidden bg-white">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -173,6 +176,8 @@ export const TravelCommunity = ({ onConnect }) => {
                     subtitle={`Connect with fellow travelers and explore ${activeCountry?.name || "the world"} together`}
                     linkText="View All Trips"
                     linkTo="/travel"
+                    actionText="Post Trip"
+                    actionTo={getHostPath('travel', isAuthenticated)}
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">

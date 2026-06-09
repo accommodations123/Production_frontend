@@ -1,11 +1,12 @@
 "use client"
 
 import React from "react"
-import { ArrowRight, ShieldCheck, Star, Users, Home, Calendar, Sparkles } from "lucide-react"
+import { ArrowRight, ShieldCheck, Star, Users, Home, Calendar, Sparkles, Plane, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
 import { useGetMeQuery } from "@/store/api/authApi"
 import { toast } from "sonner"
+import { getHostPath } from "@/lib/navigationUtils"
 
 export function Hero() {
   const navigate = useNavigate()
@@ -103,15 +104,78 @@ export function Hero() {
               </Button>
             </div>
 
+            {/* Quick Listing Actions */}
+            <div className="pt-6 sm:pt-8 space-y-4">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#00142E]/50 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#C93A30] animate-pulse" /> Start Hosting & Listing
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {/* Accommodations */}
+                <button
+                  onClick={() => navigate(getHostPath('property', !!userData?.user))}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-gray-200/60 hover:border-[#C93A30]/30 hover:shadow-xl hover:shadow-[#C93A30]/5 transition-all duration-300 group cursor-pointer text-center relative overflow-hidden"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF0EE] flex items-center justify-center text-[#C93A30] group-hover:scale-110 transition-transform duration-300">
+                    <Home className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#00142E] mt-3">Host Stay</span>
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-1">Stays</span>
+                </button>
+                {/* Events */}
+                <button
+                  onClick={() => navigate(getHostPath('event', !!userData?.user))}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-gray-200/60 hover:border-[#C93A30]/30 hover:shadow-xl hover:shadow-[#C93A30]/5 transition-all duration-300 group cursor-pointer text-center"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF0EE] flex items-center justify-center text-[#C93A30] group-hover:scale-110 transition-transform duration-300">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#00142E] mt-3">Host Event</span>
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-1">Events</span>
+                </button>
+                {/* Travel */}
+                <button
+                  onClick={() => navigate(getHostPath('travel', !!userData?.user))}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-gray-200/60 hover:border-[#C93A30]/30 hover:shadow-xl hover:shadow-[#C93A30]/5 transition-all duration-300 group cursor-pointer text-center"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF0EE] flex items-center justify-center text-[#C93A30] group-hover:scale-110 transition-transform duration-300">
+                    <Plane className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#00142E] mt-3">Post Trip</span>
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-1">Travel</span>
+                </button>
+                {/* Marketplace */}
+                <button
+                  onClick={() => navigate(getHostPath('marketplace', !!userData?.user))}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-gray-200/60 hover:border-[#C93A30]/30 hover:shadow-xl hover:shadow-[#C93A30]/5 transition-all duration-300 group cursor-pointer text-center"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF0EE] flex items-center justify-center text-[#C93A30] group-hover:scale-110 transition-transform duration-300">
+                    <ShoppingBag className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#00142E] mt-3">Sell Item</span>
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-1">Buy/Sell</span>
+                </button>
+                {/* Community */}
+                <button
+                  onClick={() => navigate(getHostPath('group', !!userData?.user))}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-gray-200/60 hover:border-[#C93A30]/30 hover:shadow-xl hover:shadow-[#C93A30]/5 transition-all duration-300 group cursor-pointer text-center"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#FFF0EE] flex items-center justify-center text-[#C93A30] group-hover:scale-110 transition-transform duration-300">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#00142E] mt-3">Start Group</span>
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-1">Community</span>
+                </button>
+              </div>
+            </div>
+
             {/* Trust Indicators */}
-            <div className="pt-4 sm:pt-6 md:pt-8 flex flex-wrap items-center gap-4 sm:gap-6 md:gap-8">
+            <div className="pt-4 flex flex-wrap items-center gap-4 sm:gap-6 md:gap-8">
               <div className="flex items-center gap-2 text-sm text-[#00142E]/60">
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
                   <ShieldCheck className="w-4 h-4 text-green-600" />
                 </div>
                 <span className="font-medium">Verified Hosts</span>
               </div>
-
             </div>
           </div>
 

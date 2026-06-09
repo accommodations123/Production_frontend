@@ -1,7 +1,9 @@
 import React, { memo, useEffect } from "react"
-import { Grid, List, Filter } from "lucide-react"
+import { Grid, List, Filter, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCountry } from "@/context/CountryContext"
+import { useNavigate } from "react-router-dom"
+import { getHostPath } from "@/lib/navigationUtils"
 
 export const EventsFilters = memo(({
     activeFilter,
@@ -19,6 +21,7 @@ export const EventsFilters = memo(({
     uniqueLocations = []
 }) => {
 
+    const navigate = useNavigate();
     const { activeCountry, formatPrice } = useCountry();
     const isINR = activeCountry?.currency === "INR";
 
@@ -141,6 +144,15 @@ export const EventsFilters = memo(({
                                     }
                                 </span>
                             )}
+                        </Button>
+
+                        {/* Host Event Button */}
+                        <Button
+                            onClick={() => navigate(getHostPath('event', !!localStorage.getItem("user")))}
+                            className="bg-[#C93A30] hover:bg-[#C93A30]/90 text-white rounded-lg h-11 px-5 font-bold shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2 text-sm cursor-pointer"
+                        >
+                            <Plus className="h-4 w-4" />
+                            <span>Host Event</span>
                         </Button>
                     </div>
                 </div>

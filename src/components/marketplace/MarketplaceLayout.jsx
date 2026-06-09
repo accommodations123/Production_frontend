@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, ShoppingBag, Tag, Sparkles } from 'lucide-react';
+import { MapPin, ShoppingBag, Tag, Sparkles, Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
@@ -56,22 +56,23 @@ export function MarketplaceLayout({ children, activeTab, onTabChange }) {
                     </div>
 
                     {/* Premium Quick Actions */}
-                    <motion.div
-                        className="flex items-center gap-3"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 }}
-                    >
-                        {/* <Button
-                            variant="ghost"
-                            className="relative overflow-hidden group bg-gradient-to-r from-[#C93A30] to-[#E04642] hover:from-[#b02e25] hover:to-[#d03d39] text-white font-bold text-sm h-10 sm:h-11 px-5 sm:px-6 rounded-xl shadow-lg shadow-[#C93A30]/25 hover:shadow-[#C93A30]/40 transition-all duration-300 cursor-pointer"
+                    {activeTab !== 'sell' && (
+                        <motion.div
+                            className="flex items-center gap-3"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2 }}
                         >
-                            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                            <Sparkles className="h-4 w-4 mr-2 fill-white/30" />
-                            <span className="hidden sm:inline relative z-10">My Listings</span>
-                            <span className="sm:hidden relative z-10">Listings</span>
-                        </Button> */}
-                    </motion.div>
+                            <Button
+                                onClick={() => onTabChange('sell')}
+                                className="relative overflow-hidden group bg-gradient-to-r from-[#C93A30] to-[#E04642] hover:from-[#b02e25] hover:to-[#d03d39] text-white font-bold text-sm h-10 sm:h-11 px-5 sm:px-6 rounded-xl shadow-lg shadow-[#C93A30]/25 hover:shadow-[#C93A30]/40 transition-all duration-300 cursor-pointer border-0"
+                            >
+                                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                                <Plus className="h-4 w-4 mr-2" />
+                                <span className="relative z-10">Sell an Item</span>
+                            </Button>
+                        </motion.div>
+                    )}
                 </div>
             </div>
 

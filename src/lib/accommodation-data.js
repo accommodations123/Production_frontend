@@ -1,11 +1,10 @@
 export const PROPERTY_TYPES = [
     "Apartment",
     "House",
-    "Villa",
-    "PG",
-    "Hostel",
+    "Private Room",
     "Shared Room",
     "Studio",
-    "Townhouse",
-    "Entire Place"
+    "PG / Hostel",
+    "Villa",
+    "Townhouse"
 ];
