@@ -787,7 +787,7 @@ export const hostApi = createApi({
         getJobs: builder.query({
             query: (params) => {
                 if (typeof params === 'string') {
-                    return params ? `carrer/jobs?location=${encodeURIComponent(params)}` : "carrer/jobs";
+                    return params ? `career/jobs?location=${encodeURIComponent(params)}` : "career/jobs";
                 }
                 const parts = [];
                 if (params) {
@@ -803,7 +803,7 @@ export const hostApi = createApi({
                     if (params.status) parts.push(`status=${encodeURIComponent(params.status)}`);
                 }
                 const qs = parts.join('&');
-                return qs ? `carrer/jobs?${qs}` : "carrer/jobs";
+                return qs ? `career/jobs?${qs}` : "career/jobs";
             },
             providesTags: ["Job"],
             transformResponse: (response) => {
@@ -897,7 +897,7 @@ export const hostApi = createApi({
             },
         }),
         getJobById: builder.query({
-            query: (id) => `carrer/jobs/${id}`,
+            query: (id) => `career/jobs/${id}`,
             providesTags: (result, error, id) => [{ type: "Job", id }],
             transformResponse: (response) => {
                 const job = response?.job || response?.data || response;
@@ -957,14 +957,14 @@ export const hostApi = createApi({
         }),
         applyForJob: builder.mutation({
             query: (formData) => ({
-                url: "carrer/applications",
+                url: "career/applications",
                 method: "POST",
                 body: formData,
             }),
             invalidatesTags: ["MyApplications", "Job"],
         }),
         getMyApplications: builder.query({
-            query: ({ page = 1, limit = 10 } = {}) => `carrer/applications/me?page=${page}&limit=${limit}`,
+            query: ({ page = 1, limit = 10 } = {}) => `career/applications/me?page=${page}&limit=${limit}`,
             providesTags: ["MyApplications"],
             transformResponse: (response) => {
                 const applications = response?.applications || response?.data || [];
