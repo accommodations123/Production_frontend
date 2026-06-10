@@ -297,7 +297,7 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                             <span className="text-gray-900 font-bold">{job.duration || '12+ Months'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
-                                                            <span className="text-gray-400">Pay Range</span>
+                                                            <span className="text-gray-400">Salary Range</span>
                                                             <span className="text-emerald-700 font-bold">{job.salary || 'Competitive'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">

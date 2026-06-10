@@ -1,4 +1,17 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { COUNTRIES } from "@/lib/mock-data";
+
+const getSymbolForLocation = (location) => {
+    if (!location) return "$";
+    const cleanLoc = location.toLowerCase().trim();
+    const country = COUNTRIES.find(c => 
+        c.name.toLowerCase().trim() === cleanLoc || 
+        c.code.toLowerCase().trim() === cleanLoc
+    );
+    if (!country) return "$";
+    const symbols = { INR: "₹", ZAR: "R", EUR: "€", GBP: "£", USD: "$" };
+    return symbols[country.currency] || "$";
+};
 
 const API_BASE_URL = import.meta.env.PROD
     ?
@@ -787,11 +800,11 @@ export const hostApi = createApi({
         getJobs: builder.query({
             query: (params) => {
                 if (typeof params === 'string') {
-                    return params ? `career/jobs?location=${encodeURIComponent(params)}` : "career/jobs";
+                    return params ? `career/jobs?country=${encodeURIComponent(params)}` : "career/jobs";
                 }
                 const parts = [];
                 if (params) {
-                    if (params.country) parts.push(`location=${encodeURIComponent(params.country)}`);
+                    if (params.country) parts.push(`country=${encodeURIComponent(params.country)}`);
                     if (params.positionType) parts.push(`positionType=${encodeURIComponent(params.positionType)}`);
                     if (params.workMode) parts.push(`workMode=${encodeURIComponent(params.workMode)}`);
                     if (params.experience) parts.push(`experience=${encodeURIComponent(params.experience)}`);
@@ -849,9 +862,14 @@ export const hostApi = createApi({
                     const requirements = Array.isArray(jobItem.requirements) ? jobItem.requirements : [];
                     const benefits = Array.isArray(jobItem.benefits) ? jobItem.benefits : [];
 
+                    const symbol = getSymbolForLocation(jobItem.location);
                     let salaryText = jobItem.salary_range || jobItem.salary;
-                    if (!salaryText && jobItem.pay_min && jobItem.pay_max) {
-                        salaryText = `$${Math.round(jobItem.pay_min)}-$${Math.round(jobItem.pay_max)}/${jobItem.pay_type === 'salary' ? 'yr' : 'hr'}`;
+                    if (salaryText) {
+                        if (!salaryText.startsWith('$') && !salaryText.startsWith('₹') && !salaryText.startsWith('R') && !salaryText.startsWith('€') && !salaryText.startsWith('£')) {
+                            salaryText = `${symbol} ${salaryText}`;
+                        }
+                    } else if (jobItem.pay_min && jobItem.pay_max) {
+                        salaryText = `${symbol}${Math.round(jobItem.pay_min)}-${symbol}${Math.round(jobItem.pay_max)}/${jobItem.pay_type === 'salary' ? 'yr' : 'hr'}`;
                     }
 
                     return {
@@ -912,9 +930,14 @@ export const hostApi = createApi({
                 const requirements = Array.isArray(job.requirements) ? job.requirements : [];
                 const benefits = Array.isArray(job.benefits) ? job.benefits : [];
 
+                const symbol = getSymbolForLocation(job.location);
                 let salaryText = job.salary_range || job.salary;
-                if (!salaryText && job.pay_min && job.pay_max) {
-                    salaryText = `$${Math.round(job.pay_min)}-$${Math.round(job.pay_max)}/${job.pay_type === 'salary' ? 'yr' : 'hr'}`;
+                if (salaryText) {
+                    if (!salaryText.startsWith('$') && !salaryText.startsWith('₹') && !salaryText.startsWith('R') && !salaryText.startsWith('€') && !salaryText.startsWith('£')) {
+                        salaryText = `${symbol} ${salaryText}`;
+                    }
+                } else if (job.pay_min && job.pay_max) {
+                    salaryText = `${symbol}${Math.round(job.pay_min)}-${symbol}${Math.round(job.pay_max)}/${job.pay_type === 'salary' ? 'yr' : 'hr'}`;
                 }
 
                 return {

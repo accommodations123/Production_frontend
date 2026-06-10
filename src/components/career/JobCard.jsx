@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react"
-import { MapPin, Briefcase, DollarSign, Clock, Building, Wifi, Sparkles, User, Calendar, ShieldCheck } from "lucide-react"
+import { MapPin, Briefcase, Banknote, Clock, Building, Wifi, Sparkles, User, Calendar, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function JobCard({ job, onViewDetails, onApply }) {
@@ -114,7 +114,7 @@ export function JobCard({ job, onViewDetails, onApply }) {
                         <span className="truncate">{job?.duration || '12+ Months'}</span>
                     </div>
                     <div className="flex items-center gap-2 min-w-0">
-                        <DollarSign className="h-4 w-4 text-emerald-500 shrink-0" />
+                        <Banknote className="h-4 w-4 text-emerald-500 shrink-0" />
                         <span className="truncate font-semibold text-gray-900">{job?.salary || 'Competitive'}</span>
                     </div>
                 </div>

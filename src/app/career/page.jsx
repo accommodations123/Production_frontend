@@ -79,11 +79,21 @@ export default function CareerPage() {
     // ─── FETCH JOBS FROM BACKEND API ────────────────────────────────
     const { data: apiJobsResponse, isLoading, isError, refetch } = useGetJobsQuery(queryParams)
 
-    // Normalize jobs array from response
+    // Normalize jobs array from response and filter by active country
     const jobs = useMemo(() => {
         const rawJobs = apiJobsResponse?.jobs || apiJobsResponse?.data || apiJobsResponse
-        return Array.isArray(rawJobs) ? rawJobs : []
-    }, [apiJobsResponse])
+        const list = Array.isArray(rawJobs) ? rawJobs : []
+
+        if (!activeCountry?.name) return list
+
+        const selectedCountryName = activeCountry.name.toLowerCase().trim()
+        const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim()
+
+        return list.filter(job => {
+            const jobLocation = (job.location || "").toLowerCase().trim()
+            return jobLocation === selectedCountryName || jobLocation === selectedCountryCode
+        })
+    }, [apiJobsResponse, activeCountry])
 
     // ─── PAGINATION ─────────────────────────────────────────────────
     const {
