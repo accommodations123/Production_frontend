@@ -10,7 +10,7 @@ import HostGuard from "@/components/auth/HostGuard";
 const Home = lazy(() => import("@/app/page"));
 const Career = lazy(() => import("@/app/career/page"));
 const About = lazy(() => import("@/app/about/page"));
-const Trust = lazy(() => import("@/app/trust/page"))
+const Trust = lazy(() => import("@/app/trust/page"));
 const Help = lazy(() => import("@/app/help/page"));
 const Contact = lazy(() => import("@/app/contact/page"));
 const EventsPage = lazy(() => import("@/app/events/page"));
