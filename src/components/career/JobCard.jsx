@@ -51,15 +51,7 @@ export function JobCard({ job, onViewDetails, onApply }) {
 
     return (
         <div className="group relative bg-white rounded-2xl border border-gray-100 hover:border-[#CB2A25]/20 transition-all duration-300 hover:shadow-xl hover:shadow-[#CB2A25]/5 overflow-hidden flex flex-col justify-between">
-            {/* New / Featured Header Pill */}
-            {job?.featured && (
-                <div className="absolute top-0 right-6 z-10">
-                    <div className="bg-gradient-to-r from-[#CB2A25] to-[#e04440] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-b-lg shadow-sm flex items-center gap-1">
-                        <Sparkles className="h-3 w-3" />
-                        Featured
-                    </div>
-                </div>
-            )}
+
 
             <div className="p-6 flex-1">
                 {/* Title and Top Metas */}

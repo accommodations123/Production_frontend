@@ -1,18 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useApplyForJobMutation } from '@/store/api/hostApi';
 import { toast } from 'sonner';
 import { Loader2, Upload, FileText, X, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useCountry } from '@/context/CountryContext';
+import { COUNTRIES } from '@/lib/mock-data';
+import { CountryCodeSelect } from '@/components/ui/CountryCodeSelect';
+import { useAuth } from '@/app/events/[id]/hooks/useAuth';
 
-export const ApplicationForm = ({ jobId, jobTitle, onSuccess, onCancel }) => {
+export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCancel }) => {
     const navigate = useNavigate();
     const { register, handleSubmit, formState: { errors }, setValue } = useForm();
     const [applyForJob, { isLoading }] = useApplyForJobMutation();
     const [resumeFile, setResumeFile] = useState(null);
     const [dragActive, setDragActive] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+
+    const { activeCountry } = useCountry();
+
+    // Find initial matched country
+    const initialCountry = useMemo(() => {
+        let matched = null;
+        if (jobLocation) {
+            matched = COUNTRIES.find(c =>
+                c.name.toLowerCase() === jobLocation.toLowerCase() ||
+                c.code.toLowerCase() === jobLocation.toLowerCase()
+            );
+        }
+        if (!matched && activeCountry) {
+            matched = COUNTRIES.find(c =>
+                c.code === activeCountry.code ||
+                c.name.toLowerCase() === activeCountry.name.toLowerCase()
+            );
+        }
+        return matched;
+    }, [jobLocation, activeCountry]);
+
+    const [phoneCode, setPhoneCode] = useState(initialCountry?.phoneCode || "+91");
+    const [phoneIso, setPhoneIso] = useState(initialCountry?.code || "IN");
+
+    useEffect(() => {
+        if (initialCountry) {
+            setPhoneCode(initialCountry.phoneCode);
+            setPhoneIso(initialCountry.code);
+        }
+    }, [initialCountry]);
 
     // Validate and set file
     const validateAndSetFile = (file) => {
@@ -68,7 +102,14 @@ export const ApplicationForm = ({ jobId, jobTitle, onSuccess, onCancel }) => {
         }
     };
 
+    const { isAuthenticated } = useAuth();
+
     const onSubmit = async (data) => {
+        if (!isAuthenticated) {
+            toast.error("Please login to apply for jobs");
+            navigate('/login', { state: { from: window.location.pathname } });
+            return;
+        }
         if (!resumeFile) {
             toast.error("Please upload your resume");
             return;
@@ -78,7 +119,11 @@ export const ApplicationForm = ({ jobId, jobTitle, onSuccess, onCancel }) => {
         formData.append('job_id', jobId);
         formData.append('full_name', data.full_name);
         formData.append('email', data.email);
-        formData.append('phone', data.phone || '');
+        let submittedPhone = data.phone || '';
+        if (submittedPhone && !submittedPhone.startsWith('+')) {
+            submittedPhone = `${phoneCode}${submittedPhone.trim()}`;
+        }
+        formData.append('phone', submittedPhone);
         formData.append('current_location', data.current_location || '');
         formData.append('linkedin_url', data.linkedin_url || '');
         formData.append('work_authorization', data.work_authorization || '');
@@ -145,11 +190,24 @@ export const ApplicationForm = ({ jobId, jobTitle, onSuccess, onCancel }) => {
                 {/* Mobile Number */}
                 <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Mobile Number *</label>
-                    <input
-                        {...register('phone', { required: "Mobile number is required" })}
-                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/10 outline-none transition-all text-sm font-medium"
-                        placeholder="+1 (555) 000-0000"
-                    />
+                    <div className="flex gap-2">
+                        <div className="w-[110px] shrink-0 h-11">
+                            <CountryCodeSelect
+                                value={phoneCode}
+                                isoCode={phoneIso}
+                                onChange={(code, iso) => {
+                                    setPhoneCode(code);
+                                    if (iso) setPhoneIso(iso);
+                                }}
+                                className="h-full"
+                            />
+                        </div>
+                        <input
+                            {...register('phone', { required: "Mobile number is required" })}
+                            className="flex-1 h-11 px-4 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/10 outline-none transition-all text-sm font-medium"
+                            placeholder="(555) 000-0000"
+                        />
+                    </div>
                     {errors.phone && <span className="text-[10px] text-red-500 font-semibold">{errors.phone.message}</span>}
                 </div>
 

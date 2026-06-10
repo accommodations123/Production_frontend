@@ -862,7 +862,6 @@ export const hostApi = createApi({
                         clientName: jobItem.client_name || "",
                         vendorName: jobItem.vendor_name || "NextKinLife LLC",
                         location: jobItem.location || "Remote",
-                        department: jobItem.department || "General",
                         description: jobItem.description || "",
                         experience: jobItem.experience_level || "Not specified",
                         type: jobItem.position_type || jobItem.employment_type || "Full Time",
@@ -886,9 +885,7 @@ export const hostApi = createApi({
                         companyLinkedin: jobItem.company_linkedin || "https://linkedin.com/company/nextkinlife",
                         postedDate: jobItem.createdAt || jobItem.created_at || new Date().toISOString(),
                         posted: getTimeAgo(jobItem.createdAt || jobItem.created_at),
-                        applicants: jobItem.applications_count || jobItem.applicants || 0,
                         skills: Array.isArray(jobItem.skills) ? jobItem.skills : [],
-                        featured: jobItem.featured || false,
                         isNew: (new Date() - new Date(jobItem.createdAt || jobItem.created_at || 0)) < 7 * 24 * 60 * 60 * 1000,
                     };
                 };
@@ -928,7 +925,6 @@ export const hostApi = createApi({
                     clientName: job.client_name || "",
                     vendorName: job.vendor_name || "NextKinLife LLC",
                     location: job.location || "Remote",
-                    department: job.department || "General",
                     description: job.description || "",
                     experience: job.experience_level || job.experience || "Not specified",
                     type: job.position_type || job.employment_type || job.type || "Full Time",
@@ -951,7 +947,6 @@ export const hostApi = createApi({
                     recruiterLinkedin: job.recruiter_linkedin || "linkedin.com/company/nextkinlife",
                     companyLinkedin: job.company_linkedin || "https://linkedin.com/company/nextkinlife",
                     postedDate: job.createdAt || job.postedDate,
-                    applicants: job.applications_count || job.applicants,
                 };
             },
         }),

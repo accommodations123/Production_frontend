@@ -7,9 +7,13 @@ import { ApplicationForm } from './ApplicationForm'
 import { toast } from "sonner"
 import { useGetJobByIdQuery } from "@/store/api/hostApi"
 import { Loader2 } from "lucide-react"
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/app/events/[id]/hooks/useAuth'
 
 export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply }) {
     const [showApplicationForm, setShowApplicationForm] = useState(false)
+    const navigate = useNavigate()
+    const { isAuthenticated } = useAuth()
 
     // Fetch full job details if we have an ID
     const jobId = initialJob?.id || initialJob?._id;
@@ -26,9 +30,14 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
     // Reset form state on close/open
     useEffect(() => {
         if (isOpen) {
-            setShowApplicationForm(preOpenApply || false);
+            if (preOpenApply && !isAuthenticated) {
+                toast.error("Please login to apply for jobs");
+                setShowApplicationForm(false);
+            } else {
+                setShowApplicationForm(preOpenApply || false);
+            }
         }
-    }, [isOpen, initialJob, preOpenApply]);
+    }, [isOpen, initialJob, preOpenApply, isAuthenticated]);
 
     // Prevent background scrolling
     useEffect(() => {
@@ -155,6 +164,7 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                             <ApplicationForm
                                                 jobId={job.id || job._id}
                                                 jobTitle={job.title}
+                                                jobLocation={job.location}
                                                 onSuccess={() => {
                                                     setShowApplicationForm(false);
                                                     onClose();
@@ -362,7 +372,14 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                         </div>
                                         <Button
                                             className="flex-1 bg-[#CB2A25] hover:bg-[#b0221e] text-white transition-all h-11 rounded-xl text-xs font-bold shadow-md hover:shadow-lg"
-                                            onClick={() => setShowApplicationForm(true)}
+                                            onClick={() => {
+                                                if (!isAuthenticated) {
+                                                    toast.error("Please login to apply for jobs");
+                                                    navigate('/login', { state: { from: window.location.pathname } });
+                                                    return;
+                                                }
+                                                setShowApplicationForm(true);
+                                            }}
                                         >
                                             Apply Now
                                         </Button>
