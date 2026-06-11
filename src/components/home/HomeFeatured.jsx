@@ -279,7 +279,7 @@ const HomeFeatured = () => {
   const { data: publicTripsData, isLoading: tripsLoading } = useGetPublicTripsQuery({
     page: 1,
     limit: 4,
-    from_country: activeCountry?.name === "United States" || activeCountry?.name === "USA" || activeCountry?.name === "US"
+    country: activeCountry?.name === "United States" || activeCountry?.name === "USA" || activeCountry?.name === "US"
       ? "United States of America"
       : activeCountry?.name
   });

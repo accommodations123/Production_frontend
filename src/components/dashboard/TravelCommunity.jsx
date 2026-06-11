@@ -121,6 +121,7 @@ export const TravelCommunity = ({ onConnect }) => {
     const communityMatches = data?.results?.map(trip => {
         // Map trip data handling both flat DB structure and nested flight object
         const fromCountry = trip.from_country || trip.fromCountry || trip.flight?.fromCountry || trip.host?.country || "India";
+        const toCountry = trip.to_country || trip.toCountry || trip.flight?.toCountry || "";
         const fromCity = trip.from_city || trip.fromCity || trip.flight?.from || trip.host?.city || "Unknown";
         const toCity = trip.to_city || trip.toCity || trip.destination || trip.flight?.to || "Unknown Dest";
         const tripDate = trip.travel_date || trip.travelDate || trip.date || trip.flight?.departureDate;
@@ -131,6 +132,7 @@ export const TravelCommunity = ({ onConnect }) => {
             name: trip.host?.full_name || "Traveler",
             location: fromCity,
             country: fromCountry,
+            toCountry: toCountry,
             image: resolveImageUrl(trip.host?.profile_image) || null,
             tripTitle: toCity,
             date: new Date(tripDate).toLocaleDateString(undefined, {
@@ -145,14 +147,16 @@ export const TravelCommunity = ({ onConnect }) => {
         if (!activeCountry?.name) return true;
 
         const hostCountry = match.country?.toLowerCase().trim();
+        const destCountry = match.toCountry?.toLowerCase().trim();
         const searchCountry = activeCountry.name.toLowerCase().trim();
 
         // Handle USA/United States variations
         const isUSA = (c) => c === 'usa' || c === 'united states' || c === 'united states of america' || c === 'us';
 
-        if (isUSA(searchCountry) && isUSA(hostCountry)) return true;
+        const matchFromCountry = isUSA(searchCountry) ? isUSA(hostCountry) : (hostCountry === searchCountry);
+        const matchToCountry = isUSA(searchCountry) ? isUSA(destCountry) : (destCountry === searchCountry);
 
-        return hostCountry === searchCountry ||
+        return matchFromCountry || matchToCountry ||
             match.tripTitle?.toLowerCase().includes(searchCountry);
     }) || [];
 
