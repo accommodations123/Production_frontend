@@ -560,6 +560,15 @@ export const hostApi = createApi({
             },
         }),
 
+        getMyCommunities: builder.query({
+            query: () => "community/me",
+            providesTags: ["Community"],
+            transformResponse: (response) => {
+                const items = response?.communities || response?.data?.communities || response?.data || response || [];
+                return Array.isArray(items) ? items : [];
+            },
+        }),
+
         getCommunityById: builder.query({
             query: (id) => `community/${id}`,
             providesTags: (result, error, id) => [{ type: "Community", id }],
@@ -1195,6 +1204,7 @@ export const {
     useMarkBuySellAsSoldMutation,
     useDeleteBuySellMutation,
     useGetCommunitiesQuery,
+    useGetMyCommunitiesQuery,
     useGetCommunityByIdQuery,
     useJoinCommunityMutation,
     useLeaveCommunityMutation,

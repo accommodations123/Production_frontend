@@ -1,338 +1,411 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import { Home, AlertCircle, ShieldCheck, Calendar, Sparkles, Plus, TrendingUp, Eye, Star, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { PropertyCard } from "@/components/account/PropertyCard"
-import { EventCard } from "@/components/account/EventCard"
-import { useGetMyListingsQuery, useDeletePropertyMutation, useGetMyEventsQuery, useDeleteEventMutation, useGetHostProfileQuery } from "@/store/api/hostApi"
-import { toast } from "sonner"
-import { useNavigate } from "react-router-dom"
-import { cn } from "@/lib/utils"
-import { usePagination } from "@/hooks/usePagination"
-import { Pagination } from "@/components/ui/Pagination"
+import React, { useState, useMemo } from "react";
+import { 
+  Home, Eye, Heart, Calendar, Plus, ShieldCheck, Search, 
+  ChevronRight, AlertCircle, Edit, Trash2, Play, Pause, Users, 
+  Bed, Bath, Sparkles, Star, MapPin, Loader2, ArrowRight
+} from "lucide-react";
+import { 
+  useGetMyListingsQuery, 
+  useDeletePropertyMutation, 
+  useGetHostProfileQuery 
+} from "@/store/api/hostApi";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { usePagination } from "@/hooks/usePagination";
+import { Pagination } from "@/components/ui/Pagination";
 
 export const MyListings = () => {
-    const navigate = useNavigate()
-    const [activeTab, setActiveTab] = useState("spaces")
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("active"); // active, drafts, archived
+  const [searchQuery, setSearchQuery] = useState("");
 
-    // Check if user has a host profile
-    const { data: hostProfile } = useGetHostProfileQuery()
+  // Fetch data
+  const { data: hostProfile } = useGetHostProfileQuery();
 
-    const {
-        data: propertyListings = [],
-        isLoading: isPropertiesLoading,
-        isError: isPropertiesError,
-        error: propertiesError,
-        refetch: refetchProperties,
-    } = useGetMyListingsQuery(undefined, {
-        refetchOnMountOrArgChange: true,
-        skip: !hostProfile
-    })
+  const {
+    data: propertyListings = [],
+    isLoading: isLoading,
+    isError: isError,
+    error: error,
+    refetch,
+  } = useGetMyListingsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    skip: !hostProfile
+  });
 
-    const {
-        data: eventListings = [],
-        isLoading: isEventsLoading,
-        isError: isEventsError,
-        error: eventsError,
-        refetch: refetchEvents,
-    } = useGetMyEventsQuery(undefined, {
-        refetchOnMountOrArgChange: true,
-        skip: !hostProfile
-    })
+  const [deleteProperty] = useDeletePropertyMutation();
+  const [deletingIds, setDeletingIds] = useState(new Set());
+  const [pausedIds, setPausedIds] = useState(new Set());
 
-    const [deleteProperty] = useDeletePropertyMutation()
-    const [deleteEvent] = useDeleteEventMutation()
-    const [deletingIds, setDeletingIds] = useState(new Set())
+  // Helper: check if a property is expired in UTC
+  const isPropertyExpired = (p) => {
+    return p.listing_expires_at && new Date(p.listing_expires_at).getTime() < Date.now();
+  };
 
-    const visibleProperties = (propertyListings || []).filter(p => {
-        const id = p._id || p.id
-        if (deletingIds.has(id)) return false
-        const isDeleted = p.is_deleted === true || (p.status || "").toLowerCase() === "deleted"
-        // Check for expiration
-        const isExpired = p.listing_expires_at && new Date(p.listing_expires_at) < new Date()
+  // Process Properties
+  const properties = useMemo(() => {
+    return (propertyListings || []).map(p => {
+      const id = p._id || p.id;
+      const status = (p.status || "").toLowerCase();
+      const isDeleted = p.is_deleted === true || status === "deleted";
+      const isExpired = isPropertyExpired(p);
+      
+      let calculatedStatus = "active";
+      if (isDeleted) calculatedStatus = "deleted";
+      else if (isExpired) calculatedStatus = "expired";
+      else if (status === "pending") calculatedStatus = "pending";
+      else if (status === "draft" || !status) calculatedStatus = "draft";
 
-        // Hide if deleted OR expired
-        return !isDeleted && !isExpired
-    })
+      return {
+        ...p,
+        id,
+        calculatedStatus,
+        isExpired,
+        isDeleted,
+        type: "space"
+      };
+    }).filter(p => !p.isDeleted && !deletingIds.has(p.id));
+  }, [propertyListings, deletingIds]);
 
-    const visibleEvents = (eventListings || []).filter(e => {
-        const id = e._id || e.id
-        if (deletingIds.has(id)) return false
+  // Handle deletions
+  const handlePropertyDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this listing?")) return;
+    setDeletingIds(prev => new Set([...prev, id]));
+    try {
+      await deleteProperty({ id, reason: "User deleted from dashboard" }).unwrap();
+      toast.success("Listing deleted successfully");
+    } catch (err) {
+      setDeletingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      toast.error(err?.data?.message || "Failed to delete listing");
+    }
+  };
 
-        // Filter out expired events
-        try {
-            // Use end_date if available, otherwise start_date
-            const dateStr = e.end_date || e.start_date
-            if (!dateStr) return true // Keep if no date (draft?)
+  const handleTogglePause = (id) => {
+    setPausedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+        toast.success("Listing is now active");
+      } else {
+        next.add(id);
+        toast.success("Listing paused successfully");
+      }
+      return next;
+    });
+  };
 
-            const date = new Date(dateStr)
-
-            // Parse time
-            const timeStr = e.end_time || e.start_time || "23:59"
-            const [hours, minutes] = timeStr.split(':').map(Number)
-
-            if (!isNaN(hours) && !isNaN(minutes)) {
-                date.setHours(hours, minutes, 0)
-            } else {
-                // Default to end of day if time is invalid/missing
-                date.setHours(23, 59, 59)
-            }
-
-            // Exclude if now is after the event end time
-            if (new Date() > date) return false
-
-        } catch {
-            return true // Keep on error to be safe
-        }
-
-        return true
-    })
-
-    const handlePropertyDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this listing?")) return
-        setDeletingIds(prev => new Set([...prev, id]))
-        try {
-            await deleteProperty({ id, reason: "User deleted from dashboard" }).unwrap()
-            toast.success("Listing deleted successfully")
-        } catch (err) {
-            setDeletingIds(prev => {
-                const next = new Set(prev)
-                next.delete(id)
-                return next
-            })
-            toast.error(err?.data?.message || "Failed to delete listing")
-        }
+  // Filtered lists based on tabs & search
+  const filteredListings = useMemo(() => {
+    let list = [];
+    if (activeTab === "active") {
+      list = properties.filter(p => p.calculatedStatus === "active" || p.calculatedStatus === "pending");
+    } else if (activeTab === "drafts") {
+      list = properties.filter(p => p.calculatedStatus === "draft");
+    } else if (activeTab === "archived") {
+      list = properties.filter(p => p.calculatedStatus === "expired");
     }
 
-    const handleEventDelete = async (id) => {
-        setDeletingIds(prev => new Set([...prev, id]))
-        try {
-            await deleteEvent(id).unwrap()
-            toast.success("Event deleted successfully")
-        } catch (err) {
-            setDeletingIds(prev => {
-                const next = new Set(prev)
-                next.delete(id)
-                return next
-            })
-            toast.error(err?.data?.message || "Failed to delete event")
-        }
+    // Apply Search Query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      list = list.filter(item => 
+        (item.title || "").toLowerCase().includes(query) || 
+        (item.city || "").toLowerCase().includes(query) ||
+        (item.property_type || "").toLowerCase().includes(query)
+      );
     }
 
-    const isLoading = activeTab === "spaces" ? isPropertiesLoading : isEventsLoading
-    const isError = activeTab === "spaces" ? isPropertiesError : isEventsError
-    const error = activeTab === "spaces" ? propertiesError : eventsError
-    const currentListings = activeTab === "spaces" ? visibleProperties : visibleEvents
+    return list;
+  }, [activeTab, properties, searchQuery]);
 
-    // ✅ Pagination
-    const {
-        currentItems: paginatedListings,
-        currentPage,
-        totalPages,
-        goToPage
-    } = usePagination(currentListings, 8); // 8 items per page
+  // Statistics counters
+  const stats = useMemo(() => {
+    const activeSpaces = properties.filter(p => p.calculatedStatus === "active" || p.calculatedStatus === "pending").length;
+    const draftsCount = properties.filter(p => p.calculatedStatus === "draft").length;
+    const archivedCount = properties.filter(p => p.calculatedStatus === "expired").length;
 
-    return (
-        <div className="relative min-h-screen">
-            {/* Background Decorations */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary/5 to-accent/10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-neutral/10 to-accent/5 rounded-full blur-3xl"></div>
+    return {
+      activeSpaces,
+      draftsCount,
+      archivedCount
+    };
+  }, [properties]);
+
+  // Pagination hook
+  const {
+    currentItems: paginatedListings,
+    currentPage,
+    totalPages,
+    goToPage
+  } = usePagination(filteredListings, 6);
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      
+      {/* 1. Header (Compact, website-style) */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Your Hosted Spaces</h2>
+          <p className="text-xs text-gray-500 mt-1">Manage your active spaces and draft accommodations.</p>
+        </div>
+        <button 
+          onClick={() => navigate("/host/create")}
+          className="bg-[#0A1A2F] hover:bg-blue-600 text-white rounded-xl h-10 px-4 text-xs font-bold shadow-sm flex items-center gap-2 cursor-pointer transition-all shrink-0"
+        >
+          <Plus className="w-4 h-4" />
+          Create New Space
+        </button>
+      </div>
+
+      {/* 2. Filtering and Tabs section */}
+      <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] space-y-5">
+        
+        {/* Tab Buttons */}
+        <div className="flex flex-wrap justify-between items-center gap-4 border-b border-gray-100 pb-3">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+            <TabButton label="Active Spaces" active={activeTab === "active"} count={stats.activeSpaces} onClick={() => setActiveTab("active")} />
+            <TabButton label="Drafts" active={activeTab === "drafts"} count={stats.draftsCount} onClick={() => setActiveTab("drafts")} />
+            <TabButton label="Archived" active={activeTab === "archived"} count={stats.archivedCount} onClick={() => setActiveTab("archived")} />
+          </div>
+          
+          <div className="text-xs font-bold text-gray-400">
+            Showing {filteredListings.length} listing{filteredListings.length !== 1 ? "s" : ""}
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative w-full">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input 
+            type="text" 
+            placeholder="Search by title, property type, city..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-11 pl-11 pr-4 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900"
+          />
+        </div>
+
+        {/* Content list */}
+        {isError ? (
+          <div className="p-8 text-center bg-red-50 border border-red-100 rounded-2xl">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+            <h4 className="font-bold text-red-700">Failed to load listings</h4>
+            <p className="text-xs text-red-600/70 mt-1">{error?.message || "Verify your connection and reload."}</p>
+            <button onClick={() => refetch()} className="mt-4 bg-red-600 text-white rounded-xl px-4 py-2 text-xs font-bold cursor-pointer">Try Again</button>
+          </div>
+        ) : isLoading ? (
+          <div className="py-24 flex flex-col items-center justify-center space-y-4">
+            <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+            <p className="text-sm text-gray-500 font-medium">Fetching listings...</p>
+          </div>
+        ) : filteredListings.length === 0 ? (
+          <div className="py-20 text-center max-w-md mx-auto space-y-6 animate-in fade-in duration-300">
+            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto shadow-sm">
+              <Home className="w-8 h-8 text-blue-500" />
             </div>
-
-            <div className="relative z-10 p-3 sm:p-4 md:p-8 space-y-6 md:space-y-8">
-                {/* Header Section */}
-                <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-primary via-secondary to-navy-dark p-4 md:p-8 text-white">
-                    <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 40%)' }}></div>
-
-                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                        <div>
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-xs font-medium text-white/80 mb-4">
-                                <ShieldCheck className="w-3.5 h-3.5" />
-                                NextKin Verified Host
-                            </div>
-                            <h1 className="text-3xl md:text-4xl font-bold mb-2">My Listings Portfolio</h1>
-                            <p className="text-white/60 w-full text-sm md:text-base">Manage your spaces and experiences. Track performance and grow your hosting business.</p>
-                        </div>
-
-                        <Button
-                            onClick={() => navigate(activeTab === "spaces" ? "/host/create" : "/events/host")}
-                            className="bg-white text-primary hover:bg-neutral/20 rounded-xl h-10 md:h-12 px-4 md:px-6 text-sm md:text-base w-full sm:w-auto font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-                        >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create New {activeTab === "spaces" ? "Space" : "Experience"}
-                        </Button>
-                    </div>
-
-                    {/* Stats Row */}
-<div className="relative z-10 mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
-                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/10">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-neutral/20 rounded-lg">
-                                    <Home className="w-5 h-5 text-neutral" />
-                                </div>
-                                <div>
-                                    <p className="text-2xl font-bold">{visibleProperties.length}</p>
-                                    <p className="text-xs text-white/60">Active Spaces</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/10">
-                            <div className="flex items-center gap-2">
-                                <div className="p-2 bg-accent/20 rounded-lg">
-                                    <Sparkles className="w-5 h-5 text-accent" />
-                                </div>
-                                <div>
-                                    <p className="text-2xl font-bold">{visibleEvents.length}</p>
-                                 <p className="text-xs text-white/60 truncate max-w-[70px]">
-    Experiences
-</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 md:p-4 border border-white/10">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-green-500/20 rounded-lg">
-                                    <TrendingUp className="w-5 h-5 text-green-300" />
-                                </div>
-                                <div>
-                                    <p className="text-lg md:text-2xl font-bold">{visibleProperties.length + visibleEvents.length}</p>
-                                    <p className="text-xs text-white/60">Total Listings</p>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                {/* Tabs Section */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                   <div className="bg-white p-1 rounded-xl shadow-lg border border-gray-100 flex items-center w-full">
-                        <button
-                            onClick={() => setActiveTab("spaces")}
-                            className={cn(
-                                "flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-lg text-xs md:text-sm whitespace-nowrap font-semibold transition-all duration-200",
-                                activeTab === "spaces"
-                                    ? "bg-accent text-white shadow-md"
-                                    : "text-primary/50 hover:text-primary hover:bg-neutral/10"
-                            )}
-                        >
-                            <Home className="w-4 h-4" />
-                            Spaces
-                            <span className={cn(
-                                "px-2 py-0.5 rounded-full text-xs font-bold",
-                                activeTab === "spaces" ? "bg-white/20 text-white" : "bg-neutral/20 text-primary/60"
-                            )}>
-                                {visibleProperties.length}
-                            </span>
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("experiences")}
-                            className={cn(
-                                "w-1/2 flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs whitespace-nowrap font-semibold transition-all duration-200",
-                                activeTab === "experiences"
-                                    ? "bg-accent text-white shadow-md"
-                                    : "text-primary/50 hover:text-primary hover:bg-neutral/10"
-                            )}
-                        >
-                            <Sparkles className="w-4 h-4" />
-                            Experiences
-                            <span className={cn(
-                                "px-2 py-0.5 rounded-full text-xs font-bold",
-                                activeTab === "experiences" ? "bg-white/20 text-white" : "bg-neutral/20 text-primary/60"
-                            )}>
-                                {visibleEvents.length}
-                            </span>
-                        </button>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-primary/50">
-                        <Eye className="w-4 h-4" />
-                        Showing {currentListings.length} {activeTab}
-                    </div>
-                </div>
-
-                {/* Content Section */}
-                {isError ? (
-                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-50 to-red-50 border border-rose-100 p-6 md:p-6 md:p-12 text-center">
-                        <div className="absolute inset-0 bg-gradient-to-br from-rose-400/5 to-red-400/10"></div>
-                        <div className="relative z-10">
-                            <div className="w-20 h-20 mx-auto bg-gradient-to-br from-rose-100 to-rose-200 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-                                <AlertCircle className="w-10 h-10 text-rose-500" />
-                            </div>
-                            <h4 className="text-2xl font-bold mb-3 text-rose-700">Failed to load {activeTab}</h4>
-                            <p className="text-rose-600/70 w-full mb-6">{error?.message || "An unexpected error occurred. Please try again."}</p>
-                            <Button
-                                onClick={() => window.location.reload()}
-                                className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl px-6 py-3"
-                            >
-                                Try Again
-                            </Button>
-                        </div>
-                    </div>
-                ) : isLoading ? (
-                    <div className="flex flex-col items-center justify-center py-24 text-center">
-                        <div className="relative">
-                            <div className="w-20 h-20 border-4 border-neutral/30 rounded-full"></div>
-                            <div className="absolute inset-0 w-20 h-20 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                        <p className="mt-6 text-primary/70 font-medium">Fetching your {activeTab}...</p>
-                        <p className="text-sm text-primary/40">This won't take long</p>
-                    </div>
-                ) : currentListings.length === 0 ? (
-                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-neutral/10 via-white to-neutral/20 border border-neutral/30 p-6 md:p-6 md:p-12 text-center shadow-xl">
-                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent"></div>
-                        <div className="relative z-10">
-                            <div className="w-24 h-24 mx-auto bg-gradient-to-br from-neutral/30 to-neutral/50 rounded-3xl flex items-center justify-center mb-6 shadow-lg">
-                                {activeTab === "spaces" ? (
-                                    <Home className="w-12 h-12 text-primary" />
-                                ) : (
-                                    <Calendar className="w-12 h-12 text-accent" />
-                                )}
-                            </div>
-                            <h4 className="text-2xl font-bold mb-3 text-primary">No {activeTab} yet</h4>
-                            <p className="text-primary/50 w-full mb-8">
-                                {activeTab === "spaces"
-                                    ? "Start your hosting journey. Share your space with the NextKin community and earn."
-                                    : "Create memorable experiences for travelers and locals. Share your passion with the world."}
-                            </p>
-                            <Button
-                                onClick={() => navigate(activeTab === "spaces" ? "/host/create" : "/events/host")}
-                                className="flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-lg text-xs md:text-sm whitespace-nowrap font-semibold transition-all duration-200 flex-shrink-0"
-                            >
-                                <Plus className="w-5 h-5 mr-2" />
-                                Create Your First {activeTab === "spaces" ? "Space" : "Experience"}
-                                <ChevronRight className="w-4 h-4 ml-2" />
-                            </Button>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-                        {activeTab === "spaces" ? (
-                            paginatedListings.map(p => (
-                                <div key={p._id || p.id} className="transform hover:-translate-y-1 transition-all duration-200">
-                                    <PropertyCard property={p} onDelete={handlePropertyDelete} />
-                                </div>
-                            ))
-                        ) : (
-                            paginatedListings.map(e => (
-                                <div key={e._id || e.id} className="transform hover:-translate-y-1 transition-all duration-200">
-                                    <EventCard event={e} onDelete={handleEventDelete} />
-                                </div>
-                            ))
-                        )}
-
-                        <div className="col-span-full">
-                            <Pagination
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                onPageChange={goToPage}
-                            />
-                        </div>
-                    </div>
-                )}
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-gray-900">Ready to welcome your first guest?</h3>
+              <p className="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
+                Start hosting and connect with travelers from around the world.
+              </p>
             </div>
-        </div >
-    )
-}
+            <div className="flex justify-center gap-3">
+              <button 
+                onClick={() => navigate("/host/create")}
+                className="bg-[#0A1A2F] hover:bg-blue-600 text-white rounded-xl px-5 py-3 text-xs font-bold transition-all shadow-md cursor-pointer"
+              >
+                Create Your First Space
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedListings.map((item) => (
+              <ListingItemCard
+                key={item.id}
+                item={item}
+                paused={pausedIds.has(item.id)}
+                onDelete={handlePropertyDelete}
+                onPause={handleTogglePause}
+              />
+            ))}
+
+            <div className="col-span-full pt-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* -------------------------------
+   Tab Button Helper
+-------------------------------- */
+const TabButton = ({ label, active, count, onClick }) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 border cursor-pointer",
+      active 
+        ? "bg-[#0A1A2F] text-white border-transparent shadow-md"
+        : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+    )}
+  >
+    {label}
+    <span className={cn("px-1.5 py-0.5 rounded-md text-[9px] font-extrabold", active ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500")}>
+      {count}
+    </span>
+  </button>
+);
+
+/* -------------------------------
+   Airbnb-style Listing Item Card
+-------------------------------- */
+const ListingItemCard = ({ item, paused, onDelete, onPause }) => {
+  const navigate = useNavigate();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const photos = Array.isArray(item.photos) ? item.photos : [];
+  const thumbnail = photos[0] || item.banner_image || item.image || "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80";
+  const label = item.property_type || "Stay";
+  const city = item.city || item.location || "Flexible";
+
+  // Status Configurations
+  const getStatus = () => {
+    if (paused) return { text: "Paused", class: "bg-gray-500 text-white" };
+    switch (item.calculatedStatus) {
+      case "active":
+        return { text: "Live", class: "bg-green-500 text-white" };
+      case "pending":
+        return { text: "Pending", class: "bg-yellow-500 text-white" };
+      case "draft":
+        return { text: "Draft", class: "bg-blue-500 text-white" };
+      case "expired":
+        return { text: "Expired", class: "bg-red-500 text-white" };
+      default:
+        return { text: "Live", class: "bg-green-500 text-white" };
+    }
+  };
+
+  const statusObj = getStatus();
+
+  return (
+    <div className={cn(
+      "group bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full",
+      paused && "opacity-75"
+    )}>
+      {/* Visual Thumbnail */}
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-gray-50">
+        <img 
+          src={thumbnail} 
+          alt={item.title} 
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103" 
+        />
+        
+        {/* Status Badge overlayed */}
+        <span className={cn("absolute top-3.5 right-3.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md", statusObj.class)}>
+          {statusObj.text}
+        </span>
+
+        {/* Property Type Badge overlayed */}
+        <span className="absolute top-3.5 left-3.5 px-2.5 py-1 bg-white/95 backdrop-blur-sm rounded-lg text-[9px] font-black uppercase tracking-wider text-gray-700 shadow-sm border border-gray-100">
+          {label}
+        </span>
+      </div>
+
+      {/* Details Area */}
+      <div className="p-5 flex flex-col flex-1 space-y-3">
+        <div className="space-y-1">
+          <h3 className="font-extrabold text-gray-900 group-hover:text-blue-600 transition-colors text-base line-clamp-1">
+            {item.title || "Untitled Space"}
+          </h3>
+          <p className="text-xs text-gray-400 font-semibold flex items-center gap-1">
+            <MapPin className="w-3.5 h-3.5 text-blue-500" />
+            {city}
+          </p>
+        </div>
+
+        {/* Specs line like Airbnb */}
+        <p className="text-xs text-gray-500 font-bold tracking-tight">
+          {item.guests || 0} Guests · {item.bedrooms || 0} Beds · {item.bathrooms || 0} Baths
+        </p>
+
+        {/* Simple visual stats instead of metrics row */}
+        <div className="flex items-center gap-4 text-xs font-bold text-gray-400 pt-2 border-t border-gray-50">
+          <span className="flex items-center gap-1.5" title="Monthly views">
+            <Eye className="w-3.5 h-3.5 text-gray-400" />
+            180 Views
+          </span>
+          <span className="flex items-center gap-1.5" title="Saved to wishlist">
+            <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-50" />
+            34 Saves
+          </span>
+        </div>
+
+        {/* Airbnb action links or small visual buttons */}
+        <div className="flex items-center justify-between gap-2 pt-3 border-t border-gray-50 mt-auto">
+          <div className="flex gap-2 flex-1">
+            <button 
+              onClick={() => navigate(`/rooms/${item.id}`)}
+              className="flex-1 py-2 text-xs font-extrabold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-all text-center cursor-pointer"
+            >
+              Preview
+            </button>
+            
+            {item.calculatedStatus !== "approved" && (
+              <button 
+                onClick={() => navigate(`/host/create?edit=${item.id}`)}
+                className="flex-1 py-2 text-xs font-extrabold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-all text-center cursor-pointer"
+              >
+                Edit
+              </button>
+            )}
+          </div>
+
+          <div className="flex gap-1.5">
+            {/* Pause icon button */}
+            <button 
+              type="button"
+              className="w-8.5 h-8.5 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-gray-50 flex items-center justify-center transition-all cursor-pointer bg-white"
+              onClick={() => onPause(item.id)}
+              title={paused ? "Activate Listing" : "Pause Listing"}
+            >
+              {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+            </button>
+
+            {/* Delete icon button */}
+            <button 
+              type="button"
+              className="w-8.5 h-8.5 rounded-xl border border-gray-200 text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-all cursor-pointer bg-white"
+              disabled={isDeleting}
+              onClick={async () => {
+                setIsDeleting(true);
+                try {
+                  await onDelete(item.id);
+                } finally {
+                  setIsDeleting(false);
+                }
+              }}
+              title="Delete Listing"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

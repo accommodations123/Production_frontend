@@ -3,6 +3,7 @@ import { MapPin, Clock, ShieldCheck, Tag } from "lucide-react";
 import { useCountry } from "@/context/CountryContext";
 import WishlistButton from "@/components/ui/WishlistButton";
 import { SocialQuickConnect } from "@/components/ui/SocialConnect";
+import { formatUTCDate } from "../../utils/timezone";
 
 export const CardContainer = ({ children, onClick, className = "" }) => {
   const navigate = (e) => {
@@ -72,11 +73,17 @@ export function ProductCard({ product, onClick }) {
       ? product.images[0]
       : product?.image || null;
 
-  const postedDate = product?.postedTime
-    ? product.postedTime
-    : (product?.created_at || product?.createdAt)
-      ? new Date(product.created_at || product.createdAt).toLocaleDateString()
-      : "Recently";
+  const getPostedDateDisplay = () => {
+    if (product?.postedTime) return product.postedTime;
+    const rawDate = product?.created_at || product?.createdAt;
+    if (!rawDate) return "Recently";
+    if (rawDate.includes("T")) {
+      const parts = rawDate.split("T");
+      return formatUTCDate(parts[0], parts[1].slice(0, 5));
+    }
+    return formatUTCDate(rawDate);
+  };
+  const postedDate = getPostedDateDisplay();
 
   const isVerified = product.status === "active";
 

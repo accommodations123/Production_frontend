@@ -534,9 +534,17 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                                     to="/account-v2?tab=buy-sell"
                                                     className="flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                                                     onClick={() => setIsProfileOpen(false)}
-                                                >
+                                                 >
                                                     <ShoppingBag className="h-4 w-4 opacity-70" />
                                                     My Buy/Sell
+                                                </Link>
+                                                <Link
+                                                    to="/account-v2?tab=communities"
+                                                    className="flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                                                    onClick={() => setIsProfileOpen(false)}
+                                                >
+                                                    <Users className="h-4 w-4 opacity-70" />
+                                                    My Communities
                                                 </Link>
                                                 <Link
                                                     to="/account-v2?tab=wishlist"
@@ -859,6 +867,14 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                                 >
                                                     <ShoppingBag className="w-5 h-5" />
                                                     <span>My Buy/Sell</span>
+                                                </Link>
+                                                <Link
+                                                    to="/account-v2?tab=communities"
+                                                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
+                                                    onClick={() => setIsMobileMenuOpen(false)}
+                                                >
+                                                    <Users className="w-5 h-5" />
+                                                    <span>My Communities</span>
                                                 </Link>
                                                 <Link
                                                     to="/account-v2?tab=applications"

@@ -9,6 +9,7 @@ import { useGetJobByIdQuery } from "@/store/api/hostApi"
 import { Loader2 } from "lucide-react"
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/events/[id]/hooks/useAuth'
+import { formatUTCDate } from '../../utils/timezone'
 
 export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply }) {
     const [showApplicationForm, setShowApplicationForm] = useState(false)
@@ -323,7 +324,7 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
                                                             <span className="text-gray-400">Start Date</span>
-                                                            <span className="text-gray-900 font-bold">{job.startDate ? new Date(job.startDate).toLocaleDateString() : 'Immediate'}</span>
+                                                            <span className="text-gray-900 font-bold">{job.startDate ? formatUTCDate(job.startDate) : 'Immediate'}</span>
                                                         </div>
                                                     </div>
                                                 </div>

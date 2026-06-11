@@ -1,6 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Plane, Clock, Shield, Star, Heart, Navigation, ChevronDown } from "lucide-react";
+import { formatUTCDate } from "../../../utils/timezone";
 
 export default function TripCard({ plan, isSelected, onSelect, onMatchRequest }) {
     const formatTime = (timeString) => {
@@ -72,7 +73,7 @@ export default function TripCard({ plan, isSelected, onSelect, onMatchRequest })
                     <div className="text-right">
                         <p className="text-xs uppercase font-bold tracking-wider mb-1" style={{ color: 'var(--color-secondary)' }}>Travel Date</p>
                         <p className="text-sm font-bold bg-gray-100 px-3 py-1 rounded-full inline-block" style={{ color: 'var(--color-foreground)' }}>
-                            {new Date(plan.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {formatUTCDate(plan.date)}
                         </p>
                     </div>
                 </div>

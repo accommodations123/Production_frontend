@@ -3,6 +3,7 @@ import { Plane, MapPin, Calendar, Globe, Shield } from "lucide-react";
 import WishlistButton from "@/components/ui/WishlistButton";
 import { SocialQuickConnect } from "@/components/ui/SocialConnect";
 import { resolveImageUrl } from "@/lib/imageUtils";
+import { formatUTCDate } from "../../utils/timezone";
 
 export default function TripCard({ plan }) {
     if (!plan || !plan.user) return null;
@@ -16,13 +17,7 @@ export default function TripCard({ plan }) {
         return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
     };
 
-    const formattedDate = plan.date
-        ? new Date(plan.date).toLocaleDateString("en-US", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-          })
-        : "";
+    const formattedDate = plan.date ? formatUTCDate(plan.date) : "";
 
     const [imageError, setImageError] = useState(false);
 

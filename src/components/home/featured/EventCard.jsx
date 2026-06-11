@@ -3,6 +3,7 @@ import { MapPin, Calendar, Users, Star, MessageCircle, Share2, Clock } from 'luc
 import { Button } from '@/components/ui/button';
 import { useCountry } from '@/context/CountryContext';
 import { getEventStatus } from '@/lib/eventUtils';
+import { formatUTCDate } from '../../../utils/timezone';
 
 const HostPhoto = ({ host, name }) => {
     const photoUrl =
@@ -40,12 +41,7 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
     // Helper functions for formatting date and time
     const formatDate = (dateString) => {
         if (!dateString) return "Date TBA";
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
+        return formatUTCDate(dateString);
     };
 
     const formatTime = (timeString) => {
@@ -76,10 +72,10 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
 
     const getDateParts = (dateString) => {
         if (!dateString) return { month: "TBA", day: "" };
-        const date = new Date(dateString);
+        const date = new Date(`${dateString}T00:00:00Z`);
         return {
-            month: date.toLocaleDateString('en-US', { month: 'short' }),
-            day: date.toLocaleDateString('en-US', { day: 'numeric' })
+            month: date.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }),
+            day: date.toLocaleDateString('en-US', { day: 'numeric', timeZone: 'UTC' })
         };
     };
 

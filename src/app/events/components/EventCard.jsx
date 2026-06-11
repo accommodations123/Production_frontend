@@ -1,6 +1,7 @@
 import React, { memo } from "react"
 import { Calendar, MapPin, Users, Star, MessageCircle, Heart, Bookmark, Share2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { formatUTCDate } from "../../../utils/timezone"
 import { HostPhoto } from "./HostPhoto"
 import { COUNTRIES } from "@/lib/mock-data"
 import WishlistButton from "@/components/ui/WishlistButton"
@@ -15,16 +16,7 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
     // Format date for display
     const formatDate = (dateString) => {
         if (!dateString) return "Date TBA";
-        try {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
-        } catch (e) {
-            return dateString;
-        }
+        return formatUTCDate(dateString);
     };
 
     // Format time for display

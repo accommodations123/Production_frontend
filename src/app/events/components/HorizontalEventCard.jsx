@@ -6,6 +6,7 @@ import { COUNTRIES } from "@/lib/mock-data"
 import WishlistButton from "@/components/ui/WishlistButton"
 import { useCountry } from "@/context/CountryContext"
 import { getEventStatus } from "@/lib/eventUtils"
+import { formatUTCDate } from "../../../utils/timezone"
 
 export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
     const status = getEventStatus(event)
@@ -14,16 +15,7 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
     // Format date for display
     const formatDate = (dateString) => {
         if (!dateString) return "Date TBA";
-        try {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
-        } catch (e) {
-            return dateString;
-        }
+        return formatUTCDate(dateString);
     };
 
     // Get organizer name with fallback

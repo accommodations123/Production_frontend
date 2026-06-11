@@ -1,538 +1,545 @@
-"use client"
-import React, { useState, useEffect, useRef } from "react"
+"use client";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
-    User, Phone, Mail, Globe,
-    MapPin, Edit2, Share2, ExternalLink, Check, X, ChevronDown, Building2
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Facebook, Instagram, MessageCircle } from "lucide-react"
+  User, Phone, Mail, Globe, MapPin, Edit2, Share2, 
+  ExternalLink, Check, X, ChevronDown, Building2, CheckCircle2, ShieldCheck
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Facebook, Instagram, MessageCircle } from "lucide-react";
+import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
+import { useNavigate } from "react-router-dom";
+import SearchableDropdown from "@/components/ui/SearchableDropdown";
+import { Country, State, City } from 'country-state-city';
 
 const DetailCard = ({ title, description, children, onEdit, isEditing, icon: Icon, isUpdating, className }) => (
-    <div className={cn(
-        "relative rounded-2xl bg-gradient-to-br from-white via-neutral/5 to-neutral/10 border border-neutral/20 shadow-xl",
-        className
-    )}>
-        {/* Decorative Background - Clipped */}
-        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-primary/3 to-accent/5 rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="relative z-10 p-4 sm:p-6 md:p-8 space-y-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex gap-4">
-                    <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center">
-                        <Icon className="w-6 h-6 text-accent" />
-                    </div>
-                    <div>
-                        <h3 className="text-xl font-bold text-primary">{title}</h3>
-                        <p className="text-sm text-primary/50">{description}</p>
-                    </div>
-                </div>
-
-                <button
-                    onClick={onEdit}
-                    disabled={isUpdating}
-                    className={cn(
-                        "px-3 py-2 md:px-4 md:py-2.5 rounded-lg text-xs md:text-sm font-semibold flex items-center gap-1 md:gap-2 whitespace-nowrap shrink-0 max-w-[140px]",
-                        isEditing
-                            ? "bg-accent text-white hover:bg-accent/90 shadow-sm"
-                            : "bg-neutral/20 text-primary hover:bg-neutral/30 border border-neutral/30"
-                    )}
-                >
-                    {isUpdating ? (
-                        <>
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            Saving...
-                        </>
-                    ) : isEditing ? (
-                        <>
-                            <Check className="w-4 h-4" />
-                            <span className="hidden sm:inline">Save Changes</span>
-                            <span className="sm:hidden">Save</span>
-                        </>
-                    ) : (
-                        <>
-                            <Edit2 className="w-4 h-4" />
-                            Edit
-                        </>
-                    )}
-                </button>
-            </div>
-
-            {/* ✅ FIX APPLIED HERE */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
-                {children}
-            </div>
-        </div>
+  <div className={cn(
+    "relative rounded-3xl bg-white border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)]",
+    className
+  )}>
+    <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none -z-10">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 rounded-full blur-3xl"></div>
     </div>
-)
 
-import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect"
-import { useNavigate } from "react-router-dom"
-import SearchableDropdown from "@/components/ui/SearchableDropdown"
-import { Country, State, City } from 'country-state-city'
+    <div className="p-6 sm:p-8 space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex gap-4">
+          <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center shrink-0">
+            <Icon className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+            <p className="text-xs text-gray-500">{description}</p>
+          </div>
+        </div>
+
+        <button
+          onClick={onEdit}
+          disabled={isUpdating}
+          className={cn(
+            "px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 whitespace-nowrap shrink-0 transition-all shadow-sm",
+            isEditing
+              ? "bg-blue-600 hover:bg-blue-700 text-white"
+              : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+          )}
+        >
+          {isUpdating ? (
+            <>
+              <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              Saving...
+            </>
+          ) : isEditing ? (
+            <>
+              <Check className="w-3.5 h-3.5" />
+              Save
+            </>
+          ) : (
+            <>
+              <Edit2 className="w-3.5 h-3.5" />
+              Edit
+            </>
+          )}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+        {children}
+      </div>
+    </div>
+  </div>
+);
 
 const InfoField = ({
-    label,
-    value,
-    isEditing,
-    onChange,
-    name,
-    type = "text",
-    placeholder,
-    action,
-    actionIcon: ActionIcon,
-    prefix,
-    iso,
-    onPrefixChange
+  label,
+  value,
+  isEditing,
+  onChange,
+  name,
+  type = "text",
+  placeholder,
+  action,
+  actionIcon: ActionIcon,
+  prefix,
+  iso,
+  onPrefixChange
 }) => (
-    <div className="space-y-2">
-        <label className="text-xs font-semibold uppercase tracking-wider text-primary/40 ml-1 flex items-center gap-1">
-            {label}
-        </label>
-        {isEditing ? (
-            type === "textarea" ? (
-                <textarea
-                    name={name}
-                    value={value}
-                    onChange={onChange}
-                    placeholder={placeholder || label}
-                    rows={4}
-    className="w-full min-h-[100px] bg-white border-2 border-neutral/30 py-3 px-4 rounded-xl"
-                />
-            ) : (
-                <div className="flex gap-2">
-                    {prefix !== undefined && onPrefixChange && (
-                        <div className="w-[110px] flex-shrink-0">
-                            <CountryCodeSelect value={prefix} isoCode={iso} onChange={onPrefixChange} />
-                        </div>
-                    )}
-                 <input
-    type={type}
-    name={name}
-    value={value}
-    onChange={(e) => {
-        let val = e.target.value;
-
-        // ONLY numbers
-        if (name === "phone" || name === "whatsapp" || name === "zip") {
-            val = val.replace(/[^0-9]/g, "");
-
-            if (name === "phone" || name === "whatsapp") {
-                val = val.slice(0, 10);
-            }
-
-            if (name === "zip") {
-                val = val.slice(0, 6);
-            }
-        }
-
-        onChange({
-            target: {
-                name,
-                value: val
-            }
-        });
-    }}
-    inputMode="numeric"
-    placeholder={placeholder || label}
-    className="w-full h-[48px] bg-white border-2 border-neutral/30 py-3 px-4 rounded-xl"
-/>
-                </div>
-            )
-        ) : (
-            <div className="relative group">
-<div className="px-4 py-3 bg-neutral/10 rounded-xl border border-neutral/20 font-semibold text-primary flex items-center">                    <span className="truncate">
-                        {prefix && value ? `${prefix} ${value}` : (value || <span className="text-primary/30 font-normal italic">Not specified</span>)}
-                    </span>
-                    {action && value && (
-                        <button
-                            onClick={() => action(prefix ? `${prefix}${value}` : value)}
-                            className="p-2 bg-white rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-all text-accent hover:bg-accent hover:text-white"
-                            title="Open link"
-                        >
-                            {ActionIcon ? <ActionIcon size={14} /> : <ExternalLink size={14} />}
-                        </button>
-                    )}
-                </div>
+  <div className="space-y-2">
+    <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 ml-1 block">
+      {label}
+    </label>
+    {isEditing ? (
+      type === "textarea" ? (
+        <textarea
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder || label}
+          rows={4}
+          className="w-full bg-gray-50 border border-gray-200 py-3 px-4 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 transition-all resize-none"
+        />
+      ) : (
+        <div className="flex gap-2">
+          {prefix !== undefined && onPrefixChange && (
+            <div className="w-[110px] flex-shrink-0">
+              <CountryCodeSelect value={prefix} isoCode={iso} onChange={onPrefixChange} />
             </div>
-        )}
-    </div>
-)
-
-// ... (existing imports)
+          )}
+          <input
+            type={type}
+            name={name}
+            value={value}
+            onChange={(e) => {
+              let val = e.target.value;
+              if (name === "phone" || name === "whatsapp" || name === "zip") {
+                val = val.replace(/[^0-9]/g, "");
+                if (name === "phone" || name === "whatsapp") {
+                  val = val.slice(0, 10);
+                }
+                if (name === "zip") {
+                  val = val.slice(0, 6);
+                }
+              }
+              onChange({ target: { name, value: val } });
+            }}
+            inputMode="numeric"
+            placeholder={placeholder || label}
+            className="w-full h-11 bg-gray-50 border border-gray-200 py-3 px-4 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 transition-all"
+          />
+        </div>
+      )
+    ) : (
+      <div className="relative group w-full">
+        <div className="px-4 py-3 bg-gray-50/50 rounded-xl border border-gray-100 font-semibold text-gray-800 text-sm flex items-center justify-between min-h-[44px]">
+          <span className="truncate">
+            {prefix && value ? `${prefix} ${value}` : (value || <span className="text-gray-300 font-normal italic">Not specified</span>)}
+          </span>
+          {action && value && (
+            <button
+              onClick={() => action(prefix ? `${prefix}${value}` : value)}
+              className="p-1.5 bg-white border border-gray-100 rounded-lg shadow-sm text-blue-600 hover:text-white hover:bg-blue-600 transition-all flex items-center justify-center shrink-0"
+              title="Open"
+            >
+              {ActionIcon ? <ActionIcon size={12} /> : <ExternalLink size={12} />}
+            </button>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+);
 
 export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdating, isHost }) => {
-    const navigate = useNavigate()
-    const [editStates, setEditStates] = useState({
-        personal: false,
-        location: false,
-        social: false,
-        host: false,
-    })
+  const navigate = useNavigate();
+  const [editStates, setEditStates] = useState({
+    personal: false,
+    location: false,
+    social: false,
+  });
 
-    // ... (existing state)
-    const [formData, setFormData] = useState({
-        full_name: initialData?.full_name || initialData?.name || "",
-        email: initialData?.email || "",
-        phone: initialData?.phone || "",
-        country: initialData?.country || "",
-        state: initialData?.state || "",
-        city: initialData?.city || "",
-        address: initialData?.address || "",
-        zip: initialData?.zip || "",
-        whatsapp: initialData?.whatsapp || "",
-        facebook: initialData?.facebook || "",
-        instagram: initialData?.instagram || "",
-        phoneCode: "+91",
-        phoneIso: "",
-        whatsappCode: "+91",
-        whatsappIso: ""
-    })
+  const [formData, setFormData] = useState({
+    full_name: initialData?.full_name || initialData?.name || "",
+    email: initialData?.email || "",
+    phone: initialData?.phone || "",
+    country: initialData?.country || "",
+    state: initialData?.state || "",
+    city: initialData?.city || "",
+    address: initialData?.address || "",
+    zip: initialData?.zip || "",
+    whatsapp: initialData?.whatsapp || "",
+    facebook: initialData?.facebook || "",
+    instagram: initialData?.instagram || "",
+    phoneCode: "+91",
+    phoneIso: "",
+    whatsappCode: "+91",
+    whatsappIso: ""
+  });
 
-    const [countriesList] = useState(Country.getAllCountries());
-    const [statesList, setStatesList] = useState([]);
-    const [citiesList, setCitiesList] = useState([]);
-    const citiesFetched = useRef(false);
+  const [countriesList] = useState(Country.getAllCountries());
+  const [statesList, setStatesList] = useState([]);
+  const [citiesList, setCitiesList] = useState([]);
+  const citiesFetched = useRef(false);
 
-    // Initialize location lists on mount or when data loads
-    useEffect(() => {
-        if (formData.country) {
-            const countryObj = countriesList.find(c => c.name === formData.country);
-            if (countryObj) {
-                const states = State.getStatesOfCountry(countryObj.isoCode);
-                setStatesList(states);
+  useEffect(() => {
+    if (formData.country) {
+      const countryObj = countriesList.find(c => c.name === formData.country);
+      if (countryObj) {
+        const states = State.getStatesOfCountry(countryObj.isoCode);
+        setStatesList(states);
 
-                if (formData.state) {
-                    const stateObj = states.find(s => s.name === formData.state);
-                    if (stateObj) {
-                        setCitiesList(City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
-                        citiesFetched.current = true;
-                    }
-                }
-            }
+        if (formData.state) {
+          const stateObj = states.find(s => s.name === formData.state);
+          if (stateObj) {
+            setCitiesList(City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
+            citiesFetched.current = true;
+          }
         }
-    }, [formData.country, formData.state, countriesList]);
-
-    // Known country codes (sorted by length for proper matching)
-    const KNOWN_CODES = ["+1", "+91", "+44", "+86", "+81", "+49", "+33", "+61", "+55", "+39", "+34", "+7", "+82", "+62", "+52", "+31", "+27", "+966", "+971", "+65", "+60", "+63", "+66", "+84", "+92", "+94", "+880", "+977", "+254", "+233", "+234"];
-
-    const splitPhone = (fullPhone) => {
-        if (!fullPhone) return { code: "+91", number: "" };
-
-        const phoneStr = fullPhone.toString().trim();
-
-        if (phoneStr.startsWith('+')) {
-            const sortedCodes = [...KNOWN_CODES].sort((a, b) => b.length - a.length);
-            for (const code of sortedCodes) {
-                if (phoneStr.startsWith(code)) {
-                    return { code, number: phoneStr.slice(code.length).trim() };
-                }
-            }
-        }
-
-        return { code: "+91", number: phoneStr };
+      }
     }
+  }, [formData.country, formData.state, countriesList]);
 
-    useEffect(() => {
-        if (initialData) {
-            setFormData(prev => {
-                const parsedPhone = splitPhone(initialData.phone || prev.phone);
-                const parsedWhatsApp = splitPhone(initialData.whatsapp || prev.whatsapp);
+  const KNOWN_CODES = ["+1", "+91", "+44", "+86", "+81", "+49", "+33", "+61", "+55", "+39", "+34", "+7", "+82", "+62", "+52", "+31", "+27", "+966", "+971", "+65", "+60", "+63", "+66", "+84", "+92", "+94", "+880", "+977", "+254", "+233", "+234"];
 
-                return {
-                    ...prev,
-                    full_name: initialData.full_name || initialData.name || prev.full_name || "",
-                    email: initialData.email || prev.email || "",
-                    phone: parsedPhone.number || "",
-                    phoneCode: parsedPhone.code,
-                    country: initialData.country || prev.country || "",
-                    state: initialData.state || prev.state || "",
-                    city: initialData.city || prev.city || "",
-                    address: initialData.street_address || initialData.address || prev.address || "",
-                    zip: initialData.zip_code || initialData.zip || prev.zip || "",
-                    whatsapp: parsedWhatsApp.number || "",
-                    whatsappCode: parsedWhatsApp.code,
-                    facebook: initialData.facebook || prev.facebook || "",
-                    instagram: initialData.instagram || prev.instagram || "",
-                };
-            });
+  const splitPhone = (fullPhone) => {
+    if (!fullPhone) return { code: "+91", number: "" };
+    const phoneStr = fullPhone.toString().trim();
+    if (phoneStr.startsWith('+')) {
+      const sortedCodes = [...KNOWN_CODES].sort((a, b) => b.length - a.length);
+      for (const code of sortedCodes) {
+        if (phoneStr.startsWith(code)) {
+          return { code, number: phoneStr.slice(code.length).trim() };
         }
-    }, [initialData]);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target
-        setFormData(prev => ({ ...prev, [name]: value }))
+      }
     }
+    return { code: "+91", number: phoneStr };
+  };
 
-    const toggleEdit = async (section) => {
-        // Allow all users to edit their profile
+  useEffect(() => {
+    if (initialData) {
+      setFormData(prev => {
+        const parsedPhone = splitPhone(initialData.phone || prev.phone);
+        const parsedWhatsApp = splitPhone(initialData.whatsapp || prev.whatsapp);
 
-
-        if (editStates[section]) {
-            try {
-                if (onUpdate) {
-                    // Normalize for backend
-                    // Normalize for backend - Convert to FormData to match ProfileCard
-                    const payload = new FormData();
-
-                    // Add all text fields
-                    Object.keys(formData).forEach(key => {
-                        if (key !== 'phone' && key !== 'whatsapp' && key !== 'phoneCode' && key !== 'whatsappCode' && key !== 'phoneIso' && key !== 'whatsappIso') {
-                            payload.append(key, formData[key]);
-                        }
-                    });
-
-                    // Handle composite fields
-                    const finalPhone = formData.phone ? `${formData.phoneCode}${formData.phone}` : "";
-                    const finalWhatsapp = formData.whatsapp ? `${formData.whatsappCode}${formData.whatsapp}` : "";
-
-                    payload.append('phone', finalPhone);
-                    payload.append('whatsapp', finalWhatsapp);
-                    payload.append('zip_code', formData.zip);
-                    payload.append('street_address', formData.address);
-
-                    await onUpdate(payload);
-                }
-                setEditStates(prev => ({ ...prev, [section]: false }))
-            } catch (error) {
-                console.error("Update failed", error);
-                alert("Failed to update profile. Please try again.")
-            }
-        } else {
-            setEditStates(prev => ({ ...prev, [section]: true }))
-        }
-    }
-
-    // Auto-fill address based on Pincode
-    React.useEffect(() => {
-        const fetchPincodeDetails = async () => {
-            const pincode = formData.zip;
-            if (pincode && pincode.length === 6 && /^\d+$/.test(pincode) && editStates.location) {
-                try {
-                    const { fetchAddressByPincode } = await import('@/lib/pincodeUtils');
-                    const addressData = await fetchAddressByPincode(pincode);
-                    if (addressData) {
-                        setFormData(prev => ({
-                            ...prev,
-                            city: addressData.city || prev.city,
-                            state: addressData.state || prev.state,
-                            country: addressData.country || prev.country
-                        }));
-                    }
-                } catch (e) { console.error(e) }
-            }
+        return {
+          ...prev,
+          full_name: initialData.full_name || initialData.name || prev.full_name || "",
+          email: initialData.email || prev.email || "",
+          phone: parsedPhone.number || "",
+          phoneCode: parsedPhone.code,
+          country: initialData.country || prev.country || "",
+          state: initialData.state || prev.state || "",
+          city: initialData.city || prev.city || "",
+          address: initialData.street_address || initialData.address || prev.address || "",
+          zip: initialData.zip_code || initialData.zip || prev.zip || "",
+          whatsapp: parsedWhatsApp.number || "",
+          whatsappCode: parsedWhatsApp.code,
+          facebook: initialData.facebook || prev.facebook || "",
+          instagram: initialData.instagram || prev.instagram || "",
         };
-
-        const timeoutId = setTimeout(fetchPincodeDetails, 500);
-        return () => clearTimeout(timeoutId);
-    }, [formData.zip, editStates.location]);
-
-    const openWhatsApp = (number) => {
-        const cleanNumber = number ? number.replace(/\D/g, '') : '';
-        if (cleanNumber) window.open(`https://wa.me/${cleanNumber}`, '_blank');
+      });
     }
+  }, [initialData]);
 
-    const openLink = (url) => {
-        if (!url) return;
-        let finalUrl = url;
-        if (!url.startsWith('http')) {
-            finalUrl = `https://${url}`;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const toggleEdit = async (section) => {
+    if (editStates[section]) {
+      try {
+        if (onUpdate) {
+          const payload = new FormData();
+          Object.keys(formData).forEach(key => {
+            if (key !== 'phone' && key !== 'whatsapp' && key !== 'phoneCode' && key !== 'whatsappCode' && key !== 'phoneIso' && key !== 'whatsappIso') {
+              payload.append(key, formData[key]);
+            }
+          });
+
+          const finalPhone = formData.phone ? `${formData.phoneCode}${formData.phone}` : "";
+          const finalWhatsapp = formData.whatsapp ? `${formData.whatsappCode}${formData.whatsapp}` : "";
+
+          payload.append('phone', finalPhone);
+          payload.append('whatsapp', finalWhatsapp);
+          payload.append('zip_code', formData.zip);
+          payload.append('street_address', formData.address);
+
+          await onUpdate(payload);
         }
-        window.open(finalUrl, '_blank');
+        setEditStates(prev => ({ ...prev, [section]: false }));
+      } catch (error) {
+        console.error("Update failed", error);
+        toast.error("Failed to update profile. Please try again.");
+      }
+    } else {
+      setEditStates(prev => ({ ...prev, [section]: true }));
     }
+  };
 
-    const isValidCountry = countriesList.some(c => c.name === formData.country);
-    const isValidState = statesList.some(s => s.name === formData.state);
+  // Auto-fill address based on Pincode lookup
+  useEffect(() => {
+    const fetchPincodeDetails = async () => {
+      const pincode = formData.zip;
+      if (pincode && pincode.length === 6 && /^\d+$/.test(pincode) && editStates.location) {
+        try {
+          const { fetchAddressByPincode } = await import('@/lib/pincodeUtils');
+          const addressData = await fetchAddressByPincode(pincode);
+          if (addressData) {
+            setFormData(prev => ({
+              ...prev,
+              city: addressData.city || prev.city,
+              state: addressData.state || prev.state,
+              country: addressData.country || prev.country
+            }));
+          }
+        } catch (e) { console.error(e); }
+      }
+    };
 
-    return (
-        <div className="relative min-h-screen">
-            {/* Background Decorations */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary/5 to-accent/10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-neutral/20 to-accent/5 rounded-full blur-3xl"></div>
-            </div>
+    const timeoutId = setTimeout(fetchPincodeDetails, 500);
+    return () => clearTimeout(timeoutId);
+  }, [formData.zip, editStates.location]);
 
-            <div className="relative z-10 p-4 md:p-8 space-y-8 max-w-5xl mx-auto">
-                {/* Header Section */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-secondary to-navy-dark p-8 text-white">
-                    <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 40%)' }}></div>
+  const openWhatsApp = (number) => {
+    const cleanNumber = number ? number.replace(/\D/g, '') : '';
+    if (cleanNumber) window.open(`https://wa.me/${cleanNumber}`, '_blank');
+  };
 
-                    <div className="relative z-10">
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-xs font-medium text-white/80 mb-4">
-                            <User className="w-3.5 h-3.5" />
-                            Profile Settings
-                        </div>
-                        <h1 className="text-3xl md:text-4xl font-bold mb-2">Personal Information</h1>
-                        <p className="text-white/60 max-w-md">Manage your personal details, location settings, and social connections.</p>
-                    </div>
-                </div>
+  const openLink = (url) => {
+    if (!url) return;
+    let finalUrl = url;
+    if (!url.startsWith('http')) {
+      finalUrl = `https://${url}`;
+    }
+    window.open(finalUrl, '_blank');
+  };
 
-                {/* Personal Details Card */}
-                <DetailCard
-                    title="Personal Details"
-                    description="Your basic identity information"
-                    icon={User}
-                    isEditing={editStates.personal}
-                    onEdit={() => toggleEdit('personal')}
-                    isUpdating={isUpdating && editStates.personal}
-                    className="z-30"
-                >
-                    <div className="md:col-span-2">
-                        <InfoField label="Full Name" name="full_name" value={formData.full_name} isEditing={editStates.personal} onChange={handleChange} />
-                    </div>
-                    <InfoField label="Email Address" name="email" type="email" value={formData.email} isEditing={editStates.personal} onChange={handleChange} />
-                    <InfoField
-                        label="Phone Number"
-                        name="phone"
-                        type="tel"
-                        value={formData.phone}
-                        isEditing={editStates.personal}
-                        onChange={handleChange}
-                        prefix={formData.phoneCode}
-                        iso={formData.phoneIso}
-                        onPrefixChange={(code, iso) => setFormData(prev => ({ ...prev, phoneCode: code, phoneIso: iso }))}
-                    />
-                </DetailCard>
+  const isValidCountry = countriesList.some(c => c.name === formData.country);
+  const isValidState = statesList.some(s => s.name === formData.state);
 
+  // Profile Completion Meter Calculation
+  const completionScore = useMemo(() => {
+    let score = 0;
+    if (formData.full_name) score += 20;
+    if (formData.email) score += 20;
+    if (formData.phone) score += 20;
+    if (formData.country && formData.city) score += 20;
+    if (formData.whatsapp || formData.facebook || formData.instagram) score += 20;
+    return score;
+  }, [formData]);
 
-
-                {/* Location & Address Card */}
-                <DetailCard
-                    title="Location & Address"
-                    description="Helps us personalize your experience"
-                    icon={MapPin}
-                    isEditing={editStates.location}
-                    onEdit={() => toggleEdit('location')}
-                    isUpdating={isUpdating && editStates.location}
-                    className="z-20"
-                >
-                    <div className="space-y-2">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-primary/40 ml-1 flex items-center gap-1">Country</label>
-                        {editStates.location ? (
-                            <SearchableDropdown
-                                label=""
-                                placeholder="Select Country"
-                                options={countriesList}
-                                value={formData.country}
-                                onChange={(option) => {
-                                    setFormData(prev => ({ ...prev, country: option.name, state: "", city: "" }));
-                                    setStatesList(State.getStatesOfCountry(option.isoCode));
-                                    setCitiesList([]);
-                                }}
-                                className="bg-white border-2 border-neutral/30 rounded-xl focus:ring-accent/30 focus:border-accent text-primary"
-                            />
-                        ) : (
-                            <div className="p-4 bg-neutral/10 rounded-xl border border-neutral/20 font-semibold text-primary">
-                                {formData.country || <span className="text-primary/30 font-normal italic">Not specified</span>}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-primary/40 ml-1 flex items-center gap-1">State / Province</label>
-                        {editStates.location ? (
-                            <SearchableDropdown
-                                label=""
-                                placeholder="Select State"
-                                options={statesList}
-                                value={formData.state}
-                                disabled={!formData.country}
-                                isLoading={isValidCountry && !statesList.length && formData.country}
-                                onChange={(option) => {
-                                    setFormData(prev => ({ ...prev, state: option.name, city: "" }));
-                                    const countryObj = countriesList.find(c => c.name === formData.country);
-                                    if (countryObj) {
-                                        setCitiesList(City.getCitiesOfState(countryObj.isoCode, option.isoCode));
-                                        citiesFetched.current = true;
-                                    } else {
-                                        citiesFetched.current = false;
-                                    }
-                                }}
-                                className="bg-white border-2 border-neutral/30 rounded-xl focus:ring-accent/30 focus:border-accent text-primary"
-                            />
-                        ) : (
-                            <div className="p-4 bg-neutral/10 rounded-xl border border-neutral/20 font-semibold text-primary">
-                                {formData.state || <span className="text-primary/30 font-normal italic">Not specified</span>}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-primary/40 ml-1 flex items-center gap-1">City</label>
-                        {editStates.location ? (
-                            <SearchableDropdown
-                                label=""
-                                placeholder="Select City"
-                                options={citiesList}
-                                value={formData.city}
-                                disabled={!formData.state}
-                                isLoading={isValidState && !citiesList.length && !citiesFetched.current && formData.state}
-                                onChange={(option) => {
-                                    setFormData(prev => ({ ...prev, city: option.name }));
-                                }}
-                                className="bg-white border-2 border-neutral/30 rounded-xl focus:ring-accent/30 focus:border-accent text-primary"
-                            />
-                        ) : (
-                            <div className="p-4 bg-neutral/10 rounded-xl border border-neutral/20 font-semibold text-primary">
-                                {formData.city || <span className="text-primary/30 font-normal italic">Not specified</span>}
-                            </div>
-                        )}
-                    </div>
-
-                    <InfoField label="Zip / Pin Code" name="zip" value={formData.zip} isEditing={editStates.location} onChange={handleChange} />
-                    <div className="md:col-span-2">
-                        <InfoField label="Street Address" name="address" value={formData.address} isEditing={editStates.location} onChange={handleChange} placeholder="House number, street name..." />
-                    </div>
-                </DetailCard>
-
-                {/* Social Media & Contacts */}
-                <DetailCard
-                    title="Social Media & Contacts"
-                    description="Where can people find you?"
-                    icon={Share2}
-                    isEditing={editStates.social}
-                    onEdit={() => toggleEdit('social')}
-                    isUpdating={isUpdating && editStates.social}
-                    className="z-10"
-                >
-                    <div className="md:col-span-2">
-                        <InfoField
-                            label="WhatsApp Number"
-                            name="whatsapp"
-                            value={formData.whatsapp}
-                            isEditing={editStates.social}
-                            onChange={handleChange}
-                            placeholder="1234567890"
-                            action={openWhatsApp}
-                            actionIcon={MessageCircle}
-                            prefix={formData.whatsappCode}
-                            iso={formData.whatsappIso}
-                            onPrefixChange={(code, iso) => setFormData(prev => ({ ...prev, whatsappCode: code, whatsappIso: iso }))}
-                        />
-                    </div>
-                    <InfoField
-                        label="Facebook Profile"
-                        name="facebook"
-                        value={formData.facebook}
-                        isEditing={editStates.social}
-                        onChange={handleChange}
-                        placeholder="facebook.com/username"
-                        action={openLink}
-                        actionIcon={Facebook}
-                    />
-                    <InfoField
-                        label="Instagram Profile"
-                        name="instagram"
-                        value={formData.instagram}
-                        isEditing={editStates.social}
-                        onChange={handleChange}
-                        placeholder="instagram.com/username"
-                        action={openLink}
-                        actionIcon={Instagram}
-                    />
-                </DetailCard>
-            </div>
+  return (
+    <div className="space-y-8 animate-in fade-in duration-300">
+      
+      {/* Visual Header Section */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 rounded-full blur-3xl -z-10"></div>
+        <div className="space-y-1.5">
+          <span className="text-xs font-bold text-blue-600 tracking-wider uppercase block">Identity Profile 🔒</span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Personal Information</h1>
+          <p className="text-xs sm:text-sm text-gray-500 max-w-lg leading-relaxed">
+            Manage your personal verification details, contact numbers, primary locations, and social links.
+          </p>
         </div>
-    )
-}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Side: detail cards grouped */}
+        <div className="lg:col-span-8 space-y-6">
+          
+          {/* Identity details */}
+          <DetailCard
+            title="Personal Details"
+            description="Your primary identity credentials"
+            icon={User}
+            isEditing={editStates.personal}
+            onEdit={() => toggleEdit('personal')}
+            isUpdating={isUpdating && editStates.personal}
+            className="z-30"
+          >
+            <div className="md:col-span-2">
+              <InfoField label="Full Name" name="full_name" value={formData.full_name} isEditing={editStates.personal} onChange={handleChange} />
+            </div>
+            <InfoField label="Email Address" name="email" type="email" value={formData.email} isEditing={editStates.personal} onChange={handleChange} />
+            <InfoField
+              label="Phone Number"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              isEditing={editStates.personal}
+              onChange={handleChange}
+              prefix={formData.phoneCode}
+              iso={formData.phoneIso}
+              onPrefixChange={(code, iso) => setFormData(prev => ({ ...prev, phoneCode: code, phoneIso: iso }))}
+            />
+          </DetailCard>
+
+          {/* Location details */}
+          <DetailCard
+            title="Location & Address"
+            description="Your primary accommodation hosting location"
+            icon={MapPin}
+            isEditing={editStates.location}
+            onEdit={() => toggleEdit('location')}
+            isUpdating={isUpdating && editStates.location}
+            className="z-20"
+          >
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 ml-1 block">Country</label>
+              {editStates.location ? (
+                <SearchableDropdown
+                  label=""
+                  placeholder="Select Country"
+                  options={countriesList}
+                  value={formData.country}
+                  onChange={(option) => {
+                    setFormData(prev => ({ ...prev, country: option.name, state: "", city: "" }));
+                    setStatesList(State.getStatesOfCountry(option.isoCode));
+                    setCitiesList([]);
+                  }}
+                  className="bg-gray-50 border border-gray-200 rounded-xl focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 transition-all font-bold text-sm h-11"
+                />
+              ) : (
+                <div className="p-3 bg-gray-50/50 rounded-xl border border-gray-100 font-semibold text-gray-800 text-sm flex items-center min-h-[44px]">
+                  {formData.country || <span className="text-gray-300 font-normal italic">Not specified</span>}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 ml-1 block">State / Province</label>
+              {editStates.location ? (
+                <SearchableDropdown
+                  label=""
+                  placeholder="Select State"
+                  options={statesList}
+                  value={formData.state}
+                  disabled={!formData.country}
+                  isLoading={isValidCountry && !statesList.length && formData.country}
+                  onChange={(option) => {
+                    setFormData(prev => ({ ...prev, state: option.name, city: "" }));
+                    const countryObj = countriesList.find(c => c.name === formData.country);
+                    if (countryObj) {
+                      setCitiesList(City.getCitiesOfState(countryObj.isoCode, option.isoCode));
+                      citiesFetched.current = true;
+                    } else {
+                      citiesFetched.current = false;
+                    }
+                  }}
+                  className="bg-gray-50 border border-gray-200 rounded-xl focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 transition-all font-bold text-sm h-11"
+                />
+              ) : (
+                <div className="p-3 bg-gray-50/50 rounded-xl border border-gray-100 font-semibold text-gray-800 text-sm flex items-center min-h-[44px]">
+                  {formData.state || <span className="text-gray-300 font-normal italic">Not specified</span>}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 ml-1 block">City</label>
+              {editStates.location ? (
+                <SearchableDropdown
+                  label=""
+                  placeholder="Select City"
+                  options={citiesList}
+                  value={formData.city}
+                  disabled={!formData.state}
+                  isLoading={isValidState && !citiesList.length && !citiesFetched.current && formData.state}
+                  onChange={(option) => {
+                    setFormData(prev => ({ ...prev, city: option.name }));
+                  }}
+                  className="bg-gray-50 border border-gray-200 rounded-xl focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 transition-all font-bold text-sm h-11"
+                />
+              ) : (
+                <div className="p-3 bg-gray-50/50 rounded-xl border border-gray-100 font-semibold text-gray-800 text-sm flex items-center min-h-[44px]">
+                  {formData.city || <span className="text-gray-300 font-normal italic">Not specified</span>}
+                </div>
+              )}
+            </div>
+
+            <InfoField label="Zip / Pin Code" name="zip" value={formData.zip} isEditing={editStates.location} onChange={handleChange} />
+            <div className="md:col-span-2">
+              <InfoField label="Street Address" name="address" value={formData.address} isEditing={editStates.location} onChange={handleChange} placeholder="House number, street name..." />
+            </div>
+          </DetailCard>
+
+          {/* Social details */}
+          <DetailCard
+            title="Social Links & Contacts"
+            description="Your external profiles and chats"
+            icon={Share2}
+            isEditing={editStates.social}
+            onEdit={() => toggleEdit('social')}
+            isUpdating={isUpdating && editStates.social}
+            className="z-10"
+          >
+            <div className="md:col-span-2">
+              <InfoField
+                label="WhatsApp Number"
+                name="whatsapp"
+                value={formData.whatsapp}
+                isEditing={editStates.social}
+                onChange={handleChange}
+                placeholder="1234567890"
+                action={openWhatsApp}
+                actionIcon={MessageCircle}
+                prefix={formData.whatsappCode}
+                iso={formData.whatsappIso}
+                onPrefixChange={(code, iso) => setFormData(prev => ({ ...prev, whatsappCode: code, whatsappIso: iso }))}
+              />
+            </div>
+            <InfoField
+              label="Facebook Profile"
+              name="facebook"
+              value={formData.facebook}
+              isEditing={editStates.social}
+              onChange={handleChange}
+              placeholder="facebook.com/username"
+              action={openLink}
+              actionIcon={Facebook}
+            />
+            <InfoField
+              label="Instagram Profile"
+              name="instagram"
+              value={formData.instagram}
+              isEditing={editStates.social}
+              onChange={handleChange}
+              placeholder="instagram.com/username"
+              action={openLink}
+              actionIcon={Instagram}
+            />
+          </DetailCard>
+        </div>
+
+        {/* Right Side: completion meter & Trust badge */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] space-y-5">
+            <h3 className="font-extrabold text-gray-900 text-base">Profile Strength</h3>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-bold text-gray-600">Completeness</span>
+                <span className="font-extrabold text-blue-600">{completionScore}%</span>
+              </div>
+              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500 rounded-full" 
+                  style={{ width: `${completionScore}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 flex gap-3">
+              <ShieldCheck className="w-9 h-9 text-blue-600 shrink-0" />
+              <div>
+                <p className="font-extrabold text-gray-900 text-xs">Verified Hosting Profile</p>
+                <p className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">
+                  Verifying your account details builds absolute credibility for guests matching on your listings.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  );
+};

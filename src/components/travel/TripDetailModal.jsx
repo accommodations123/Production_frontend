@@ -1,6 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plane, User, Users, MapPin, Clock, Languages, Calendar, Tag, UserPlus } from "lucide-react";
+import { formatUTCDate } from "../../utils/timezone";
 
 export default function TripDetailModal({ plan, onClose, onMatchRequest }) {
     if (!plan) return null;
@@ -153,7 +154,7 @@ export default function TripDetailModal({ plan, onClose, onMatchRequest }) {
                                     <div>
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Travel Date</p>
                                         <p className="text-xs font-black text-gray-800">
-                                            {new Date(plan.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                                            {formatUTCDate(plan.date)}
                                         </p>
                                     </div>
                                 </div>
