@@ -162,7 +162,7 @@ export default function TravelPage() {
           country: trip.host.country,
           state: trip.host.city,
           city: trip.host.city,
-          image: resolveImageUrl(trip.host.profile_image || null),
+          image: resolveImageUrl(trip.host.profile_image || trip.host.User?.profile_image || trip.host.user?.profile_image || null),
           verified: trip.host.verified || false
         },
         socials: socials
@@ -180,7 +180,7 @@ export default function TravelPage() {
         },
         user: {
           ...trip.user,
-          image: resolveImageUrl(trip.user.image || trip.user.profile_image || null)
+          image: resolveImageUrl(trip.user.image || trip.user.profile_image || trip.user.User?.profile_image || trip.user.user?.profile_image || null)
         },
         socials: socials
       };
@@ -217,7 +217,7 @@ export default function TravelPage() {
             ? (trip.languages || trip.user?.languages)
             : (trip.languages || trip.user?.languages).split(',').map(l => l.trim()))
           : (trip.host?.languages || []),
-        image: resolveImageUrl(trip.image || trip.user?.image || trip.user?.profile_image || trip.host?.image || trip.host?.profile_image || null),
+        image: resolveImageUrl(trip.image || trip.user?.image || trip.user?.profile_image || trip.user?.User?.profile_image || trip.user?.user?.profile_image || trip.host?.image || trip.host?.profile_image || trip.host?.User?.profile_image || trip.host?.user?.profile_image || null),
         verified: trip.host?.user?.verified || trip.user?.verified || false
       },
       destination: `${trip.to_city}, ${normalizeCountry(trip.to_country)}`,

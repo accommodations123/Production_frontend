@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Plane, MapPin, Calendar, Globe, Shield } from "lucide-react";
 import WishlistButton from "@/components/ui/WishlistButton";
 import { SocialQuickConnect } from "@/components/ui/SocialConnect";
+import { resolveImageUrl } from "@/lib/imageUtils";
 
 export default function TripCard({ plan }) {
     if (!plan || !plan.user) return null;
@@ -24,6 +25,36 @@ export default function TripCard({ plan }) {
         : "";
 
     const [imageError, setImageError] = useState(false);
+
+    const profileImage = React.useMemo(() => {
+        const candidates = [
+            plan.host?.profile_image,
+            plan.host?.User?.profile_image,
+            plan.host?.user?.profile_image,
+            plan.user?.profile_image,
+            plan.user?.User?.profile_image,
+            plan.user?.user?.profile_image,
+            plan.user?.image,
+        ];
+        // First, try to find one that's already a full URL starting with http
+        // But since plan.user.image is processed by resolveImageUrl, it might already be the broken cloudfront URL.
+        // So we should try to find a full URL that is NOT a cloudfront URL first!
+        const CLOUDFRONT_BASE = 'https://d3dqp3l6ug81j3.cloudfront.net';
+        const rawUrl = candidates.find(img => img && typeof img === 'string' && img.startsWith('http') && !img.startsWith(CLOUDFRONT_BASE));
+        if (rawUrl) return rawUrl;
+
+        // Otherwise, any full URL (including cloudfront)
+        const fullUrl = candidates.find(img => img && typeof img === 'string' && img.startsWith('http'));
+        if (fullUrl) return fullUrl;
+
+        // Fallback: use resolveImageUrl on whichever key is available
+        const rawKey = candidates.find(img => img && typeof img === 'string' && !img.startsWith('http'));
+        if (rawKey) {
+            return resolveImageUrl(rawKey);
+        }
+
+        return plan.user?.image || null;
+    }, [plan]);
 
     const fromCity = (plan.flight?.from || plan.flight?.from_country || "").split(',')[0].trim();
     const toCity = (plan.flight?.to || plan.destination || "").split(',')[0].trim();
@@ -106,9 +137,9 @@ export default function TripCard({ plan }) {
             <div className="p-4 flex-grow flex flex-col gap-3">
                 {/* User Info */}
                 <div className="flex items-center gap-3">
-                    {plan.user.image && !imageError ? (
+                    {profileImage && !imageError ? (
                         <img
-                            src={plan.user.image}
+                            src={profileImage}
                             className="w-10 h-10 rounded-full object-cover border-2 border-gray-100 shrink-0"
                             alt={plan.user.fullName}
                             loading="lazy"
