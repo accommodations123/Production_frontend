@@ -21,6 +21,7 @@ import {
   useGetBuySellListingsQuery,
   useGetPublicTripsQuery
 } from '@/store/api/hostApi';
+import { useAuth } from '@/app/events/[id]/hooks/useAuth';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -269,6 +270,7 @@ const mapTripToPlan = (trip, currentUser = null) => {
 const HomeFeatured = () => {
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem("user");
+  const { user: currentUser } = useAuth();
   const { activeCountry } = useCountry();
   const { data: allProperties, isLoading: propertiesLoading } = useGetAllPropertiesQuery({ country: activeCountry?.name, limit: 4 });
   const { data: approvedEvents, isLoading: eventsLoading } = useGetApprovedEventsQuery({ name: activeCountry?.name, limit: 4 });
@@ -284,8 +286,8 @@ const HomeFeatured = () => {
 
   const displayedTrips = useMemo(() => {
     if (!publicTripsData?.results) return [];
-    return publicTripsData.results.map(trip => mapTripToPlan(trip, null)).slice(0, 4);
-  }, [publicTripsData]);
+    return publicTripsData.results.map(trip => mapTripToPlan(trip, currentUser)).slice(0, 4);
+  }, [publicTripsData, currentUser]);
 
   const displayedEvents = useMemo(() => {
     if (!approvedEvents || approvedEvents.length === 0) return [];

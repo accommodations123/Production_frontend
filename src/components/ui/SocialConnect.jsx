@@ -12,12 +12,16 @@ export const SocialQuickConnect = ({ socials, className = "" }) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const url = platform === "email" 
-      ? getSocialUrl("gmail_web", value) 
-      : getSocialUrl(platform, value);
-
-    if (url) {
-      window.open(url, "_blank", "noopener,noreferrer");
+    if (platform === "email") {
+      const url = getSocialUrl("email", value);
+      if (url) {
+        window.location.href = url;
+      }
+    } else {
+      const url = getSocialUrl(platform, value);
+      if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
     }
   };
 
@@ -28,7 +32,7 @@ export const SocialQuickConnect = ({ socials, className = "" }) => {
       platform: "whatsapp",
       value: socials.whatsapp,
       icon: FaWhatsapp,
-      bgColor: "bg-[#25D366] text-white hover:scale-110",
+      bgColor: "bg-[#25D366] text-white hover:bg-[#20ba5a] hover:scale-110",
       title: "WhatsApp"
     });
   }
@@ -38,7 +42,7 @@ export const SocialQuickConnect = ({ socials, className = "" }) => {
       platform: "email",
       value: socials.email,
       icon: SiGmail,
-      bgColor: "bg-red-100 text-[#EA4335] hover:bg-[#EA4335] hover:text-white hover:scale-110",
+      bgColor: "bg-[#EA4335] text-white hover:bg-[#d3362a] hover:scale-110",
       title: "Gmail"
     });
   }
@@ -48,7 +52,7 @@ export const SocialQuickConnect = ({ socials, className = "" }) => {
       platform: "instagram",
       value: socials.instagram,
       icon: FaInstagram,
-      bgColor: "bg-gray-100 text-[#E4405F] hover:bg-[#E4405F] hover:text-white hover:scale-110",
+      bgColor: "bg-[#E4405F] text-white hover:bg-[#d03552] hover:scale-110",
       title: "Instagram"
     });
   }
@@ -58,7 +62,7 @@ export const SocialQuickConnect = ({ socials, className = "" }) => {
       platform: "facebook",
       value: socials.facebook,
       icon: FaFacebookF,
-      bgColor: "bg-gray-100 text-[#1877F2] hover:bg-[#1877F2] hover:text-white hover:scale-110",
+      bgColor: "bg-[#1877F2] text-white hover:bg-[#1464cd] hover:scale-110",
       title: "Facebook"
     });
   }
@@ -68,7 +72,7 @@ export const SocialQuickConnect = ({ socials, className = "" }) => {
       platform: "twitter",
       value: socials.twitter,
       icon: FaXTwitter,
-      bgColor: "bg-gray-100 text-black hover:bg-black hover:text-white hover:scale-110",
+      bgColor: "bg-black text-white hover:bg-gray-900 hover:scale-110",
       title: "X (Twitter)"
     });
   }

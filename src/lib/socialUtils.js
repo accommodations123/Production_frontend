@@ -19,29 +19,26 @@ export const validateSocial = (platform, value) => {
 
     case "email":
     case "gmail": {
-      // Standard email regex
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(trimmed);
+      // Standard email regex - lenient
+      return trimmed.includes("@") && trimmed.includes(".");
     }
 
     case "instagram": {
       if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
         return trimmed.includes("instagram.com/");
       }
-      // Instagram usernames: alphanumeric, periods, underscores, max 30 chars
       const cleanInsta = trimmed.replace(/^@/, "");
       const instaRegex = /^[a-zA-Z0-9._]{1,30}$/;
-      return instaRegex.test(cleanInsta);
+      return instaRegex.test(cleanInsta) || cleanInsta.length > 0;
     }
 
     case "facebook": {
       if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
         return trimmed.includes("facebook.com/");
       }
-      // Facebook usernames: alphanumeric, periods, min 5, max 50 chars
       const cleanFb = trimmed.replace(/^\//, "");
       const fbRegex = /^[a-zA-Z0-9.]{5,50}$/;
-      return fbRegex.test(cleanFb);
+      return fbRegex.test(cleanFb) || cleanFb.length > 0;
     }
 
     case "twitter":
@@ -49,10 +46,9 @@ export const validateSocial = (platform, value) => {
       if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
         return trimmed.includes("twitter.com/") || trimmed.includes("x.com/");
       }
-      // X/Twitter usernames: alphanumeric, underscores, max 15 chars
       const cleanTwitter = trimmed.replace(/^@/, "");
       const twitterRegex = /^[a-zA-Z0-9_]{1,15}$/;
-      return twitterRegex.test(cleanTwitter);
+      return twitterRegex.test(cleanTwitter) || cleanTwitter.length > 0;
     }
 
     default:
@@ -81,6 +77,9 @@ export const getSocialUrl = (platform, value) => {
       if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
         return trimmed;
       }
+      if (trimmed.toLowerCase().includes("instagram.com")) {
+        return trimmed.startsWith("www.") ? `https://${trimmed}` : `https://www.${trimmed}`;
+      }
       const handle = trimmed.replace(/^@/, "");
       return `https://instagram.com/${handle}`;
     }
@@ -88,6 +87,9 @@ export const getSocialUrl = (platform, value) => {
     case "facebook": {
       if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
         return trimmed;
+      }
+      if (trimmed.toLowerCase().includes("facebook.com")) {
+        return trimmed.startsWith("www.") ? `https://${trimmed}` : `https://www.${trimmed}`;
       }
       const page = trimmed.replace(/^\//, "");
       return `https://facebook.com/${page}`;
@@ -97,6 +99,9 @@ export const getSocialUrl = (platform, value) => {
     case "x": {
       if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
         return trimmed;
+      }
+      if (trimmed.toLowerCase().includes("twitter.com") || trimmed.toLowerCase().includes("x.com")) {
+        return trimmed.startsWith("www.") ? `https://${trimmed}` : `https://www.${trimmed}`;
       }
       const handle = trimmed.replace(/^@/, "");
       return `https://twitter.com/${handle}`;

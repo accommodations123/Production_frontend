@@ -113,7 +113,6 @@ export default function PostTripModal({ onClose, onAdd }) {
         if (!form.age) errors.age = "Age is required";
         if (!form.languages) errors.languages = "Languages are required";
         if (!form.airline) errors.airline = "Airline is required";
-        if (!form.flight_number) errors.flight_number = "Flight number is required";
         if (!form.from_country) errors.from_country = "Origin country is required";
         if (!form.from_city) errors.from_city = "Origin city is required";
         if (!form.to_country) errors.to_country = "Destination country is required";
@@ -370,14 +369,14 @@ export default function PostTripModal({ onClose, onAdd }) {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Flight Number <span className="text-red-500 ml-1">*</span></label>
+                                            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Flight Number</label>
                                             <input
                                                 name="flight_number"
                                                 placeholder="Enter flight number (e.g., AF226)"
-                                                className={`w-full rounded-lg border ${formErrors.flight_number ? "border-red-500" : "border-gray-300"} bg-white px-3 py-2.5 text-sm outline-none transition-all`}
+                                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition-all"
                                                 onChange={handleChange}
                                                 value={form.flight_number}
-                                                style={{ borderColor: formErrors.flight_number ? '#ef4444' : 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                                style={{ borderColor: 'var(--color-neutral)', color: 'var(--color-foreground)' }}
                                             />
                                         </div>
                                         <div>

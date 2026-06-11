@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Plane, MapPin, Calendar, Globe, Shield } from "lucide-react";
 import WishlistButton from "@/components/ui/WishlistButton";
 import { SocialQuickConnect } from "@/components/ui/SocialConnect";
@@ -23,8 +23,10 @@ export default function TripCard({ plan }) {
           })
         : "";
 
-    const fromCity = plan.flight?.from || plan.flight?.from_country || "";
-    const toCity = plan.flight?.to || "";
+    const [imageError, setImageError] = useState(false);
+
+    const fromCity = (plan.flight?.from || plan.flight?.from_country || "").split(',')[0].trim();
+    const toCity = (plan.flight?.to || plan.destination || "").split(',')[0].trim();
     const depTime = formatTime12h(plan.flight?.departureTime);
     const arrTime = formatTime12h(plan.flight?.arrivalTime);
     const airline = [plan.flight?.airline, plan.flight?.flightNumber]
@@ -75,12 +77,12 @@ export default function TripCard({ plan }) {
                         <div className="w-2 h-2 rounded-full bg-[#CB2A25]" />
                     </div>
 
-                    <div className="flex flex-col items-end min-w-0 flex-1">
+                    <div className="flex flex-col items-end min-w-0 flex-1 pr-10">
                         <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">
                             To
                         </span>
                         <span className="text-sm font-bold truncate leading-tight mt-0.5 text-right">
-                            {toCity || plan.destination}
+                            {toCity}
                         </span>
                         {arrTime && (
                             <span className="text-[10px] text-blue-300 font-semibold mt-0.5">
@@ -104,12 +106,13 @@ export default function TripCard({ plan }) {
             <div className="p-4 flex-grow flex flex-col gap-3">
                 {/* User Info */}
                 <div className="flex items-center gap-3">
-                    {plan.user.image ? (
+                    {plan.user.image && !imageError ? (
                         <img
                             src={plan.user.image}
                             className="w-10 h-10 rounded-full object-cover border-2 border-gray-100 shrink-0"
                             alt={plan.user.fullName}
                             loading="lazy"
+                            onError={() => setImageError(true)}
                         />
                     ) : (
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#CB2A25] to-[#E04642] flex items-center justify-center text-white font-bold text-sm shrink-0">
