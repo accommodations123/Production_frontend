@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   Shield, ShieldCheck, Sparkles, MapPin, Users, Calendar,
-  ArrowRight, Heart, Globe, Star, Facebook, Instagram, MessageCircle
+  ArrowRight, Heart, Globe, Star, Facebook, Instagram, MessageCircle, Plane
 } from 'lucide-react';
 
 import { Link, useNavigate } from 'react-router-dom';
@@ -18,7 +18,8 @@ import {
   useGetAllPropertiesQuery,
   useGetApprovedEventsQuery,
   useGetCommunitiesQuery,
-  useGetBuySellListingsQuery
+  useGetBuySellListingsQuery,
+  useGetPublicTripsQuery
 } from '@/store/api/hostApi';
 
 // UI Components
@@ -31,7 +32,8 @@ import { PropertyCard } from './featured/PropertyCard.jsx';
 import { EventCard } from './featured/EventCard.jsx';
 import { CommunityGroupCard } from './featured/CommunityGroupCard.jsx';
 import { ProductCard } from '../marketplace/ProductCard.jsx';
-import { TravelCommunity } from '../dashboard/TravelCommunity';
+import TripCard from '@/components/travel/TripCard';
+import { resolveImageUrl } from '@/lib/imageUtils';
 import {
   SAFETY_TIPS, FEATURE_CARDS
 } from './featured/HomeFeaturedConstants.jsx';
@@ -75,6 +77,195 @@ const Skeleton = ({ className = "" }) => (
   <div className={`animate-pulse bg-neutral/10 rounded-2xl ${className}`} />
 );
 
+const mapTripToPlan = (trip, currentUser = null) => {
+  const normalizeCountry = (c) => {
+    if (!c) return "";
+    const lower = c.toLowerCase().trim();
+    if (lower === "united states" || lower === "usa" || lower === "us" || lower === "united states of america") {
+      return "United States of America";
+    }
+    return c;
+  };
+
+  const extractSocials = (t, u = null) => {
+    const getVal = (val) => {
+      if (val === undefined || val === null) return "";
+      return String(val).trim();
+    };
+    return {
+      whatsapp: getVal(
+        t.host?.whatsapp ||
+        t.host?.phone ||
+        t.host?.User?.phone ||
+        t.user?.whatsapp ||
+        t.user?.phone ||
+        t.user?.User?.phone ||
+        t.whatsapp ||
+        t.phone ||
+        u?.phone ||
+        u?.whatsapp ||
+        ""
+      ),
+      email: getVal(
+        t.host?.email ||
+        t.host?.User?.email ||
+        t.user?.email ||
+        t.user?.User?.email ||
+        t.email ||
+        u?.email ||
+        ""
+      ),
+      instagram: getVal(
+        t.host?.instagram ||
+        t.host?.User?.instagram ||
+        t.user?.instagram ||
+        t.user?.User?.instagram ||
+        t.instagram ||
+        u?.instagram ||
+        ""
+      ),
+      facebook: getVal(
+        t.host?.facebook ||
+        t.host?.User?.facebook ||
+        t.user?.facebook ||
+        t.user?.User?.facebook ||
+        t.facebook ||
+        u?.facebook ||
+        ""
+      ),
+      twitter: getVal(
+        t.host?.twitter ||
+        t.host?.x ||
+        t.host?.User?.twitter ||
+        t.user?.twitter ||
+        t.user?.x ||
+        t.user?.User?.twitter ||
+        t.twitter ||
+        u?.twitter ||
+        u?.x ||
+        ""
+      )
+    };
+  };
+
+  const socials = extractSocials(trip, currentUser);
+
+  // Handle user's new "My Trips" structure (Lightweight response)
+  if (trip.sent_matches || trip.received_matches) {
+    return {
+      id: trip.id,
+      host_id: currentUser?.id, // It's my trip
+      matches: [
+        ...(trip.sent_matches || []),
+        ...(trip.received_matches || [])
+      ],
+      user: { fullName: currentUser?.fullName || "Me", image: resolveImageUrl(currentUser?.image || null) },
+      flight: {
+        from: trip.from_city || "",
+        to: trip.to_city || "",
+        from_country: normalizeCountry(trip.from_country || ""),
+      },
+      destination: trip.to_city ? `${trip.to_city}` : "",
+      date: trip.travel_date,
+      status: trip.status || "active",
+      socials: socials
+    };
+  }
+
+  // Handle revised pre-formatted response from backend (host + trip_meta structure)
+  if (trip.flight && trip.host && trip.trip_meta) {
+    return {
+      ...trip,
+      matches: trip.matches || [],
+      host_id: trip.host?.id,
+      flight: {
+        ...trip.flight,
+        from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.host.country)
+      },
+      user: {
+        fullName: trip.host.full_name,
+        age: trip.trip_meta.age || "",
+        languages: trip.trip_meta.languages || [],
+        gender: "", // Not provided in payload, default to empty
+        country: trip.host.country,
+        state: trip.host.city,
+        city: trip.host.city,
+        image: resolveImageUrl(trip.host.profile_image || null),
+        verified: trip.host.verified || false
+      },
+      socials: socials
+    };
+  }
+
+  // Handle previous pre-formatted response (flight + user structure)
+  if (trip.flight && trip.user) {
+    return {
+      ...trip,
+      host_id: trip.host_id || (trip.host ? trip.host.id : undefined),
+      flight: {
+        ...trip.flight,
+        from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.user.country)
+      },
+      user: {
+        ...trip.user,
+        image: resolveImageUrl(trip.user.image || trip.user.profile_image || null)
+      },
+      socials: socials
+    };
+  }
+
+  // Determine the full name from various possible fields
+  let fullName = "Traveler";
+
+  if (trip.host?.full_name) {
+    fullName = trip.host.full_name;
+  } else if (trip.user?.full_name) {
+    fullName = trip.user.full_name;
+  } else if (trip.host?.user?.full_name) {
+    fullName = trip.host.user.full_name;
+  } else if (trip.host_id === currentUser?.id && currentUser?.fullName) {
+    fullName = currentUser.fullName;
+  } else if (trip.host_id === currentUser?.id && (currentUser?.first_name || currentUser?.last_name)) {
+    fullName = `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim();
+  }
+
+  return {
+    id: trip.id,
+    host_id: trip.host_id,
+    matches: trip.matches || [],
+    user: {
+      fullName: fullName,
+      age: trip.age || trip.user?.age || trip.host?.age || "",
+      gender: trip.gender || trip.user?.gender || trip.host?.gender || "",
+      country: normalizeCountry(trip.user?.country || trip.host?.country || trip.from_country),
+      state: trip.user?.state || trip.host?.city || "",
+      city: trip.user?.city || trip.host?.city || "",
+      languages: (trip.languages || trip.user?.languages)
+        ? (Array.isArray(trip.languages || trip.user?.languages)
+          ? (trip.languages || trip.user?.languages)
+          : (trip.languages || trip.user?.languages).split(',').map(l => l.trim()))
+        : (trip.host?.languages || []),
+      image: resolveImageUrl(trip.image || trip.user?.image || trip.user?.profile_image || trip.host?.image || trip.host?.profile_image || null),
+      verified: trip.host?.user?.verified || trip.user?.verified || false
+    },
+    destination: `${trip.to_city}, ${normalizeCountry(trip.to_country)}`,
+    date: trip.travel_date,
+    time: trip.departure_time,
+    flight: {
+      airline: trip.airline,
+      flightNumber: trip.flight_number,
+      from: trip.from_city,
+      to: trip.to_city,
+      from_country: normalizeCountry(trip.from_country || trip.flight?.from_country || trip.user?.country || trip.host?.country),
+      departureDate: trip.travel_date,
+      departureTime: trip.departure_time,
+      arrivalDate: trip.arrival_date,
+      arrivalTime: trip.arrival_time
+    },
+    socials: socials
+  };
+};
+
 const HomeFeatured = () => {
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem("user");
@@ -83,6 +274,18 @@ const HomeFeatured = () => {
   const { data: approvedEvents, isLoading: eventsLoading } = useGetApprovedEventsQuery({ name: activeCountry?.name, limit: 4 });
   const { data: communities, isLoading: communitiesLoading } = useGetCommunitiesQuery({ country: activeCountry?.name, limit: 4 });
   const { data: marketplaceItems, isLoading: marketplaceLoading } = useGetBuySellListingsQuery({ country: activeCountry?.name, limit: 4 });
+  const { data: publicTripsData, isLoading: tripsLoading } = useGetPublicTripsQuery({
+    page: 1,
+    limit: 4,
+    from_country: activeCountry?.name === "United States" || activeCountry?.name === "USA" || activeCountry?.name === "US"
+      ? "United States of America"
+      : activeCountry?.name
+  });
+
+  const displayedTrips = useMemo(() => {
+    if (!publicTripsData?.results) return [];
+    return publicTripsData.results.map(trip => mapTripToPlan(trip, null)).slice(0, 4);
+  }, [publicTripsData]);
 
   const displayedEvents = useMemo(() => {
     if (!approvedEvents || approvedEvents.length === 0) return [];
@@ -157,11 +360,42 @@ const HomeFeatured = () => {
         </div>
       </section>
 
-      {/* 2. Travel Community - Distinct Section (Collapses if empty) */}
-      <TravelCommunity
-        variant="featured"
-        onConnect={() => window.location.href = '/travel'}
-      />
+      {/* 2. Travel Partners Section */}
+      <section className="py-4 sm:py-6 relative overflow-hidden bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeader
+            title="Travel Partners"
+            subtitle={`Find co-travelers and explore ${activeCountry?.name || "the world"} together.`}
+            linkText="View All Trips"
+            linkTo="/travel"
+            actionText="Post Trip"
+            actionTo={getHostPath('travel', isAuthenticated)}
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            {tripsLoading ? (
+              [1, 2, 3, 4].map((n) => <Skeleton key={n} className="h-[280px] sm:h-[320px] lg:h-[340px]" />)
+            ) : displayedTrips?.length > 0 ? (
+              displayedTrips.map((plan, idx) => (
+                <motion.div
+                  key={plan.id || plan._id}
+                  {...fadeInUp}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <TripCard plan={plan} />
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-full py-12 sm:py-16 lg:py-20 text-center bg-[#F8F9FA] rounded-[1.5rem] sm:rounded-[2rem] border-2 border-dashed border-[#D1CBB7]/30">
+                <Plane className="w-10 h-10 sm:w-12 sm:h-12 text-[#D1CBB7] mx-auto mb-4" />
+                <h3 className="text-lg sm:text-xl font-bold text-[#00142E] mb-2">No Travel Partners Found</h3>
+                <p className="text-[#00142E]/60 text-sm sm:text-base">Be the first to post a trip for our community.</p>
+                <Button onClick={() => navigate('/travel')} className="mt-4 sm:mt-6 bg-[#CB2A25] hover:bg-[#a0221e] text-white rounded-full text-sm sm:text-base px-4 sm:px-6 py-2">Post Your Trip</Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
 
       {/* 3. Community Groups Section */}
       <section className="py-4 sm:py-6 relative bg-white">

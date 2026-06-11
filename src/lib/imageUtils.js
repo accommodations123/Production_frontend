@@ -12,27 +12,32 @@
 export function resolveImageUrl(imagePath, fallback = null) {
     if (!imagePath) return fallback;
 
+    const trimmed = String(imagePath).trim();
+    if (trimmed === "" || trimmed === "null" || trimmed === "undefined" || trimmed.endsWith("/null") || trimmed.endsWith("/undefined")) {
+        return fallback;
+    }
+
     const CLOUDFRONT_BASE = import.meta.env.VITE_CLOUDFRONT_URL || 'https://d3dqp3l6ug81j3.cloudfront.net';
 
     // Already a CloudFront URL — use as-is
-    if (imagePath.startsWith(CLOUDFRONT_BASE)) return imagePath;
+    if (trimmed.startsWith(CLOUDFRONT_BASE)) return trimmed;
 
     // Data URI — use as-is
-    if (imagePath.startsWith('data:')) return imagePath;
+    if (trimmed.startsWith('data:')) return trimmed;
 
     // S3 URL — rewrite to CloudFront
-    if (imagePath.includes('.amazonaws.com/')) {
-        const s3Key = imagePath.replace(/^https?:\/\/[^/]+\//, '');
+    if (trimmed.includes('.amazonaws.com/')) {
+        const s3Key = trimmed.replace(/^https?:\/\/[^/]+\//, '');
         return `${CLOUDFRONT_BASE}/${s3Key}`;
     }
 
     // Other external URL (non-S3) — use as-is
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-        return imagePath;
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        return trimmed;
     }
 
     // S3 key (e.g. "properties/177167584211-BhargavReddy.jpeg")
-    const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+    const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
     return `${CLOUDFRONT_BASE}${cleanPath}`;
 }
 
