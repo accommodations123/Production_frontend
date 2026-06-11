@@ -66,15 +66,18 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
     const isHtml = (str) => /<[a-z][\s\S]*>/i.test(str);
     const renderDescription = (desc) => {
         if (!desc) return null;
-        if (isHtml(desc)) {
+        const cleanDesc = typeof desc === 'string' 
+            ? desc.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ') 
+            : desc;
+        if (isHtml(cleanDesc)) {
             return (
                 <div
-                    className="prose prose-red max-w-none text-gray-600 text-sm leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(desc || "") }}
+                    className="prose prose-red max-w-none text-gray-600 text-sm leading-relaxed w-full break-words"
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(cleanDesc || "") }}
                 />
             );
         }
-        return <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{desc}</p>;
+        return <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line w-full break-words">{cleanDesc}</p>;
     };
 
     return (
@@ -124,7 +127,7 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                 {job.workStyle || 'Remote'}
                                             </span>
                                         </div>
-                                        <h2 className="text-xl md:text-2xl font-black text-gray-900 leading-tight mb-2">
+                                        <h2 className="text-xl md:text-2xl font-black text-gray-900 leading-tight mb-2 break-words">
                                             {job.title}
                                         </h2>
                                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500 font-semibold">
@@ -195,12 +198,15 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                             Key Responsibilities
                                                         </h4>
                                                         <ul className="space-y-2.5">
-                                                            {job.responsibilities.map((resp, index) => (
-                                                                <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#CB2A25] mt-2 shrink-0" />
-                                                                    <span>{resp}</span>
-                                                                </li>
-                                                            ))}
+                                                            {job.responsibilities.map((resp, index) => {
+                                                                const cleanResp = typeof resp === 'string' ? resp.replace(/\u00a0/g, ' ') : resp;
+                                                                return (
+                                                                    <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CB2A25] mt-2 shrink-0" />
+                                                                        <span className="break-words w-full">{cleanResp}</span>
+                                                                    </li>
+                                                                );
+                                                            })}
                                                         </ul>
                                                     </div>
                                                 )}
@@ -213,12 +219,15 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                             Requirements
                                                         </h4>
                                                         <ul className="space-y-2.5">
-                                                            {job.requirements.map((req, index) => (
-                                                                <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#CB2A25] mt-2 shrink-0" />
-                                                                    <span>{req}</span>
-                                                                </li>
-                                                            ))}
+                                                            {job.requirements.map((req, index) => {
+                                                                const cleanReq = typeof req === 'string' ? req.replace(/\u00a0/g, ' ') : req;
+                                                                return (
+                                                                    <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CB2A25] mt-2 shrink-0" />
+                                                                        <span className="break-words w-full">{cleanReq}</span>
+                                                                    </li>
+                                                                );
+                                                            })}
                                                         </ul>
                                                     </div>
                                                 )}
@@ -231,12 +240,15 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                             Preferred Skills
                                                         </h4>
                                                         <ul className="space-y-2.5">
-                                                            {job.preferredSkills.map((skill, index) => (
-                                                                <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#CB2A25] mt-2 shrink-0" />
-                                                                    <span>{skill}</span>
-                                                                </li>
-                                                            ))}
+                                                            {job.preferredSkills.map((skill, index) => {
+                                                                const cleanSkill = typeof skill === 'string' ? skill.replace(/\u00a0/g, ' ') : skill;
+                                                                return (
+                                                                    <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CB2A25] mt-2 shrink-0" />
+                                                                        <span className="break-words w-full">{cleanSkill}</span>
+                                                                    </li>
+                                                                );
+                                                            })}
                                                         </ul>
                                                     </div>
                                                 )}
@@ -249,12 +261,15 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                             Benefits & Perks
                                                         </h4>
                                                         <ul className="space-y-2.5">
-                                                            {job.benefits.map((benefit, index) => (
-                                                                <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
-                                                                    <span>{benefit}</span>
-                                                                </li>
-                                                            ))}
+                                                            {job.benefits.map((benefit, index) => {
+                                                                const cleanBenefit = typeof benefit === 'string' ? benefit.replace(/\u00a0/g, ' ') : benefit;
+                                                                return (
+                                                                    <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
+                                                                        <span className="break-words w-full">{cleanBenefit}</span>
+                                                                    </li>
+                                                                );
+                                                            })}
                                                         </ul>
                                                     </div>
                                                 )}
