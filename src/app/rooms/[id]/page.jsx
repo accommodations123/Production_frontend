@@ -400,7 +400,7 @@ export default function RoomPage() {
 
                     {/* Right Column: Sticky Sidebar */}
                     <div className="">
-                        <div className="sticky top-28">
+                        <div className="md:sticky md:top-28">
                             <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6 md:p-8">
                                 <div className="flex flex-col gap-3 mb-6">
                                     {listing.price.nightly > 0 && (

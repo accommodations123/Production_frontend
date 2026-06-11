@@ -17,8 +17,8 @@ const DetailCard = ({ title, description, children, onEdit, isEditing, icon: Ico
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-primary/3 to-accent/5 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="relative z-10 p-6 md:p-8 space-y-6">
-            <div className="flex items-start justify-between">
+        <div className="relative z-10 p-4 sm:p-6 md:p-8 space-y-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex gap-4">
                     <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center">
                         <Icon className="w-6 h-6 text-accent" />
@@ -98,7 +98,7 @@ const InfoField = ({
                     onChange={onChange}
                     placeholder={placeholder || label}
                     rows={4}
-    className="w-full h-[48px] bg-white border-2 border-neutral/30 py-3 px-4 rounded-xl"
+    className="w-full min-h-[100px] bg-white border-2 border-neutral/30 py-3 px-4 rounded-xl"
                 />
             ) : (
                 <div className="flex gap-2">

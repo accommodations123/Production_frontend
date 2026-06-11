@@ -200,7 +200,7 @@ export default function SearchPage() {
     return (
         <div className="min-h-screen bg-transparent pb-20 lg:pb-0">
             {/* Desktop Navbar - Removed double navbar, assuming layout handles it or we need it transparent */}
-            <div className="hidden lg:block">
+            <div>
                 <Navbar />
             </div>
 

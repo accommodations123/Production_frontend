@@ -137,23 +137,23 @@ export function JobCard({ job, onViewDetails, onApply }) {
             </div>
 
             {/* Footer Buttons */}
-            <div className="px-6 pb-6 pt-2 border-t border-gray-50 flex items-center justify-between gap-3 bg-gray-50/50">
+            <div className="px-6 pb-6 pt-2 border-t border-gray-50 flex flex-col gap-3 xs:flex-row xs:items-center xs:justify-between bg-gray-50/50">
                 <span className="text-[10px] text-gray-400 flex items-center gap-1 font-medium">
                     <Calendar className="h-3 w-3" />
                     {job?.posted || '2 Days Ago'}
                 </span>
                 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 w-full xs:w-auto justify-end xs:justify-start">
                     <Button
                         variant="outline"
                         onClick={() => onViewDetails?.(job)}
-                        className="h-8 text-[11px] font-bold px-3 border-gray-200 text-[#00142E] hover:bg-gray-50 rounded-lg transition-all"
+                        className="flex-1 xs:flex-initial h-8 text-[11px] font-bold px-3 border-gray-200 text-[#00142E] hover:bg-gray-50 rounded-lg transition-all"
                     >
                         View Details
                     </Button>
                     <Button
                         onClick={() => onApply?.(job)}
-                        className="h-8 text-[11px] font-bold px-3.5 bg-[#CB2A25] hover:bg-[#b0221e] text-white rounded-lg shadow-sm hover:shadow transition-all"
+                        className="flex-1 xs:flex-initial h-8 text-[11px] font-bold px-3.5 bg-[#CB2A25] hover:bg-[#b0221e] text-white rounded-lg shadow-sm hover:shadow transition-all"
                     >
                         Apply Now
                     </Button>

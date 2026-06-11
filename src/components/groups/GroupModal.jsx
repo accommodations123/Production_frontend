@@ -594,7 +594,7 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
 
                 <div className="relative w-full max-w-7xl bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col" style={{ height: '90vh' }}>
                     {/* Header with Background Image */}
-                    <div className="relative h-48 flex-shrink-0">
+                    <div className="relative min-h-[12rem] h-auto md:h-48 flex-shrink-0 flex items-end">
                         {community?.cover_image ? (
                             <img
                                 src={community.cover_image}
@@ -613,8 +613,8 @@ export function GroupModal({ isOpen, onClose, community, isLoading, error }) {
                             <X className="h-5 w-5" />
                         </button>
 
-                        <div className="absolute bottom-0 left-0 right-0 p-6">
-                            <div className="flex items-center gap-6">
+                        <div className="relative md:absolute md:bottom-0 md:left-0 md:right-0 p-4 md:p-6 w-full">
+                            <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6 w-full">
                                 {community?.avatar_image ? (
                                     <img
                                         src={community.avatar_image}

@@ -54,8 +54,8 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
     if (!isOpen || !job) return null
 
     // Format visa status list
-    const visaList = Array.isArray(job.visaStatus) 
-        ? job.visaStatus 
+    const visaList = Array.isArray(job.visaStatus)
+        ? job.visaStatus
         : typeof job.visaStatus === 'string'
             ? job.visaStatus.split('/').map(v => v.trim()).filter(Boolean)
             : [];
@@ -68,9 +68,9 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
         if (!desc) return null;
         if (isHtml(desc)) {
             return (
-                <div 
-                    className="prose prose-red max-w-none text-gray-600 text-sm leading-relaxed" 
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(desc || "") }} 
+                <div
+                    className="prose prose-red max-w-none text-gray-600 text-sm leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(desc || "") }}
                 />
             );
         }
@@ -182,7 +182,7 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                         <Briefcase className="h-4 w-4 text-[#CB2A25]" />
                                                         Job Description
                                                     </h4>
-                                                    <div className="bg-white rounded-xl border border-gray-100 p-5">
+                                                    <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 md:p-6 shadow-sm">
                                                         {renderDescription(job.description)}
                                                     </div>
                                                 </div>

@@ -151,7 +151,7 @@ export default function NewDashboard() {
       <div className="container mx-auto pt-20 xl:pt-24 px-3 sm:px-4 pb-12">
 
         {/* Mobile/Tablet Tab Bar - shown below lg */}
-        <div className="xl:hidden mb-4 -mx-3 sm:-mx-4 px-3 sm:px-4 overflow-x-auto scrollbar-hide">
+        <div className="xl:hidden mb-4 -mx-3 sm:-mx-4 px-3 sm:px-4 overflow-x-auto no-scrollbar">
           <div className="flex gap-2 py-2 min-w-max">
             {mobileTabs.map((tab) => {
               const Icon = tab.icon;
@@ -237,7 +237,7 @@ export default function NewDashboard() {
    Small stat card
 -------------------------------- */
 const StatCard = ({ label, value, icon: Icon }) => (
-  <div className="p-4 sm:p-6 bg-white rounded-2xl border shadow-lg">
+  <div className="p-2.5 xs:p-4 sm:p-6 bg-white rounded-2xl border shadow-lg">
     <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary mb-2 sm:mb-3" />
     <p className="text-2xl sm:text-4xl font-black">{value}</p>
     <p className="text-xs sm:text-sm text-primary/50">{label}</p>

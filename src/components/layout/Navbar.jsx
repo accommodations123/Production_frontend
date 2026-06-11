@@ -623,9 +623,15 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                     onClick={() => setIsMobileCountryOpen(!isMobileCountryOpen)}
                                 >
                                     {!isSelected ? (
-                                        <span className="text-sm">India</span>
+                                        <>
+                                            <span className="text-sm md:hidden">IN</span>
+                                            <span className="text-sm hidden md:inline">India</span>
+                                        </>
                                     ) : (
-                                        <span className="text-sm">{activeCountry?.name || "India"}</span>
+                                        <>
+                                            <span className="text-sm md:hidden">{activeCountry?.code || "IN"}</span>
+                                            <span className="text-sm hidden md:inline">{activeCountry?.name || "India"}</span>
+                                        </>
                                     )}
                                     <ChevronDown className={cn("h-3 w-3 transition-transform", isMobileCountryOpen && "rotate-180")} />
                                 </button>

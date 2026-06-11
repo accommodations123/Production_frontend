@@ -7,7 +7,7 @@ export function EventCard({ event }) {
         <Link to={`/events/${event.id}`}>
             <motion.div
                 whileHover={{ y: -5 }}
-                className="min-w-[280px] w-[280px] bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                className="w-full bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group"
             >
                 <div className="h-40 overflow-hidden relative">
                     <img

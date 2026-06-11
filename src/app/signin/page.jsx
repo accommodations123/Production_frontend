@@ -89,7 +89,7 @@ const Signin = () => {
         className="absolute -top-[20%] -left-[20%] w-[60vh] h-[60vh] rounded-full bg-[#00142E] blur-[180px] z-0"
       />
 
-      <div className="relative z-10 w-full max-w-5xl min-h-[650px] bg-white rounded-3xl shadow-2xl shadow-[#00142E]/10 overflow-hidden grid md:grid-cols-[1.1fr_1fr] border border-[#D1CBB7]/30">
+      <div className="relative z-10 w-full max-w-5xl md:min-h-[650px] bg-white rounded-3xl shadow-2xl shadow-[#00142E]/10 overflow-hidden grid md:grid-cols-[1.1fr_1fr] border border-[#D1CBB7]/30">
 
         {/* LEFT PANEL: Premium Branding */}
         <div className="hidden md:flex relative bg-gradient-to-br from-[#00142E] via-[#0A1C30] to-[#02152B] text-white flex-col justify-between p-8 md:p-10 xl:p-14 overflow-hidden">

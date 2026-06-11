@@ -141,18 +141,16 @@ export function ProductCard({ product, onClick }) {
         </div>
 
         {/* Stats Row */}
-        <div className="flex items-center gap-2 sm:gap-3 text-xs text-[#00142E]/70 min-w-0">
-          <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#00142E]/70 min-w-0">
+          <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-[#CB2A25]" />
             <span className="font-medium">{product.condition || "Used"}</span>
           </div>
-          <div className="w-px h-3 bg-[#00142E]/10 shrink-0" />
-          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 min-w-0">
             <Tag className="w-3.5 h-3.5 text-[#CB2A25] shrink-0" />
             <span className="font-medium truncate">{product.category || "Furniture"}</span>
           </div>
-          <div className="w-px h-3 bg-[#00142E]/10 shrink-0" />
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-[#CB2A25]" />
             <span className="font-medium whitespace-nowrap">{postedDate}</span>
           </div>
