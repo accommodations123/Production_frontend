@@ -202,13 +202,17 @@ export default function NewDashboard() {
               {/* Avatar frame (negative margin to float up) */}
               <div className="relative group shrink-0 -mt-16 sm:-mt-20">
                 <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-white bg-white shadow-xl overflow-hidden relative">
-                  <img 
-                    src={currentUser?.profile_image && !currentUser.profile_image.includes("ImageOff") 
-                      ? currentUser.profile_image 
-                      : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80"} 
-                    alt={currentUser?.full_name} 
-                    className="w-full h-full object-cover"
-                  />
+                  {currentUser?.profile_image && !currentUser.profile_image.includes("ImageOff") ? (
+                    <img 
+                      src={currentUser.profile_image} 
+                      alt={currentUser?.full_name} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#0F223A] to-[#1E3A5F] text-white flex items-center justify-center text-4xl font-extrabold uppercase select-none">
+                      {currentUser?.full_name?.[0] || currentUser?.name?.[0] || "U"}
+                    </div>
+                  )}
                 </div>
                 {/* Verified icon badge */}
                 <span className="absolute bottom-1 right-1 bg-blue-500 text-white p-1.5 rounded-full border-2 border-white shadow-md flex items-center justify-center" title="Verified Host">
@@ -230,10 +234,7 @@ export default function NewDashboard() {
                     <MapPin className="w-3.5 h-3.5 text-gray-400" />
                     {currentUser?.city || "Hyderabad"}, {currentUser?.country || "India"}
                   </span>
-                  <span className="flex items-center gap-1 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
-                    <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                    Host since {memberSinceYear}
-                  </span>
+
                 </div>
               </div>
             </div>
