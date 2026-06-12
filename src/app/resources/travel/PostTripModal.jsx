@@ -439,8 +439,9 @@ export default function PostTripModal({ onClose, onAdd }) {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>To (Destination)</label>
-                                            <select
+                                            <input
                                                 name="destination"
+                                                placeholder="Enter destination"
                                                 className={`w-full rounded-lg border ${formErrors.destination ? "border-red-500" : "border-gray-300"} bg-white px-3 py-2.5 text-sm outline-none transition-all`}
                                                 onChange={handleChange}
                                                 value={form.destination}
@@ -448,12 +449,7 @@ export default function PostTripModal({ onClose, onAdd }) {
                                                     borderColor: formErrors.destination ? '#ef4444' : 'var(--color-neutral)',
                                                     color: 'var(--color-foreground)'
                                                 }}
-                                            >
-                                                <option value="" disabled>Select Destination</option>
-                                                {MORE_DESTINATIONS.map(destination => (
-                                                    <option key={destination} value={destination}>{destination}</option>
-                                                ))}
-                                            </select>
+                                            />
                                         </div>
                                     </div>
                                 </div>
