@@ -72,7 +72,18 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
 
     const getDateParts = (dateString) => {
         if (!dateString) return { month: "TBA", day: "" };
-        const date = new Date(`${dateString}T00:00:00Z`);
+        const cleanDateStr = dateString.includes('T') ? dateString.split('T')[0] : dateString;
+        const date = new Date(`${cleanDateStr}T00:00:00Z`);
+        if (isNaN(date.getTime())) {
+            const fallbackDate = new Date(dateString);
+            if (!isNaN(fallbackDate.getTime())) {
+                return {
+                    month: fallbackDate.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }),
+                    day: fallbackDate.toLocaleDateString('en-US', { day: 'numeric', timeZone: 'UTC' })
+                };
+            }
+            return { month: "TBA", day: "" };
+        }
         return {
             month: date.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }),
             day: date.toLocaleDateString('en-US', { day: 'numeric', timeZone: 'UTC' })
