@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { cn } from "@/lib/utils";
+import { FaWhatsapp } from "react-icons/fa";
 import { ProfileCard } from "@/components/account-v2/ProfileCard";
 import { InfoCard } from "@/components/account-v2/InfoCard";
 import { MyListings } from "@/components/dashboard/MyListings";
@@ -102,18 +103,7 @@ export default function NewDashboard() {
     return merged;
   }, [reduxUser, hostProfile, refreshKey]);
 
-  const completionScore = useMemo(() => {
-    if (!currentUser) return 0;
-    let score = 0;
-    if (currentUser.full_name || currentUser.name) score += 15;
-    if (currentUser.email) score += 15;
-    if (currentUser.phone) score += 15;
-    if (currentUser.profile_image && !currentUser.profile_image.includes("ImageOff")) score += 20;
-    if (currentUser.bio) score += 15;
-    if (currentUser.country || currentUser.city) score += 10;
-    if (currentUser.whatsapp || currentUser.facebook || currentUser.instagram) score += 10;
-    return score;
-  }, [currentUser]);
+
 
   /* -------------------------------
      Update handler
@@ -167,18 +157,7 @@ export default function NewDashboard() {
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
 
-  const memberSinceYear = useMemo(() => {
-    const dateSource = currentUser?.createdAt || currentUser?.created_at || hostProfile?.createdAt || hostProfile?.created_at;
-    if (dateSource) {
-      try {
-        const year = new Date(dateSource).getFullYear();
-        if (!isNaN(year) && year > 2000 && year < 2100) return year;
-      } catch (e) {
-        // ignore
-      }
-    }
-    return 2025; // fallback
-  }, [currentUser, hostProfile]);
+
 
   return (
     <main className="min-h-screen bg-[#F8F9FB] pb-16">
@@ -196,16 +175,16 @@ export default function NewDashboard() {
         {/* Profile Card Container */}
         <div className="container mx-auto px-4 pb-6 relative z-10">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            
+
             {/* Left side: Avatar + Identity details */}
             <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 text-center sm:text-left">
               {/* Avatar frame (negative margin to float up) */}
               <div className="relative group shrink-0 -mt-16 sm:-mt-20">
                 <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-4 border-white bg-white shadow-xl overflow-hidden relative">
                   {currentUser?.profile_image && !currentUser.profile_image.includes("ImageOff") ? (
-                    <img 
-                      src={currentUser.profile_image} 
-                      alt={currentUser?.full_name} 
+                    <img
+                      src={currentUser.profile_image}
+                      alt={currentUser?.full_name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -215,9 +194,11 @@ export default function NewDashboard() {
                   )}
                 </div>
                 {/* Verified icon badge */}
-                <span className="absolute bottom-1 right-1 bg-blue-500 text-white p-1.5 rounded-full border-2 border-white shadow-md flex items-center justify-center" title="Verified Host">
-                  <ShieldCheck className="w-4 h-4 fill-current" />
-                </span>
+                {hostProfile?.status === "approved" && (
+                  <span className="absolute bottom-1 right-1 bg-blue-500 text-white p-1.5 rounded-full border-2 border-white shadow-md flex items-center justify-center" title="Verified Host">
+                    <ShieldCheck className="w-4 h-4 fill-current" />
+                  </span>
+                )}
               </div>
 
               {/* Bio Details */}
@@ -226,10 +207,17 @@ export default function NewDashboard() {
                   {currentUser?.full_name || "Bhargav Reddy"}
                 </h1>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1.5 text-xs text-gray-500 font-semibold">
-                  <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
-                    <ShieldCheck className="w-3.5 h-3.5 fill-blue-100" />
-                    Verified Host
-                  </span>
+                  {hostProfile?.status === "approved" ? (
+                    <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
+                      <ShieldCheck className="w-3.5 h-3.5 fill-blue-100" />
+                      Verified Host
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-gray-600 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
+                      <User className="w-3.5 h-3.5 text-gray-400" />
+                      Member
+                    </span>
+                  )}
                   <span className="flex items-center gap-1 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
                     <MapPin className="w-3.5 h-3.5 text-gray-400" />
                     {currentUser?.city || "Hyderabad"}, {currentUser?.country || "India"}
@@ -241,21 +229,21 @@ export default function NewDashboard() {
 
             {/* Right side: Quick Action Buttons */}
             <div className="flex flex-wrap justify-center lg:justify-end gap-2.5 sm:mb-2 shrink-0">
-              <button 
+              <button
                 onClick={() => navigate("/host/create")}
                 className="flex items-center gap-1.5 bg-[#0A1A2F] hover:bg-blue-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all hover:scale-[1.02] cursor-pointer"
               >
                 <Home className="w-3.5 h-3.5" />
                 Create Space
               </button>
-              <button 
+              <button
                 onClick={() => navigate("/events/host")}
                 className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all hover:scale-[1.02] cursor-pointer"
               >
                 <Calendar className="w-3.5 h-3.5" />
                 Plan Event
               </button>
-              <button 
+              <button
                 onClick={() => navigate("?tab=trips")}
                 className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm transition-all hover:scale-[1.02] cursor-pointer"
               >
@@ -297,168 +285,128 @@ export default function NewDashboard() {
       <div className="container mx-auto px-4 mt-8">
         <div className="max-w-7xl mx-auto">
 
-            {activeTab === "overview" && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                {/* Main Content & Trust Column split */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  {/* Left Column: Recent Activities & Previews */}
-                  <div className="lg:col-span-8 space-y-6">
-                    {/* Upcoming Journey / Trip Boarding Pass preview */}
-                    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] space-y-4">
-                      <div className="flex items-center justify-between border-b border-gray-50 pb-4">
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900">Upcoming Journey</h3>
-                          <p className="text-xs text-gray-500">Your next adventure details</p>
-                        </div>
-                        <button onClick={() => navigate("?tab=trips")} className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer">
-                          View Itineraries <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
+          {activeTab === "overview" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              {/* Main Content & Trust Column split */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Left Column: Recent Activities & Previews */}
+                <div className="lg:col-span-8 space-y-6">
+                  {/* Upcoming Journey / Trip Boarding Pass preview */}
+                  <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] space-y-4">
+                    <div className="flex items-center justify-between border-b border-gray-50 pb-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">Upcoming Journey</h3>
+                        <p className="text-xs text-gray-500">Your next adventure details</p>
                       </div>
-
-                      {tripsData?.trips?.length > 0 ? (
-                        (() => {
-                          const nextTrip = tripsData.trips[0];
-                          return (
-                            <div className="bg-gradient-to-br from-[#0F2137] to-[#1D324D] rounded-2xl p-6 text-white relative overflow-hidden shadow-lg">
-                              <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <span className="text-[10px] uppercase font-bold text-blue-300 tracking-wider">Departure</span>
-                                  <p className="text-xl font-extrabold">{nextTrip.from_city || "Departure City"}</p>
-                                  <p className="text-xs text-white/60">{nextTrip.from_country}</p>
-                                </div>
-                                <div className="flex flex-col items-center gap-1.5 px-4 text-center">
-                                  <Plane className="w-5 h-5 text-accent rotate-45 animate-pulse" />
-                                  <div className="w-16 h-[2px] bg-white/20 relative">
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-accent"></div>
-                                  </div>
-                                  <span className="text-[10px] text-white/50 font-mono">{nextTrip.flight_number || "Direct"}</span>
-                                </div>
-                                <div className="text-right">
-                                  <span className="text-[10px] uppercase font-bold text-blue-300 tracking-wider">Arrival</span>
-                                  <p className="text-xl font-extrabold">{nextTrip.to_city || "Arrival City"}</p>
-                                  <p className="text-xs text-white/60">{nextTrip.to_country}</p>
-                                </div>
-                              </div>
-
-                              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/70">
-                                <span className="flex items-center gap-1.5 font-medium">
-                                  <Calendar className="w-3.5 h-3.5 text-accent" />
-                                  {new Date(nextTrip.travel_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                </span>
-                                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 text-white font-extrabold text-[10px]">
-                                  CONFIRMED
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })()
-                      ) : (
-                        <div className="py-12 text-center text-gray-400 text-xs font-semibold">
-                          No upcoming trips planned.
-                        </div>
-                      )}
+                      <button onClick={() => navigate("?tab=trips")} className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer">
+                        View details <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
 
-                    {/* Communities Circle Preview */}
-                    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] space-y-4">
-                      <div className="flex items-center justify-between border-b border-gray-50 pb-4">
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900">Your Communities</h3>
-                          <p className="text-xs text-gray-500">Active circles you are part of</p>
-                        </div>
-                        <button onClick={() => navigate("?tab=communities")} className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer">
-                          Explore Circles <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-
-                      {myCommunities.length > 0 ? (
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          {myCommunities.slice(0, 2).map((community) => (
-                            <div key={community.id} className="p-4 rounded-2xl border border-gray-50 bg-gray-50/40 hover:bg-gray-50 hover:shadow-sm transition-all duration-300 flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-[#0A1A2F]/5 text-[#0A1A2F] flex items-center justify-center font-bold text-sm">
-                                {community.title?.[0]}
+                    {tripsData?.trips?.length > 0 ? (
+                      (() => {
+                        const nextTrip = tripsData.trips[0];
+                        return (
+                          <div className="bg-gradient-to-br from-[#0F2137] to-[#1D324D] rounded-2xl p-6 text-white relative overflow-hidden shadow-lg">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-blue-300 tracking-wider">Departure</span>
+                                <p className="text-xl font-extrabold">{nextTrip.from_city || "Departure City"}</p>
+                                <p className="text-xs text-white/60">{nextTrip.from_country}</p>
                               </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="font-extrabold text-gray-900 text-xs truncate">{community.title}</p>
-                                <p className="text-[10px] text-gray-400 font-semibold">{community.members_count || 0} members</p>
+                              <div className="flex flex-col items-center gap-1.5 px-4 text-center">
+                                <Plane className="w-5 h-5 text-accent rotate-45 animate-pulse" />
+                                <div className="w-16 h-[2px] bg-white/20 relative">
+                                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-accent"></div>
+                                </div>
+                                <span className="text-[10px] text-white/50 font-mono">{nextTrip.flight_number || "Direct"}</span>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-[10px] uppercase font-bold text-blue-300 tracking-wider">Arrival</span>
+                                <p className="text-xl font-extrabold">{nextTrip.to_city || "Arrival City"}</p>
+                                <p className="text-xs text-white/60">{nextTrip.to_country}</p>
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="py-8 text-center text-gray-400 text-xs font-semibold">
-                          You haven't joined any communities yet.
-                        </div>
-                      )}
-                    </div>
+
+                            <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/70">
+                              <span className="flex items-center gap-1.5 font-medium">
+                                <Calendar className="w-3.5 h-3.5 text-accent" />
+                                {new Date(nextTrip.travel_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </span>
+                              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 text-white font-extrabold text-[10px]">
+                                CONFIRMED
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      <div className="py-12 text-center text-gray-400 text-xs font-semibold">
+                        No upcoming trips planned.
+                      </div>
+                    )}
                   </div>
 
-                  {/* Right Column: Profile Trust Indicators & Completion */}
-                  <div className="lg:col-span-4 space-y-6">
-                    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] space-y-6">
-                      <h3 className="font-bold text-gray-900">Trust Profile</h3>
 
-                      {/* Photo upload component inline */}
-                      <ProfileCard
-                        user={currentUser}
-                        onUpdate={handleUpdatePersonalInfo}
-                        isLoading={isUpdating}
-                      />
+                </div>
 
-                      {/* Profile Completion Score */}
-                      <div className="space-y-2 pt-2 border-t border-gray-50">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-gray-700">Profile Completion</span>
-                          <span className="font-extrabold text-blue-600">{completionScore}%</span>
-                        </div>
-                        <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500" style={{ width: `${completionScore}%` }}></div>
-                        </div>
-                        <p className="text-[10px] text-gray-400 leading-tight">Complete your address, biography, and social links to earn a verified host trust badge.</p>
-                      </div>
+                {/* Right Column: Profile Trust Indicators & Completion */}
+                <div className="lg:col-span-4 space-y-6">
+                  <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] space-y-6">
+                    <h3 className="font-bold text-gray-900">Trust Profile</h3>
 
-                      {/* Trust Indicators */}
-                      <div className="space-y-3 border-t border-gray-50 pt-4">
-                        <h4 className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Verifications</h4>
-                        
-                        <VerificationRow label="Email Address Verified" verified={!!currentUser?.email} icon={Mail} />
-                        <VerificationRow label="Phone Number Verified" verified={!!currentUser?.phone} icon={Phone} />
-                        <VerificationRow label="Host Profile Approved" verified={!!hostProfile?.id} icon={ShieldCheck} />
-                      </div>
+                    {/* Photo upload component inline */}
+                    <ProfileCard
+                      user={currentUser}
+                      onUpdate={handleUpdatePersonalInfo}
+                      isLoading={isUpdating}
+                    />
 
-                      {/* Connected Socials widget */}
-                      <div className="border-t border-gray-50 pt-4">
-                        <h4 className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2.5">Connected Channels</h4>
-                        <div className="flex gap-2">
-                          <SocialBadge icon={MessageSquare} label="WhatsApp" connected={!!currentUser?.whatsapp} activeColor="bg-green-500" />
-                          <SocialBadge icon={Instagram} label="Instagram" connected={!!currentUser?.instagram} activeColor="bg-pink-500" />
-                          <SocialBadge icon={Facebook} label="Facebook" connected={!!currentUser?.facebook} activeColor="bg-blue-600" />
-                        </div>
+
+
+                    {/* Trust Indicators */}
+                    <div className="space-y-3 border-t border-gray-50 pt-4">
+                      <h4 className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Verifications</h4>
+
+                      <VerificationRow label="Email Address Verified" verified={!!currentUser?.email} icon={Mail} />
+                      <VerificationRow label="Phone Number Verified" verified={!!currentUser?.phone} icon={Phone} />
+                      <VerificationRow label="Host Profile Approved" verified={hostProfile?.status === "approved"} icon={ShieldCheck} />
+                    </div>
+
+                    {/* Connected Socials widget */}
+                    <div className="border-t border-gray-50 pt-4">
+                      <h4 className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2.5">Connected Channels</h4>
+                      <div className="flex gap-2">
+                        <SocialBadge icon={FaWhatsapp} label="WhatsApp" connected={!!currentUser?.whatsapp} activeColor="bg-green-500" />
+                        <SocialBadge icon={Mail} label="Gmail" connected={!!currentUser?.email} activeColor="bg-red-500" />
+                        <SocialBadge icon={Instagram} label="Instagram" connected={!!currentUser?.instagram} activeColor="bg-pink-500" />
+                        <SocialBadge icon={Facebook} label="Facebook" connected={!!currentUser?.facebook} activeColor="bg-blue-600" />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === "personal" && (
-              <PersonalInfo
-                initialData={currentUser}
-                onUpdate={handleUpdatePersonalInfo}
-                isUpdating={isUpdating}
-                isHost={!!hostProfile?.id}
-              />
-            )}
+          {activeTab === "personal" && (
+            <PersonalInfo
+              initialData={currentUser}
+              onUpdate={handleUpdatePersonalInfo}
+              isUpdating={isUpdating}
+              isHost={!!hostProfile?.id}
+            />
+          )}
 
-            {activeTab === "listings" && <MyListings />}
-            {activeTab === "events" && <MyEvents />}
-            {activeTab === "buy-sell" && <MyBuySellListings />}
-            {activeTab === "trips" && <Trips />}
-            {activeTab === "applications" && <MyApplications />}
-            {activeTab === "communities" && <MyCommunities />}
-            {activeTab === "wishlist" && <WishlistManager />}
-            {activeTab === "settings" && <Settings />}
+          {activeTab === "listings" && <MyListings />}
+          {activeTab === "events" && <MyEvents />}
+          {activeTab === "buy-sell" && <MyBuySellListings />}
+          {activeTab === "trips" && <Trips />}
+          {activeTab === "applications" && <MyApplications />}
+          {activeTab === "communities" && <MyCommunities />}
+          {activeTab === "wishlist" && <WishlistManager />}
+          {activeTab === "settings" && <Settings />}
 
         </div>
       </div>

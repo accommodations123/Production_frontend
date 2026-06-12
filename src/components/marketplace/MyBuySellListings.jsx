@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { SellForm } from "@/components/marketplace/SellForm";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function MyBuySellListings() {
   const { data: listings = [], isLoading, isError } = useGetMyBuySellListingsQuery();
@@ -140,7 +141,7 @@ export function MyBuySellListings() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {enrichedListings.map((item) => {
-            const thumbnail = item.images?.[0] || item.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
+            const thumbnail = item.images?.[0] || item.image || "";
             const isActive = item.status === 'active';
             const isSold = item.status === 'sold';
 

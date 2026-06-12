@@ -67,8 +67,8 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
     const isHtml = (str) => /<[a-z][\s\S]*>/i.test(str);
     const renderDescription = (desc) => {
         if (!desc) return null;
-        const cleanDesc = typeof desc === 'string' 
-            ? desc.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ') 
+        const cleanDesc = typeof desc === 'string'
+            ? desc.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ')
             : desc;
         if (isHtml(cleanDesc)) {
             return (
