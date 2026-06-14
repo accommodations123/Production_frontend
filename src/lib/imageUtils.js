@@ -9,6 +9,8 @@
  * @param {string} [fallback] - Optional fallback image URL
  * @returns {string|null} The resolved full URL
  */
+export const CLOUDFRONT_BASE = import.meta.env.VITE_CLOUDFRONT_URL || 'https://d3dqp3l6ug81j3.cloudfront.net';
+
 export function resolveImageUrl(imagePath, fallback = null) {
     if (!imagePath) return fallback;
 
@@ -16,8 +18,6 @@ export function resolveImageUrl(imagePath, fallback = null) {
     if (trimmed === "" || trimmed === "null" || trimmed === "undefined" || trimmed.endsWith("/null") || trimmed.endsWith("/undefined")) {
         return fallback;
     }
-
-    const CLOUDFRONT_BASE = import.meta.env.VITE_CLOUDFRONT_URL || 'https://d3dqp3l6ug81j3.cloudfront.net';
 
     // Already a CloudFront URL — use as-is
     if (trimmed.startsWith(CLOUDFRONT_BASE)) return trimmed;

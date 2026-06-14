@@ -4,7 +4,7 @@ import { X, Plane, User, MapPin, Clock, Loader2 } from "lucide-react";
 import { useCreateTripMutation, useGetHostProfileQuery } from "../../store/api/hostApi";
 import { useAuth } from "../../app/events/[id]/hooks/useAuth";
 import { useGetMeQuery } from "../../store/api/authApi";
-import { Country, State, City } from 'country-state-city';
+import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 
 export default function PostTripModal({ onClose, onAdd }) {
@@ -33,10 +33,21 @@ export default function PostTripModal({ onClose, onAdd }) {
     const [activeTab, setActiveTab] = useState("personal");
     const [formErrors, setFormErrors] = useState({});
 
+    // Lazy-loaded location modules
+    const [locationMod, setLocationMod] = useState(null);
+    useEffect(() => {
+        loadLocationData().then(setLocationMod);
+    }, []);
+
     // Country/State/City lists
-    const [countriesList] = useState(Country.getAllCountries().map(c =>
-        c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
-    ));
+    const [countriesList, setCountriesList] = useState([]);
+    useEffect(() => {
+        if (locationMod) {
+            setCountriesList(locationMod.Country.getAllCountries().map(c =>
+                c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
+            ));
+        }
+    }, [locationMod]);
 
     // Origin location lists
     const [fromStatesList, setFromStatesList] = useState([]);
@@ -59,9 +70,10 @@ export default function PostTripModal({ onClose, onAdd }) {
 
     // Handle Origin Country Change
     const handleFromCountryChange = (country) => {
+        if (!locationMod) return;
         setSelectedFromCountry(country);
         setForm(prev => ({ ...prev, from_country: country.name, from_state: "", from_city: "" }));
-        setFromStatesList(State.getStatesOfCountry(country.isoCode));
+        setFromStatesList(locationMod.State.getStatesOfCountry(country.isoCode));
         setFromCitiesList([]);
         fromCitiesFetched.current = false;
         setSelectedFromState(null);
@@ -69,10 +81,11 @@ export default function PostTripModal({ onClose, onAdd }) {
 
     // Handle Origin State Change
     const handleFromStateChange = (state) => {
+        if (!locationMod) return;
         setSelectedFromState(state);
         setForm(prev => ({ ...prev, from_state: state.name, from_city: "" }));
         if (selectedFromCountry) {
-            setFromCitiesList(City.getCitiesOfState(selectedFromCountry.isoCode, state.isoCode));
+            setFromCitiesList(locationMod.City.getCitiesOfState(selectedFromCountry.isoCode, state.isoCode));
             fromCitiesFetched.current = true;
         }
     };
@@ -84,9 +97,10 @@ export default function PostTripModal({ onClose, onAdd }) {
 
     // Handle Destination Country Change
     const handleToCountryChange = (country) => {
+        if (!locationMod) return;
         setSelectedToCountry(country);
         setForm(prev => ({ ...prev, to_country: country.name, to_state: "", to_city: "" }));
-        setToStatesList(State.getStatesOfCountry(country.isoCode));
+        setToStatesList(locationMod.State.getStatesOfCountry(country.isoCode));
         setToCitiesList([]);
         toCitiesFetched.current = false;
         setSelectedToState(null);
@@ -94,10 +108,11 @@ export default function PostTripModal({ onClose, onAdd }) {
 
     // Handle Destination State Change
     const handleToStateChange = (state) => {
+        if (!locationMod) return;
         setSelectedToState(state);
         setForm(prev => ({ ...prev, to_state: state.name, to_city: "" }));
         if (selectedToCountry) {
-            setToCitiesList(City.getCitiesOfState(selectedToCountry.isoCode, state.isoCode));
+            setToCitiesList(locationMod.City.getCitiesOfState(selectedToCountry.isoCode, state.isoCode));
             toCitiesFetched.current = true;
         }
     };

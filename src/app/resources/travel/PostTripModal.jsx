@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Plane, User, MapPin, Clock, Phone } from "lucide-react";
 // import { GEOGRAPHIC_DATA, MORE_DESTINATIONS } from "../../app/resources/travel/constants";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
-import { Country, State, City } from 'country-state-city';
+import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { useEffect } from "react";
 
@@ -31,24 +31,34 @@ export default function PostTripModal({ onClose, onAdd }) {
         phoneCode: "+91",
     });
 
-    const [countriesList] = useState(Country.getAllCountries().map(c =>
-        c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
-    ));
+    const [csc, setCsc] = useState(null);
+    const [countriesList, setCountriesList] = useState([]);
     const [statesList, setStatesList] = useState([]);
     const [citiesList, setCitiesList] = useState([]);
 
     const [prevFormCountry, setPrevFormCountry] = useState(form.country);
 
-    // Sync state lists inline during render when country selection changes
-    if (form.country !== prevFormCountry) {
-        setPrevFormCountry(form.country);
-        if (form.country) {
+    useEffect(() => {
+        let active = true;
+        loadLocationData().then(data => {
+            if (!active) return;
+            setCsc(data);
+            setCountriesList(data.Country.getAllCountries().map(c =>
+                c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
+            ));
+        });
+        return () => { active = false; };
+    }, []);
+
+    // Sync state lists when country selection changes and csc is loaded
+    useEffect(() => {
+        if (csc && form.country) {
             const countryObj = countriesList.find(c => c.name === form.country);
             if (countryObj) {
-                setStatesList(State.getStatesOfCountry(countryObj.isoCode));
+                setStatesList(csc.State.getStatesOfCountry(countryObj.isoCode));
             }
         }
-    }
+    }, [form.country, countriesList, csc]);
 
     const [activeTab, setActiveTab] = useState("personal");
     const [formErrors, setFormErrors] = useState({});
@@ -290,7 +300,9 @@ export default function PostTripModal({ onClose, onAdd }) {
                                                     state: "",
                                                     city: ""
                                                 }));
-                                                setStatesList(State.getStatesOfCountry(option.isoCode));
+                                                if (csc) {
+                                                    setStatesList(csc.State.getStatesOfCountry(option.isoCode));
+                                                }
                                                 setCitiesList([]);
                                             }}
                                         />
@@ -311,8 +323,8 @@ export default function PostTripModal({ onClose, onAdd }) {
                                                     city: ""
                                                 }));
                                                 const countryObj = countriesList.find(c => c.name === form.country);
-                                                if (countryObj) {
-                                                    setCitiesList(City.getCitiesOfState(countryObj.isoCode, option.isoCode));
+                                                if (countryObj && csc) {
+                                                    setCitiesList(csc.City.getCitiesOfState(countryObj.isoCode, option.isoCode));
                                                 }
                                             }}
                                         />

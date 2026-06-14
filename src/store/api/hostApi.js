@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { COUNTRIES } from "@/lib/mock-data";
+import { CLOUDFRONT_BASE } from "../../lib/imageUtils";
 
 const getSymbolForLocation = (location) => {
     if (!location) return "$";
@@ -161,7 +162,7 @@ export const hostApi = createApi({
             transformResponse: (response) => {
                 const host = response?.host || response?.data || response;
                 if (host && typeof host === 'object') {
-                    const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                    const CLOUDFRONT = CLOUDFRONT_BASE;
                     const fixImage = (img) => {
                         if (img && typeof img === 'string' && !img.startsWith('http')) {
                             return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
@@ -182,7 +183,7 @@ export const hostApi = createApi({
             }),
             transformResponse: (response) => {
                 const hosts = response?.data || response?.hosts || response || [];
-                const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                const CLOUDFRONT = CLOUDFRONT_BASE;
                 const fixImage = (img) => {
                     if (img && typeof img === 'string' && !img.startsWith('http')) {
                         return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
@@ -260,7 +261,7 @@ export const hostApi = createApi({
             transformResponse: (response) => {
                 const property = response?.property || response?.data?.property || response?.data || response;
                 const host = response?.host || response?.data?.host || {};
-                const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                const CLOUDFRONT = CLOUDFRONT_BASE;
                 const fixImage = (img) => {
                     if (img && typeof img === 'string' && !img.startsWith('http')) {
                         return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
@@ -311,7 +312,7 @@ export const hostApi = createApi({
             transformResponse: (response) => {
                 const items = response?.data?.events || response?.events || response?.data || response || [];
                 if (Array.isArray(items)) {
-                    const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                    const CLOUDFRONT = CLOUDFRONT_BASE;
                     const fixImage = (img) => {
                         if (img && typeof img === 'string' && !img.startsWith('http')) {
                             return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
@@ -349,7 +350,7 @@ export const hostApi = createApi({
             },
             transformResponse: (response) => {
                 const event = response?.event || response?.data || response;
-                const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                const CLOUDFRONT = CLOUDFRONT_BASE;
                 const fixImage = (img) => {
                     if (img && typeof img === 'string' && !img.startsWith('http')) {
                         return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
@@ -602,6 +603,16 @@ export const hostApi = createApi({
             invalidatesTags: ["Community"],
         }),
 
+        createEvent: builder.mutation({
+            query: (data) => ({ url: "events/create", method: "POST", body: data }),
+            invalidatesTags: ["Event"],
+        }),
+
+        createCommunityContribution: builder.mutation({
+            query: (data) => ({ url: "community/contributions", method: "POST", body: data }),
+            invalidatesTags: ["Community"],
+        }),
+
         updateCommunity: builder.mutation({
             query: ({ id, data }) => ({ url: `community/${id}/update`, method: "PUT", body: data }),
             invalidatesTags: (result, error, { id }) => [{ type: "Community", id }],
@@ -683,7 +694,7 @@ export const hostApi = createApi({
             query: ({ id, page = 1 }) => `community/communities/${id}/posts?page=${page}`,
             providesTags: (result, error, { id }) => [{ type: "Community", id: `FEED-${id}` }],
             transformResponse: (response) => {
-                const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                const CLOUDFRONT = CLOUDFRONT_BASE;
                 const fixImage = (img) => {
                     if (img && typeof img === 'string' && !img.startsWith('http')) {
                         return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
@@ -1210,6 +1221,8 @@ export const {
     useLeaveCommunityMutation,
     useCreateCommunityMutation,
     useUpdateCommunityMutation,
+    useCreateEventMutation,
+    useCreateCommunityContributionMutation,
     useGetCommunityMembersQuery,
     useGetCommunityHostMembersQuery,
     useGetMyEventsQuery,

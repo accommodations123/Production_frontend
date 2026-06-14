@@ -6,6 +6,7 @@ import { SocialQuickConnect } from '@/components/ui/SocialConnect';
 import { useCountry } from '@/context/CountryContext';
 import { toast } from 'sonner';
 import WishlistButton from '@/components/ui/WishlistButton';
+import { CLOUDFRONT_BASE } from '@/lib/imageUtils';
 
 export const CardContainer = ({ children, linkTo, className = "" }) => {
     const navigate = (e) => {
@@ -27,7 +28,7 @@ export const CardContainer = ({ children, linkTo, className = "" }) => {
     );
 };
 
-export const PropertyCard = ({ property }) => {
+export const PropertyCard = React.memo(({ property }) => {
     const { formatPrice } = useCountry();
     const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -37,7 +38,7 @@ export const PropertyCard = ({ property }) => {
     const getValidImageUrl = (imagePath) => {
         if (!imagePath) return null;
         if (imagePath.startsWith('http')) return imagePath;
-        const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+        const CLOUDFRONT = CLOUDFRONT_BASE;
         return `${CLOUDFRONT}/${imagePath.startsWith('/') ? imagePath.slice(1) : imagePath}`;
     };
 
@@ -221,4 +222,4 @@ export const PropertyCard = ({ property }) => {
             </div>
         </CardContainer>
     );
-};
+});

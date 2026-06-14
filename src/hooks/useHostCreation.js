@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCountry } from '@/context/CountryContext';
-import { hostService } from '@/services/hostService';
+import { useSendOtpMutation, useVerifyOtpMutation } from '@/store/api/authApi';
 import { getTermsFor } from '@/lib/host-terms-data';
 import { fetchCurrentUser } from '@/store/slices/authSlice';
 import { useHostSubmission } from './useHostSubmission';
@@ -166,6 +166,9 @@ export function useHostCreation() {
     const { data: hostProfile, isError: isHostError } = useGetHostProfileQuery(undefined, {
         skip: !userData || !!isAuthError
     });
+
+    const [sendOtp] = useSendOtpMutation();
+    const [verifyOtp] = useVerifyOtpMutation();
 
     const isExistingHost = !!hostProfile && !isHostError;
 
@@ -357,7 +360,7 @@ export function useHostCreation() {
             return;
         }
         try {
-            await hostService.sendOtp({ email: formData.email, phone: formData.phone || "0000000000" });
+            await sendOtp({ email: formData.email, phone: formData.phone || "0000000000" }).unwrap();
             setShowOtpModal(true);
             toast.success("OTP sent to your email!");
         } catch (error) {
@@ -373,7 +376,7 @@ export function useHostCreation() {
 
     const handleVerifyOtp = async (otpCode) => {
         try {
-            const response = await hostService.verifyOtp({ email: formData.email, phone: formData.phone || "0000000000", otp: otpCode });
+            const response = await verifyOtp({ email: formData.email, phone: formData.phone || "0000000000", otp: otpCode }).unwrap();
 
             if (response) {
                 if (response.user || response.data?.user) {

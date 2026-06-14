@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { axiosClient } from '../../lib/axiosClient';
+import { CLOUDFRONT_BASE } from '../../lib/imageUtils';
 
 // Safe localStorage parsing helper
 const getInitialUser = () => {
@@ -21,7 +22,7 @@ export const fetchCurrentUser = createAsyncThunk(
             const data = response.data;
             
             // CloudFront Image Transform matching original authApi logic
-            const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+            const CLOUDFRONT = CLOUDFRONT_BASE;
             const fixImage = (obj) => {
                 if (obj?.profile_image && !obj.profile_image.startsWith('http')) {
                     const key = obj.profile_image.startsWith('/') ? obj.profile_image : `/${obj.profile_image}`;

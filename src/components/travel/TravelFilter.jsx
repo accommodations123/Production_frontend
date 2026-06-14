@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { COUNTRIES } from "@/lib/mock-data";
-import { City } from 'country-state-city';
+import { loadLocationData } from '@/lib/lazyLocationData';
 
 export default function TravelFilter({
     travels = [],
@@ -44,10 +44,15 @@ export default function TravelFilter({
     // Selected Country code for City list
     const countryIsoCode = selectedCountry?.code;
 
-    // Get cities
-    const citiesList = React.useMemo(() => {
-        if (!countryIsoCode) return [];
-        return City.getCitiesOfCountry(countryIsoCode);
+    // Lazy-load City data
+    const [citiesList, setCitiesList] = React.useState([]);
+    React.useEffect(() => {
+        if (!countryIsoCode) { setCitiesList([]); return; }
+        let cancelled = false;
+        loadLocationData().then(({ City }) => {
+            if (!cancelled) setCitiesList(City.getCitiesOfCountry(countryIsoCode));
+        });
+        return () => { cancelled = true; };
     }, [countryIsoCode]);
 
     // City search filter

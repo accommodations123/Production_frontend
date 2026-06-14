@@ -18,7 +18,7 @@ import { useGetMeQuery } from "@/store/api/authApi";
 import { cn } from "@/lib/utils";
 import { fetchAddressByPincode } from "@/lib/pincodeUtils";
 import { useEffect } from "react";
-import { Country, State, City } from 'country-state-city';
+import { loadLocationData } from '@/lib/lazyLocationData';
 import { useNavigate } from "react-router-dom";
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { COUNTRIES } from "@/lib/mock-data";
@@ -346,12 +346,23 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
   const [isPincodeLoading, setIsPincodeLoading] = useState(false);
   const [validationError, setValidationError] = useState("");
 
-  const [countriesList] = useState(Country.getAllCountries().map(c =>
-    c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
-  ));
+  const [csc, setCsc] = useState(null);
+  const [countriesList, setCountriesList] = useState([]);
   const [statesList, setStatesList] = useState([]);
   const [citiesList, setCitiesList] = useState([]);
   const citiesFetched = useRef(false);
+
+  useEffect(() => {
+    let active = true;
+    loadLocationData().then(data => {
+      if (!active) return;
+      setCsc(data);
+      setCountriesList(data.Country.getAllCountries().map(c =>
+        c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
+      ));
+    });
+    return () => { active = false; };
+  }, []);
 
   // Mutations
   const [createBuySell, { isLoading: isCreating, isError: isCreateError, error: createError, isSuccess: isCreateSuccess }] = useCreateBuySellMutation();
@@ -403,13 +414,13 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
       // Populate location lists
       // Note: We might need to find the ISO codes to populate states/cities lists correctly
       // For now, we set values directly. Lists will populate if user interacts with dropdowns.
-      if (initialData.country) {
+      if (initialData.country && csc) {
         const cObj = countriesList.find(c => c.name === initialData.country);
         if (cObj) {
-          setStatesList(State.getStatesOfCountry(cObj.isoCode));
-          const sObj = State.getStatesOfCountry(cObj.isoCode).find(s => s.name === initialData.state);
+          setStatesList(csc.State.getStatesOfCountry(cObj.isoCode));
+          const sObj = csc.State.getStatesOfCountry(cObj.isoCode).find(s => s.name === initialData.state);
           if (sObj) {
-            setCitiesList(City.getCitiesOfState(cObj.isoCode, sObj.isoCode));
+            setCitiesList(csc.City.getCitiesOfState(cObj.isoCode, sObj.isoCode));
             citiesFetched.current = true;
           }
         }
@@ -432,11 +443,11 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
         }
       }
     }
-  }, [initialData, countriesList]);
+  }, [initialData, countriesList, csc]);
 
   // Pre-fill country & states list from global country context on mount (for new listings)
   useEffect(() => {
-    if (!isEditing && !country && globalActiveCountry?.name) {
+    if (!isEditing && !country && globalActiveCountry?.name && csc) {
       const countryName = globalActiveCountry.name === "United States" || globalActiveCountry.name.startsWith("United States")
         ? "United States of America"
         : globalActiveCountry.name;
@@ -444,10 +455,10 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
       const matched = countriesList.find(c => c.name === countryName);
       if (matched) {
         setCountry(matched.name);
-        setStatesList(State.getStatesOfCountry(matched.isoCode));
+        setStatesList(csc.State.getStatesOfCountry(matched.isoCode));
       }
     }
-  }, [globalActiveCountry, isEditing, countriesList, country]);
+  }, [globalActiveCountry, isEditing, countriesList, country, csc]);
 
   // Auto-fill address based on Pincode (Only if not editing or if user changes zip explicitly?)
   // Keeping logic simple: triggers on zipCode change.
@@ -456,13 +467,13 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
     if (initialData && zipCode === initialData.zip_code) return;
 
     const fetchPincodeDetails = async () => {
-      if (zipCode && zipCode.length === 6 && /^\d+$/.test(zipCode)) {
+      if (zipCode && zipCode.length === 6 && /^\d+$/.test(zipCode) && csc) {
         setIsPincodeLoading(true);
         const addressData = await fetchAddressByPincode(zipCode);
         if (addressData) {
           const matchedCountry = countriesList.find(c => c.name.toLowerCase() === (addressData.country || "India").toLowerCase());
           const countryCode = matchedCountry?.isoCode || "IN";
-          const states = State.getStatesOfCountry(countryCode);
+          const states = csc.State.getStatesOfCountry(countryCode);
           const matchedState = states.find(s => s.name.toLowerCase() === addressData.state?.toLowerCase());
 
           setCity(addressData.city || city);
@@ -471,7 +482,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
 
           if (countryCode) setStatesList(states);
           if (countryCode && matchedState?.isoCode) {
-            setCitiesList(City.getCitiesOfState(countryCode, matchedState.isoCode));
+            setCitiesList(csc.City.getCitiesOfState(countryCode, matchedState.isoCode));
             citiesFetched.current = true;
           }
         }
@@ -481,7 +492,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
 
     const timeoutId = setTimeout(fetchPincodeDetails, 500);
     return () => clearTimeout(timeoutId);
-  }, [zipCode]);
+  }, [zipCode, csc, countriesList]);
 
   /* ================= IMAGE HANDLERS ================= */
 
@@ -940,7 +951,9 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
                     setCountry(c);
                     setState("");
                     setCity("");
-                    setStatesList(State.getStatesOfCountry(c.isoCode));
+                    if (csc) {
+                      setStatesList(csc.State.getStatesOfCountry(c.isoCode));
+                    }
                     setCitiesList([]);
                     citiesFetched.current = false;
                   }}
@@ -958,8 +971,8 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
                       setState(s.name);
                       setCity("");
                       const cCode = country?.isoCode || countriesList.find(c => c.name === country)?.isoCode;
-                      if (cCode) {
-                        setCitiesList(City.getCitiesOfState(cCode, s.isoCode));
+                      if (cCode && csc) {
+                        setCitiesList(csc.City.getCitiesOfState(cCode, s.isoCode));
                         citiesFetched.current = true;
                       } else {
                         citiesFetched.current = false;

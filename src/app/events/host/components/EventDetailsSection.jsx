@@ -4,24 +4,51 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect"
-import { Country, State, City } from 'country-state-city';
+import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { useState, useEffect, useRef } from "react";
 import { useCountry } from "@/context/CountryContext";
 
 export const EventDetailsSection = ({ formData, handleInputChange }) => {
     const { activeCountry } = useCountry();
-    const [countriesList] = useState(Country.getAllCountries().map(c =>
-        c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
-    ));
+    const [csc, setCsc] = useState(null);
+    const [countriesList, setCountriesList] = useState([]);
     const [statesList, setStatesList] = useState([]);
     const [citiesList, setCitiesList] = useState([]);
     const [citiesFetched, setCitiesFetched] = useState(false);
 
+    useEffect(() => {
+        let active = true;
+        loadLocationData().then(data => {
+            if (!active) return;
+            setCsc(data);
+            const countries = data.Country.getAllCountries().map(c =>
+                c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
+            );
+            setCountriesList(countries);
+
+            if (formData.country) {
+                const countryObj = countries.find(c => c.name === formData.country);
+                if (countryObj) {
+                    const states = data.State.getStatesOfCountry(countryObj.isoCode);
+                    setStatesList(states);
+                    if (formData.state) {
+                        const stateObj = states.find(s => s.name === formData.state);
+                        if (stateObj) {
+                            setCitiesList(data.City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
+                            setCitiesFetched(true);
+                        }
+                    }
+                }
+            }
+        });
+        return () => { active = false; };
+    }, []);
+
     const getCurrencySymbol = (countryName) => {
-        if (!countryName) return null;
+        if (!countryName || !csc) return null;
         // Use Country from country-state-city to find currency
-        const allCountries = Country.getAllCountries();
+        const allCountries = csc.Country.getAllCountries();
         const country = allCountries.find(c => c.name === countryName || c.isoCode === countryName);
         if (!country || !country.currency) return null;
 
@@ -48,24 +75,6 @@ export const EventDetailsSection = ({ formData, handleInputChange }) => {
     };
 
     const currencySymbol = getCurrencySymbol(formData.country) || getGlobalCurrencySymbol();
-
-    // Initialize lists if data exists
-    useEffect(() => {
-        if (formData.country) {
-            const countryObj = countriesList.find(c => c.name === formData.country);
-            if (countryObj) {
-                const states = State.getStatesOfCountry(countryObj.isoCode);
-                setStatesList(states);
-                if (formData.state) {
-                    const stateObj = states.find(s => s.name === formData.state);
-                    if (stateObj) {
-                        setCitiesList(City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
-                        setCitiesFetched(true);
-                    }
-                }
-            }
-        }
-    }, []); // Run once on mount
 
     const isValidCountry = countriesList.some(c => c.name === formData.country);
     const isValidState = statesList.some(s => s.name === formData.state);
@@ -242,7 +251,9 @@ inputMode="numeric"                            className="text-gray-900 placehol
                             handleInputChange("country", option.name);
                             handleInputChange("state", "");
                             handleInputChange("city", "");
-                            setStatesList(State.getStatesOfCountry(option.isoCode));
+                            if (csc) {
+                                setStatesList(csc.State.getStatesOfCountry(option.isoCode));
+                            }
                             setCitiesList([]);
                             setCitiesFetched(false);
                         }}
@@ -259,8 +270,8 @@ inputMode="numeric"                            className="text-gray-900 placehol
                             handleInputChange("state", option.name);
                             handleInputChange("city", "");
                             const countryObj = countriesList.find(c => c.name === formData.country);
-                            if (countryObj) {
-                                setCitiesList(City.getCitiesOfState(countryObj.isoCode, option.isoCode));
+                            if (countryObj && csc) {
+                                setCitiesList(csc.City.getCitiesOfState(countryObj.isoCode, option.isoCode));
                                 setCitiesFetched(true);
                             } else {
                                 setCitiesFetched(false);

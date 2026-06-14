@@ -1,8 +1,9 @@
+import React from "react"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Calendar, MapPin } from "lucide-react"
 
-export function EventCard({ event }) {
+export const EventCard = React.memo(function EventCard({ event }) {
     return (
         <Link to={`/events/${event.id}`}>
             <motion.div
@@ -37,4 +38,4 @@ export function EventCard({ event }) {
             </motion.div>
         </Link>
     )
-}
+})

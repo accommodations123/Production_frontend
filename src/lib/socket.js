@@ -14,8 +14,10 @@ export const getSocket = () => {
             withCredentials: true,  // Browser will send cookies automatically
             transports: ["websocket", "polling"],
             reconnection: true,
-            reconnectionAttempts: Infinity,
-            reconnectionDelay: 2000,
+            reconnectionAttempts: 15,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 30000,   // Exponential backoff caps at 30s
+            randomizationFactor: 0.5,      // Jitter to avoid thundering herd
         });
 
         // Explicitly connect

@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { CLOUDFRONT_BASE } from '../../lib/imageUtils';
 
 const rawBase = fetchBaseQuery({
     baseUrl: import.meta.env.PROD
@@ -110,7 +111,7 @@ export const authApi = createApi({
             transformResponse: (response) => {
                 // The backend getMe returns profile_image as just the S3 key
                 // (e.g. "properties/abc.jpeg"). We need the full CloudFront URL.
-                const CLOUDFRONT = 'https://d3dqp3l6ug81j3.cloudfront.net';
+                const CLOUDFRONT = CLOUDFRONT_BASE;
                 const fixImage = (obj) => {
                     if (obj?.profile_image && !obj.profile_image.startsWith('http')) {
                         const key = obj.profile_image.startsWith('/')

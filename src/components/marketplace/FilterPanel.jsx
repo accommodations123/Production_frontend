@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { SlidersHorizontal, ChevronDown, Search, X, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Country, State, City } from 'country-state-city';
+import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 
 export function FilterPanel({ filters, onChange }) {
@@ -25,11 +25,22 @@ export function FilterPanel({ filters, onChange }) {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const [countriesList] = useState(Country.getAllCountries().map(c =>
-    c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
-  ));
+  const [csc, setCsc] = useState(null);
+  const [countriesList, setCountriesList] = useState([]);
   const [statesList, setStatesList] = useState([]);
   const [citiesList, setCitiesList] = useState([]);
+
+  React.useEffect(() => {
+    let active = true;
+    loadLocationData().then(data => {
+      if (!active) return;
+      setCsc(data);
+      setCountriesList(data.Country.getAllCountries().map(c =>
+        c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
+      ));
+    });
+    return () => { active = false; };
+  }, []);
 
   // Check if any filter is active to show/hide the clear button
   const hasActiveFilters =
@@ -43,19 +54,19 @@ export function FilterPanel({ filters, onChange }) {
 
   // Keep statesList and citiesList in perfect sync with filters.country and filters.state
   React.useEffect(() => {
-    if (filters.country) {
+    if (filters.country && csc) {
       const countryObj = countriesList.find(
         c => c.name === filters.country || c.isoCode === filters.country
       );
       if (countryObj) {
-        const states = State.getStatesOfCountry(countryObj.isoCode);
+        const states = csc.State.getStatesOfCountry(countryObj.isoCode);
         setStatesList(states);
         if (filters.state) {
           const stateObj = states.find(
             s => s.name === filters.state || s.isoCode === filters.state
           );
           if (stateObj) {
-            setCitiesList(City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
+            setCitiesList(csc.City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
           } else {
             setCitiesList([]);
           }
@@ -70,7 +81,7 @@ export function FilterPanel({ filters, onChange }) {
       setStatesList([]);
       setCitiesList([]);
     }
-  }, [filters.country, filters.state, countriesList]);
+  }, [filters.country, filters.state, countriesList, csc]);
 
   const handleClear = () => {
     onChange({
@@ -151,8 +162,8 @@ export function FilterPanel({ filters, onChange }) {
                     city: "All Cities"
                   });
                   const cCode = countriesList.find(c => c.name === filters.country)?.isoCode;
-                  if (cCode && s.isoCode && s.isoCode !== "ALL_STATES") {
-                    setCitiesList(City.getCitiesOfState(cCode, s.isoCode));
+                  if (cCode && s.isoCode && s.isoCode !== "ALL_STATES" && csc) {
+                    setCitiesList(csc.City.getCitiesOfState(cCode, s.isoCode));
                   } else {
                     setCitiesList([]);
                   }

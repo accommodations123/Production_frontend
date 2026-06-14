@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react"
 import { MapPin, Briefcase, Banknote, Clock, Building, Wifi, Sparkles, User, Calendar, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-export function JobCard({ job, onViewDetails, onApply }) {
+export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply }) {
     const [imageError, setImageError] = useState(false)
 
     // Fallback initials or logo
@@ -161,4 +161,4 @@ export function JobCard({ job, onViewDetails, onApply }) {
             </div>
         </div>
     )
-}
+})

@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { Button } from "@/components/ui/button"
 import { Users, ArrowRight, Flame, MapPin, Hash, Calendar, MessageCircle, Home, Briefcase, Heart, UserCheck } from "lucide-react"
 
@@ -13,7 +14,7 @@ const iconMap = {
 };
 
 // This component now expects: type, data, onJoin, onLeave, isJoining, onCardClick
-export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick }) {
+export const GroupCard = React.memo(function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick }) {
     if (!data) {
         return null;
     }
@@ -312,4 +313,4 @@ export function GroupCard({ type, data, onJoin, onLeave, isJoining, onCardClick 
 
     // Fallback for any other type
     return null;
-}
+})

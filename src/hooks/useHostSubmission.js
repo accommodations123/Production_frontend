@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { hostService } from '@/services/hostService';
 import { compressImage } from '@/lib/imageUtils';
 import {
     useSaveHostMutation,
@@ -15,7 +14,10 @@ import {
     useUpdatePropertyRulesMutation,
     useUpdatePropertyMediaMutation,
     useUpdatePropertyVideoMutation,
-    useSubmitPropertyMutation
+    useSubmitPropertyMutation,
+    useCreateEventMutation,
+    useCreateCommunityMutation,
+    useCreateCommunityContributionMutation
 } from '@/store/api/hostApi';
 
 export function useHostSubmission({
@@ -43,6 +45,9 @@ export function useHostSubmission({
     const [updatePropertyMedia] = useUpdatePropertyMediaMutation();
     const [updatePropertyVideo] = useUpdatePropertyVideoMutation();
     const [submitProperty] = useSubmitPropertyMutation();
+    const [createEvent] = useCreateEventMutation();
+    const [createCommunity] = useCreateCommunityMutation();
+    const [createCommunityContribution] = useCreateCommunityContributionMutation();
 
     const getContributionTypeLabel = (type) => {
         const labels = {
@@ -125,7 +130,7 @@ export function useHostSubmission({
             hostId: userData?.id || userData?._id || userData?.user?.id || null
         };
 
-        await hostService.createEvent(eventPayload);
+        await createEvent(eventPayload).unwrap();
     };
 
     const handleSubmitGroup = async () => {
@@ -143,7 +148,7 @@ export function useHostSubmission({
             adminId: userData?.id || userData?._id || userData?.user?.id || null
         };
 
-        await hostService.createGroup(groupPayload);
+        await createCommunity(groupPayload).unwrap();
     };
 
     const handleSubmit = async (e) => {
@@ -309,7 +314,7 @@ export function useHostSubmission({
                         userId: userId,
                         details: formData
                     };
-                    await hostService.createCommunityContribution(contributionPayload);
+                    await createCommunityContribution(contributionPayload).unwrap();
                     break;
                 }
 

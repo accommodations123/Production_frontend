@@ -1,34 +1,42 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Navigation, Globe, Loader2 } from 'lucide-react';
 import { fetchAddressByPincode } from '@/lib/pincodeUtils';
-import { Country, State, City } from 'country-state-city';
+import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 
 const LocationSection = ({ formData, setFormData }) => {
   const [isPincodeLoading, setIsPincodeLoading] = useState(false);
-  const [countriesList] = useState(Country.getAllCountries());
+  const [locationMod, setLocationMod] = useState(null);
+  const [countriesList, setCountriesList] = useState([]);
   const [statesList, setStatesList] = useState([]);
   const [citiesList, setCitiesList] = useState([]);
   const citiesFetched = useRef(false);
 
+  // Load location modules on mount
+  useEffect(() => {
+    loadLocationData().then(mod => {
+      setLocationMod(mod);
+      setCountriesList(mod.Country.getAllCountries());
+    });
+  }, []);
+
   // Initialize lists if data exists
   useEffect(() => {
-    if (formData.country) {
-      const countryName = typeof formData.country === 'string' ? formData.country : formData.country?.name;
-      const countryObj = countriesList.find(c => c.name === countryName);
-      if (countryObj) {
-        const states = State.getStatesOfCountry(countryObj.isoCode);
-        setStatesList(states);
-        if (formData.state) {
-          const stateObj = states.find(s => s.name === formData.state);
-          if (stateObj) {
-            setCitiesList(City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
-            citiesFetched.current = true;
-          }
+    if (!locationMod || !formData.country) return;
+    const countryName = typeof formData.country === 'string' ? formData.country : formData.country?.name;
+    const countryObj = countriesList.find(c => c.name === countryName);
+    if (countryObj) {
+      const states = locationMod.State.getStatesOfCountry(countryObj.isoCode);
+      setStatesList(states);
+      if (formData.state) {
+        const stateObj = states.find(s => s.name === formData.state);
+        if (stateObj) {
+          setCitiesList(locationMod.City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
+          citiesFetched.current = true;
         }
       }
     }
-  }, []);
+  }, [locationMod, countriesList.length]);
 
   // Auto-fill address based on Pincode
   useEffect(() => {

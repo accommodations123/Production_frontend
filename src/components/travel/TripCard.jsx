@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { Plane, MapPin, Calendar, Globe, Shield } from "lucide-react";
 import WishlistButton from "@/components/ui/WishlistButton";
 import { SocialQuickConnect } from "@/components/ui/SocialConnect";
-import { resolveImageUrl } from "@/lib/imageUtils";
+import { resolveImageUrl, CLOUDFRONT_BASE } from "@/lib/imageUtils";
 import { formatUTCDate } from "../../utils/timezone";
 
-export default function TripCard({ plan }) {
+const TripCard = React.memo(({ plan }) => {
     if (!plan || !plan.user) return null;
 
     const formatTime12h = (t) => {
@@ -34,7 +34,6 @@ export default function TripCard({ plan }) {
         // First, try to find one that's already a full URL starting with http
         // But since plan.user.image is processed by resolveImageUrl, it might already be the broken cloudfront URL.
         // So we should try to find a full URL that is NOT a cloudfront URL first!
-        const CLOUDFRONT_BASE = 'https://d3dqp3l6ug81j3.cloudfront.net';
         const rawUrl = candidates.find(img => img && typeof img === 'string' && img.startsWith('http') && !img.startsWith(CLOUDFRONT_BASE));
         if (rawUrl) return rawUrl;
 
@@ -217,4 +216,6 @@ export default function TripCard({ plan }) {
             </div>
         </div>
     );
-}
+});
+
+export default TripCard;

@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { useCreateCommunityMutation, useUpdateCommunityMutation } from '@/store/api/hostApi';
 import { useNavigate } from 'react-router-dom';
 import { CountryCodeSelect } from '@/components/ui/CountryCodeSelect';
-import { Country, State, City } from 'country-state-city';
+import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { useEffect } from 'react';
 
@@ -85,20 +85,30 @@ const CommunityDetailsForm = () => {
         phoneIso: ""
     });
 
-    const [countriesList] = useState(Country.getAllCountries().map(c =>
-        c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
-    ));
+    const [csc, setCsc] = useState(null);
+    const [countriesList, setCountriesList] = useState([]);
     const [statesList, setStatesList] = useState([]);
     const [citiesList, setCitiesList] = useState([]);
     const citiesFetched = useRef(false);
 
     useEffect(() => {
-        if (formData.country) {
-            const countryObj = countriesList.find(c => c.name === formData.country);
-            if (countryObj) {
-                setStatesList(State.getStatesOfCountry(countryObj.isoCode));
+        let active = true;
+        loadLocationData().then(data => {
+            if (!active) return;
+            setCsc(data);
+            const countries = data.Country.getAllCountries().map(c =>
+                c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
+            );
+            setCountriesList(countries);
+
+            if (formData.country) {
+                const countryObj = countries.find(c => c.name === formData.country);
+                if (countryObj) {
+                    setStatesList(data.State.getStatesOfCountry(countryObj.isoCode));
+                }
             }
-        }
+        });
+        return () => { active = false; };
     }, []);
 
     const [newTopic, setNewTopic] = useState("");
@@ -440,7 +450,9 @@ const CommunityDetailsForm = () => {
                                 updateFormData('country', option.name);
                                 updateFormData('state', '');
                                 updateFormData('city', '');
-                                setStatesList(State.getStatesOfCountry(option.isoCode));
+                                if (csc) {
+                                    setStatesList(csc.State.getStatesOfCountry(option.isoCode));
+                                }
                                 setCitiesList([]);
                                 citiesFetched.current = false;
                             }}
@@ -460,8 +472,8 @@ const CommunityDetailsForm = () => {
                                 updateFormData('state', option.name);
                                 updateFormData('city', '');
                                 const countryObj = countriesList.find(c => c.name === formData.country);
-                                if (countryObj) {
-                                    setCitiesList(City.getCitiesOfState(countryObj.isoCode, option.isoCode));
+                                if (countryObj && csc) {
+                                    setCitiesList(csc.City.getCitiesOfState(countryObj.isoCode, option.isoCode));
                                     citiesFetched.current = true;
                                 } else {
                                     citiesFetched.current = false;

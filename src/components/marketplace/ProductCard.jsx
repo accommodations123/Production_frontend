@@ -26,7 +26,7 @@ export const CardContainer = ({ children, onClick, className = "" }) => {
   );
 };
 
-export function ProductCard({ product, onClick }) {
+export const ProductCard = React.memo(function ProductCard({ product, onClick }) {
   const { formatPrice } = useCountry();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -179,4 +179,4 @@ export function ProductCard({ product, onClick }) {
       </div>
     </CardContainer>
   );
-}
+})

@@ -9,7 +9,7 @@ import { Facebook, Instagram, MessageCircle } from "lucide-react";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
 import { useNavigate } from "react-router-dom";
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
-import { Country, State, City } from 'country-state-city';
+import { loadLocationData } from '@/lib/lazyLocationData';
 
 const DetailCard = ({ title, description, children, onEdit, isEditing, icon: Icon, isUpdating, className }) => (
   <div className={cn(
@@ -173,28 +173,56 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
     whatsappIso: ""
   });
 
-  const [countriesList] = useState(Country.getAllCountries());
+  const [csc, setCsc] = useState(null);
+  const [countriesList, setCountriesList] = useState([]);
   const [statesList, setStatesList] = useState([]);
   const [citiesList, setCitiesList] = useState([]);
   const citiesFetched = useRef(false);
 
   useEffect(() => {
-    if (formData.country) {
+    let active = true;
+    loadLocationData().then(data => {
+      if (!active) return;
+      setCsc(data);
+      const countries = data.Country.getAllCountries();
+      setCountriesList(countries);
+
+      if (formData.country) {
+        const countryObj = countries.find(c => c.name === formData.country);
+        if (countryObj) {
+          const states = data.State.getStatesOfCountry(countryObj.isoCode);
+          setStatesList(states);
+
+          if (formData.state) {
+            const stateObj = states.find(s => s.name === formData.state);
+            if (stateObj) {
+              setCitiesList(data.City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
+              citiesFetched.current = true;
+            }
+          }
+        }
+      }
+    });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (formData.country && csc) {
       const countryObj = countriesList.find(c => c.name === formData.country);
       if (countryObj) {
-        const states = State.getStatesOfCountry(countryObj.isoCode);
+        const states = csc.State.getStatesOfCountry(countryObj.isoCode);
         setStatesList(states);
 
         if (formData.state) {
           const stateObj = states.find(s => s.name === formData.state);
           if (stateObj) {
-            setCitiesList(City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
+            setCitiesList(csc.City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
             citiesFetched.current = true;
           }
         }
       }
     }
-  }, [formData.country, formData.state, countriesList]);
+  }, [formData.country, formData.state, countriesList, csc]);
 
   const KNOWN_CODES = ["+1", "+91", "+44", "+86", "+81", "+49", "+33", "+61", "+55", "+39", "+34", "+7", "+82", "+62", "+52", "+31", "+27", "+966", "+971", "+65", "+60", "+63", "+66", "+84", "+92", "+94", "+880", "+977", "+254", "+233", "+234"];
 
@@ -392,7 +420,9 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
                   value={formData.country}
                   onChange={(option) => {
                     setFormData(prev => ({ ...prev, country: option.name, state: "", city: "" }));
-                    setStatesList(State.getStatesOfCountry(option.isoCode));
+                    if (csc) {
+                      setStatesList(csc.State.getStatesOfCountry(option.isoCode));
+                    }
                     setCitiesList([]);
                   }}
                   className="bg-gray-50 border border-gray-200 rounded-xl focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 transition-all font-bold text-sm h-11"
@@ -417,8 +447,8 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
                   onChange={(option) => {
                     setFormData(prev => ({ ...prev, state: option.name, city: "" }));
                     const countryObj = countriesList.find(c => c.name === formData.country);
-                    if (countryObj) {
-                      setCitiesList(City.getCitiesOfState(countryObj.isoCode, option.isoCode));
+                    if (countryObj && csc) {
+                      setCitiesList(csc.City.getCitiesOfState(countryObj.isoCode, option.isoCode));
                       citiesFetched.current = true;
                     } else {
                       citiesFetched.current = false;

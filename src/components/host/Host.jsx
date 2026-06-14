@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { FaWhatsapp, FaInstagram, FaFacebook } from "react-icons/fa";
 import { fetchAddressByPincode } from "@/lib/pincodeUtils";
 import { Navbar } from "@/components/layout/Navbar";
-import { Country, State, City } from 'country-state-city';
+import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
 
@@ -53,10 +53,21 @@ export default function HostOnboardingForm() {
     instagram: ""
   });
 
-  const [countriesList] = useState(Country.getAllCountries());
+  const [csc, setCsc] = useState(null);
+  const [countriesList, setCountriesList] = useState([]);
   const [statesList, setStatesList] = useState([]);
   const [citiesList, setCitiesList] = useState([]);
   const citiesFetched = useRef(false);
+
+  useEffect(() => {
+    let active = true;
+    loadLocationData().then(data => {
+      if (!active) return;
+      setCsc(data);
+      setCountriesList(data.Country.getAllCountries());
+    });
+    return () => { active = false; };
+  }, []);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -106,18 +117,18 @@ export default function HostOnboardingForm() {
       }));
 
       // Populate location lists if country exists
-      if (hostProfile.country) {
+      if (hostProfile.country && csc) {
         const countryObj = countriesList.find(c => c.name === hostProfile.country);
         if (countryObj) {
           setFormData(prev => ({ ...prev, countryCode: countryObj.isoCode }));
-          const states = State.getStatesOfCountry(countryObj.isoCode);
+          const states = csc.State.getStatesOfCountry(countryObj.isoCode);
           setStatesList(states);
 
           if (hostProfile.state) {
             const stateObj = states.find(s => s.name === hostProfile.state);
             if (stateObj) {
               setFormData(prev => ({ ...prev, stateCode: stateObj.isoCode }));
-              setCitiesList(City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
+              setCitiesList(csc.City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
               citiesFetched.current = true;
             }
           }
@@ -131,7 +142,7 @@ export default function HostOnboardingForm() {
         instagram: !!hostProfile.instagram
       });
     }
-  }, [hostProfile, countriesList]);
+  }, [hostProfile, countriesList, csc]);
 
   // Auto-fill address based on Pincode
   useEffect(() => {
@@ -142,14 +153,14 @@ export default function HostOnboardingForm() {
         : formData.country;
       const isCountryIndiaOrEmpty = !currentCountryName || currentCountryName.toLowerCase() === "india";
 
-      if (pincode && pincode.length === 6 && /^\d+$/.test(pincode) && isCountryIndiaOrEmpty) {
+      if (pincode && pincode.length === 6 && /^\d+$/.test(pincode) && isCountryIndiaOrEmpty && csc) {
         setPincodeLoading(true);
         const addressData = await fetchAddressByPincode(pincode);
         if (addressData) {
           const matchedCountry = countriesList.find(c => c.name.toLowerCase() === (addressData.country || "India").toLowerCase());
           const countryCode = matchedCountry?.isoCode || "IN";
 
-          const states = State.getStatesOfCountry(countryCode);
+          const states = csc.State.getStatesOfCountry(countryCode);
           const matchedState = states.find(s => s.name.toLowerCase() === addressData.state?.toLowerCase());
 
           setFormData(prev => {
@@ -178,7 +189,7 @@ export default function HostOnboardingForm() {
 
           if (countryCode) setStatesList(states);
           if (countryCode && matchedState?.isoCode) {
-            setCitiesList(City.getCitiesOfState(countryCode, matchedState.isoCode));
+            setCitiesList(csc.City.getCitiesOfState(countryCode, matchedState.isoCode));
           }
         }
         setPincodeLoading(false);
@@ -187,7 +198,7 @@ export default function HostOnboardingForm() {
 
     const timeoutId = setTimeout(fetchPincodeDetails, 500); // Debounce
     return () => clearTimeout(timeoutId);
-  }, [formData.zip_code]);
+  }, [formData.zip_code, csc, countriesList]);
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
@@ -530,8 +541,8 @@ export default function HostOnboardingForm() {
                       stateCode: "",
                       city: ""
                     }));
-                    if (country.isoCode && country.isoCode !== 'CUSTOM') {
-                      setStatesList(State.getStatesOfCountry(country.isoCode));
+                    if (country.isoCode && country.isoCode !== 'CUSTOM' && csc) {
+                      setStatesList(csc.State.getStatesOfCountry(country.isoCode));
                     } else {
                       setStatesList([]);
                     }
@@ -554,8 +565,8 @@ export default function HostOnboardingForm() {
                       stateCode: state.isoCode,
                       city: ""
                     }));
-                    if (formData.countryCode && formData.countryCode !== 'CUSTOM' && state.isoCode && state.isoCode !== 'CUSTOM') {
-                      setCitiesList(City.getCitiesOfState(formData.countryCode, state.isoCode));
+                    if (formData.countryCode && formData.countryCode !== 'CUSTOM' && state.isoCode && state.isoCode !== 'CUSTOM' && csc) {
+                      setCitiesList(csc.City.getCitiesOfState(formData.countryCode, state.isoCode));
                       citiesFetched.current = true;
                     } else {
                       setCitiesList([]);
