@@ -351,6 +351,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
   const [statesList, setStatesList] = useState([]);
   const [citiesList, setCitiesList] = useState([]);
   const citiesFetched = useRef(false);
+  const lastSyncedGlobalCountryRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -445,20 +446,28 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
     }
   }, [initialData, countriesList, csc]);
 
-  // Pre-fill country & states list from global country context on mount (for new listings)
+  // Pre-fill and sync country & states list from global country context (for new listings)
   useEffect(() => {
-    if (!isEditing && !country && globalActiveCountry?.name && csc) {
-      const countryName = globalActiveCountry.name === "United States" || globalActiveCountry.name.startsWith("United States")
-        ? "United States of America"
-        : globalActiveCountry.name;
-      
-      const matched = countriesList.find(c => c.name === countryName);
-      if (matched) {
-        setCountry(matched.name);
-        setStatesList(csc.State.getStatesOfCountry(matched.isoCode));
+    const globalCountryCode = globalActiveCountry?.code || globalActiveCountry?.country;
+    if (!isEditing && globalCountryCode && csc) {
+      if (lastSyncedGlobalCountryRef.current !== globalCountryCode) {
+        const countryName = globalActiveCountry.name === "United States" || globalActiveCountry.name.startsWith("United States")
+          ? "United States of America"
+          : globalActiveCountry.name;
+        
+        const matched = countriesList.find(c => c.name === countryName || c.isoCode === globalCountryCode);
+        if (matched) {
+          setCountry(matched);
+          setStatesList(csc.State.getStatesOfCountry(matched.isoCode));
+          setState("");
+          setCity("");
+          setCitiesList([]);
+          citiesFetched.current = false;
+          lastSyncedGlobalCountryRef.current = globalCountryCode;
+        }
       }
     }
-  }, [globalActiveCountry, isEditing, countriesList, country, csc]);
+  }, [globalActiveCountry, isEditing, countriesList, csc]);
 
   // Auto-fill address based on Pincode (Only if not editing or if user changes zip explicitly?)
   // Keeping logic simple: triggers on zipCode change.
@@ -890,33 +899,40 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm min-w-[1rem] text-center">
               {(() => {
                 const cName = country ? (typeof country === 'string' ? country : country.name) : null;
-                if (cName) {
-                  const found = COUNTRIES.find(c => c.name === cName);
-                  if (found?.currency) {
-                    try {
-                      return new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: found.currency,
-                      }).formatToParts(0).find(part => part.type === 'currency')?.value || found.currency;
-                    } catch (e) {
-                      return found.currency;
+                const normalized = (cName === "United States" || cName === "United States of America") ? "United States of America" : cName;
+                let foundCurrency = null;
+                
+                if (normalized) {
+                  // 1. Search in dynamically loaded countriesList if available
+                  if (countriesList && countriesList.length > 0) {
+                    const matchedCountry = countriesList.find(c => c.name === normalized || c.isoCode === normalized);
+                    if (matchedCountry?.currency) {
+                      foundCurrency = matchedCountry.currency;
+                    }
+                  }
+                  // 2. Fallback to static COUNTRIES list
+                  if (!foundCurrency) {
+                    const found = COUNTRIES.find(c => c.name === normalized || c.code === normalized);
+                    if (found?.currency) {
+                      foundCurrency = found.currency;
                     }
                   }
                 }
-                // Fallback: use global country context currency
-                const globalCountry = COUNTRIES.find(c => c.code === globalActiveCountry?.code);
+
+                // Get global active country currency for fallback
+                const globalCountry = (countriesList && countriesList.find(c => c.isoCode === globalActiveCountry?.code || c.name === globalActiveCountry?.name)) ||
+                                      COUNTRIES.find(c => c.code === globalActiveCountry?.code);
                 const globalCurrency = globalCountry?.currency || globalActiveCountry?.currency;
-                if (globalCurrency) {
-                  try {
-                    return new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: globalCurrency,
-                    }).formatToParts(0).find(part => part.type === 'currency')?.value || globalCurrency;
-                  } catch (e) {
-                    return globalCurrency;
-                  }
+
+                const currencyToUse = foundCurrency || globalCurrency || 'USD';
+                try {
+                  return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: currencyToUse,
+                  }).formatToParts(0).find(part => part.type === 'currency')?.value || currencyToUse;
+                } catch (e) {
+                  return currencyToUse;
                 }
-                return '$';
               })()}
             </div>
             <Input

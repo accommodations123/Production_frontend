@@ -44,7 +44,7 @@ const SearchableDropdown = ({
 
     const selectedOption = useMemo(() => {
         if (!value) return null;
-        const found = options.find((opt) => opt.value === value || opt.name === value || opt.code === value);
+        const found = options.find((opt) => opt.value === value || opt.name === value || opt.code === value || opt.isoCode === value);
         if (found) return found;
 
         // Support manual entries / custom text values
@@ -121,10 +121,10 @@ const SearchableDropdown = ({
                         <div className="max-h-60 overflow-y-auto py-1">
                             {filteredOptions.length > 0 ? (
                                 filteredOptions.map((option, index) => {
-                                    const isSelected = selectedOption && (selectedOption.code === option.code || selectedOption.name === option.name);
+                                    const isSelected = selectedOption && (selectedOption.code === option.code || selectedOption.isoCode === option.isoCode || selectedOption.name === option.name);
                                     return (
                                         <div
-                                            key={option.code || option.name || index}
+                                            key={option.code || option.isoCode || option.name || index}
                                             className={cn(
                                                 "px-4 py-2 text-sm cursor-pointer flex items-center justify-between hover:bg-primary hover:text-white transition-all",
                                                 isSelected ? "bg-primary/10 text-primary font-medium" : "text-gray-700"

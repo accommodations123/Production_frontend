@@ -8,14 +8,39 @@ import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { useState, useEffect, useRef } from "react";
 import { useCountry } from "@/context/CountryContext";
+import { useSearchParams } from "react-router-dom";
 
 export const EventDetailsSection = ({ formData, handleInputChange }) => {
     const { activeCountry } = useCountry();
+    const [searchParams] = useSearchParams();
+    const isEdit = !!searchParams.get('edit');
     const [csc, setCsc] = useState(null);
     const [countriesList, setCountriesList] = useState([]);
     const [statesList, setStatesList] = useState([]);
     const [citiesList, setCitiesList] = useState([]);
     const [citiesFetched, setCitiesFetched] = useState(false);
+
+    const lastSyncedCountryRef = useRef(null);
+
+    // Auto-fill and sync form country from global active country (for new events)
+    useEffect(() => {
+        const globalCountryCode = activeCountry?.code || activeCountry?.country;
+        if (!isEdit && globalCountryCode) {
+            if (lastSyncedCountryRef.current !== globalCountryCode) {
+                handleInputChange("country", globalCountryCode);
+                handleInputChange("state", "");
+                handleInputChange("city", "");
+                setCitiesList([]);
+                setCitiesFetched(false);
+                if (csc) {
+                    setStatesList(csc.State.getStatesOfCountry(globalCountryCode));
+                    lastSyncedCountryRef.current = globalCountryCode;
+                }
+            } else if (csc && !statesList.length && lastSyncedCountryRef.current === globalCountryCode) {
+                setStatesList(csc.State.getStatesOfCountry(globalCountryCode));
+            }
+        }
+    }, [activeCountry, isEdit, csc, statesList.length]);
 
     useEffect(() => {
         let active = true;
@@ -26,30 +51,44 @@ export const EventDetailsSection = ({ formData, handleInputChange }) => {
                 c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
             );
             setCountriesList(countries);
-
-            if (formData.country) {
-                const countryObj = countries.find(c => c.name === formData.country);
-                if (countryObj) {
-                    const states = data.State.getStatesOfCountry(countryObj.isoCode);
-                    setStatesList(states);
-                    if (formData.state) {
-                        const stateObj = states.find(s => s.name === formData.state);
-                        if (stateObj) {
-                            setCitiesList(data.City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
-                            setCitiesFetched(true);
-                        }
-                    }
-                }
-            }
         });
         return () => { active = false; };
     }, []);
 
+    useEffect(() => {
+        if (!csc || !countriesList.length || !formData.country) return;
+
+        const countryObj = countriesList.find(c => c.name === formData.country || c.isoCode === formData.country);
+        if (countryObj) {
+            const states = csc.State.getStatesOfCountry(countryObj.isoCode);
+            setStatesList(states);
+
+            if (formData.state) {
+                const stateObj = states.find(s => s.name === formData.state);
+                if (stateObj) {
+                    setCitiesList(csc.City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
+                    setCitiesFetched(true);
+                } else {
+                    setCitiesList([]);
+                    setCitiesFetched(false);
+                }
+            } else {
+                setCitiesList([]);
+                setCitiesFetched(false);
+            }
+        } else {
+            setStatesList([]);
+            setCitiesList([]);
+            setCitiesFetched(false);
+        }
+    }, [formData.country, formData.state, csc, countriesList]);
+
     const getCurrencySymbol = (countryName) => {
         if (!countryName || !csc) return null;
-        // Use Country from country-state-city to find currency
-        const allCountries = csc.Country.getAllCountries();
-        const country = allCountries.find(c => c.name === countryName || c.isoCode === countryName);
+        const normalized = (countryName === "United States" || countryName === "United States of America") ? "United States of America" : countryName;
+        // Use countriesList which has mapped names, or fallback to allCountries
+        const country = (countriesList && countriesList.find(c => c.name === normalized || c.isoCode === normalized)) ||
+                        csc.Country.getAllCountries().find(c => c.name === normalized || c.isoCode === normalized);
         if (!country || !country.currency) return null;
 
         try {
@@ -76,7 +115,7 @@ export const EventDetailsSection = ({ formData, handleInputChange }) => {
 
     const currencySymbol = getCurrencySymbol(formData.country) || getGlobalCurrencySymbol();
 
-    const isValidCountry = countriesList.some(c => c.name === formData.country);
+    const isValidCountry = countriesList.some(c => c.name === formData.country || c.isoCode === formData.country);
     const isValidState = statesList.some(s => s.name === formData.state);
 
     return (
@@ -248,7 +287,7 @@ inputMode="numeric"                            className="text-gray-900 placehol
                         options={countriesList}
                         value={formData.country}
                         onChange={(option) => {
-                            handleInputChange("country", option.name);
+                            handleInputChange("country", option.isoCode);
                             handleInputChange("state", "");
                             handleInputChange("city", "");
                             if (csc) {
@@ -269,7 +308,7 @@ inputMode="numeric"                            className="text-gray-900 placehol
                         onChange={(option) => {
                             handleInputChange("state", option.name);
                             handleInputChange("city", "");
-                            const countryObj = countriesList.find(c => c.name === formData.country);
+                            const countryObj = countriesList.find(c => c.name === formData.country || c.isoCode === formData.country);
                             if (countryObj && csc) {
                                 setCitiesList(csc.City.getCitiesOfState(countryObj.isoCode, option.isoCode));
                                 setCitiesFetched(true);

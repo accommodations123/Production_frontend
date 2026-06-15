@@ -10,7 +10,8 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
 
     const getCurrencySymbol = (countryName) => {
         if (!countryName) return '$';
-        const country = COUNTRIES.find(c => c.name === countryName || c.code === countryName);
+        const normalized = (countryName === "United States" || countryName === "United States of America") ? "United States of America" : countryName;
+        const country = COUNTRIES.find(c => c.name === normalized || c.code === normalized);
         if (!country || !country.currency) return '$';
 
         try {
@@ -24,7 +25,7 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
     };
 
     const { activeCountry } = useCountry();
-    const targetCountryName = activeCountry?.name || event?.country;
+    const targetCountryName = event?.country || activeCountry?.name;
     const currencySymbol = getCurrencySymbol(targetCountryName);
 
     // ── Expired Event Banner ──────────────────────────────────

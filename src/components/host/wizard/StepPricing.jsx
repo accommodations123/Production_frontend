@@ -128,7 +128,8 @@ export function StepPricing({ formData, setFormData, contributionType = 'propert
     useEffect(() => {
         if (formData.country) {
             const countryName = typeof formData.country === 'string' ? formData.country : formData.country.name;
-            const matchedCountry = COUNTRIES.find(c => c.name === countryName);
+            const normalized = (countryName === "United States" || countryName === "United States of America") ? "United States of America" : countryName;
+            const matchedCountry = COUNTRIES.find(c => c.name === normalized);
 
             // Prefer the mock data currency, or fallback to the object's currency if available
             const currencyCode = matchedCountry?.currency || (typeof formData.country === 'object' ? formData.country.currency : null);

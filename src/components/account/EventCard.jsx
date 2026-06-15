@@ -30,7 +30,8 @@ export function EventCard({ event, onDelete }) {
 
     const getCurrencySymbol = (countryName) => {
         if (!countryName) return '$';
-        const country = COUNTRIES.find(c => c.name === countryName || c.code === countryName);
+        const normalized = (countryName === "United States" || countryName === "United States of America") ? "United States of America" : countryName;
+        const country = COUNTRIES.find(c => c.name === normalized || c.code === normalized);
         if (!country || !country.currency) return '$';
 
         try {
@@ -44,7 +45,7 @@ export function EventCard({ event, onDelete }) {
     };
 
     const { activeCountry } = useCountry();
-    const targetCountryName = activeCountry?.name || event.country;
+    const targetCountryName = event.country || activeCountry?.name;
     const currencySymbol = getCurrencySymbol(targetCountryName);
     const price = event.price && event.price !== "0" && event.price !== 0 ? `${currencySymbol}${event.price}` : "Free"
 
