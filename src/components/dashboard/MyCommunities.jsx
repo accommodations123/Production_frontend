@@ -92,7 +92,6 @@ export const MyCommunities = () => {
             // High fidelity image helper
             const banner = group.cover_image || group.avatar_image || "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80";
             const topics = Array.isArray(group.topics) ? group.topics : [];
-            const mockMembers = Math.floor(Math.random() * 140) + 24;
 
             return (
               <div 
@@ -109,7 +108,7 @@ export const MyCommunities = () => {
                   {/* Location badge */}
                   {group.city && (
                     <span className="absolute bottom-3.5 left-3.5 px-3 py-1 bg-white/95 backdrop-blur-sm rounded-xl text-[10px] font-extrabold text-gray-700 shadow-sm border border-gray-100 flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-rose-500" />
+                      <MapPin className="w-3.5 h-3.5 text-rose-500" />
                       {group.city}
                     </span>
                   )}
@@ -146,7 +145,7 @@ export const MyCommunities = () => {
                   <div className="pt-3.5 border-t border-gray-50 mt-auto flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400">
                       <Users className="w-4 h-4 text-rose-500" />
-                      {group.member_count || mockMembers} members
+                      {group.members_count || group.member_count || 0} members
                     </span>
                     <Button 
                       size="sm"

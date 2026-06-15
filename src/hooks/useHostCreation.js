@@ -290,8 +290,9 @@ export function useHostCreation() {
             }
 
             if (prop) {
-                // Check if property is approved (read-only)
-                if (prop.status === 'approved') {
+                // Check if property is approved (read-only), but allow editing if it has expired
+                const isExpired = prop.is_expired || (prop.listing_expires_at && new Date(prop.listing_expires_at).getTime() < Date.now());
+                if (prop.status === 'approved' && !isExpired) {
                     setIsReadOnly(true);
                 }
 

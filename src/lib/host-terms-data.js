@@ -4,7 +4,8 @@ export const HOST_TERMS = {
             "Hosts must provide accurate information about their property.",
             "Changes to the listing availability must be updated promptly.",
             "Hosts respect the privacy and safety of all guests.",
-            "Cancellation policies must be clearly communicated."
+            "Cancellation policies must be clearly communicated.",
+            "Approved property listings will remain active for 15 days, after which they will automatically expire."
         ]
     },
     // Country Specific Rules
@@ -12,7 +13,8 @@ export const HOST_TERMS = {
         general: [
             "Compliance with Fair Housing Act is mandatory.",
             "Local occupancy tax collection requirements must be met.",
-            "Smoke and carbon monoxide detectors are required."
+            "Smoke and carbon monoxide detectors are required.",
+            "Approved property listings will remain active for 15 days, after which they will automatically expire."
         ],
         student: [
             "Lease agreements must comply with local student housing ordinances.",
@@ -34,7 +36,8 @@ export const HOST_TERMS = {
         general: [
             "Gas Safety Certificate must be current and available.",
             "Energy Performance Certificate (EPC) rating must be meet minimums.",
-            "Right to Rent checks must be conducted where applicable."
+            "Right to Rent checks must be conducted where applicable.",
+            "Approved property listings will remain active for 15 days, after which they will automatically expire."
         ],
         student: [
             "HMO license is required if renting to 3+ students from different families.",
@@ -51,7 +54,8 @@ export const HOST_TERMS = {
         general: [
             "Tenant police verification is mandatory for all long-term stays.",
             "PAN card details may be required for tax reporting.",
-            "Society NOC (No Objection Certificate) should be obtained if applicable."
+            "Society NOC (No Objection Certificate) should be obtained if applicable.",
+            "Approved property listings will remain active for 15 days, after which they will automatically expire."
         ],
         student: [
             "Strict adherence to hostel/PG timings if situated in a managed building.",

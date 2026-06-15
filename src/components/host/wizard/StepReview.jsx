@@ -14,6 +14,14 @@ export function StepReview({
         <div className="space-y-6 max-w-2xl mx-auto w-full h-full flex flex-col">
             <h2 className="text-2xl font-bold text-white mb-4">Review & Submit</h2>
 
+            {/* Duration Alert */}
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 text-sm text-amber-200 flex items-start gap-3 backdrop-blur-sm">
+                <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                    <span className="font-bold text-amber-300">Listing Duration:</span> Approved property listings are valid for <span className="font-bold text-white">15 days</span>. You can track remaining days or renew the listing from your Host dashboard.
+                </div>
+            </div>
+
             {/* Summary Card */}
             <div className="bg-black/20 rounded-2xl p-6 border border-white/10 space-y-4">
                 <div className="flex justify-between items-start">

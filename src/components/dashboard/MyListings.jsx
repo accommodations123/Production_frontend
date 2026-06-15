@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import { 
   Home, Eye, Heart, Calendar, Plus, ShieldCheck, Search, 
   ChevronRight, AlertCircle, Edit, Trash2, Play, Pause, Users, 
-  Bed, Bath, Sparkles, Star, MapPin, Loader2, ArrowRight
+  Bed, Bath, Sparkles, Star, MapPin, Loader2, ArrowRight, Clock
 } from "lucide-react";
 import { 
   useGetMyListingsQuery, 
@@ -342,6 +342,28 @@ const ListingItemCard = ({ item, paused, onDelete, onPause }) => {
         <p className="text-xs text-gray-500 font-bold tracking-tight">
           {item.guests || 0} Guests · {item.bedrooms || 0} Beds · {item.bathrooms || 0} Baths
         </p>
+
+        {item.calculatedStatus === "active" && item.listing_expires_at && (
+          <p className="text-xs text-amber-600 font-semibold flex items-center gap-1.5 bg-amber-50/50 p-2 rounded-xl border border-amber-100/50 w-fit">
+            <Clock className="w-3.5 h-3.5 text-amber-600" />
+            <span>
+              {(() => {
+                const diffTime = new Date(item.listing_expires_at).getTime() - Date.now();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays > 0 
+                  ? `${diffDays} day${diffDays !== 1 ? 's' : ''} left` 
+                  : "Expiring today";
+              })()}
+            </span>
+          </p>
+        )}
+
+        {item.calculatedStatus === "expired" && item.listing_expires_at && (
+          <p className="text-xs text-rose-600 font-semibold flex items-center gap-1.5 bg-rose-50/50 p-2 rounded-xl border border-rose-100/50 w-fit">
+            <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+            <span>Expired on {new Date(item.listing_expires_at).toLocaleDateString()}</span>
+          </p>
+        )}
 
         {/* Simple visual stats instead of metrics row */}
         <div className="flex items-center gap-4 text-xs font-bold text-gray-400 pt-2 border-t border-gray-50">

@@ -58,20 +58,14 @@ export function MyBuySellListings() {
     toast.success("Listing updated successfully");
   };
 
-  // Mock views, inquiries, and conditions for high fidelity dashboard cards
+  // Ensure listings have valid metrics and condition properties
   const enrichedListings = useMemo(() => {
-    return listings.map((item, idx) => {
-      // Mock metrics to give a professional marketplace seller center feel
-      const mockViews = Math.floor(Math.random() * 80) + 15;
-      const mockInquiries = Math.floor(Math.random() * 4) + (item.status === 'active' ? 1 : 0);
-      const conditions = ["New", "Like New", "Very Good", "Good"];
-      const mockCondition = conditions[idx % conditions.length];
-
+    return listings.map((item) => {
       return {
         ...item,
-        views: mockViews,
-        inquiries: mockInquiries,
-        condition: item.condition || mockCondition
+        views: item.views || 0,
+        inquiries: item.inquiries || 0,
+        condition: item.condition || "Good"
       };
     });
   }, [listings]);
