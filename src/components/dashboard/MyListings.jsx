@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { 
   Home, Eye, Heart, Calendar, Plus, ShieldCheck, Search, 
-  ChevronRight, AlertCircle, Edit, Trash2, Play, Pause, Users, 
+  ChevronRight, AlertCircle, Edit, Trash2, Users, 
   Bed, Bath, Sparkles, Star, MapPin, Loader2, ArrowRight, Clock
 } from "lucide-react";
 import { 
@@ -38,7 +38,6 @@ export const MyListings = () => {
 
   const [deleteProperty] = useDeletePropertyMutation();
   const [deletingIds, setDeletingIds] = useState(new Set());
-  const [pausedIds, setPausedIds] = useState(new Set());
 
   // Helper: check if a property is expired in UTC
   const isPropertyExpired = (p) => {
@@ -87,19 +86,7 @@ export const MyListings = () => {
     }
   };
 
-  const handleTogglePause = (id) => {
-    setPausedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-        toast.success("Listing is now active");
-      } else {
-        next.add(id);
-        toast.success("Listing paused successfully");
-      }
-      return next;
-    });
-  };
+
 
   // Filtered lists based on tabs & search
   const filteredListings = useMemo(() => {
@@ -231,9 +218,7 @@ export const MyListings = () => {
               <ListingItemCard
                 key={item.id}
                 item={item}
-                paused={pausedIds.has(item.id)}
                 onDelete={handlePropertyDelete}
-                onPause={handleTogglePause}
               />
             ))}
 
@@ -274,7 +259,7 @@ const TabButton = ({ label, active, count, onClick }) => (
 /* -------------------------------
    Airbnb-style Listing Item Card
 -------------------------------- */
-const ListingItemCard = ({ item, paused, onDelete, onPause }) => {
+const ListingItemCard = ({ item, onDelete }) => {
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -285,7 +270,6 @@ const ListingItemCard = ({ item, paused, onDelete, onPause }) => {
 
   // Status Configurations
   const getStatus = () => {
-    if (paused) return { text: "Paused", class: "bg-gray-500 text-white" };
     switch (item.calculatedStatus) {
       case "active":
         return { text: "Live", class: "bg-green-500 text-white" };
@@ -304,8 +288,7 @@ const ListingItemCard = ({ item, paused, onDelete, onPause }) => {
 
   return (
     <div className={cn(
-      "group bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full",
-      paused && "opacity-75"
+      "group bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
     )}>
       {/* Visual Thumbnail */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-gray-50">
@@ -365,17 +348,7 @@ const ListingItemCard = ({ item, paused, onDelete, onPause }) => {
           </p>
         )}
 
-        {/* Simple visual stats instead of metrics row */}
-        <div className="flex items-center gap-4 text-xs font-bold text-gray-400 pt-2 border-t border-gray-50">
-          <span className="flex items-center gap-1.5" title="Monthly views">
-            <Eye className="w-3.5 h-3.5 text-gray-400" />
-            180 Views
-          </span>
-          <span className="flex items-center gap-1.5" title="Saved to wishlist">
-            <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-50" />
-            34 Saves
-          </span>
-        </div>
+
 
         {/* Airbnb action links or small visual buttons */}
         <div className="flex items-center justify-between gap-2 pt-3 border-t border-gray-50 mt-auto">
@@ -398,16 +371,6 @@ const ListingItemCard = ({ item, paused, onDelete, onPause }) => {
           </div>
 
           <div className="flex gap-1.5">
-            {/* Pause icon button */}
-            <button 
-              type="button"
-              className="w-8.5 h-8.5 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-gray-50 flex items-center justify-center transition-all cursor-pointer bg-white"
-              onClick={() => onPause(item.id)}
-              title={paused ? "Activate Listing" : "Pause Listing"}
-            >
-              {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
-            </button>
-
             {/* Delete icon button */}
             <button 
               type="button"

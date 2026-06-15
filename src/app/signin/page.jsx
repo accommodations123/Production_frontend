@@ -261,7 +261,7 @@ const Signin = () => {
                           name="otp"
                           value={formData.otp}
                           onChange={handleChange}
-                          placeholder="Enter 4-digit code"
+                          placeholder="Enter 6-digit code"
                           className="w-full bg-[#D1CBB7]/10 border-2 border-transparent text-[#00142E] rounded-xl py-4 pl-12 pr-4 outline-none focus:bg-white focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/10 transition-all font-bold tracking-[0.3em] text-lg placeholder:text-[#00142E]/30 placeholder:tracking-normal placeholder:font-medium"
                           maxLength={6}
                           required

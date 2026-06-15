@@ -1,5 +1,5 @@
 import React, { memo } from "react"
-import { Calendar, MapPin, Users, Star, MessageCircle, Heart, Bookmark, Share2, Clock } from "lucide-react"
+import { Calendar, MapPin, Users, Star, MessageCircle, Heart, Share2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatUTCDate } from "../../../utils/timezone"
 import { HostPhoto } from "./HostPhoto"
@@ -121,9 +121,6 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                             iconSize={16}
                             outlineColor="text-white"
                         />
-                        <button className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors duration-200">
-                            <Bookmark className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </button>
                     </div>
                     {event.price && (
                         <div className="absolute bottom-3 left-3">

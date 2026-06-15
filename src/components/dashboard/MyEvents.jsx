@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { 
   Calendar, Eye, Heart, Plus, Search, ChevronRight, AlertCircle, 
-  Trash2, Play, Pause, Users, MapPin, Loader2, Sparkles, Clock
+  Trash2, Users, MapPin, Loader2, Sparkles, Clock
 } from "lucide-react";
 import { isExpiredUTC } from "../../utils/timezone";
 import { 
@@ -37,7 +37,6 @@ export const MyEvents = () => {
 
   const [deleteEvent] = useDeleteEventMutation();
   const [deletingIds, setDeletingIds] = useState(new Set());
-  const [pausedIds, setPausedIds] = useState(new Set());
 
   // Helper: check if an event is expired
   const isEventExpired = (e) => {
@@ -88,19 +87,7 @@ export const MyEvents = () => {
     }
   };
 
-  const handleTogglePause = (id) => {
-    setPausedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-        toast.success("Event is now active");
-      } else {
-        next.add(id);
-        toast.success("Event paused successfully");
-      }
-      return next;
-    });
-  };
+
 
   // Filter list based on tabs & search
   const filteredEvents = useMemo(() => {
@@ -263,9 +250,7 @@ export const MyEvents = () => {
               <EventItemCard
                 key={event.id}
                 event={event}
-                paused={pausedIds.has(event.id)}
                 onDelete={handleEventDelete}
-                onPause={handleTogglePause}
               />
             ))}
 
@@ -286,7 +271,7 @@ export const MyEvents = () => {
 /* -------------------------------
    Experience Card Component
 -------------------------------- */
-const EventItemCard = ({ event, paused, onDelete, onPause }) => {
+const EventItemCard = ({ event, onDelete }) => {
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -295,7 +280,6 @@ const EventItemCard = ({ event, paused, onDelete, onPause }) => {
   const location = event.location || event.city || "Online / Flexible";
 
   const getStatus = () => {
-    if (paused) return { text: "Paused", class: "bg-gray-500 text-white" };
     switch (event.calculatedStatus) {
       case "active":
         return { text: "Live", class: "bg-green-500 text-white" };
@@ -314,8 +298,7 @@ const EventItemCard = ({ event, paused, onDelete, onPause }) => {
 
   return (
     <div className={cn(
-      "group bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full",
-      paused && "opacity-75"
+      "group bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
     )}>
       {/* Thumbnail */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-gray-50">
@@ -392,15 +375,6 @@ const EventItemCard = ({ event, paused, onDelete, onPause }) => {
           </div>
 
           <div className="flex gap-1.5">
-            {/* Pause */}
-            <button 
-              type="button"
-              className="w-8.5 h-8.5 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-gray-50 flex items-center justify-center transition-all cursor-pointer bg-white"
-              onClick={() => onPause(event.id)}
-            >
-              {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
-            </button>
-
             {/* Delete */}
             <button 
               type="button"
