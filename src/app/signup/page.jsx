@@ -67,7 +67,7 @@ const Signup = () => {
             })).unwrap();
 
             if (response) {
-                await dispatch(fetchCurrentUser()).unwrap();
+                dispatch(fetchCurrentUser());
                 alert("Account verified successfully!");
                 navigate("/"); // Redirect to home, Navbar will refresh auth via getMe query
             } else {

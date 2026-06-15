@@ -51,7 +51,7 @@ const Signin = () => {
     setVerifyingOtp(true);
     try {
       await dispatch(verifyOtp(formData)).unwrap();
-      await dispatch(fetchCurrentUser()).unwrap();
+      dispatch(fetchCurrentUser());
       toast.success("Signed in successfully");
       navigate("/");
     } catch (error) {
