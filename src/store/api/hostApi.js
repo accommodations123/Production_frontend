@@ -497,6 +497,10 @@ export const hostApi = createApi({
                 if (maxPrice) params.maxPrice = maxPrice;
                 if (search) params.search = search;
                 if (limit) params.limit = limit;
+                if (country) params.country = country;
+                if (state) params.state = state;
+                if (city) params.city = city;
+                if (zip_code) params.zip_code = zip_code;
 
                 return {
                     url: "buy-sell/get",

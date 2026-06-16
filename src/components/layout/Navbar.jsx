@@ -97,6 +97,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
 
         dispatch(authApi.util.resetApiState());
         dispatch(hostApi.util.resetApiState());
+        dispatch(authApi.util.resetApiState());
         setIsMobileMenuOpen(false);
         navigate("/signin");
     };

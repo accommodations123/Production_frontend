@@ -99,6 +99,14 @@ export default function MarketplacePage() {
     }
   }
 
+  // Reset selected product view and URL search params if filters change
+  useEffect(() => {
+    setViewProduct(null);
+    if (productIdFromUrl) {
+      setSearchParams({});
+    }
+  }, [filters, productIdFromUrl, setSearchParams]);
+
   // Clear URL param when closing product view
   const handleBackFromProduct = () => {
     setViewProduct(null);

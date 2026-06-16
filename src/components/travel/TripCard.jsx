@@ -6,22 +6,10 @@ import { resolveImageUrl, CLOUDFRONT_BASE } from "@/lib/imageUtils";
 import { formatUTCDate } from "../../utils/timezone";
 
 const TripCard = React.memo(({ plan }) => {
-    if (!plan || !plan.user) return null;
-
-    const formatTime12h = (t) => {
-        if (!t) return "";
-        const [h, m] = t.split(":").map(Number);
-        if (isNaN(h) || isNaN(m)) return t;
-        const period = h >= 12 ? "PM" : "AM";
-        const hour12 = h % 12 || 12;
-        return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
-    };
-
-    const formattedDate = plan.date ? formatUTCDate(plan.date) : "";
-
     const [imageError, setImageError] = useState(false);
 
     const profileImage = React.useMemo(() => {
+        if (!plan) return null;
         const candidates = [
             plan.host?.profile_image,
             plan.host?.User?.profile_image,
@@ -49,6 +37,19 @@ const TripCard = React.memo(({ plan }) => {
 
         return plan.user?.image || null;
     }, [plan]);
+
+    if (!plan || !plan.user) return null;
+
+    const formatTime12h = (t) => {
+        if (!t) return "";
+        const [h, m] = t.split(":").map(Number);
+        if (isNaN(h) || isNaN(m)) return t;
+        const period = h >= 12 ? "PM" : "AM";
+        const hour12 = h % 12 || 12;
+        return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+    };
+
+    const formattedDate = plan.date ? formatUTCDate(plan.date) : "";
 
     const fromCity = (plan.flight?.from || plan.flight?.from_country || "").split(',')[0].trim();
     const toCity = (plan.flight?.to || plan.destination || "").split(',')[0].trim();
