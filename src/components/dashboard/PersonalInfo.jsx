@@ -276,23 +276,18 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
         };
       });
     }
-  }, [initialData, activeCountry]);
+  }, [initialData]);
 
-  // Dynamically update prefix if global activeCountry changes and field is empty
+  // Dynamically update prefix if global activeCountry changes
   useEffect(() => {
     if (activeCountry) {
-      setFormData(prev => {
-        const updates = {};
-        if (!prev.phone) {
-          updates.phoneCode = activeCountry.phoneCode || "+91";
-          updates.phoneIso = activeCountry.code || "IN";
-        }
-        if (!prev.whatsapp) {
-          updates.whatsappCode = activeCountry.phoneCode || "+91";
-          updates.whatsappIso = activeCountry.code || "IN";
-        }
-        return Object.keys(updates).length > 0 ? { ...prev, ...updates } : prev;
-      });
+      setFormData(prev => ({
+        ...prev,
+        phoneCode: activeCountry.phoneCode || "+91",
+        phoneIso: activeCountry.code || "IN",
+        whatsappCode: activeCountry.phoneCode || "+91",
+        whatsappIso: activeCountry.code || "IN"
+      }));
     }
   }, [activeCountry]);
 

@@ -86,8 +86,8 @@ export default function NewDashboard() {
     if (!reduxUser && !hostProfile) return null;
 
     const merged = mergeDefined(
-      reduxUser,
       hostProfile,
+      reduxUser,
       {
         profile_image: hostProfile?.profile_image
           ? `${hostProfile.profile_image}?v=${refreshKey}`
