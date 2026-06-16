@@ -120,3 +120,41 @@ export const getSocialUrl = (platform, value) => {
       return trimmed;
   }
 };
+
+/**
+ * Extracts a username from a full social URL or a handle.
+ * 
+ * @param {string} platform - The platform name ('facebook' or 'instagram')
+ * @param {string} value - The input value
+ * @returns {string} The extracted username
+ */
+export const extractUsername = (platform, value) => {
+  if (!value || typeof value !== "string") return "";
+  let trimmed = value.trim();
+  
+  // Remove leading @ or / or www. or http(s)://
+  trimmed = trimmed.replace(/^@/, "").replace(/^\//, "");
+
+  try {
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.includes(`${platform}.com`)) {
+      let urlStr = trimmed;
+      if (!urlStr.startsWith("http")) {
+        urlStr = "https://" + urlStr;
+      }
+      const url = new URL(urlStr);
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (parts.length > 0) {
+        return parts[0];
+      }
+    }
+  } catch (e) {
+    // Fall back if URL constructor fails
+  }
+
+  // Regex fallback
+  const regex = new RegExp(`(?:${platform}\\.com)\\/([^/?#]+)`, "i");
+  const match = trimmed.match(regex);
+  if (match) return match[1];
+
+  return trimmed;
+};

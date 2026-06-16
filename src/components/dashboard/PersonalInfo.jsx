@@ -4,10 +4,14 @@ import {
   User, Phone, Mail, Globe, MapPin, Edit2, Share2, 
   ExternalLink, Check, X, ChevronDown, Building2, CheckCircle2, ShieldCheck
 } from "lucide-react";
+import { useCountry } from "@/context/CountryContext";
+import { COUNTRIES } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { Facebook, Instagram, MessageCircle } from "lucide-react";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { extractUsername, getSocialUrl } from "@/lib/socialUtils";
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { loadLocationData } from '@/lib/lazyLocationData';
 
@@ -120,7 +124,7 @@ const InfoField = ({
               }
               onChange({ target: { name, value: val } });
             }}
-            inputMode="numeric"
+            inputMode={name === "phone" || name === "whatsapp" || name === "zip" ? "numeric" : undefined}
             placeholder={placeholder || label}
             className="w-full h-11 bg-gray-50 border border-gray-200 py-3 px-4 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 transition-all"
           />
@@ -148,6 +152,7 @@ const InfoField = ({
 );
 
 export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdating, isHost }) => {
+  const { activeCountry } = useCountry();
   const navigate = useNavigate();
   const [editStates, setEditStates] = useState({
     personal: false,
@@ -167,10 +172,10 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
     whatsapp: initialData?.whatsapp || "",
     facebook: initialData?.facebook || "",
     instagram: initialData?.instagram || "",
-    phoneCode: "+91",
-    phoneIso: "",
-    whatsappCode: "+91",
-    whatsappIso: ""
+    phoneCode: activeCountry?.phoneCode || "+91",
+    phoneIso: activeCountry?.code || "IN",
+    whatsappCode: activeCountry?.phoneCode || "+91",
+    whatsappIso: activeCountry?.code || "IN"
   });
 
   const [csc, setCsc] = useState(null);
@@ -226,25 +231,30 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
 
   const KNOWN_CODES = ["+1", "+91", "+44", "+86", "+81", "+49", "+33", "+61", "+55", "+39", "+34", "+7", "+82", "+62", "+52", "+31", "+27", "+966", "+971", "+65", "+60", "+63", "+66", "+84", "+92", "+94", "+880", "+977", "+254", "+233", "+234"];
 
-  const splitPhone = (fullPhone) => {
-    if (!fullPhone) return { code: "+91", number: "" };
+  const splitPhone = (fullPhone, defaultCode = "+91", defaultIso = "IN") => {
+    if (!fullPhone) return { code: defaultCode, iso: defaultIso, number: "" };
     const phoneStr = fullPhone.toString().trim();
     if (phoneStr.startsWith('+')) {
       const sortedCodes = [...KNOWN_CODES].sort((a, b) => b.length - a.length);
       for (const code of sortedCodes) {
         if (phoneStr.startsWith(code)) {
-          return { code, number: phoneStr.slice(code.length).trim() };
+          const number = phoneStr.slice(code.length).trim();
+          const found = COUNTRIES.find(c => c.phoneCode === code);
+          const iso = found ? found.code : defaultIso;
+          return { code, iso, number };
         }
       }
     }
-    return { code: "+91", number: phoneStr };
+    return { code: defaultCode, iso: defaultIso, number: phoneStr };
   };
 
   useEffect(() => {
     if (initialData) {
       setFormData(prev => {
-        const parsedPhone = splitPhone(initialData.phone || prev.phone);
-        const parsedWhatsApp = splitPhone(initialData.whatsapp || prev.whatsapp);
+        const defaultCode = activeCountry?.phoneCode || "+91";
+        const defaultIso = activeCountry?.code || "IN";
+        const parsedPhone = splitPhone(initialData.phone, defaultCode, defaultIso);
+        const parsedWhatsApp = splitPhone(initialData.whatsapp, defaultCode, defaultIso);
 
         return {
           ...prev,
@@ -252,6 +262,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
           email: initialData.email || prev.email || "",
           phone: parsedPhone.number || "",
           phoneCode: parsedPhone.code,
+          phoneIso: parsedPhone.iso,
           country: initialData.country || prev.country || "",
           state: initialData.state || prev.state || "",
           city: initialData.city || prev.city || "",
@@ -259,12 +270,31 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
           zip: initialData.zip_code || initialData.zip || prev.zip || "",
           whatsapp: parsedWhatsApp.number || "",
           whatsappCode: parsedWhatsApp.code,
+          whatsappIso: parsedWhatsApp.iso,
           facebook: initialData.facebook || prev.facebook || "",
           instagram: initialData.instagram || prev.instagram || "",
         };
       });
     }
-  }, [initialData]);
+  }, [initialData, activeCountry]);
+
+  // Dynamically update prefix if global activeCountry changes and field is empty
+  useEffect(() => {
+    if (activeCountry) {
+      setFormData(prev => {
+        const updates = {};
+        if (!prev.phone) {
+          updates.phoneCode = activeCountry.phoneCode || "+91";
+          updates.phoneIso = activeCountry.code || "IN";
+        }
+        if (!prev.whatsapp) {
+          updates.whatsappCode = activeCountry.phoneCode || "+91";
+          updates.whatsappIso = activeCountry.code || "IN";
+        }
+        return Object.keys(updates).length > 0 ? { ...prev, ...updates } : prev;
+      });
+    }
+  }, [activeCountry]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -272,13 +302,30 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
   };
 
   const toggleEdit = async (section) => {
+    if (!isHost) {
+      toast.error("You're not a host");
+      navigate("/hosts");
+      return;
+    }
     if (editStates[section]) {
       try {
+        const cleanFb = extractUsername('facebook', formData.facebook);
+        const cleanInsta = extractUsername('instagram', formData.instagram);
+        
+        setFormData(prev => ({
+          ...prev,
+          facebook: cleanFb,
+          instagram: cleanInsta
+        }));
+
         if (onUpdate) {
           const payload = new FormData();
           Object.keys(formData).forEach(key => {
             if (key !== 'phone' && key !== 'whatsapp' && key !== 'phoneCode' && key !== 'whatsappCode' && key !== 'phoneIso' && key !== 'whatsappIso') {
-              payload.append(key, formData[key]);
+              let val = formData[key];
+              if (key === 'facebook') val = cleanFb;
+              if (key === 'instagram') val = cleanInsta;
+              payload.append(key, val);
             }
           });
 
@@ -326,18 +373,9 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
     return () => clearTimeout(timeoutId);
   }, [formData.zip, editStates.location]);
 
-  const openWhatsApp = (number) => {
-    const cleanNumber = number ? number.replace(/\D/g, '') : '';
-    if (cleanNumber) window.open(`https://wa.me/${cleanNumber}`, '_blank');
-  };
-
-  const openLink = (url) => {
-    if (!url) return;
-    let finalUrl = url;
-    if (!url.startsWith('http')) {
-      finalUrl = `https://${url}`;
-    }
-    window.open(finalUrl, '_blank');
+  const openSocialLink = (platform, value) => {
+    const url = getSocialUrl(platform, value);
+    if (url) window.open(url, '_blank');
   };
 
   const isValidCountry = countriesList.some(c => c.name === formData.country);
@@ -509,7 +547,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
                 isEditing={editStates.social}
                 onChange={handleChange}
                 placeholder="1234567890"
-                action={openWhatsApp}
+                action={(val) => openSocialLink('whatsapp', val)}
                 actionIcon={MessageCircle}
                 prefix={formData.whatsappCode}
                 iso={formData.whatsappIso}
@@ -522,8 +560,8 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
               value={formData.facebook}
               isEditing={editStates.social}
               onChange={handleChange}
-              placeholder="facebook.com/username"
-              action={openLink}
+              placeholder="username"
+              action={(val) => openSocialLink('facebook', val)}
               actionIcon={Facebook}
             />
             <InfoField
@@ -532,8 +570,8 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
               value={formData.instagram}
               isEditing={editStates.social}
               onChange={handleChange}
-              placeholder="instagram.com/username"
-              action={openLink}
+              placeholder="username"
+              action={(val) => openSocialLink('instagram', val)}
               actionIcon={Instagram}
             />
           </DetailCard>

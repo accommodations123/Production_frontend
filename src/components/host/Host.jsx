@@ -8,6 +8,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
+import { extractUsername } from "@/lib/socialUtils";
 
 // Helper to split phone number
 // Known country codes (most common first)
@@ -268,8 +269,8 @@ export default function HostOnboardingForm() {
         address: formData.street_address,
         street_address: formData.street_address, // Sending explicit street_address too just in case
         whatsapp: formData.whatsapp ? `${formData.whatsappPrefix} ${formData.whatsapp}` : "",
-        facebook: formData.facebook,
-        instagram: formData.instagram,
+        facebook: extractUsername('facebook', formData.facebook),
+        instagram: extractUsername('instagram', formData.instagram),
       };
 
       // Submit to host/save
@@ -708,12 +709,12 @@ export default function HostOnboardingForm() {
                   <div className="animate-fade-in-down">
                     <label htmlFor="facebook" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
                       <FaFacebook className="text-blue-600 w-4 h-4" />
-                      Facebook Profile Link
+                      Facebook Username
                     </label>
                     <input
                       id="facebook"
                       name="facebook"
-                      placeholder="https://facebook.com/yourprofile"
+                      placeholder="username"
                       value={formData.facebook}
                       onChange={handleChange}
                       autoFocus
@@ -727,12 +728,12 @@ export default function HostOnboardingForm() {
                   <div className="animate-fade-in-down">
                     <label htmlFor="instagram" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
                       <FaInstagram className="text-pink-600 w-4 h-4" />
-                      Instagram Profile Link
+                      Instagram Username
                     </label>
                     <input
                       id="instagram"
                       name="instagram"
-                      placeholder="https://instagram.com/yourprofile"
+                      placeholder="username"
                       value={formData.instagram}
                       onChange={handleChange}
                       autoFocus

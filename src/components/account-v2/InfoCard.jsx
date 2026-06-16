@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, MapPin, Phone, Briefcase, Info, X, Facebook, Instagram, MessageCircle } from 'lucide-react';
+import { getSocialUrl } from '@/lib/socialUtils';
 
 export const InfoCard = ({ user }) => {
     const [showFullInfo, setShowFullInfo] = useState(false);
@@ -64,7 +65,7 @@ export const InfoCard = ({ user }) => {
                                 <div className="flex flex-wrap gap-2 mt-2">
                                     {user?.whatsapp && (
                                         <a
-                                            href={`https://wa.me/${user.whatsapp.replace(/\D/g, '')}`}
+                                            href={getSocialUrl('whatsapp', user.whatsapp)}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-medium transition-colors shadow-sm hover:shadow-md"
@@ -75,7 +76,7 @@ export const InfoCard = ({ user }) => {
                                     )}
                                     {user?.facebook && (
                                         <a
-                                            href={user.facebook.startsWith('http') ? user.facebook : `https://${user.facebook}`}
+                                            href={getSocialUrl('facebook', user.facebook)}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-medium transition-colors shadow-sm hover:shadow-md"
@@ -86,7 +87,7 @@ export const InfoCard = ({ user }) => {
                                     )}
                                     {user?.instagram && (
                                         <a
-                                            href={user.instagram.startsWith('http') ? user.instagram : `https://${user.instagram}`}
+                                            href={getSocialUrl('instagram', user.instagram)}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent hover:bg-accent/90 text-white rounded-lg text-xs font-medium transition-colors shadow-sm hover:shadow-md"

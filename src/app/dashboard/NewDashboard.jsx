@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   User, Home, MapPin, Plane, Building2, Calendar,
-  LayoutDashboard, Briefcase, ShoppingBag, Users, Heart, Settings as SettingsIcon, Sparkles,
+  LayoutDashboard, Briefcase, ShoppingBag, Users, Heart, Sparkles,
   CheckCircle2, Mail, Phone, ChevronRight, MessageSquare, ShieldCheck, Instagram, Facebook
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
@@ -13,7 +13,6 @@ import { ProfileCard } from "@/components/account-v2/ProfileCard";
 import { InfoCard } from "@/components/account-v2/InfoCard";
 import { MyListings } from "@/components/dashboard/MyListings";
 import { MyEvents } from "@/components/dashboard/MyEvents";
-import { Settings } from "@/components/dashboard/Settings";
 import { PersonalInfo } from "@/components/dashboard/PersonalInfo";
 import { Trips } from "@/components/dashboard/Trips";
 import { MyApplications } from "@/components/dashboard/MyApplications";
@@ -154,7 +153,6 @@ export default function NewDashboard() {
     { id: 'trips', label: 'Trips', icon: MapPin },
     { id: 'communities', label: 'Communities', icon: Users },
     { id: 'wishlist', label: 'Wishlist', icon: Heart },
-    { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
 
 
@@ -204,7 +202,7 @@ export default function NewDashboard() {
               {/* Bio Details */}
               <div className="space-y-1 sm:mb-2">
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-                  {currentUser?.full_name || "Bhargav Reddy"}
+                  {currentUser?.full_name || currentUser?.name || "User"}
                 </h1>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1.5 text-xs text-gray-500 font-semibold">
                   {hostProfile?.status === "approved" ? (
@@ -218,10 +216,6 @@ export default function NewDashboard() {
                       Member
                     </span>
                   )}
-                  <span className="flex items-center gap-1 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
-                    <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                    {currentUser?.city || "Hyderabad"}, {currentUser?.country || "India"}
-                  </span>
 
                 </div>
               </div>
@@ -406,7 +400,6 @@ export default function NewDashboard() {
           {activeTab === "applications" && <MyApplications />}
           {activeTab === "communities" && <MyCommunities />}
           {activeTab === "wishlist" && <WishlistManager />}
-          {activeTab === "settings" && <Settings />}
 
         </div>
       </div>
