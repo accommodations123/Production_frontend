@@ -146,6 +146,13 @@ const authSlice = createSlice({
         updateUserLocal: (state, action) => {
             state.user = action.payload;
             state.isAuthenticated = !!action.payload;
+            if (action.payload) {
+                try {
+                    localStorage.setItem("user", JSON.stringify(action.payload));
+                } catch (e) {
+                    // Ignore
+                }
+            }
         }
     },
     extraReducers: (builder) => {
