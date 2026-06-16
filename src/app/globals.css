@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #00142E;
+  --color-primary: #00142E;
+  --color-secondary: #0A1C30;
+  --color-accent: #CB2A25;
+  --color-neutral: #D1CBB7;
+  --color-navy-dark: #02152B;
+
+  --font-inter: "Inter", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-inter), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-poppins), sans-serif;
+}
+
+/* Scrollbar Hide Utility */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Global Scrollbar Hide - Applies to entire application */
+* {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, Opera */
+}
