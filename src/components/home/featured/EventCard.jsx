@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useCountry } from '@/context/CountryContext';
 import { getEventStatus } from '@/lib/eventUtils';
 import { formatUTCDate } from '../../../utils/timezone';
+import WishlistButton from '@/components/ui/WishlistButton';
 
 const HostPhoto = ({ host, name }) => {
     const photoUrl =
@@ -119,7 +120,14 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
                     </div>
 
                     {/* Status Badges Overlay */}
-                    <div className="absolute top-3 right-3 flex flex-col gap-1.5 items-end">
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                        <WishlistButton
+                            itemId={event.id || event._id}
+                            itemType="event"
+                            className="w-7 h-7 bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30 rounded-full"
+                            iconSize={14}
+                            outlineColor="text-white"
+                        />
                         {isExpired && (
                             <span className="px-2 py-1 bg-gray-800/90 backdrop-blur-sm text-gray-200 text-[10px] font-bold rounded-lg shadow-lg flex items-center gap-1 uppercase tracking-wide">
                                 <Clock className="h-3 w-3" />

@@ -7,6 +7,8 @@ import {
   ChevronRight, Compass, HelpCircle, ShieldCheck,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
 
 const MatchFinder = ({ trip, onClose }) => {

@@ -115,7 +115,7 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
 
                     <div className="absolute top-3 right-3 flex gap-2">
                         <WishlistButton
-                            itemId={event.id}
+                            itemId={event.id || event._id}
                             itemType="event"
                             className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30"
                             iconSize={16}

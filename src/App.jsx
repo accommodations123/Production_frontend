@@ -7,7 +7,7 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import HostGuard from "@/components/auth/HostGuard";
 
 // Lazy-loaded pages
-const Home = lazy(() => import("@/app/page"));
+const Home = lazy(() => import("@/app/page"))
 const Career = lazy(() => import("@/app/career/page"));
 const About = lazy(() => import("@/app/about/page"));
 const Trust = lazy(() => import("@/app/trust/page"));

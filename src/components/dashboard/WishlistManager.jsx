@@ -66,13 +66,9 @@ export function WishlistManager() {
           const details = item.details;
           if (!details) return null;
 
-          // Wrap individual cards in a custom container to overlay a red heart icon
+          // Wrap individual cards in a custom container
           return (
             <div key={item.id || item._id} className="relative group">
-              {/* Floating Heart Overlay indicator */}
-              <div className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-white/95 backdrop-blur-sm shadow-sm flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-110">
-                <Heart className="w-4.5 h-4.5 text-rose-500 fill-rose-500" />
-              </div>
 
               {(() => {
                 switch (activeTab) {
@@ -125,7 +121,43 @@ export function WishlistManager() {
                     return <ProductCard product={details} />;
 
                   case 'trip':
-                    return <TripCard plan={{ ...details, id: details.id || details._id }} isSelected={false} />;
+                    const normalizedTrip = {
+                      ...details,
+                      id: details.id || details._id,
+                      flight: details.flight || {
+                        airline: details.airline,
+                        flightNumber: details.flight_number,
+                        from: details.from_city,
+                        to: details.to_city,
+                        from_country: details.from_country,
+                        departureDate: details.travel_date,
+                        departureTime: details.departure_time,
+                        arrivalDate: details.arrival_date,
+                        arrivalTime: details.arrival_time
+                      },
+                      destination: details.destination || (details.to_city && details.to_country ? `${details.to_city}, ${details.to_country}` : ""),
+                      date: details.date || details.travel_date,
+                      time: details.time || details.departure_time,
+                      user: {
+                        fullName: details.host?.full_name || details.user?.fullName || details.user?.full_name || "Traveler",
+                        age: details.trip_meta?.age || details.age || details.user?.age || "",
+                        gender: details.gender || details.user?.gender || "",
+                        country: details.host?.country || details.user?.country || details.from_country || "",
+                        state: details.host?.city || details.user?.state || "",
+                        city: details.host?.city || details.user?.city || "",
+                        languages: details.trip_meta?.languages || details.languages || details.user?.languages || [],
+                        image: details.host?.profile_image || details.host?.User?.profile_image || details.user?.image || details.user?.profile_image || null,
+                        verified: details.host?.verified || details.host?.User?.verified || details.user?.verified || false
+                      },
+                      socials: {
+                        whatsapp: details.host?.whatsapp || details.host?.phone || details.whatsapp || details.phone || "",
+                        email: details.host?.email || details.email || "",
+                        instagram: details.host?.instagram || details.instagram || "",
+                        facebook: details.host?.facebook || details.facebook || "",
+                        twitter: details.host?.twitter || details.twitter || ""
+                      }
+                    };
+                    return <TripCard plan={normalizedTrip} />;
 
                   case 'community':
                     return <CommunityGroupCard group={{ ...details, id: details.id || details._id }} />;
