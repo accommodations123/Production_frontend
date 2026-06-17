@@ -200,9 +200,9 @@ const TripCard = React.memo(({ plan }) => {
                 )}
 
                 {/* Footer: Date & Social Icons */}
-                <div className="flex items-end justify-between mt-auto pt-3 border-t border-gray-100">
+                <div className="flex flex-wrap items-center justify-between gap-2 mt-auto pt-3 border-t border-gray-100">
                     {formattedDate && (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 py-0.5">
                             <Calendar
                                 size={13}
                                 className="text-[#CB2A25] shrink-0"
@@ -212,7 +212,7 @@ const TripCard = React.memo(({ plan }) => {
                             </span>
                         </div>
                     )}
-                    <SocialQuickConnect socials={plan.socials} />
+                    <SocialQuickConnect socials={plan.socials} className="py-0.5" />
                 </div>
             </div>
         </div>

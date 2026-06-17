@@ -88,7 +88,7 @@ const mapTripToPlan = (trip, currentUser = null) => {
     return c;
   };
 
-  const extractSocials = (t, u = null) => {
+  const extractSocials = (t) => {
     const getVal = (val) => {
       if (val === undefined || val === null) return "";
       return String(val).trim();
@@ -103,8 +103,6 @@ const mapTripToPlan = (trip, currentUser = null) => {
         t.user?.User?.phone ||
         t.whatsapp ||
         t.phone ||
-        u?.phone ||
-        u?.whatsapp ||
         ""
       ),
       email: getVal(
@@ -113,7 +111,6 @@ const mapTripToPlan = (trip, currentUser = null) => {
         t.user?.email ||
         t.user?.User?.email ||
         t.email ||
-        u?.email ||
         ""
       ),
       instagram: getVal(
@@ -122,7 +119,6 @@ const mapTripToPlan = (trip, currentUser = null) => {
         t.user?.instagram ||
         t.user?.User?.instagram ||
         t.instagram ||
-        u?.instagram ||
         ""
       ),
       facebook: getVal(
@@ -131,7 +127,6 @@ const mapTripToPlan = (trip, currentUser = null) => {
         t.user?.facebook ||
         t.user?.User?.facebook ||
         t.facebook ||
-        u?.facebook ||
         ""
       ),
       twitter: getVal(
@@ -142,8 +137,6 @@ const mapTripToPlan = (trip, currentUser = null) => {
         t.user?.x ||
         t.user?.User?.twitter ||
         t.twitter ||
-        u?.twitter ||
-        u?.x ||
         ""
       )
     };

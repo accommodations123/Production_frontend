@@ -88,7 +88,7 @@ export const SocialQuickConnect = ({ socials, className = "" }) => {
           <button
             key={item.platform}
             onClick={(e) => handleSocialClick(e, item.platform, item.value)}
-            className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm ${item.bgColor}`}
+            className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm ${item.bgColor}`}
             title={item.title}
           >
             {item.platform === "email" ? (

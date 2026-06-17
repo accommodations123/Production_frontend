@@ -58,7 +58,7 @@ export default function TravelPage() {
       return c;
     };
 
-    const extractSocials = (t, u = null) => {
+    const extractSocials = (t) => {
       const getVal = (val) => {
         if (val === undefined || val === null) return "";
         return String(val).trim();
@@ -73,8 +73,6 @@ export default function TravelPage() {
           t.user?.User?.phone ||
           t.whatsapp ||
           t.phone ||
-          u?.phone ||
-          u?.whatsapp ||
           ""
         ),
         email: getVal(
@@ -83,7 +81,6 @@ export default function TravelPage() {
           t.user?.email ||
           t.user?.User?.email ||
           t.email ||
-          u?.email ||
           ""
         ),
         instagram: getVal(
@@ -92,7 +89,6 @@ export default function TravelPage() {
           t.user?.instagram ||
           t.user?.User?.instagram ||
           t.instagram ||
-          u?.instagram ||
           ""
         ),
         facebook: getVal(
@@ -101,7 +97,6 @@ export default function TravelPage() {
           t.user?.facebook ||
           t.user?.User?.facebook ||
           t.facebook ||
-          u?.facebook ||
           ""
         ),
         twitter: getVal(
@@ -112,8 +107,6 @@ export default function TravelPage() {
           t.user?.x ||
           t.user?.User?.twitter ||
           t.twitter ||
-          u?.twitter ||
-          u?.x ||
           ""
         )
       };
