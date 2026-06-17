@@ -96,8 +96,8 @@ export default function SearchPage() {
                                 property.category ||
                                 property.property_type ||
                                 "Apartment", // Should probably match type
-                            rating: 4.8, // Mock
-                            reviews: 12, // Mock
+                            rating: property.rating || property.Host?.rating || property.host?.rating || 0,
+                            reviews: property.reviews || property.Host?.review_count || property.host?.review_count || 0,
                             isVerified: property.status === 'approved',
                             status: property.status, // Pass status for UI badge
                             furnishing: property.furnishing || "Unfurnished", // Backend field

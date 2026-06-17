@@ -1,5 +1,5 @@
 import { memo } from "react"
-import { Calendar, MapPin, Users, Star, MessageCircle, Share2, Clock } from "lucide-react"
+import { Calendar, MapPin, Users, Share2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { HostPhoto } from "./HostPhoto"
 import { COUNTRIES } from "@/lib/mock-data"
@@ -150,18 +150,7 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
                         </div>
                     </div>
 
-                    {/* Rating */}
-                    <div className="flex items-center justify-between mb-4 bg-gray-50/50 p-2 rounded-lg">
-                        <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs font-bold text-gray-900">4.9</span>
-                            <span className="text-[10px] text-gray-500">({event.reviews_count || 0})</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-gray-500">
-                            <MessageCircle className="h-3 w-3" />
-                            <span className="text-[10px]">{event.comments_count || 0}</span>
-                        </div>
-                    </div>
+
 
                     {/* Action Buttons */}
                     <div className="flex gap-2">

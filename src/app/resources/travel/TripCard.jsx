@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Plane, Clock, Shield, Star, Heart, Navigation, ChevronDown } from "lucide-react";
+import { MapPin, Plane, Clock, Shield, Heart, Navigation, ChevronDown } from "lucide-react";
 import { formatUTCDate } from "../../../utils/timezone";
 
 export default function TripCard({ plan, isSelected, onSelect, onMatchRequest }) {
@@ -50,12 +50,7 @@ export default function TripCard({ plan, isSelected, onSelect, onMatchRequest })
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-col items-end">
-                    <div className="flex gap-0.5 text-yellow-400">
-                        {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
-                    </div>
-                    <span className="text-[10px]" style={{ color: 'var(--color-secondary)' }}>4.9 (12 reviews)</span>
-                </div>
+
             </div>
 
             {/* Main Trip Info */}
