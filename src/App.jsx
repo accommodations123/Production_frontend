@@ -22,7 +22,7 @@ const GroupDetailsPage = lazy(() => import("@/app/groups/[id]/page"));
 const AddResource = lazy(() => import("@/app/groups/add-resource/page"));
 const RoomDetails = lazy(() => import("@/app/rooms/[id]/page"));
 const Search = lazy(() => import("@/app/SearchPage"));
-const HostCreatePage = lazy(() => import("@/app/host/create/page"));
+const HostCreatePage = lazy(() => import("@/app/host/create/page"))
 const TravelPage = lazy(() => import("@/app/resources/travel/page"));
 const CommunityPage = lazy(() => import("@/app/resources/community/page"));
 const LegalPage = lazy(() => import("@/app/resources/legal/page"));
