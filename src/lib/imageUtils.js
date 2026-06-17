@@ -9,7 +9,7 @@
  * @param {string} [fallback] - Optional fallback image URL
  * @returns {string|null} The resolved full URL
  */
-export const CLOUDFRONT_BASE = import.meta.env.VITE_CLOUDFRONT_URL || 'https://d3dqp3l6ug81j3.cloudfront.net';
+export const CLOUDFRONT_BASE = 'https://nextkin-profile-bucket-2026.s3.us-east-2.amazonaws.com';
 
 export function resolveImageUrl(imagePath, fallback = null) {
     if (!imagePath) return fallback;
@@ -19,16 +19,15 @@ export function resolveImageUrl(imagePath, fallback = null) {
         return fallback;
     }
 
-    // Already a CloudFront URL — use as-is
+    // Already a full S3 URL — use as-is
     if (trimmed.startsWith(CLOUDFRONT_BASE)) return trimmed;
 
     // Data URI — use as-is
     if (trimmed.startsWith('data:')) return trimmed;
 
-    // S3 URL — rewrite to CloudFront
+    // S3 URL — use as-is (do not rewrite to CloudFront)
     if (trimmed.includes('.amazonaws.com/')) {
-        const s3Key = trimmed.replace(/^https?:\/\/[^/]+\//, '');
-        return `${CLOUDFRONT_BASE}/${s3Key}`;
+        return trimmed;
     }
 
     // Other external URL (non-S3) — use as-is

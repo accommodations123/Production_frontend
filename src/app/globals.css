@@ -11,6 +11,36 @@
 
   --font-inter: "Inter", sans-serif;
   --font-poppins: "Poppins", sans-serif;
+
+  /* Smallest mobile breakpoint (iPhone SE / 320px) — enables `xs:` utilities */
+  --breakpoint-xs: 20rem;
+}
+
+/* ---------------- GLOBAL RESPONSIVE FOUNDATION ---------------- */
+html {
+  /* Prevent iOS Safari from auto-inflating text in landscape */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html,
+body {
+  /* Guard against accidental horizontal scroll without breaking position:sticky.
+     `clip` (Safari 16+) does not create a scroll container; older browsers ignore it. */
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+/* Media never overflows its container */
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  max-width: 100%;
 }
 
 body {
@@ -37,6 +67,43 @@ h6 {
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* iOS / Apple safe-area insets (require viewport-fit=cover in index.html).
+     These activate classes already used across the app (MobileFooterNav,
+     BottomActionBar, SearchOverlay, MobileHomeHeader). */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .pl-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
+  .pr-safe {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* Add safe-area on top of an existing spacing value */
+  .pb-safe-4 {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Dynamic viewport height helpers for mobile Safari address-bar resize */
+  .min-h-dvh {
+    min-height: 100vh;
+    /* fallback */
+    min-height: 100dvh;
+  }
+
+  .h-dvh {
+    height: 100vh;
+    /* fallback */
+    height: 100dvh;
   }
 }
 
