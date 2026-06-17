@@ -69,18 +69,29 @@ function ErrorBoundary({ children }) {
 
 // --- Sub-components ---
 
-function MembersTab({ communityId }) {
+function MembersTab({ communityId, type }) {
     const [page, setPage] = React.useState(1);
-    const [search, setSearch] = React.useState("");
+    const [searchTerm, setSearchTerm] = React.useState("");
+    const [debouncedSearch, setDebouncedSearch] = React.useState("");
 
-    // Fetch both queries
-    const { data: memberData, isLoading: isLoadingMembers } = useGetCommunityMembersQuery({ id: communityId, page, search });
-    const { data: hostsData, isLoading: isLoadingHosts } = useGetCommunityHostMembersQuery({ id: communityId, page, limit: 12 });
+    // Debounce search input by 500ms
+    React.useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+            setPage(1); // Reset to page 1 on new search
+        }, 500);
+
+        return () => clearTimeout(handler);
+    }, [searchTerm]);
+
+    // Fetch queries
+    const { data: memberData, isLoading: isLoadingMembers, error: membersError } = useGetCommunityMembersQuery({ id: communityId, page, search: debouncedSearch });
+    const { data: hostsData, isLoading: isLoadingHosts } = useGetCommunityHostMembersQuery({ id: communityId, page, limit: 12 }, { skip: type !== "hosts" });
 
     const members = memberData?.members || [];
     const hosts = hostsData?.hosts || [];
 
-    if (isLoadingMembers || isLoadingHosts) {
+    if (isLoadingMembers || (type === "hosts" && isLoadingHosts)) {
         return (
             <div className="flex justify-center items-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
@@ -91,51 +102,144 @@ function MembersTab({ communityId }) {
     return (
         <div className="flex flex-col h-full bg-gray-50 p-4 md:p-6 min-h-[500px]">
 
-            {/* Hosts Section */}
-            {hosts.length > 0 && (
-                <div className="mb-8">
-                    <div className="mb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <Award className="h-5 w-5 text-blue-600" />
-                                Community Hosts
-                            </h2>
-                            <p className="text-gray-500 text-sm ml-7">{hostsData?.count || 0} hosts</p>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {hosts.map((host) => {
-                            const name = host.full_name || "Unknown Host";
-                            const image = host.profile_image;
-
-                            return (
-                                <div key={host.user_id || host.id} className="bg-white rounded-xl p-4 md:p-5 border border-gray-200 shadow-sm hover:shadow-md transition-all flex items-center gap-4 group">
-                                    <div className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-blue-100 transition-colors">
-                                        {image ? (
-                                            <img src={image} alt={name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-gray-400 font-bold text-lg">{(name[0] || "H").toUpperCase()}</span>
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-semibold text-gray-900 truncate text-sm md:text-base" title={name}>{name}</h3>
-                                        <div className="flex items-center gap-1 mt-1 text-xs text-blue-600 font-medium">
-                                            <span className="bg-blue-50 px-2 py-0.5 rounded-full">Ctx Host</span>
-                                        </div>
-                                        {(host.city || host.country) && (
-                                            <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                                                <MapPin className="h-3 w-3" />
-                                                <span className="truncate">{[host.city, host.country].filter(Boolean).join(", ")}</span>
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
+            {/* Search Input (Only shown on Members tab) */}
+            {type !== "hosts" && (
+                <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm mb-6">
+                    <div className="relative w-full sm:w-72">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Search members..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                        />
                     </div>
                 </div>
             )}
 
+            {type === "hosts" ? (
+                hosts.length > 0 ? (
+                    <div className="mb-8">
+                        <div className="mb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                    <Award className="h-5 w-5 text-blue-600" />
+                                    Community Hosts
+                                </h2>
+                                <p className="text-gray-500 text-sm ml-7">{hostsData?.count || 0} hosts</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {hosts.map((host) => {
+                                const name = host.full_name || "Unknown Host";
+                                const image = host.profile_image;
+
+                                return (
+                                    <div key={host.user_id || host.id} className="bg-white rounded-xl p-4 md:p-5 border border-gray-200 shadow-sm hover:shadow-md transition-all flex items-center gap-4 group">
+                                        <div className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-blue-100 transition-colors">
+                                            {image ? (
+                                                <img src={image} alt={name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-gray-400 font-bold text-lg">{(name[0] || "H").toUpperCase()}</span>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-gray-900 truncate text-sm md:text-base" title={name}>{name}</h3>
+                                            <div className="flex items-center gap-1 mt-1 text-xs text-blue-600 font-medium">
+                                                <span className="bg-blue-50 px-2 py-0.5 rounded-full">Ctx Host</span>
+                                            </div>
+                                            {(host.city || host.country) && (
+                                                <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                                                    <MapPin className="h-3 w-3" />
+                                                    <span className="truncate">{[host.city, host.country].filter(Boolean).join(", ")}</span>
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-center py-16 bg-white rounded-3xl border shadow-sm">
+                        <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500 font-semibold">No hosts in this community yet.</p>
+                    </div>
+                )
+            ) : (
+                <div className="space-y-6">
+                    <div className="mb-4">
+                        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <Users className="h-5 w-5 text-gray-600" />
+                            Community Members
+                        </h2>
+                        <p className="text-gray-500 text-sm ml-7">{memberData?.totalMembers || 0} members</p>
+                    </div>
+
+                    {membersError ? (
+                        <div className="p-6 text-center bg-red-50 border border-red-100 rounded-2xl max-w-md mx-auto">
+                            <Info className="w-10 h-10 text-red-500 mx-auto mb-2" />
+                            <p className="text-sm font-semibold text-red-700">Failed to load members</p>
+                            <p className="text-xs text-red-600/70 mt-1">Make sure you have permission to view the members list of this community.</p>
+                        </div>
+                    ) : members.length > 0 ? (
+                        <>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {members.map((member) => {
+                                    const name = member.full_name || "Unknown Member";
+                                    const image = member.profile_image;
+
+                                    return (
+                                        <div key={member.user_id || member.id} className="bg-white rounded-xl p-4 md:p-5 border border-gray-200 shadow-sm hover:shadow-md transition-all flex items-center gap-4 group">
+                                            <div className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-blue-100 transition-colors">
+                                                {image ? (
+                                                    <img src={image} alt={name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <span className="text-gray-400 font-bold text-lg">{(name[0] || "M").toUpperCase()}</span>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-semibold text-gray-900 truncate text-sm md:text-base" title={name}>{name}</h3>
+                                                <div className="flex items-center gap-1 mt-1 text-xs font-medium">
+                                                    {member.role === 'owner' ? (
+                                                        <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-bold">Owner</span>
+                                                    ) : member.is_host ? (
+                                                        <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-semibold">Host</span>
+                                                    ) : (
+                                                        <span className="bg-gray-50 text-gray-600 px-2 py-0.5 rounded-full">Member</span>
+                                                    )}
+                                                </div>
+                                                {(member.city || member.country) && (
+                                                    <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                                                        <MapPin className="h-3 w-3" />
+                                                        <span className="truncate">{[member.city, member.country].filter(Boolean).join(", ")}</span>
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {memberData?.totalPages > 1 && (
+                                <div className="flex justify-center pt-6">
+                                    <Pagination
+                                        currentPage={page}
+                                        totalPages={memberData.totalPages}
+                                        onPageChange={setPage}
+                                    />
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-center py-16 bg-white rounded-3xl border shadow-sm">
+                            <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                            <p className="text-gray-500 font-semibold">No members match your search criteria.</p>
+                        </div>
+                    )}
+                </div>
+            )}
 
         </div>
     );

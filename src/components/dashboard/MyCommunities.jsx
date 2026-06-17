@@ -34,8 +34,91 @@ export const MyCommunities = () => {
     );
   }
 
+  // Separate created and joined communities
+  const createdCommunities = communities.filter(g => g.member_role === "owner");
+  const joinedCommunities = communities.filter(g => g.member_role !== "owner");
+
+  const renderCommunityGrid = (groupsList) => {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {groupsList.map((group) => {
+          // High fidelity image helper
+          const banner = group.cover_image || group.avatar_image || "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80";
+          const topics = Array.isArray(group.topics) ? group.topics : [];
+
+          return (
+            <div 
+              key={group.id}
+              className="group bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
+            >
+              {/* Image Cover */}
+              <div className="relative aspect-[16/10] w-full overflow-hidden bg-gray-50">
+                <img 
+                  src={banner} 
+                  alt={group.name} 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                />
+                {/* Location badge */}
+                {group.city && (
+                  <span className="absolute bottom-3.5 left-3.5 px-3 py-1 bg-white/95 backdrop-blur-sm rounded-xl text-[10px] font-extrabold text-gray-700 shadow-sm border border-gray-100 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                    {group.city}
+                  </span>
+                )}
+              </div>
+
+              {/* Card Content details */}
+              <div className="p-5 flex flex-col flex-1 space-y-4">
+                <div className="space-y-2">
+                  <h3 className="font-extrabold text-gray-900 group-hover:text-rose-600 transition-colors text-base line-clamp-1">
+                    {group.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+                    {group.description || "Connecting hosts and travelers in the NextKin ecosystem to share stories, properties, and guides."}
+                  </p>
+                </div>
+
+                {/* Topics List */}
+                {topics.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {topics.slice(0, 3).map((topic, idx) => (
+                      <span key={idx} className="px-2 py-0.5 bg-gray-50 text-gray-500 rounded-md text-[9px] font-bold uppercase tracking-wider">
+                        {topic}
+                      </span>
+                    ))}
+                    {topics.length > 3 && (
+                      <span className="px-2 py-0.5 bg-gray-50 text-gray-400 rounded-md text-[9px] font-bold">
+                        +{topics.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Stats & Navigation footer */}
+                <div className="pt-3.5 border-t border-gray-50 mt-auto flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400">
+                    <Users className="w-4 h-4 text-rose-500" />
+                    {group.members_count || group.member_count || 0} members
+                  </span>
+                  <Button 
+                    size="sm"
+                    onClick={() => navigate(`/groups/${group.id}`)}
+                    className="bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl px-4 text-xs font-bold shadow-sm flex items-center gap-1 h-9 border border-rose-100/50"
+                  >
+                    Enter Community
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-12 animate-in fade-in duration-300">
       
       {/* Visual Header Section */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
@@ -66,7 +149,6 @@ export const MyCommunities = () => {
         </div>
       </div>
 
-      {/* Grid view of joined communities */}
       {communities.length === 0 ? (
         /* Empty State */
         <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-[0_8px_30px_rgb(0,0,0,0.015)] space-y-6 max-w-xl mx-auto">
@@ -87,80 +169,56 @@ export const MyCommunities = () => {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {communities.map((group) => {
-            // High fidelity image helper
-            const banner = group.cover_image || group.avatar_image || "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80";
-            const topics = Array.isArray(group.topics) ? group.topics : [];
+        <div className="space-y-12">
 
-            return (
-              <div 
-                key={group.id}
-                className="group bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
-              >
-                {/* Image Cover */}
-                <div className="relative aspect-[16/10] w-full overflow-hidden bg-gray-50">
-                  <img 
-                    src={banner} 
-                    alt={group.name} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                  />
-                  {/* Location badge */}
-                  {group.city && (
-                    <span className="absolute bottom-3.5 left-3.5 px-3 py-1 bg-white/95 backdrop-blur-sm rounded-xl text-[10px] font-extrabold text-gray-700 shadow-sm border border-gray-100 flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-rose-500" />
-                      {group.city}
-                    </span>
-                  )}
-                </div>
-
-                {/* Card Content details */}
-                <div className="p-5 flex flex-col flex-1 space-y-4">
-                  <div className="space-y-2">
-                    <h3 className="font-extrabold text-gray-900 group-hover:text-rose-600 transition-colors text-base line-clamp-1">
-                      {group.name}
-                    </h3>
-                    <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
-                      {group.description || "Connecting hosts and travelers in the NextKin ecosystem to share stories, properties, and guides."}
-                    </p>
-                  </div>
-
-                  {/* Topics List */}
-                  {topics.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {topics.slice(0, 3).map((topic, idx) => (
-                        <span key={idx} className="px-2 py-0.5 bg-gray-50 text-gray-500 rounded-md text-[9px] font-bold uppercase tracking-wider">
-                          {topic}
-                        </span>
-                      ))}
-                      {topics.length > 3 && (
-                        <span className="px-2 py-0.5 bg-gray-50 text-gray-400 rounded-md text-[9px] font-bold">
-                          +{topics.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Stats & Navigation footer */}
-                  <div className="pt-3.5 border-t border-gray-50 mt-auto flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400">
-                      <Users className="w-4 h-4 text-rose-500" />
-                      {group.members_count || group.member_count || 0} members
-                    </span>
-                    <Button 
-                      size="sm"
-                      onClick={() => navigate(`/groups/${group.id}`)}
-                      className="bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl px-4 text-xs font-bold shadow-sm flex items-center gap-1 h-9 border border-rose-100/50"
-                    >
-                      Enter Community
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                </div>
-
+          {/* Communities I Created Section */}
+          <div className="space-y-4">
+            <div className="border-b border-gray-100 pb-3 flex items-center gap-2">
+              <Plus className="w-5 h-5 text-rose-500" />
+              <h2 className="text-xl font-extrabold text-gray-900">Communities I Created</h2>
+              <span className="ml-1 px-2.5 py-0.5 bg-rose-50 text-rose-600 rounded-full text-xs font-bold">
+                {createdCommunities.length}
+              </span>
+            </div>
+            {createdCommunities.length > 0 ? (
+              renderCommunityGrid(createdCommunities)
+            ) : (
+              <div className="p-8 text-center bg-gray-50 rounded-2xl border border-gray-200 border-dashed">
+                <p className="text-sm text-gray-500 font-medium">You haven't created any communities yet.</p>
+                <Button 
+                  onClick={() => navigate("/groups/create")}
+                  className="mt-3 bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-xs font-semibold px-4 h-9 shadow-sm"
+                >
+                  Create your first group
+                </Button>
               </div>
-            );
-          })}
+            )}
+          </div>
+
+          {/* Communities I Joined Section */}
+          <div className="space-y-4">
+            <div className="border-b border-gray-100 pb-3 flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-500" />
+              <h2 className="text-xl font-extrabold text-gray-900">Communities I Joined</h2>
+              <span className="ml-1 px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full text-xs font-bold">
+                {joinedCommunities.length}
+              </span>
+            </div>
+            {joinedCommunities.length > 0 ? (
+              renderCommunityGrid(joinedCommunities)
+            ) : (
+              <div className="p-8 text-center bg-gray-50 rounded-2xl border border-gray-200 border-dashed">
+                <p className="text-sm text-gray-500 font-medium">You haven't joined any other communities yet.</p>
+                <Button 
+                  onClick={() => navigate("/groups")}
+                  className="mt-3 bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-xs font-semibold px-4 h-9 shadow-sm"
+                >
+                  Explore communities to join
+                </Button>
+              </div>
+            )}
+          </div>
+
         </div>
       )}
 
