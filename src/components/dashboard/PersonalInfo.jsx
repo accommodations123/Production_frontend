@@ -278,18 +278,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
     }
   }, [initialData]);
 
-  // Dynamically update prefix if global activeCountry changes
-  useEffect(() => {
-    if (activeCountry) {
-      setFormData(prev => ({
-        ...prev,
-        phoneCode: activeCountry.phoneCode || "+91",
-        phoneIso: activeCountry.code || "IN",
-        whatsappCode: activeCountry.phoneCode || "+91",
-        whatsappIso: activeCountry.code || "IN"
-      }));
-    }
-  }, [activeCountry]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;

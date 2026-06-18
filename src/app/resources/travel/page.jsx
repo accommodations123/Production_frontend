@@ -11,6 +11,7 @@ import {
   useGetHostProfileQuery
 } from "../../../store/api/hostApi";
 import { resolveImageUrl } from "@/lib/imageUtils";
+import { useCountry } from "@/context/CountryContext";
 
 // Extracted Constants
 import {
@@ -27,18 +28,49 @@ const PostTripModal = lazy(() => import("../../../components/travel/PostTripModa
 
 import { toast, Toaster } from "sonner";
 
+// Helper to ensure backend gets the full name it likely expects for USA
+const getBackendCountryName = (c) => {
+  if (!c) return c;
+  const lower = c.toLowerCase().trim();
+  if (lower === "united states" || lower === "usa" || lower === "us" || lower === "united states of america") {
+    return "United States of America";
+  }
+  return c;
+};
+
 export default function TravelPage() {
   const { user: currentUser } = useAuth();
+  const { activeCountry } = useCountry();
   const [plans, setPlans] = useState([]);
   const [myTrips, setMyTrips] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState({
-    country: "",
-    state: "",
-    city: "",
+  const [filters, setFilters] = useState(() => {
+    const countryName = getBackendCountryName(activeCountry?.name || "");
+    return {
+      country: countryName,
+      state: "",
+      city: "",
+    };
   });
+
+  const [prevActiveCountryName, setPrevActiveCountryName] = useState(activeCountry?.name || "");
+
+  // Sync country filter inline during render when activeCountry changes
+  const activeCountryName = activeCountry?.name || "";
+  if (activeCountryName !== prevActiveCountryName) {
+    setPrevActiveCountryName(activeCountryName);
+    const countryName = getBackendCountryName(activeCountryName);
+    if (filters.country !== countryName) {
+      setFilters(prev => ({
+        ...prev,
+        country: countryName,
+        state: "",
+        city: "",
+      }));
+    }
+  }
 
   // API Hooks
   const { data: myTripsData, refetch: refetchMyTrips } = useGetMyTripsQuery(undefined, {
@@ -239,21 +271,9 @@ export default function TravelPage() {
     };
   };
 
-  // const { activeCountry } = useCountry();
-
   // Filter by ORIGIN country (from_country) - Shows travelers departing FROM the selected country
   // This helps users find CO-TRAVELERS going on the same journey
   // Example: User in India sees other travelers also flying FROM India → they can travel together!
-
-  // Helper to ensure backend gets the full name it likely expects for USA
-  const getBackendCountryName = (c) => {
-    if (!c) return c;
-    const lower = c.toLowerCase().trim();
-    if (lower === "united states" || lower === "usa" || lower === "us") {
-      return "United States of America";
-    }
-    return c;
-  };
 
   const { data: publicTripsData } = useGetPublicTripsQuery({
     page: 1,
