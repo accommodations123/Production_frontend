@@ -37,7 +37,7 @@ export const CommunityGroupCard = ({ group, onJoin, isJoining, onViewDetails }) 
     return (
         <CardContainer linkTo={`/groups/${groupId}`}>
             {/* Group Image */}
-            <div className="relative h-48 sm:h-52 overflow-hidden rounded-t-xl">
+            <div className="relative h-36 sm:h-40 md:h-44 overflow-hidden rounded-t-xl">
                 <img
                     src={groupImage}
                     alt={groupName}
@@ -75,7 +75,7 @@ export const CommunityGroupCard = ({ group, onJoin, isJoining, onViewDetails }) 
             </div>
 
             {/* Group Info */}
-            <div className="p-4 flex-grow flex flex-col">
+            <div className="p-4 sm:p-5 flex-grow flex flex-col">
                 <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-2 line-clamp-2">
                     {groupName}
                 </h3>

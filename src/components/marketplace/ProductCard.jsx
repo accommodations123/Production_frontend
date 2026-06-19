@@ -19,7 +19,7 @@ export const CardContainer = ({ children, onClick, className = "" }) => {
       onClick={navigate}
       className={`group block h-full cursor-pointer select-none focus:outline-none`}
     >
-      <div className={`bg-white rounded-2xl border border-gray-200/80 hover:border-[#CB2A25]/25 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden relative ${className}`}>
+      <div className={`bg-white rounded-[1.5rem] border border-[#E5E7EB] hover:border-[#CB2A25]/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden relative ${className}`}>
         {children}
       </div>
     </div>
@@ -89,7 +89,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
 
   return (
     <CardContainer onClick={() => typeof onClick === "function" && onClick(product)}>
-      <div className="relative h-48 sm:h-52 overflow-hidden bg-gray-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
         <img
           src={imageUrl}
           alt={product.title}
@@ -133,7 +133,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
       </div>
 
       {/* Content Section */}
-      <div className="p-4 flex-grow flex flex-col gap-3 min-w-0">
+      <div className="p-3.5 sm:p-4 md:p-5 flex-grow flex flex-col gap-3 sm:gap-4 min-w-0">
         {/* Title & Location */}
         <div className="space-y-1">
           <h3 className="font-bold text-lg leading-tight line-clamp-1 text-[#00142E] group-hover:text-[#CB2A25] transition-colors">
@@ -164,8 +164,8 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
         </div>
 
         {/* Price & Actions Row */}
-        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2 mt-auto pt-4 border-t border-gray-100">
-          <div className="flex flex-col gap-2 shrink-0">
+        <div className="flex items-end justify-between mt-auto pt-4 border-t border-gray-100">
+          <div className="flex flex-col gap-2">
             <div className="flex items-baseline gap-1">
               <span className="text-xl font-black text-[#00142E]">
                 {formatPrice(product.price || 0)}
@@ -174,7 +174,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
           </div>
 
           {/* Social Media Quick Connect */}
-          <SocialQuickConnect socials={socials} className="flex-1 min-w-0" />
+          <SocialQuickConnect socials={socials} />
         </div>
       </div>
     </CardContainer>

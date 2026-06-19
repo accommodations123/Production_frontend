@@ -211,42 +211,25 @@ export default function SearchPage() {
 
             <div className="container mx-auto pt-20 lg:pt-24 px-4 sm:px-5 lg:px-6">
                 {/* Mobile Header & Filter Toggle */}
-                <div className="lg:hidden mb-4 space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                        <h1 className="text-xl font-bold text-gray-900">
-                            {total > 0 ? `${total} Stays` : 'Access Stays'}
-                        </h1>
-                        <div className="flex items-center gap-2 shrink-0">
-                            <Button
-                                onClick={() => navigate(getHostPath('property', !!localStorage.getItem("user")))}
-                                className="gap-1.5 bg-[#C93A30] hover:bg-[#C93A30]/90 text-white rounded-xl font-bold h-9 px-3 text-xs cursor-pointer"
-                            >
-                                <Plus size={14} /> List Stay
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSidebarOpen(true)}
-                                className="gap-2 border-gray-300 h-9"
-                            >
-                                <Filter size={16} /> Filters
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Mobile Sort (parity with desktop sort control) */}
+                <div className="lg:hidden flex items-center justify-between mb-4">
+                    <h1 className="text-xl font-bold text-gray-900">
+                        {total > 0 ? `${total} Stays` : 'Access Stays'}
+                    </h1>
                     <div className="flex items-center gap-2">
-                        <label htmlFor="mobile-sort" className="text-sm text-gray-500 shrink-0">Sort by:</label>
-                        <select
-                            id="mobile-sort"
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                            className="flex-1 min-w-0 text-sm font-bold bg-white border border-gray-300 rounded-lg px-3 h-9 outline-none focus:border-[#C93A30]"
+                        <Button
+                            onClick={() => navigate(getHostPath('property', !!localStorage.getItem("user")))}
+                            className="gap-1.5 bg-[#C93A30] hover:bg-[#C93A30]/90 text-white rounded-xl font-bold h-9 px-3 text-xs cursor-pointer"
                         >
-                            <option value="recommended">Recommended</option>
-                            <option value="low-to-high">Price: Low to High</option>
-                            <option value="high-to-low">Price: High to Low</option>
-                        </select>
+                            <Plus size={14} /> List Stay
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSidebarOpen(true)}
+                            className="gap-2 border-gray-300 h-9"
+                        >
+                            <Filter size={16} /> Filters
+                        </Button>
                     </div>
                 </div>
 
@@ -363,7 +346,7 @@ export default function SearchPage() {
                                     className="block w-full h-auto static border-none p-4 shadow-none"
                                 />
                             </div>
-                            <div className="p-4 border-t bg-gray-50 flex gap-3 shrink-0 pb-safe-4">
+                            <div className="p-4 border-t bg-gray-50 flex gap-3 shrink-0">
                                 <Button variant="outline" className="flex-1" onClick={() => handleFilterChange({})}>
                                     Clear
                                 </Button>
