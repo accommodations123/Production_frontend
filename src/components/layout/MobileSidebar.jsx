@@ -103,7 +103,9 @@ export function MobileSidebar({ isOpen, onClose }) {
     dispatch(authApi.util.resetApiState());
     dispatch(hostApi.util.resetApiState());
     onClose();
-    navigate("/signin");
+
+    // Use full page reload to avoid blank page from RTK Query state reset mid-render
+    window.location.href = "/signin";
   };
 
   const navItems = [

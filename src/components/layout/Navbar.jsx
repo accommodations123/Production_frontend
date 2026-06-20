@@ -98,7 +98,9 @@ export function Navbar({ minimal = false, onMenuClick }) {
         dispatch(authApi.util.resetApiState());
         dispatch(hostApi.util.resetApiState());
         setIsMobileMenuOpen(false);
-        navigate("/signin");
+
+        // Use full page reload to avoid blank page from RTK Query state reset mid-render
+        window.location.href = "/signin";
     };
 
     // Auto-scroll listener

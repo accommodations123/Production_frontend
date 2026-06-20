@@ -117,15 +117,17 @@ export const updateProfile = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk(
     'auth/logoutUser',
-    async (_, { rejectWithValue }) => {
+    async () => {
+        // Always clean up locally regardless of backend response
+        localStorage.removeItem("user");
         try {
-            const response = await axiosClient.post('otp/logout');
-            localStorage.removeItem("user");
-            return response.data;
-        } catch (error) {
-            localStorage.removeItem("user");
-            return rejectWithValue(error.response?.data?.message || 'Logout failed');
+            await axiosClient.post('otp/logout');
+        } catch (e) {
+            // Backend logout may fail (e.g., 401 if cookie already expired) — that's fine.
+            // The important thing is local cleanup always succeeds.
+            console.warn("Backend logout call failed (non-blocking):", e?.response?.status || e?.message);
         }
+        return { success: true };
     }
 );
 
@@ -221,12 +223,6 @@ const authSlice = createSlice({
             })
             // logoutUser
             .addCase(logoutUser.fulfilled, (state) => {
-                state.user = null;
-                state.isAuthenticated = false;
-                state.loading = false;
-                state.error = null;
-            })
-            .addCase(logoutUser.rejected, (state) => {
                 state.user = null;
                 state.isAuthenticated = false;
                 state.loading = false;
