@@ -51,8 +51,6 @@ const Signin = () => {
     setVerifyingOtp(true);
     try {
       await dispatch(verifyOtp(formData)).unwrap();
-      // Await profile fetch so user data is ready before navigation
-      await dispatch(fetchCurrentUser()).unwrap();
       toast.success("Signed in successfully");
       navigate("/");
     } catch (error) {

@@ -67,13 +67,6 @@ const Signup = () => {
             })).unwrap();
 
             if (response) {
-                // Await profile fetch so user data is ready before navigation
-                try {
-                    await dispatch(fetchCurrentUser()).unwrap();
-                } catch (fetchErr) {
-                    // Profile fetch may fail for brand-new users with minimal data — still proceed
-                    console.warn("fetchCurrentUser after signup failed (non-blocking):", fetchErr);
-                }
                 alert("Account verified successfully!");
                 navigate("/"); // Redirect to home, Navbar will refresh auth via getMe query
             } else {
