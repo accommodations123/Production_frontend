@@ -285,7 +285,7 @@ export default function HostCreatePage() {
                         {/* Section 2: Location Details */}
                         <div 
                             ref={sectionRefs.location} 
-                            className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden transition-all hover:border-white/20 shadow-xl"
+                            className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative z-10 transition-all hover:border-white/20 shadow-xl"
                         >
                             <StepLocation
                                 formData={formData}

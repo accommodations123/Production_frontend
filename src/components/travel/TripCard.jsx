@@ -160,6 +160,11 @@ const TripCard = React.memo(({ plan }) => {
                                     • {plan.user.gender}
                                 </span>
                             )}
+                            {plan.travelers_count && Number(plan.travelers_count) > 0 && (
+                                <span className="text-[11px] text-gray-500 font-medium">
+                                    • {plan.travelers_count} {Number(plan.travelers_count) === 1 ? 'traveler' : 'travelers'}
+                                </span>
+                            )}
                             {plan.user.verified && (
                                 <span className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded-full">
                                     <Shield size={8} className="fill-blue-100" />

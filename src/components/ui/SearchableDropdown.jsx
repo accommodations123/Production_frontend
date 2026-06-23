@@ -70,7 +70,7 @@ const SearchableDropdown = ({
     };
 
     return (
-        <div className={cn("relative w-full", className)} ref={dropdownRef}>
+        <div className={cn("relative w-full", isOpen && "z-10", className)} ref={dropdownRef}>
             {label && (
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                     {label} {required && <span className="text-red-500 ml-1">*</span>}

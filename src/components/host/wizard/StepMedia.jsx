@@ -8,7 +8,7 @@ export function StepMedia({ formData, setFormData, handleFileChange, removeArray
 
             {/* Images */}
             <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Property Photos <span className="text-red-500 ml-1">*</span></label>
+                <label className="text-sm font-medium text-gray-300">Property Photos (Up to 4 photos) <span className="text-red-500 ml-1">*</span></label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {formData.images.map((img, idx) => (
                         <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group border border-white/10">
@@ -21,11 +21,13 @@ export function StepMedia({ formData, setFormData, handleFileChange, removeArray
                             </button>
                         </div>
                     ))}
-                    <label className="border-2 border-dashed border-white/20 rounded-xl aspect-square flex flex-col items-center justify-center cursor-pointer hover:border-accent hover:bg-white/5 transition-all text-gray-400 hover:text-white">
-                        <Plus className="h-6 w-6 mb-2" />
-                        <span className="text-xs">Add Photo</span>
-                        <input type="file" multiple accept="image/*" className="hidden" onChange={(e) => handleFileChange(e, 'images', true)} />
-                    </label>
+                    {formData.images.length < 4 && (
+                        <label className="border-2 border-dashed border-white/20 rounded-xl aspect-square flex flex-col items-center justify-center cursor-pointer hover:border-accent hover:bg-white/5 transition-all text-gray-400 hover:text-white">
+                            <Plus className="h-6 w-6 mb-2" />
+                            <span className="text-xs">Add Photo</span>
+                            <input type="file" multiple accept="image/*" className="hidden" onChange={(e) => handleFileChange(e, 'images', true)} />
+                        </label>
+                    )}
                 </div>
             </div>
 

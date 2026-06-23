@@ -168,10 +168,12 @@ export default function TravelPage() {
           from: trip.from_city || "",
           to: trip.to_city || "",
           from_country: normalizeCountry(trip.from_country || ""),
+          to_country: normalizeCountry(trip.to_country || ""),
         },
         destination: trip.to_city ? `${trip.to_city}` : "",
         date: trip.travel_date,
         status: trip.status || "active",
+        travelers_count: trip.travelers_count,
         socials: socials
       };
     }
@@ -184,7 +186,8 @@ export default function TravelPage() {
         host_id: trip.host?.id,
         flight: {
           ...trip.flight,
-          from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.host.country)
+          from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.host.country),
+          to_country: normalizeCountry(trip.flight.to_country || trip.to_country)
         },
         user: {
           fullName: trip.host.full_name,
@@ -208,7 +211,8 @@ export default function TravelPage() {
         host_id: trip.host_id || (trip.host ? trip.host.id : undefined),
         flight: {
           ...trip.flight,
-          from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.user.country)
+          from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.user.country),
+          to_country: normalizeCountry(trip.flight.to_country || trip.to_country)
         },
         user: {
           ...trip.user,
@@ -262,11 +266,13 @@ export default function TravelPage() {
         to: trip.to_city,
         // Improved fallback: Check flat field -> flight object -> user/host country
         from_country: normalizeCountry(trip.from_country || trip.flight?.from_country || trip.user?.country || trip.host?.country),
+        to_country: normalizeCountry(trip.to_country || trip.flight?.to_country),
         departureDate: trip.travel_date,
         departureTime: trip.departure_time,
         arrivalDate: trip.arrival_date,
         arrivalTime: trip.arrival_time
       },
+      travelers_count: trip.travelers_count,
       socials: socials
     };
   };
@@ -278,7 +284,7 @@ export default function TravelPage() {
   const { data: publicTripsData } = useGetPublicTripsQuery({
     page: 1,
     limit: 50,
-    from_country: getBackendCountryName(filters.country),
+    country: getBackendCountryName(filters.country) || undefined,
     // status: 'active' // Keep commented out for now to see cancelled/pending trips for debugging
   });
 
@@ -335,8 +341,10 @@ export default function TravelPage() {
         plan.flight.to?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         plan.flight.airline?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Filter by ORIGIN country (where traveler is flying FROM) - For CO-TRAVELER matching
-      const matchesCountry = !filters.country || plan.flight.from_country?.toLowerCase() === filters.country.toLowerCase();
+      // Filter by ORIGIN or DESTINATION country (where traveler is flying FROM or TO)
+      const matchesCountry = !filters.country || 
+        plan.flight.from_country?.toLowerCase() === filters.country.toLowerCase() ||
+        plan.flight.to_country?.toLowerCase() === filters.country.toLowerCase();
 
       const matchesState =
         !filters.state ||

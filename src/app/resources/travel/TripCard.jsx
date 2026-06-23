@@ -43,7 +43,10 @@ export default function TripCard({ plan, isSelected, onSelect, onMatchRequest })
                     <div>
                         <h3 className="font-bold text-lg leading-tight" style={{ color: 'var(--color-foreground)' }}>{plan.user.fullName}</h3>
                         <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-secondary)' }}>
-                            <span>{plan.user.age} • {plan.user.gender}</span>
+                            <span>
+                                {plan.user.age} • {plan.user.gender}
+                                {plan.travelers_count && Number(plan.travelers_count) > 0 && ` • ${plan.travelers_count} ${Number(plan.travelers_count) === 1 ? 'traveler' : 'travelers'}`}
+                            </span>
                             <span className="flex items-center gap-1">
                                 <Shield size={10} className="text-blue-500" /> Verified
                             </span>

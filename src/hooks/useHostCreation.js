@@ -421,7 +421,14 @@ export function useHostCreation() {
                 file,
                 url: URL.createObjectURL(file)
             }));
-            setFormData(prev => ({ ...prev, [field]: [...prev[field], ...newImages] }));
+            setFormData(prev => {
+                const combined = [...(prev[field] || []), ...newImages];
+                if (field === 'images' && combined.length > 4) {
+                    toast.warning("You can upload up to 4 photos only.");
+                    return { ...prev, [field]: combined.slice(0, 4) };
+                }
+                return { ...prev, [field]: combined };
+            });
         } else {
             setFormData(prev => ({ ...prev, [field]: validFiles[0] }));
         }
@@ -527,7 +534,7 @@ export function useHostCreation() {
             }
 
             case 4: // Media
-                return formData.images.length >= 1; // Relax proof check for non-properties? 
+                return formData.images.length >= 1 && formData.images.length <= 4; // Relax proof check for non-properties? 
             // && formData.propertyProof; 
 
             case 5: // Amenities
