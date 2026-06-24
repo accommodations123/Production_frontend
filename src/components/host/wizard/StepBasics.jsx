@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Users, Bed, Bath, Sparkles, Building2, Quote, Layout } from 'lucide-react';
+import { Home, Users, Bed, Bath, Sparkles, Building2, Quote, Layout, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PROPERTY_TYPES } from '@/lib/accommodation-data';
 
@@ -37,9 +37,13 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         />
                     </div>
-                    <p className="text-xs text-gray-400 mt-1 leading-relaxed bg-white/5 border border-white/5 p-3 rounded-lg">
-                        Mention nearby university, office, metro station, grocery stores, included utilities, parking, internet, and house rules.
-                    </p>
+                    <div className="mt-2.5 bg-white/5 border border-white/10 rounded-xl p-4 flex gap-3 text-xs leading-relaxed text-gray-300">
+                        <Info className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
+                        <div>
+                            <span className="font-bold text-white block mb-1">Clear Description Note</span>
+                            <span>For a better listing visibility, please mention nearby university/office, metro station, grocery stores, included utilities, parking availability, internet speed/availability, and house rules.</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
