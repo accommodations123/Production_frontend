@@ -1,0 +1,5 @@
+- [x] Create reusable `Tooltip` component using `@floating-ui/react` at `src/shared/ui/tooltip.jsx`
+- [x] Implement Embla Carousel (with Autoplay) and `yet-another-react-lightbox` in `RoomPage` (`src/routes/rooms/[id]/page.jsx`)
+- [x] Refactor Contact Form (`src/features/contact/components/ContactForm.jsx`) to use `react-hook-form` and `zod` schema validation
+- [x] Refactor My Applications view (`src/features/dashboard/components/MyApplications.jsx`) to use `TanStack Table`
+- [x] Verify page rendering and check for any errors

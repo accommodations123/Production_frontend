@@ -1,0 +1,164 @@
+import React, { memo } from "react"
+import { Calendar, MapPin, Clock } from "lucide-react"
+import { Button } from "@/shared/ui/button"
+import { formatUTCDate } from "@/shared/utils/timezone"
+import { HostPhoto } from "@/features/events/components/HostPhoto"
+import { COUNTRIES } from "@/shared/utils/mock-data"
+import WishlistButton from "@/shared/ui/WishlistButton"
+import { useCountry } from "@/context/CountryContext"
+import { getEventStatus } from "@/shared/utils/eventUtils"
+
+export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
+    const status = getEventStatus(event)
+    const isExpired = status === "expired"
+    const isLive = status === "happening-now"
+
+    // Format date for display
+    const formatDate = (dateString) => {
+        if (!dateString) return "Date TBA";
+        return formatUTCDate(dateString);
+    };
+
+    // Get organizer name with fallback
+    const getOrganizerName = () => {
+        if (event.host?.full_name) return event.host.full_name;
+        if (event.organizer) return event.organizer;
+        return "Unknown Organizer";
+    };
+
+    // Get event image with fallback
+    const getEventImage = () => {
+        if (event.image) return event.image;
+        if (event.banner_image) return event.banner_image;
+        if (event.gallery_images && event.gallery_images.length > 0) return event.gallery_images[0];
+        return null;
+    };
+
+    const eventImage = getEventImage();
+
+    const getCurrencySymbol = (countryName) => {
+        if (!countryName) return '$';
+        const normalized = (countryName === "United States" || countryName === "United States of America") ? "United States of America" : countryName;
+        const country = COUNTRIES.find(c => c.name === normalized || c.code === normalized);
+        if (!country || !country.currency) return '$';
+
+        try {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: country.currency,
+            }).formatToParts(0).find(part => part.type === 'currency')?.value || country.currency;
+        } catch (e) {
+            return country.currency;
+        }
+    };
+
+    const { activeCountry } = useCountry();
+    const targetCountryName = event.country || activeCountry?.name;
+    const currencySymbol = getCurrencySymbol(targetCountryName);
+
+    return (
+        <div
+            className={`${viewMode === "list" ? "flex flex-col sm:flex-row gap-4" : ""}`}
+            style={{ animationDelay: `${index * 50}ms` }}
+        >
+            <div className={`relative overflow-hidden rounded-3xl border shadow-sm ${viewMode === "list" ? "flex-1 flex h-auto" : "h-[350px] flex flex-col"} bg-white transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                isExpired ? "border-gray-200 opacity-70 grayscale-[30%]" : "border-gray-100"
+            }`}>
+                {/* Card Image */}
+                <div className={`relative ${viewMode === "list" ? "w-full sm:w-1/3 h-48 sm:h-auto" : "w-full h-[150px] shrink-0"} overflow-hidden ${!eventImage ? 'bg-gradient-to-br from-slate-700 to-slate-900' : ''}`}>
+                    {eventImage ? (
+                        <img
+                            src={eventImage}
+                            alt={event.title}
+                            className={`w-full h-full object-cover ${isExpired ? "brightness-75" : ""}`}
+                            loading="lazy"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <Calendar className="w-12 h-12 text-white/20" />
+                        </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+                    {/* Status badges */}
+                    <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                        <span className="px-2 sm:px-3 py-1 bg-[#00142E] text-white text-[10px] sm:text-xs font-bold rounded-full shadow-lg">
+                            {event.type || "Event"}
+                        </span>
+                        {isExpired && (
+                            <span className="px-2 sm:px-3 py-1 bg-gray-800/90 backdrop-blur-sm text-gray-200 text-[10px] sm:text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                Ended
+                            </span>
+                        )}
+                        {isLive && (
+                            <span className="px-2 sm:px-3 py-1 bg-green-600/90 backdrop-blur-sm text-white text-[10px] sm:text-xs font-bold rounded-full shadow-lg flex items-center gap-1 animate-pulse">
+                                <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                                Live
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="absolute top-3 right-3 flex gap-2 z-10">
+                        <WishlistButton
+                            itemId={event.id || event._id}
+                            itemType="event"
+                            className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30 rounded-full"
+                            iconSize={16}
+                            outlineColor="text-white"
+                        />
+                    </div>
+                    {event.price && (
+                        <div className="absolute bottom-3 left-3 z-10">
+                            <span className="px-2 sm:px-3 py-1 bg-white/90 backdrop-blur-md text-gray-900 font-bold rounded-lg shadow-lg text-xs sm:text-sm">
+                                {currencySymbol}{event.price}
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Card Content */}
+                <div className={`p-3.5 flex-grow flex flex-col gap-2 min-h-0 min-w-0 ${viewMode === "list" ? "flex-grow flex flex-col justify-between" : ""}`}>
+                    {/* Location & Time */}
+                    <div className="flex items-center gap-1.5 text-gray-500 text-xs sm:text-sm font-medium">
+                        <MapPin className="h-3.5 w-3.5 text-[#CB2A25] shrink-0" />
+                        <span className="truncate">
+                            {event.city ? `${event.city}, ${event.country || ""}` : event.location || "Location TBA"}
+                        </span>
+                        {event.date && (
+                            <span className="text-[10px] text-gray-400 ml-auto">
+                                {formatDate(event.date || event.start_date)}
+                            </span>
+                        )}
+                    </div>
+
+                    <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#CB2A25] transition-colors" title={event.title}>{event.title}</h3>
+                    <p className="text-gray-600 text-xs line-clamp-2 leading-relaxed border-l-2 border-gray-100 pl-3">{event.description}</p>
+
+                    {/* Footer: Organizer & Action */}
+                    <div className="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-gray-100 h-[60px] shrink-0">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <HostPhoto host={event.host} />
+                            <div className="min-w-0">
+                                <p className="text-[9px] uppercase tracking-wider text-gray-400 font-bold leading-none">Organized by</p>
+                                <p className="text-xs font-bold text-gray-900 truncate w-24 sm:w-28 mt-0.5" title={getOrganizerName()}>{getOrganizerName()}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                            <Button
+                                onClick={() => onViewDetails(event.id)}
+                                className={`h-9 px-3.5 rounded-xl text-xs font-bold transition-all duration-300 shadow-sm cursor-pointer ${
+                                    isExpired ? "bg-gray-100 border border-gray-200 text-gray-500 hover:bg-gray-200" : "bg-[#CB2A25] hover:bg-[#A9201C] text-white"
+                                }`}
+                            >
+                                View Details
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+})
+EventCard.displayName = "EventCard"

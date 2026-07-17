@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #00142E;
+  --color-primary: #00142E;
+  --color-secondary: #0A1C30;
+  --color-accent: #CB2A25;
+  --color-neutral: #D1CBB7;
+  --color-navy-dark: #02152B;
+
+  --font-inter: "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+  
+  --tracking-tighter: -0.02em;
+  --tracking-tight: -0.01em;
+  
+  --color-ink: #222222;
+  --color-ink-light: #484848;
+  --color-ink-muted: #717171;
+
+  /* Custom Design Tokens */
+  --radius-premium: 1.25rem;
+  --radius-card: 1rem;
+  --radius-button: 0.75rem;
+
+  --shadow-premium: 0 8px 30px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0 20px 40px rgba(0, 0, 0, 0.06);
+  --shadow-dropdown: 0 10px 40px -10px rgba(0, 0, 0, 0.12);
+
+  --transition-premium: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.font-sans {
+  font-variation-settings: "wght" 450;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-poppins), sans-serif;
+}
+
+/* Scrollbar Hide Utility */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@utility hover-lift {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  &:hover {
+    transform: translateY(-4px) scale(1.015);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+  }
+  &:active {
+    transform: translateY(-1px) scale(0.995);
+  }
+}
+
+@utility active-click {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+@utility hover-glow {
+  transition: all 0.3s ease;
+  &:hover {
+    box-shadow: 0 0 15px rgba(203, 42, 37, 0.2);
+    border-color: rgba(203, 42, 37, 0.4) !important;
+  }
+}
+
+@utility premium-focus {
+  &:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-accent) !important;
+  }
+}
+
+/* Global Scrollbar Hide - Applies to entire application */
+* {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, Opera */
+}

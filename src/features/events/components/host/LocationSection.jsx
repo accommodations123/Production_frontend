@@ -1,0 +1,101 @@
+import React from "react"
+import { MapPin } from "lucide-react"
+import { Input } from "@/shared/ui/input"
+import { Label } from "@/shared/ui/label"
+import { Textarea } from "@/shared/ui/textarea"
+
+export const LocationSection = ({ formData, handleInputChange }) => {
+    return (
+        <div className="py-8 space-y-6">
+            <h3 className="text-xl font-bold flex items-center text-gray-900">
+                <MapPin className="mr-2 h-5 w-5" />
+                Venue Details
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                    <Label className="font-medium text-sm text-[#00162d]">Street Address</Label>
+                    <Input
+                        value={formData.location || ""}
+                        onChange={e => handleInputChange("location", e.target.value)}
+                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                        placeholder="Enter street address"
+                    />
+                </div>
+
+                <div>
+                    <Label className="font-medium text-sm text-[#00162d]">Landmark</Label>
+                    <Input
+                        value={formData.landmark || ""}
+                        onChange={e => handleInputChange("landmark", e.target.value)}
+                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                        placeholder="Nearby landmark"
+                    />
+                </div>
+
+                <div>
+                    <Label className="font-medium text-sm text-[#00162d]">Venue Name</Label>
+                    <Input
+                        value={formData.venue_name || ""}
+                        onChange={e => handleInputChange("venue_name", e.target.value)}
+                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                        placeholder="Venue name"
+                    />
+                </div>
+
+                <div className="md:col-span-2">
+                    <Label className="font-medium text-sm text-[#00162d]">Venue Description</Label>
+                    <Textarea
+                        value={formData.venue_description || ""}
+                        onChange={e => handleInputChange("venue_description", e.target.value)}
+                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                        placeholder="Describe the venue"
+                        rows={3}
+                    />
+                </div>
+
+                <div className="md:col-span-2">
+                    <Label className="font-medium text-sm text-[#00162d]">What's Included</Label>
+                    <Textarea
+                        value={formData.what_is_included || ""}
+                        onChange={e => handleInputChange("what_is_included", e.target.value)}
+                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                        placeholder="List what's included in the event"
+                        rows={3}
+                    />
+                </div>
+
+                <div className="md:col-span-2">
+                    <Label className="font-medium text-sm text-[#00162d]">What's Not Included</Label>
+                    <Textarea
+                        value={formData.what_is_not_included || ""}
+                        onChange={e => handleInputChange("what_is_not_included", e.target.value)}
+                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                        placeholder="List what's not included in the event"
+                        rows={3}
+                    />
+                </div>
+
+                <div className="md:col-span-2">
+                    <Label className="font-medium text-sm text-[#00162d]">Parking Info</Label>
+                    <Input
+                        value={formData.parking_info || ""}
+                        onChange={e => handleInputChange("parking_info", e.target.value)}
+                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                        placeholder="Parking details"
+                    />
+                </div>
+
+                <div className="md:col-span-2">
+                    <Label className="font-medium text-sm text-[#00162d]">Accessibility Info</Label>
+                    <Input
+                        value={formData.accessibility_info || ""}
+                        onChange={e => handleInputChange("accessibility_info", e.target.value)}
+                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                        placeholder="Accessibility information"
+                    />
+                </div>
+            </div>
+        </div>
+    )
+}

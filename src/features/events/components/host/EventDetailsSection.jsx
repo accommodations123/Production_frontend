@@ -1,0 +1,370 @@
+import React from "react"
+import { Calendar, Globe, Phone, MapPin } from "lucide-react"
+import { Input } from "@/shared/ui/input"
+import { Label } from "@/shared/ui/label"
+import { Textarea } from "@/shared/ui/textarea"
+import { CountryCodeSelect } from "@/shared/ui/CountryCodeSelect"
+import { loadLocationData } from '@/shared/utils/lazyLocationData';
+import SearchableDropdown from "@/shared/ui/SearchableDropdown";
+import { useState, useEffect, useRef } from "react";
+import { useCountry } from "@/context/CountryContext";
+import { useSearchParams } from "react-router-dom";
+
+export const EventDetailsSection = ({ formData, handleInputChange }) => {
+    const { activeCountry } = useCountry();
+    const [searchParams] = useSearchParams();
+    const isEdit = !!searchParams.get('edit');
+    const [csc, setCsc] = useState(null);
+    const [countriesList, setCountriesList] = useState([]);
+    const [statesList, setStatesList] = useState([]);
+    const [citiesList, setCitiesList] = useState([]);
+    const [citiesFetched, setCitiesFetched] = useState(false);
+
+    const lastSyncedCountryRef = useRef(null);
+
+    // Auto-fill and sync form country from global active country (for new events)
+    useEffect(() => {
+        const globalCountryCode = activeCountry?.code || activeCountry?.country;
+        if (!isEdit && globalCountryCode) {
+            if (lastSyncedCountryRef.current !== globalCountryCode) {
+                handleInputChange("country", globalCountryCode);
+                handleInputChange("state", "");
+                handleInputChange("city", "");
+                setCitiesList([]);
+                setCitiesFetched(false);
+                if (csc) {
+                    setStatesList(csc.State.getStatesOfCountry(globalCountryCode));
+                    lastSyncedCountryRef.current = globalCountryCode;
+                }
+            } else if (csc && !statesList.length && lastSyncedCountryRef.current === globalCountryCode) {
+                setStatesList(csc.State.getStatesOfCountry(globalCountryCode));
+            }
+        }
+    }, [activeCountry, isEdit, csc, statesList.length]);
+
+    useEffect(() => {
+        let active = true;
+        loadLocationData().then(data => {
+            if (!active) return;
+            setCsc(data);
+            const countries = data.Country.getAllCountries().map(c =>
+                c.isoCode === 'US' ? { ...c, name: "United States of America" } : c
+            );
+            setCountriesList(countries);
+        });
+        return () => { active = false; };
+    }, []);
+
+    useEffect(() => {
+        if (!csc || !countriesList.length || !formData.country) return;
+
+        const countryObj = countriesList.find(c => c.name === formData.country || c.isoCode === formData.country);
+        if (countryObj) {
+            const states = csc.State.getStatesOfCountry(countryObj.isoCode);
+            setStatesList(states);
+
+            if (formData.state) {
+                const stateObj = states.find(s => s.name === formData.state);
+                if (stateObj) {
+                    setCitiesList(csc.City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
+                    setCitiesFetched(true);
+                } else {
+                    setCitiesList([]);
+                    setCitiesFetched(false);
+                }
+            } else {
+                setCitiesList([]);
+                setCitiesFetched(false);
+            }
+        } else {
+            setStatesList([]);
+            setCitiesList([]);
+            setCitiesFetched(false);
+        }
+    }, [formData.country, formData.state, csc, countriesList]);
+
+    const getCurrencySymbol = (countryName) => {
+        if (!countryName || !csc) return null;
+        const normalized = (countryName === "United States" || countryName === "United States of America") ? "United States of America" : countryName;
+        // Use countriesList which has mapped names, or fallback to allCountries
+        const country = (countriesList && countriesList.find(c => c.name === normalized || c.isoCode === normalized)) ||
+                        csc.Country.getAllCountries().find(c => c.name === normalized || c.isoCode === normalized);
+        if (!country || !country.currency) return null;
+
+        try {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: country.currency,
+            }).formatToParts(0).find(part => part.type === 'currency')?.value || country.currency;
+        } catch (e) {
+            return country.currency;
+        }
+    };
+
+    const getGlobalCurrencySymbol = () => {
+        if (!activeCountry?.currency) return '$';
+        try {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: activeCountry.currency,
+            }).formatToParts(0).find(part => part.type === 'currency')?.value || activeCountry.currency;
+        } catch (e) {
+            return activeCountry.currency;
+        }
+    };
+
+    const currencySymbol = getCurrencySymbol(formData.country) || getGlobalCurrencySymbol();
+
+    const isValidCountry = countriesList.some(c => c.name === formData.country || c.isoCode === formData.country);
+    const isValidState = statesList.some(s => s.name === formData.state);
+
+    return (
+        <div className="py-8 space-y-6">
+            <h3 className="text-xl font-bold flex items-center text-gray-900">
+                <Calendar className="mr-2 h-5 w-5" />
+                Event Details
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                    <Label className="font-medium text-sm text-[#00162d]">Event Title *</Label>
+                    <Input
+                        value={formData.title || ""}
+                        onChange={e => handleInputChange("title", e.target.value)}
+                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                        placeholder="Give your event a catchy title"
+                    />
+                </div>
+
+                <div>
+                    <Label className="font-medium text-sm text-[#00162d]">Event Type</Label>
+                    <select
+                        className="w-full mt-1 border border-[#00162d] rounded-md p-2 text-gray-900"
+                        value={formData.event_type || "meetup"}
+                        onChange={e => handleInputChange("event_type", e.target.value)}
+                    >
+                        <option value="festival">Music & Nightlife</option>
+                        <option value="meetup">Community Meetups</option>
+                        <option value="party">Food & Drink</option>
+                        <option value="workshop">Workshops & Classes</option>
+                        <option value="sports">Sports & Wellness</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <Label className="font-medium text-sm text-[#00162d]">Event Mode</Label>
+                    <select
+                        className="w-full mt-1 border border-[#00162d] rounded-md p-2 text-gray-900"
+                        value={formData.event_mode || "offline"}
+                        onChange={e => handleInputChange("event_mode", e.target.value)}
+                    >
+                        <option value="offline">Offline</option>
+                        <option value="online">Online</option>
+                        <option value="hybrid">Hybrid</option>
+                    </select>
+                </div>
+
+                <div>
+                    <Label className="font-medium text-sm text-[#00162d]">Start Date *</Label>
+                    <Input
+                        type="date"
+                        value={formData.date || ""}
+                        onChange={e => handleInputChange("date", e.target.value)}
+                        className="mt-1 text-gray-900 border-[#00162d] border"
+                    />
+                </div>
+
+                <div>
+                    <Label className="font-medium text-sm text-[#00162d]">End Date</Label>
+                    <Input
+                        type="date"
+                        value={formData.end_date || ""}
+                        onChange={e => handleInputChange("end_date", e.target.value)}
+                        className="mt-1 text-gray-900 border-[#00162d] border"
+                    />
+                </div>
+
+                <div>
+                    <Label className="font-medium text-sm text-[#00162d]">Start Time *</Label>
+                    <Input
+                        type="time"
+                        value={formData.time || ""}
+                        onChange={e => handleInputChange("time", e.target.value)}
+                        className="mt-1 text-gray-900 border-[#00162d] border"
+                    />
+                </div>
+
+                <div>
+                    <Label className="font-medium text-sm text-[#00162d]">End Time</Label>
+                    <Input
+                        type="time"
+                        value={formData.end_time || ""}
+                        onChange={e => handleInputChange("end_time", e.target.value)}
+                        className="mt-1 text-gray-900 border-[#00162d] border"
+                    />
+                </div>
+
+                <div>
+                    <Label className="font-medium text-sm flex items-center text-[#00162d]">
+                        <span className="min-w-[1rem] mr-2 text-[#00162d] font-bold text-center flex items-center justify-center">{currencySymbol}</span>
+                        Price
+                    </Label>
+                    <Input
+                        type="number"
+                        value={formData.price || ""}
+                        onChange={e => handleInputChange("price", e.target.value)}
+                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                        placeholder="0.00"
+                    />
+                    <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                        <span>💡</span>
+                        <span>Currency ({currencySymbol}) auto-selects based on your country</span>
+                    </p>
+                </div>
+
+                <div>
+                    <Label className="font-medium text-sm flex items-center text-[#00162d]">
+                        <Globe className="h-4 w-4 mr-1 text-[#00162d]" />
+                        Event URL
+                    </Label>
+                    <Input
+                        value={formData.event_url || ""}
+                        onChange={e => handleInputChange("event_url", e.target.value)}
+                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                        placeholder="https://example.com"
+                    />
+                </div>
+
+                <div>
+                    <Label className="font-medium text-sm flex items-center text-[#00162d]">
+                        <Phone className="h-4 w-4 mr-1 text-[#00162d]" />
+                        Contact Number
+                    </Label>
+                    <div className="flex gap-2 mt-1">
+                        <div className="w-[120px] shrink-0">
+                            <CountryCodeSelect
+                                value={formData.phoneCode || "+91"}
+                                isoCode={formData.phoneIso}
+                                onChange={(val, code) => {
+                                    handleInputChange("phoneCode", val);
+                                    if (code) handleInputChange("phoneIso", code);
+                                }}
+                                className="w-full"
+                            />
+                        </div>
+                        <Input
+                            type="tel"
+                            value={formData.phone || ""}
+onChange={(e) => {
+    let val = e.target.value;
+
+    // allow only numbers
+    val = val.replace(/[^0-9]/g, "");
+
+    // limit to 10 digits
+    val = val.slice(0, 10);
+
+    handleInputChange("phone", val);
+}}
+inputMode="numeric"                            className="text-gray-900 placeholder-gray-400 border-[#00162d] border "
+                            placeholder="Phone number"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="md:col-span-2 space-y-4 mt-4">
+                <Label className="font-medium text-sm flex items-center text-[#00162d]">
+                    <MapPin className="h-4 w-4 mr-1 text-[#00162d]" />
+                    Location & Region
+                </Label>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <SearchableDropdown
+                        label="Country"
+                        placeholder="Select Country"
+                        options={countriesList}
+                        value={formData.country}
+                        onChange={(option) => {
+                            handleInputChange("country", option.isoCode);
+                            handleInputChange("state", "");
+                            handleInputChange("city", "");
+                            if (csc) {
+                                setStatesList(csc.State.getStatesOfCountry(option.isoCode));
+                            }
+                            setCitiesList([]);
+                            setCitiesFetched(false);
+                        }}
+                    />
+
+                    <SearchableDropdown
+                        label="State"
+                        placeholder="Select State"
+                        options={statesList}
+                        value={formData.state}
+                        disabled={!formData.country}
+                        isLoading={isValidCountry && !statesList.length && formData.country}
+                        onChange={(option) => {
+                            handleInputChange("state", option.name);
+                            handleInputChange("city", "");
+                            const countryObj = countriesList.find(c => c.name === formData.country || c.isoCode === formData.country);
+                            if (countryObj && csc) {
+                                setCitiesList(csc.City.getCitiesOfState(countryObj.isoCode, option.isoCode));
+                                setCitiesFetched(true);
+                            } else {
+                                setCitiesFetched(false);
+                            }
+                        }}
+                    />
+
+                    <SearchableDropdown
+                        label="City"
+                        placeholder="Select City"
+                        options={citiesList}
+                        value={formData.city}
+                        disabled={!formData.state}
+                        isLoading={isValidState && !citiesList.length && !citiesFetched && formData.state}
+                        onChange={(option) => {
+                            handleInputChange("city", option.name);
+                        }}
+                    />
+
+                    <div>
+                        <Label className="font-medium text-sm text-[#00162d] mb-1 block">Zip Code</Label>
+                        <Input
+                            value={formData.zip_code || ""}
+                            onChange={e => handleInputChange("zip_code", e.target.value)}
+                            className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                            placeholder="Zip Code"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-4">
+                <Label className="font-medium text-sm text-[#00162d]">Event Description</Label>
+                <Textarea
+                    value={formData.description || ""}
+                    onChange={e => handleInputChange("description", e.target.value)}
+                    className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                    placeholder="Describe your event in detail"
+                    rows={4}
+                />
+            </div>
+
+            {formData.event_mode !== 'offline' && (
+                <div className="mt-4">
+                    <Label className="font-medium text-sm text-[#00162d]">Online Instructions</Label>
+                    <Textarea
+                        value={formData.online_instructions || ""}
+                        onChange={e => handleInputChange("online_instructions", e.target.value)}
+                        className="mt-1 text-gray-900 placeholder-gray-400 border-[#00162d] border"
+                        placeholder="How to join your online event"
+                        rows={3}
+                    />
+                </div>
+            )}
+        </div>
+    )
+}
