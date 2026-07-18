@@ -255,7 +255,7 @@ export function WishlistManager() {
         <div className="space-y-1.5">
           <span className="text-xs font-bold text-rose-600 tracking-wider uppercase block">Your Collection ❤️</span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">My Wishlists</h1>
-          <p className="text-xs sm:text-sm text-gray-500 max-w-lg leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#484848] max-w-lg leading-relaxed">
             Manage your saved properties, community boards, marketplace products, events, and travel routes.
           </p>
         </div>
@@ -275,10 +275,10 @@ export function WishlistManager() {
                   "flex items-center gap-2 px-4.5 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 active:scale-95 border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A1A2F] focus-visible:ring-offset-2",
                   isActive
                     ? "bg-[#0A1A2F] text-white border-transparent shadow-lg shadow-[#0A1A2F]/15"
-                    : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+                    : "bg-white text-[#484848] border-gray-200 hover:bg-gray-50 hover:text-gray-900"
                 )}
               >
-                <Icon size={14} className={isActive ? 'text-rose-400' : 'text-gray-400'} />
+                <Icon size={14} className={isActive ? 'text-rose-400' : 'text-[#717171]'} />
                 {tab.label}
               </button>
             );
@@ -294,17 +294,17 @@ export function WishlistManager() {
             <button
               disabled={page === 1}
               onClick={() => setPage(p => Math.max(1, p - 1))}
-              className="px-4 py-2 border border-gray-200 rounded-xl font-bold text-xs disabled:opacity-50 hover:bg-gray-50 transition-all text-gray-600"
+              className="px-4 py-2 border border-gray-200 rounded-xl font-bold text-xs disabled:opacity-50 hover:bg-gray-50 transition-all text-[#222222]"
             >
               Previous
             </button>
-            <span className="font-extrabold text-gray-400 text-xs uppercase tracking-wider">
+            <span className="font-extrabold text-[#717171] text-xs uppercase tracking-wider">
               Page {page} of {data.pagination.totalPages}
             </span>
             <button
               disabled={page === data.pagination.totalPages}
               onClick={() => setPage(p => p + 1)}
-              className="px-4 py-2 border border-gray-200 rounded-xl font-bold text-xs disabled:opacity-50 hover:bg-gray-50 transition-all text-gray-600"
+              className="px-4 py-2 border border-gray-200 rounded-xl font-bold text-xs disabled:opacity-50 hover:bg-gray-50 transition-all text-[#222222]"
             >
               Next
             </button>

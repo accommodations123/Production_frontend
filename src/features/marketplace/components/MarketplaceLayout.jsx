@@ -18,7 +18,7 @@ export function MarketplaceLayout({ children, activeTab, onTabChange }) {
                             whileTap={{ scale: 0.98 }}
                             className={`relative flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${activeTab === 'buy'
                                 ? 'bg-white text-[#00142E] shadow-lg shadow-gray-200/50'
-                                : 'text-gray-500 hover:text-gray-700'
+                                : 'text-[#484848] hover:text-gray-700'
                                 }`}
                         >
                             {activeTab === 'buy' && (
@@ -38,14 +38,14 @@ export function MarketplaceLayout({ children, activeTab, onTabChange }) {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             className={`relative flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${activeTab === 'sell'
-                                ? 'bg-gradient-to-r from-[#CB2A25] to-[#D8423C] text-white shadow-lg shadow-[#CB2A25]/30'
-                                : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-gradient-to-r from-[#E1392A] to-[#D8423C] text-white shadow-lg shadow-[#E1392A]/30'
+                                : 'text-[#484848] hover:text-gray-700'
                                 }`}
                         >
                             {activeTab === 'sell' && (
                                 <motion.div
                                     layoutId="activeTabSell"
-                                    className="absolute inset-0 bg-gradient-to-r from-[#CB2A25] to-[#D8423C] rounded-xl shadow-lg shadow-[#CB2A25]/30"
+                                    className="absolute inset-0 bg-gradient-to-r from-[#E1392A] to-[#D8423C] rounded-xl shadow-lg shadow-[#E1392A]/30"
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
@@ -65,7 +65,7 @@ export function MarketplaceLayout({ children, activeTab, onTabChange }) {
                         >
                             <Button
                                 onClick={() => onTabChange('sell')}
-                                className="relative overflow-hidden group bg-gradient-to-r from-[#CB2A25] to-[#D8423C] hover:from-[#A9201C] hover:to-[#D8423C] text-white font-bold text-sm h-10 sm:h-11 px-5 sm:px-6 rounded-xl shadow-lg shadow-[#CB2A25]/25 hover:shadow-[#CB2A25]/40 transition-all duration-300 cursor-pointer border-0"
+                                className="relative overflow-hidden group bg-gradient-to-r from-[#E1392A] to-[#D8423C] hover:from-[#C82E20] hover:to-[#D8423C] text-white font-bold text-sm h-10 sm:h-11 px-5 sm:px-6 rounded-xl shadow-lg shadow-[#E1392A]/25 hover:shadow-[#E1392A]/40 transition-all duration-300 cursor-pointer border-0"
                             >
                                 <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                                 <Plus className="h-4 w-4 mr-2" />
@@ -90,7 +90,7 @@ export function MarketplaceLayout({ children, activeTab, onTabChange }) {
             </main>
 
             {/* Subtle Background Decoration */}
-            <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#CB2A25]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
+            <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#E1392A]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
             <div className="fixed bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#00142E]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
         </div>
     );

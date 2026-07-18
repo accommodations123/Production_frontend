@@ -159,7 +159,7 @@ export default function HostCreatePage() {
                     <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
                         {isEdit ? "Update Your Property Space" : "Host Your Space"}
                     </h1>
-                    <p className="text-gray-600 mt-2 text-lg">
+                    <p className="text-[#222222] mt-2 text-lg">
                         Provide your accommodation details below to list it on NextKinLife.
                     </p>
                 </div>
@@ -169,7 +169,7 @@ export default function HostCreatePage() {
                     {/* Left Sticky Progress Navigation Sidebar */}
                     <div className="lg:col-span-3 sticky top-28 hidden lg:block">
                         <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4 shadow-sm">
-                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest px-2 mb-3">Sections Status</h3>
+                            <h3 className="text-xs font-bold text-[#484848] uppercase tracking-widest px-2 mb-3">Sections Status</h3>
                             
                             <nav className="flex flex-col gap-2">
                                 <button
@@ -177,13 +177,13 @@ export default function HostCreatePage() {
                                     className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-gray-50 transition-all text-left group"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <FileText className="h-5 w-5 text-gray-400 group-hover:text-[#c92a26] transition-colors" />
+                                        <FileText className="h-5 w-5 text-[#717171] group-hover:text-[#c92a26] transition-colors" />
                                         <span className="text-sm font-semibold text-gray-700">Property Basics</span>
                                     </div>
                                     {isBasicsValid() ? (
                                         <Check className="h-4.5 w-4.5 text-green-500 bg-green-500/10 rounded-full p-0.5 border border-green-500/20" />
                                     ) : (
-                                        <AlertCircle className="h-4.5 w-4.5 text-gray-500" />
+                                        <AlertCircle className="h-4.5 w-4.5 text-[#484848]" />
                                     )}
                                 </button>
 
@@ -192,13 +192,13 @@ export default function HostCreatePage() {
                                     className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-gray-50 transition-all text-left group"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <MapPin className="h-5 w-5 text-gray-400 group-hover:text-[#c92a26] transition-colors" />
+                                        <MapPin className="h-5 w-5 text-[#717171] group-hover:text-[#c92a26] transition-colors" />
                                         <span className="text-sm font-semibold text-gray-700">Location Details</span>
                                     </div>
                                     {isLocationValid() ? (
                                         <Check className="h-4.5 w-4.5 text-green-500 bg-green-500/10 rounded-full p-0.5 border border-green-500/20" />
                                     ) : (
-                                        <AlertCircle className="h-4.5 w-4.5 text-gray-500" />
+                                        <AlertCircle className="h-4.5 w-4.5 text-[#484848]" />
                                     )}
                                 </button>
 
@@ -207,13 +207,13 @@ export default function HostCreatePage() {
                                     className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-gray-50 transition-all text-left group"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <DollarSign className="h-5 w-5 text-gray-400 group-hover:text-[#c92a26] transition-colors" />
+                                        <DollarSign className="h-5 w-5 text-[#717171] group-hover:text-[#c92a26] transition-colors" />
                                         <span className="text-sm font-semibold text-gray-700">Pricing Options</span>
                                     </div>
                                     {isPricingValid() ? (
                                         <Check className="h-4.5 w-4.5 text-green-500 bg-green-500/10 rounded-full p-0.5 border border-green-500/20" />
                                     ) : (
-                                        <AlertCircle className="h-4.5 w-4.5 text-gray-500" />
+                                        <AlertCircle className="h-4.5 w-4.5 text-[#484848]" />
                                     )}
                                 </button>
 
@@ -222,13 +222,13 @@ export default function HostCreatePage() {
                                     className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-gray-50 transition-all text-left group"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <Image className="h-5 w-5 text-gray-400 group-hover:text-[#c92a26] transition-colors" />
+                                        <Image className="h-5 w-5 text-[#717171] group-hover:text-[#c92a26] transition-colors" />
                                         <span className="text-sm font-semibold text-gray-700">Photos & Media</span>
                                     </div>
                                     {isMediaValid() ? (
                                         <Check className="h-4.5 w-4.5 text-green-500 bg-green-500/10 rounded-full p-0.5 border border-green-500/20" />
                                     ) : (
-                                        <AlertCircle className="h-4.5 w-4.5 text-gray-500" />
+                                        <AlertCircle className="h-4.5 w-4.5 text-[#484848]" />
                                     )}
                                 </button>
 
@@ -237,13 +237,13 @@ export default function HostCreatePage() {
                                     className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-gray-50 transition-all text-left group"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <Sparkles className="h-5 w-5 text-gray-400 group-hover:text-[#c92a26] transition-colors" />
+                                        <Sparkles className="h-5 w-5 text-[#717171] group-hover:text-[#c92a26] transition-colors" />
                                         <span className="text-sm font-semibold text-gray-700">Amenities & Rules</span>
                                     </div>
                                     {isAmenitiesValid() ? (
                                         <Check className="h-4.5 w-4.5 text-green-500 bg-green-500/10 rounded-full p-0.5 border border-green-500/20" />
                                     ) : (
-                                        <AlertCircle className="h-4.5 w-4.5 text-gray-500" />
+                                        <AlertCircle className="h-4.5 w-4.5 text-[#484848]" />
                                     )}
                                 </button>
 
@@ -252,13 +252,13 @@ export default function HostCreatePage() {
                                     className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-gray-50 transition-all text-left group"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <ShieldCheck className="h-5 w-5 text-gray-400 group-hover:text-[#c92a26] transition-colors" />
+                                        <ShieldCheck className="h-5 w-5 text-[#717171] group-hover:text-[#c92a26] transition-colors" />
                                         <span className="text-sm font-semibold text-gray-700">Submit Review</span>
                                     </div>
                                     {termsAccepted ? (
                                         <Check className="h-4.5 w-4.5 text-green-500 bg-green-500/10 rounded-full p-0.5 border border-green-500/20" />
                                     ) : (
-                                        <AlertCircle className="h-4.5 w-4.5 text-gray-500" />
+                                        <AlertCircle className="h-4.5 w-4.5 text-[#484848]" />
                                     )}
                                 </button>
                             </nav>

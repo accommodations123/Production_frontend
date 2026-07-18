@@ -28,7 +28,7 @@ export function StepReview({
                     <h3 className="font-bold text-lg">{formData.title}</h3>
                     <span className="text-accent font-bold">${formData.priceMonth}/mo</span>
                 </div>
-                <p className="text-sm text-gray-400">{formData.address}, {formData.city} - {formData.pincode}</p>
+                <p className="text-sm text-[#717171]">{formData.address}, {formData.city} - {formData.pincode}</p>
                 <div className="flex gap-2">
                     {formData.images.length} Photos • {formData.amenities.length + formData.customAmenities.length} Amenities
                 </div>
@@ -41,7 +41,7 @@ export function StepReview({
                     <AlertTriangle className="h-4 w-4 text-accent" />
                     Terms & Conditions
                 </h3>
-                <div className="bg-white/5 rounded-xl p-4 overflow-y-auto text-sm text-gray-400 border border-white/10 flex-1 max-h-[200px]">
+                <div className="bg-white/5 rounded-xl p-4 overflow-y-auto text-sm text-[#717171] border border-white/10 flex-1 max-h-[200px]">
                     <ul className="list-disc pl-5 space-y-2">
                         {displayedTerms.map((term, i) => (
                             <li key={i}>{term}</li>
@@ -62,7 +62,7 @@ export function StepReview({
                 disabled={!termsAccepted || isLoading || isReadOnly}
                 className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${termsAccepted && !isReadOnly
                     ? 'bg-gradient-to-r from-accent to-purple-600 shadow-lg shadow-accent/20 hover:scale-[1.02] active:scale-[0.98]'
-                    : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                    : 'bg-gray-800 text-[#484848] cursor-not-allowed'
                     }`}
             >
                 {isLoading ? (

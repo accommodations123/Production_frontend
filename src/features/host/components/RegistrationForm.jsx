@@ -330,7 +330,7 @@ export default function HostOnboardingForm() {
               </svg>
             </div>
             <h3 className="text-2xl font-bold mb-3 text-gray-900">Application Submitted!</h3>
-            <p className="text-gray-600 mb-6">Your host application has been received and is under review. We'll notify you once it's approved.</p>
+            <p className="text-[#222222] mb-6">Your host application has been received and is under review. We'll notify you once it's approved.</p>
             <div className="flex justify-center">
               <div className="inline-flex items-center px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-medium">
                 <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -346,7 +346,7 @@ export default function HostOnboardingForm() {
       <div className="w-full max-w-none">
         <div className="pb-6 border-b border-gray-200">
           <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Become a Host</h1>
-          <p className="text-gray-600 mt-2 text-lg">Join our community and start hosting today</p>
+          <p className="text-[#222222] mt-2 text-lg">Join our community and start hosting today</p>
         </div>
 
           {/* Pending Status Overlay */}
@@ -399,14 +399,14 @@ export default function HostOnboardingForm() {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
-                  <p className="text-sm text-gray-600">Tell us about yourself</p>
+                  <p className="text-sm text-[#222222]">Tell us about yourself</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                   <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                    <svg className="h-4 w-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-4 w-4 mr-2 text-[#717171]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     Full Name
@@ -427,7 +427,7 @@ export default function HostOnboardingForm() {
                         }`}
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-5 w-5 text-[#717171]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
@@ -435,7 +435,7 @@ export default function HostOnboardingForm() {
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                    <svg className="h-4 w-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-4 w-4 mr-2 text-[#717171]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     Email
@@ -456,7 +456,7 @@ export default function HostOnboardingForm() {
                         }`}
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-5 w-5 text-[#717171]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
                     </div>
@@ -505,7 +505,7 @@ export default function HostOnboardingForm() {
                   </div>
                   <div className="ml-4">
                     <h3 className="text-lg font-semibold text-gray-900">Address Details</h3>
-                    <p className="text-sm text-gray-600">Where are you located?</p>
+                    <p className="text-sm text-[#222222]">Where are you located?</p>
                   </div>
                 </div>
               </div>
@@ -619,7 +619,7 @@ export default function HostOnboardingForm() {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-semibold text-gray-900">Social Media</h3>
-                  <p className="text-sm text-gray-600">Select the platforms you want to add</p>
+                  <p className="text-sm text-[#222222]">Select the platforms you want to add</p>
                 </div>
               </div>
 
@@ -631,9 +631,9 @@ export default function HostOnboardingForm() {
                   className={`flex flex-col items-center gap-2 transition-all transform hover:scale-110 ${activeSocials.whatsapp ? 'opacity-100' : 'opacity-40 hover:opacity-60'}`}
                 >
                   <div className={`p-4 rounded-full ${activeSocials.whatsapp ? 'bg-green-100 ring-2 ring-green-500' : 'bg-gray-200'}`}>
-                    <FaWhatsapp className={`w-8 h-8 ${activeSocials.whatsapp ? 'text-green-600' : 'text-gray-500'}`} />
+                    <FaWhatsapp className={`w-8 h-8 ${activeSocials.whatsapp ? 'text-green-600' : 'text-[#484848]'}`} />
                   </div>
-                  <span className={`text-xs font-medium ${activeSocials.whatsapp ? 'text-green-700' : 'text-gray-500'}`}>WhatsApp</span>
+                  <span className={`text-xs font-medium ${activeSocials.whatsapp ? 'text-green-700' : 'text-[#484848]'}`}>WhatsApp</span>
                 </button>
 
                 <button
@@ -642,9 +642,9 @@ export default function HostOnboardingForm() {
                   className={`flex flex-col items-center gap-2 transition-all transform hover:scale-110 ${activeSocials.facebook ? 'opacity-100' : 'opacity-40 hover:opacity-60'}`}
                 >
                   <div className={`p-4 rounded-full ${activeSocials.facebook ? 'bg-blue-100 ring-2 ring-blue-500' : 'bg-gray-200'}`}>
-                    <FaFacebook className={`w-8 h-8 ${activeSocials.facebook ? 'text-blue-600' : 'text-gray-500'}`} />
+                    <FaFacebook className={`w-8 h-8 ${activeSocials.facebook ? 'text-blue-600' : 'text-[#484848]'}`} />
                   </div>
-                  <span className={`text-xs font-medium ${activeSocials.facebook ? 'text-blue-700' : 'text-gray-500'}`}>Facebook</span>
+                  <span className={`text-xs font-medium ${activeSocials.facebook ? 'text-blue-700' : 'text-[#484848]'}`}>Facebook</span>
                 </button>
 
                 <button
@@ -653,9 +653,9 @@ export default function HostOnboardingForm() {
                   className={`flex flex-col items-center gap-2 transition-all transform hover:scale-110 ${activeSocials.instagram ? 'opacity-100' : 'opacity-40 hover:opacity-60'}`}
                 >
                   <div className={`p-4 rounded-full ${activeSocials.instagram ? 'bg-pink-100 ring-2 ring-pink-500' : 'bg-gray-200'}`}>
-                    <FaInstagram className={`w-8 h-8 ${activeSocials.instagram ? 'text-pink-600' : 'text-gray-500'}`} />
+                    <FaInstagram className={`w-8 h-8 ${activeSocials.instagram ? 'text-pink-600' : 'text-[#484848]'}`} />
                   </div>
-                  <span className={`text-xs font-medium ${activeSocials.instagram ? 'text-pink-700' : 'text-gray-500'}`}>Instagram</span>
+                  <span className={`text-xs font-medium ${activeSocials.instagram ? 'text-pink-700' : 'text-[#484848]'}`}>Instagram</span>
                 </button>
               </div>
 
@@ -726,7 +726,7 @@ export default function HostOnboardingForm() {
                 )}
 
                 {!activeSocials.whatsapp && !activeSocials.facebook && !activeSocials.instagram && (
-                  <p className="text-center text-sm text-gray-400 italic mt-4">Click an icon above to add a social link</p>
+                  <p className="text-center text-sm text-[#717171] italic mt-4">Click an icon above to add a social link</p>
                 )}
               </div>
             </div>

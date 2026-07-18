@@ -7,12 +7,12 @@ import { ContactForm } from "@/features/contact/components/ContactForm"
 
 export default function ContactPage() {
     return (
-        <main className="min-h-screen bg-[#00142E] text-[#D1CBB7] selection:bg-[#CB2A25]/30">
+        <main className="min-h-screen bg-[#00142E] text-[#D1CBB7] selection:bg-[#E1392A]/30">
             <>
 
             {/* Ambient Background Effects */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#CB2A25]/5 rounded-full blur-[100px]" />
+                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#E1392A]/5 rounded-full blur-[100px]" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#D1CBB7]/5 rounded-full blur-[100px]" />
             </div>
 

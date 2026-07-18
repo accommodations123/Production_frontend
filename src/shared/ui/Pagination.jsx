@@ -58,13 +58,13 @@ export function Pagination({ currentPage, totalPages, onPageChange, className })
                                 "h-9 w-9 rounded-full text-sm font-semibold",
                                 currentPage === page
                                     ? "bg-accent text-white hover:bg-accent/90 shadow-sm"
-                                    : "text-gray-600 hover:bg-gray-100"
+                                    : "text-[#222222] hover:bg-gray-100"
                             )}
                         >
                             {page}
                         </Button>
                     ) : (
-                        <span key={index} className="text-gray-400 px-1 text-sm">...</span>
+                        <span key={index} className="text-[#717171] px-1 text-sm">...</span>
                     )
                 ))}
             </div>

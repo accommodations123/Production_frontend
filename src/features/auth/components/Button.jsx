@@ -21,7 +21,7 @@ const Button = ({
         outline:
             'bg-transparent border border-blue-600 text-blue-600 hover:bg-blue-50',
         ghost:
-            'bg-transparent text-gray-600 hover:bg-gray-100 shadow-none',
+            'bg-transparent text-[#222222] hover:bg-gray-100 shadow-none',
     };
 
     return (

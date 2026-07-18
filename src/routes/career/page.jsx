@@ -169,15 +169,15 @@ export default function CareerPage() {
         <div className="space-y-5">
             {/* Search Input in Filters */}
             <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Search</label>
+                <label className="text-[10px] font-bold text-[#484848] uppercase tracking-widest">Search</label>
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#717171]" />
                     <input
                         type="text"
                         placeholder="Keyword, skill, title..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full h-10 pl-9 pr-4 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/5 outline-none transition-all text-xs font-semibold"
+                        className="w-full h-10 pl-9 pr-4 rounded-xl border border-gray-200 focus:border-[#E1392A] focus:ring-4 focus:ring-[#E1392A]/5 outline-none transition-all text-xs font-semibold"
                     />
                 </div>
             </div>
@@ -219,24 +219,24 @@ export default function CareerPage() {
                 <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Location</h4>
                 
                 <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase">State</label>
+                    <label className="text-[10px] font-bold text-[#484848] uppercase">State</label>
                     <input
                         type="text"
                         placeholder="e.g. Texas"
                         value={selectedFilters.state}
                         onChange={(e) => handleFilterTextChange('state', e.target.value)}
-                        className="w-full h-10 px-3.5 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/5 outline-none text-xs font-semibold"
+                        className="w-full h-10 px-3.5 rounded-xl border border-gray-200 focus:border-[#E1392A] focus:ring-4 focus:ring-[#E1392A]/5 outline-none text-xs font-semibold"
                     />
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase">City</label>
+                    <label className="text-[10px] font-bold text-[#484848] uppercase">City</label>
                     <input
                         type="text"
                         placeholder="e.g. Dallas"
                         value={selectedFilters.city}
                         onChange={(e) => handleFilterTextChange('city', e.target.value)}
-                        className="w-full h-10 px-3.5 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/5 outline-none text-xs font-semibold"
+                        className="w-full h-10 px-3.5 rounded-xl border border-gray-200 focus:border-[#E1392A] focus:ring-4 focus:ring-[#E1392A]/5 outline-none text-xs font-semibold"
                     />
                 </div>
             </div>
@@ -258,16 +258,16 @@ export default function CareerPage() {
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-28 space-y-5">
                             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
                                 <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
-                                    <Filter className="h-4.5 w-4.5 text-[#CB2A25]" />
+                                    <Filter className="h-4.5 w-4.5 text-[#E1392A]" />
                                     Filter Positions
                                     {activeFilterCount > 0 && (
-                                        <span className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1 rounded-full bg-[#CB2A25] text-white text-[10px] font-bold">
+                                        <span className="inline-flex items-center justify-center min-w-[20px] h-[20px] px-1 rounded-full bg-[#E1392A] text-white text-[10px] font-bold">
                                             {activeFilterCount}
                                         </span>
                                     )}
                                 </h3>
                                 {activeFilterCount > 0 && (
-                                    <button onClick={clearFilters} className="text-[11px] font-bold text-[#CB2A25] hover:underline">
+                                    <button onClick={clearFilters} className="text-[11px] font-bold text-[#E1392A] hover:underline">
                                         Clear All
                                     </button>
                                 )}
@@ -286,7 +286,7 @@ export default function CareerPage() {
                             <Filter className="h-4 w-4" />
                             Filters
                             {activeFilterCount > 0 && (
-                                <span className="ml-1 px-2 py-0.5 bg-[#CB2A25] text-white text-[10px] rounded-full font-bold">
+                                <span className="ml-1 px-2 py-0.5 bg-[#E1392A] text-white text-[10px] rounded-full font-bold">
                                     {activeFilterCount}
                                 </span>
                             )}
@@ -303,7 +303,7 @@ export default function CareerPage() {
 
                             {!isLoading && (
                                 <div className="flex items-center gap-3">
-                                    <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                                    <div className="flex items-center gap-1.5 text-xs font-semibold text-[#484848]">
                                         <span>Sort by:</span>
                                         <select
                                             value={selectedFilters.sort}
@@ -322,8 +322,8 @@ export default function CareerPage() {
                         {/* Loading Spinner */}
                         {isLoading && (
                             <div className="flex flex-col items-center justify-center py-20">
-                                <Loader2 className="h-8 w-8 text-[#CB2A25] animate-spin mb-4" />
-                                <p className="text-xs text-gray-400 font-semibold">Fetching NextKinLife job listings...</p>
+                                <Loader2 className="h-8 w-8 text-[#E1392A] animate-spin mb-4" />
+                                <p className="text-xs text-[#717171] font-semibold">Fetching NextKinLife job listings...</p>
                             </div>
                         )}
 
@@ -332,8 +332,8 @@ export default function CareerPage() {
                             <div className="text-center py-16 bg-white border border-gray-100 rounded-2xl p-6">
                                 <Building className="h-10 w-10 text-red-400 mx-auto mb-4" />
                                 <h3 className="text-base font-bold text-gray-900 mb-1">Failed to retrieve listings</h3>
-                                <p className="text-xs text-gray-500 mb-4">Please check your backend connection or refresh the page.</p>
-                                <Button onClick={() => refetch()} className="bg-[#CB2A25] hover:bg-[#b0221e] text-white text-xs font-bold h-9">
+                                <p className="text-xs text-[#484848] mb-4">Please check your backend connection or refresh the page.</p>
+                                <Button onClick={() => refetch()} className="bg-[#E1392A] hover:bg-[#b0221e] text-white text-xs font-bold h-9">
                                     Try Again
                                 </Button>
                             </div>
@@ -357,7 +357,7 @@ export default function CareerPage() {
                                     <div className="text-center py-20 bg-white border border-gray-100 rounded-2xl">
                                         <Search className="h-10 w-10 text-gray-300 mx-auto mb-4" />
                                         <h3 className="text-base font-bold text-gray-900 mb-1">No positions match your search</h3>
-                                        <p className="text-xs text-gray-500 max-w-sm mx-auto mb-6">
+                                        <p className="text-xs text-[#484848] max-w-sm mx-auto mb-6">
                                             Try adjusting filters or checking other locations.
                                         </p>
                                         {activeFilterCount > 0 && (
@@ -385,9 +385,9 @@ export default function CareerPage() {
 
                 {/* ═══════════════════ ABOUT SECTION ═══════════════════ */}
                 <section className="bg-gradient-to-br from-[#00142E] to-[#0A1C30] text-white p-6 sm:p-10 md:p-12 rounded-[2rem] my-16 shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#CB2A25]/15 rounded-full filter blur-3xl pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#E1392A]/15 rounded-full filter blur-3xl pointer-events-none" />
                     <div className="relative z-10 max-w-4xl">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-[#CB2A25] bg-white/5 px-3.5 py-1.5 rounded-full border border-white/10 mb-4 inline-block">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-[#E1392A] bg-white/5 px-3.5 py-1.5 rounded-full border border-white/10 mb-4 inline-block">
                             About NextKinLife Section
                         </span>
                         <h2 className="text-xl sm:text-2xl font-black mb-4 leading-tight">
@@ -405,11 +405,11 @@ export default function CareerPage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {BENEFITS.map((benefit, index) => (
                             <div key={index} className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-all duration-300">
-                                <div className="w-8 h-8 rounded-lg bg-red-50 text-[#CB2A25] flex items-center justify-center mb-3">
+                                <div className="w-8 h-8 rounded-lg bg-red-50 text-[#E1392A] flex items-center justify-center mb-3">
                                     <benefit.icon className="w-4.5 h-4.5" />
                                 </div>
                                 <h4 className="text-xs font-bold text-gray-900 mb-1">{benefit.title}</h4>
-                                <p className="text-[10px] text-gray-400 font-medium leading-relaxed">{benefit.desc}</p>
+                                <p className="text-[10px] text-[#717171] font-medium leading-relaxed">{benefit.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -437,11 +437,11 @@ export default function CareerPage() {
                             <div>
                                 <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-6">
                                     <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
-                                        <Filter className="h-4.5 w-4.5 text-[#CB2A25]" />
+                                        <Filter className="h-4.5 w-4.5 text-[#E1392A]" />
                                         Filter Positions
                                     </h3>
                                     <button onClick={() => setIsMobileFiltersOpen(false)} className="p-1 rounded-full hover:bg-gray-100">
-                                        <X className="h-4 w-4 text-gray-400" />
+                                        <X className="h-4 w-4 text-[#717171]" />
                                     </button>
                                 </div>
                                 {renderFilterContent()}

@@ -176,7 +176,7 @@ const Input = ({
     type={type}
     className={cn(
       "w-full h-9 sm:h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm",
-      "text-black caret-black placeholder:text-gray-400",
+      "text-black caret-black placeholder:text-[#717171]",
       "focus:outline-none focus:ring-2 focus:ring-indigo-500",
       className
     )}
@@ -198,7 +198,7 @@ const Textarea = ({
     rows={4}
     className={cn(
       "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm",
-      "text-black caret-black placeholder:text-gray-400",
+      "text-black caret-black placeholder:text-[#717171]",
       "focus:outline-none focus:ring-2 focus:ring-indigo-500",
       className
     )}
@@ -646,7 +646,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
         <h2 className="text-xl font-bold text-gray-900 mb-2">
           {isPending ? "Account Verification Pending" : "Host Access Required"}
         </h2>
-        <p className="text-gray-600 mb-6">
+        <p className="text-[#222222] mb-6">
           {isPending
             ? "Your host application is currently under review. You can list items once your account is approved."
             : "You need to be an approved host to list items for sale."
@@ -679,7 +679,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
       <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
         {isEditing ? "Update Listing" : "List an Item for Sale"}
       </h2>
-      <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
+      <p className="text-[#222222] mb-4 sm:mb-6 text-sm sm:text-base">
         {isEditing ? "Update your listing details" : "Share your items with community"}
       </p>
 
@@ -887,7 +887,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
 
           <Label>Price</Label>
           <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm min-w-[1rem] text-center">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#484848] font-bold text-sm min-w-[1rem] text-center">
               {(() => {
                 const cName = country ? (typeof country === 'string' ? country : country.name) : null;
                 const normalized = (cName === "United States" || cName === "United States of America") ? "United States of America" : cName;
@@ -1019,7 +1019,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-          <p className="text-xs text-gray-500 flex items-center gap-1">
+          <p className="text-xs text-[#484848] flex items-center gap-1">
             <Info size={12} /> Clear descriptions increase buyer trust
           </p>
         </div>

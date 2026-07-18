@@ -353,7 +353,7 @@ const filteredEventsDisplay = useMemo(() => {
               <Sparkles className="h-10 w-10 text-red-400" />
             </div>
             <h2 className="text-2xl font-bold text-[#00142E] mb-2">Unable to load events</h2>
-            <p className="text-gray-500 mb-6 max-w-sm text-sm">We couldn't connect to the server. Please check your internet connection and try again.</p>
+            <p className="text-[#484848] mb-6 max-w-sm text-sm">We couldn't connect to the server. Please check your internet connection and try again.</p>
             <button
               onClick={() => refetch()}
               className="px-6 py-2.5 bg-[#00142E] text-white font-semibold rounded-xl hover:bg-[#00142E]/90 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
@@ -404,7 +404,7 @@ const filteredEventsDisplay = useMemo(() => {
               <h2 className="text-2xl sm:text-3xl font-bold text-[#00142E] flex items-center gap-3">
                 <TrendingUp className="h-6 w-6 sm:h-7 sm:w-7 text-[#00142E]" />
                 Trending Events
-                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-[#CB2A25] animate-pulse" />
+                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-[#E1392A] animate-pulse" />
               </h2>
               <button
                 onClick={() => setActiveFilter("trending")}
@@ -418,16 +418,16 @@ const filteredEventsDisplay = useMemo(() => {
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <div className="w-12 h-12 border-4 border-[#00142E] border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 font-medium tracking-wide">Fetching amazing events...</p>
+                <p className="text-[#484848] font-medium tracking-wide">Fetching amazing events...</p>
               </div>
             ) : featuredEvents.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                  <TrendingUp className="h-8 w-8 text-gray-400" />
+                  <TrendingUp className="h-8 w-8 text-[#717171]" />
                 </div>
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-gray-700">No Trending Events</h3>
-                  <p className="text-gray-500 text-sm mt-1">Check back later for trending events in your area</p>
+                  <p className="text-[#484848] text-sm mt-1">Check back later for trending events in your area</p>
                 </div>
               </div>
             ) : (
@@ -455,11 +455,11 @@ const filteredEventsDisplay = useMemo(() => {
               {Object.values(eventsByCategory).every(arr => arr.length === 0) && !isLoading && (
                 <div className="flex flex-col items-center justify-center py-20 gap-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
                   <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
-                    <Sparkles className="h-10 w-10 text-gray-400" />
+                    <Sparkles className="h-10 w-10 text-[#717171]" />
                   </div>
                   <div className="text-center">
                     <h3 className="text-xl font-semibold text-gray-700">No Events Available</h3>
-                    <p className="text-gray-500 mt-2 max-w-md">There are no events in your selected region right now. Check back soon or try a different location.</p>
+                    <p className="text-[#484848] mt-2 max-w-md">There are no events in your selected region right now. Check back soon or try a different location.</p>
                   </div>
                 </div>
               )}
@@ -497,11 +497,11 @@ const filteredEventsDisplay = useMemo(() => {
             /* Premium Filter Empty State */
             <div className="flex flex-col items-center justify-center py-20 gap-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 my-8 animate-in fade-in duration-500">
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
-                <Sparkles className="h-10 w-10 text-gray-400 animate-pulse" />
+                <Sparkles className="h-10 w-10 text-[#717171] animate-pulse" />
               </div>
               <div className="text-center max-w-md px-4">
                 <h3 className="text-xl font-bold text-gray-700">No Events Found</h3>
-                <p className="text-gray-500 mt-2 text-sm leading-relaxed">
+                <p className="text-[#484848] mt-2 text-sm leading-relaxed">
                   We couldn't find any events matching your selected category, search query, or advanced filters. Try resetting your choices to discover more!
                 </p>
                 <button

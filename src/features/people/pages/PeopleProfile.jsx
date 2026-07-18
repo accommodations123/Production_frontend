@@ -77,13 +77,13 @@ export default function PeopleProfile() {
     <div className="bg-[#FAFBFD] min-h-screen flex flex-col justify-between">
 
 
-      <main className="flex-grow pt-16">
+      <main className="flex-grow">
 
         {/* Navigation back bar */}
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link
             to="/people"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#00142E] transition-all"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#484848] hover:text-[#00142E] transition-all"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Directory
           </Link>
@@ -135,24 +135,24 @@ export default function PeopleProfile() {
                     )}
                   </div>
 
-                  <p className="text-[#CB2A25] font-bold text-base leading-snug">
+                  <p className="text-[#E1392A] font-bold text-base leading-snug">
                     {person.profession}
                   </p>
 
-                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 text-xs text-slate-500 font-semibold pt-1">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 text-xs text-[#484848] font-semibold pt-1">
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
                       <span className="text-slate-800 font-bold">{person.rating.toFixed(2)}</span>
-                      <span className="text-slate-400">({person.reviewCount} client reviews)</span>
+                      <span className="text-[#717171]">({person.reviewCount} client reviews)</span>
                     </div>
                     <span>•</span>
                     <div className="flex items-center gap-1">
-                      <Award className="w-4 h-4 text-slate-400" />
+                      <Award className="w-4 h-4 text-[#717171]" />
                       <span>{person.experience} exp</span>
                     </div>
                     <span>•</span>
                     <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4 text-slate-400" />
+                      <MapPin className="w-4 h-4 text-[#717171]" />
                       <span>{person.city}, {person.country}</span>
                     </div>
                   </div>
@@ -165,7 +165,7 @@ export default function PeopleProfile() {
                 <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">
                   About Me & Philosophy
                 </h2>
-                <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+                <p className="text-[#222222] text-sm leading-relaxed whitespace-pre-line">
                   {person.bio}
                 </p>
               </div>
@@ -180,7 +180,7 @@ export default function PeopleProfile() {
                     <div key={idx} className={`pt-4 ${idx === 0 ? "pt-0" : ""} flex flex-col sm:flex-row items-start justify-between gap-4`}>
                       <div className="space-y-1">
                         <h3 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug">{srv.name}</h3>
-                        <p className="text-slate-500 text-xs sm:text-sm leading-relaxed">{srv.desc}</p>
+                        <p className="text-[#484848] text-xs sm:text-sm leading-relaxed">{srv.desc}</p>
                       </div>
                       <span className="text-slate-900 font-black text-sm sm:text-base whitespace-nowrap bg-slate-50 border border-slate-150 px-3 py-1.5 rounded-xl self-start sm:self-center">
                         Est. ${srv.price}
@@ -202,7 +202,7 @@ export default function PeopleProfile() {
                     {person.skills.map((skill, index) => (
                       <span
                         key={index}
-                        className="text-xs font-bold text-slate-600 bg-slate-50 border border-slate-150 px-3 py-1 rounded-xl"
+                        className="text-xs font-bold text-[#222222] bg-slate-50 border border-slate-150 px-3 py-1 rounded-xl"
                       >
                         {skill}
                       </span>
@@ -213,13 +213,13 @@ export default function PeopleProfile() {
                 {/* Languages list */}
                 <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.01)] space-y-3">
                   <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1">
-                    <Languages className="w-4 h-4 text-slate-400" /> Languages Spoken
+                    <Languages className="w-4 h-4 text-[#717171]" /> Languages Spoken
                   </h2>
                   <div className="flex flex-wrap gap-1.5">
                     {person.languages.map((lang, index) => (
                       <span
                         key={index}
-                        className="text-xs font-bold text-slate-600 bg-slate-50 border border-slate-150 px-3 py-1 rounded-xl"
+                        className="text-xs font-bold text-[#222222] bg-slate-50 border border-slate-150 px-3 py-1 rounded-xl"
                       >
                         {lang}
                       </span>
@@ -233,7 +233,7 @@ export default function PeopleProfile() {
               {person.portfolioImages && person.portfolioImages.length > 0 && (
                 <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.01)] space-y-4">
                   <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <Image className="w-4 h-4 text-slate-400" /> Portfolio & Resources
+                    <Image className="w-4 h-4 text-[#717171]" /> Portfolio & Resources
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {person.portfolioImages.map((img, idx) => (
@@ -259,11 +259,11 @@ export default function PeopleProfile() {
 
                 {/* Rate estimates info */}
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Consulting Hourly Rate</span>
+                  <span className="text-[10px] font-bold text-[#717171] uppercase tracking-wider block">Consulting Hourly Rate</span>
                   <div className="flex items-baseline text-[#00142E] font-black mt-1">
                     <span className="text-2xl font-bold">$</span>
                     <span className="text-4xl leading-none">{person.hourlyRate}</span>
-                    <span className="text-sm text-slate-400 font-bold ml-1">USD / hour</span>
+                    <span className="text-sm text-[#717171] font-bold ml-1">USD / hour</span>
                   </div>
                 </div>
 
@@ -271,10 +271,10 @@ export default function PeopleProfile() {
 
                 {/* Consultant Availability Indicator */}
                 <div className="flex items-center justify-between text-xs font-bold">
-                  <span className="text-slate-400 uppercase tracking-wider block">Advisor Availability</span>
+                  <span className="text-[#717171] uppercase tracking-wider block">Advisor Availability</span>
                   <span className={`px-2.5 py-0.5 rounded-lg border ${person.availability === "Available"
-                      ? "text-emerald-700 bg-emerald-50 border-emerald-100"
-                      : "text-amber-700 bg-amber-50 border-amber-100"
+                    ? "text-emerald-700 bg-emerald-50 border-emerald-100"
+                    : "text-amber-700 bg-amber-50 border-amber-100"
                     }`}>
                     {person.availability}
                   </span>
@@ -300,7 +300,7 @@ export default function PeopleProfile() {
                 </div>
 
                 {/* Disclaimers safety warnings */}
-                <p className="text-[10px] text-slate-400 leading-relaxed text-center font-medium">
+                <p className="text-[10px] text-[#717171] leading-relaxed text-center font-medium">
                   Facilitated directly via NextKinLife networks. Please ensure standard credentials reviews before contracting.
                 </p>
 
@@ -334,15 +334,15 @@ export default function PeopleProfile() {
                         <h4 className="font-extrabold text-slate-900 text-sm group-hover:text-[#00142E]">
                           {related.name}
                         </h4>
-                        <p className="text-[#CB2A25] font-bold text-[11px]">
+                        <p className="text-[#E1392A] font-bold text-[11px]">
                           {related.profession}
                         </p>
                       </div>
                     </div>
-                    <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">
+                    <p className="text-[#484848] text-xs line-clamp-2 leading-relaxed">
                       {related.bio}
                     </p>
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-400 mt-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-[#717171] mt-2">
                       <span className="text-slate-800">${related.hourlyRate} / hr</span>
                       <span className="flex items-center gap-0.5">
                         <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
@@ -359,7 +359,7 @@ export default function PeopleProfile() {
 
       </main>
 
-      <Footer />
+
     </div>
   );
 }

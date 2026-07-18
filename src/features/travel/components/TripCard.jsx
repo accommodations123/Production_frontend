@@ -60,7 +60,7 @@ const TripCard = React.memo(({ plan }) => {
         .join(" ");
 
     return (
-        <div className="group bg-white rounded-2xl border border-gray-200/80 hover:border-[#CB2A25]/25 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden">
+        <div className="group bg-white rounded-2xl border border-gray-200/80 hover:border-[#E1392A]/25 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden">
             {/* Flight Route Header — compact gradient banner */}
             <div className="relative bg-gradient-to-br from-[#00142E] to-[#0A2847] px-4 pt-4 pb-5 text-white">
                 {/* Wishlist top-right */}
@@ -70,8 +70,8 @@ const TripCard = React.memo(({ plan }) => {
                         itemType="trip"
                         className="h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-sm border border-white/15 bg-white/10 hover:bg-white group/btn"
                         iconSize={14}
-                        outlineColor="text-white/70 group-hover/btn:text-[#CB2A25]"
-                        filledColor="fill-[#CB2A25] text-[#CB2A25]"
+                        outlineColor="text-white/70 group-hover/btn:text-[#E1392A]"
+                        filledColor="fill-[#E1392A] text-[#E1392A]"
                     />
                 </div>
 
@@ -85,7 +85,7 @@ const TripCard = React.memo(({ plan }) => {
                             {fromCity}
                         </span>
                         {depTime && (
-                            <span className="text-[10px] text-[#CB2A25] font-semibold mt-0.5">
+                            <span className="text-[10px] text-[#E1392A] font-semibold mt-0.5">
                                 {depTime}
                             </span>
                         )}
@@ -100,7 +100,7 @@ const TripCard = React.memo(({ plan }) => {
                                 className="absolute -top-[5px] left-1/2 -translate-x-1/2 text-white/80 rotate-0"
                             />
                         </div>
-                        <div className="w-2 h-2 rounded-full bg-[#CB2A25]" />
+                        <div className="w-2 h-2 rounded-full bg-[#E1392A]" />
                     </div>
 
                     <div className="flex flex-col items-end min-w-0 flex-1 pr-10">
@@ -141,7 +141,7 @@ const TripCard = React.memo(({ plan }) => {
                             onError={() => setImageError(true)}
                         />
                     ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#CB2A25] to-[#E04642] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E1392A] to-[#E04642] flex items-center justify-center text-white font-bold text-sm shrink-0">
                             {plan.user.fullName?.[0] || "U"}
                         </div>
                     )}
@@ -151,12 +151,12 @@ const TripCard = React.memo(({ plan }) => {
                         </h3>
                         <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                             {plan.user.age && (
-                                <span className="text-[11px] text-gray-500 font-medium">
+                                <span className="text-[11px] text-[#484848] font-medium">
                                     {plan.user.age} yrs
                                 </span>
                             )}
                             {plan.user.gender && (
-                                <span className="text-[11px] text-gray-400">
+                                <span className="text-[11px] text-[#717171]">
                                     • {plan.user.gender}
                                 </span>
                             )}
@@ -173,7 +173,7 @@ const TripCard = React.memo(({ plan }) => {
                 {/* Destination */}
                 {plan.destination && (
                     <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
-                        <Globe size={14} className="text-[#CB2A25] shrink-0" />
+                        <Globe size={14} className="text-[#E1392A] shrink-0" />
                         <span className="text-xs font-semibold text-[#00142E] truncate">
                             {plan.destination}
                         </span>
@@ -192,7 +192,7 @@ const TripCard = React.memo(({ plan }) => {
                             </span>
                         ))}
                         {plan.user.languages.length > 3 && (
-                            <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">
+                            <span className="text-[10px] bg-gray-100 text-[#484848] px-2 py-0.5 rounded-full font-medium">
                                 +{plan.user.languages.length - 3}
                             </span>
                         )}
@@ -205,7 +205,7 @@ const TripCard = React.memo(({ plan }) => {
                         <div className="flex items-center gap-1.5 py-0.5">
                             <Calendar
                                 size={13}
-                                className="text-[#CB2A25] shrink-0"
+                                className="text-[#E1392A] shrink-0"
                             />
                             <span className="text-xs font-bold text-[#00142E]">
                                 {formattedDate}

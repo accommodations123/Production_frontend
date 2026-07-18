@@ -267,7 +267,7 @@ export default function RoomPage() {
                             </div>
                         </>
                     ) : (
-                        <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
+                        <div className="w-full h-full bg-slate-100 flex items-center justify-center text-[#717171]">
                             No photos available
                         </div>
                     )}
@@ -281,7 +281,7 @@ export default function RoomPage() {
                                 itemType="property"
                                 className="w-full h-full flex items-center justify-center"
                                 iconSize={16}
-                                outlineColor="text-gray-400"
+                                outlineColor="text-[#717171]"
                                 filledColor="fill-rose-500 text-rose-500"
                             />
                         </div>
@@ -316,7 +316,7 @@ export default function RoomPage() {
                                     <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mb-2">
                                         {listing.title}
                                     </h1>
-                                    <div className="flex items-center text-slate-500 text-base">
+                                    <div className="flex items-center text-[#484848] text-base">
                                         <MapPin className="w-4 h-4 mr-1.5 text-rose-500" />
                                         {listing.location.city}, {listing.location.country}
                                     </div>
@@ -361,10 +361,10 @@ export default function RoomPage() {
                                 <h3 className="font-bold text-lg text-slate-900">Hosted by {listing.host.name}</h3>
                                 <div className="flex items-center gap-1.5">
                                     <Tooltip content="Superhosts are experienced, highly rated hosts who are committed to providing great stays.">
-                                        <span className="text-slate-500 text-sm border-b border-dashed border-slate-300 cursor-help">Superhost</span>
+                                        <span className="text-[#484848] text-sm border-b border-dashed border-slate-300 cursor-help">Superhost</span>
                                     </Tooltip>
-                                    <span className="text-slate-400 text-sm">·</span>
-                                    <span className="text-slate-500 text-sm">Very responsive</span>
+                                    <span className="text-[#717171] text-sm">·</span>
+                                    <span className="text-[#484848] text-sm">Very responsive</span>
                                 </div>
                             </div>
                             <HostDetailSocials socials={listing.host.socials} />
@@ -376,7 +376,7 @@ export default function RoomPage() {
                                 <div key={i} className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center hover:shadow-sm transition-shadow">
                                     <h.icon className="w-6 h-6 text-slate-700 mb-2" />
                                     <span className="font-semibold text-slate-900">{h.text.split(' ')[0]}</span>
-                                    <span className="text-xs text-slate-500 uppercase tracking-wide">{h.label}</span>
+                                    <span className="text-xs text-[#484848] uppercase tracking-wide">{h.label}</span>
                                 </div>
                             ))}
                         </div>
@@ -384,7 +384,7 @@ export default function RoomPage() {
                         {/* Description */}
                         <div className="space-y-4">
                             <h2 className="text-2xl font-bold text-slate-900">About this place</h2>
-                            <p className="text-slate-600 leading-relaxed whitespace-pre-wrap text-lg">
+                            <p className="text-[#222222] leading-relaxed whitespace-pre-wrap text-lg">
                                 {listing.description}
                             </p>
                         </div>
@@ -395,7 +395,7 @@ export default function RoomPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {listing.amenities.slice(0, 10).map((am, i) => (
                                     <div key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
-                                        <am.icon className="w-6 h-6 text-slate-500" />
+                                        <am.icon className="w-6 h-6 text-[#484848]" />
                                         <span className="text-slate-700">{am.name}</span>
                                     </div>
                                 ))}
@@ -430,7 +430,7 @@ export default function RoomPage() {
                                     </a>
                                 </div>
                             </div>
-                            <div className="mt-4 text-slate-500 text-sm flex items-start gap-2">
+                            <div className="mt-4 text-[#484848] text-sm flex items-start gap-2">
                                 <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
                                 <p>{listing.location.city}, {listing.location.country}. Exact location provided after booking.</p>
                             </div>
@@ -447,7 +447,7 @@ export default function RoomPage() {
                                         <div className="flex items-baseline justify-between border-b border-slate-50 pb-2 last:border-0 last:pb-0">
                                             <div className="flex items-baseline gap-1">
                                                 <span className="text-3xl font-bold text-slate-900">{formatPrice(listing.price.nightly, listing.price.currency)}</span>
-                                                <span className="text-slate-500 font-medium">/ night</span>
+                                                <span className="text-[#484848] font-medium">/ night</span>
                                             </div>
                                         </div>
                                     )}
@@ -458,7 +458,7 @@ export default function RoomPage() {
                                                 <span className={`${listing.price.nightly > 0 ? 'text-xl text-slate-700' : 'text-3xl text-slate-900'} font-bold`}>
                                                     {formatPrice(listing.price.hourly, listing.price.currency)}
                                                 </span>
-                                                <span className="text-slate-500 font-medium">/ hour</span>
+                                                <span className="text-[#484848] font-medium">/ hour</span>
                                             </div>
                                         </div>
                                     )}
@@ -469,7 +469,7 @@ export default function RoomPage() {
                                                 <span className={`${(listing.price.nightly > 0 || listing.price.hourly > 0) ? 'text-xl text-slate-700' : 'text-3xl text-slate-900'} font-bold`}>
                                                     {formatPrice(listing.price.monthly, listing.price.currency)}
                                                 </span>
-                                                <span className="text-slate-500 font-medium">/ month</span>
+                                                <span className="text-[#484848] font-medium">/ month</span>
                                             </div>
                                         </div>
                                     )}
@@ -480,16 +480,16 @@ export default function RoomPage() {
                                     <div className="grid grid-cols-1 border border-slate-200 rounded-xl overflow-hidden">
                                         <div className="p-3 bg-white hover:bg-slate-50 transition-colors cursor-pointer flex justify-between items-center group">
                                             <div>
-                                                <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Guests</div>
+                                                <div className="text-[10px] uppercase font-bold text-[#484848] tracking-wider">Guests</div>
                                                 <div className="text-sm font-medium text-slate-900 mt-0.5">{listing.highlights.find(h => h.label === 'Capacity')?.text || '1 Guest'}</div>
                                             </div>
-                                            <Users className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                                            <Users className="w-4 h-4 text-slate-300 group-hover:text-[#484848] transition-colors" />
                                         </div>
                                     </div>
 
 
 
-                                    <p className="text-center text-xs text-slate-400 mt-4">
+                                    <p className="text-center text-xs text-[#717171] mt-4">
                                         You won't be charged yet
                                     </p>
                                 </div>
@@ -532,7 +532,7 @@ export default function RoomPage() {
                                 <h3 className="text-xl font-bold text-gray-900">What this place offers</h3>
                                 <button
                                     onClick={() => setIsAmenitiesOpen(false)}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500 hover:text-gray-900"
+                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors text-[#484848] hover:text-gray-900"
                                 >
                                     <X className="w-6 h-6" />
                                 </button>
@@ -545,7 +545,7 @@ export default function RoomPage() {
                                             {listing.amenities.map((am, i) => (
                                                 <div key={i} className="flex items-center gap-4 py-2 border-b border-gray-50 last:border-0">
                                                     <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
-                                                        <am.icon className="w-5 h-5 text-gray-600" />
+                                                        <am.icon className="w-5 h-5 text-[#222222]" />
                                                     </div>
                                                     <span className="text-gray-700 font-medium">{am.name}</span>
                                                 </div>

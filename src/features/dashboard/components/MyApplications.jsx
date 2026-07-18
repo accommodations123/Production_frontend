@@ -102,8 +102,8 @@ export function MyApplications() {
       accessorKey: "job.location",
       header: "Location",
       cell: ({ row }) => (
-        <div className="flex items-center gap-1.5 text-gray-500 font-medium">
-          <MapPin className="w-3.5 h-3.5 text-gray-400" />
+        <div className="flex items-center gap-1.5 text-[#484848] font-medium">
+          <MapPin className="w-3.5 h-3.5 text-[#717171]" />
           <span>{row.original.job?.location || "Remote"}</span>
         </div>
       )
@@ -112,7 +112,7 @@ export function MyApplications() {
       accessorKey: "createdAt",
       header: "Applied On",
       cell: ({ row }) => (
-        <span className="text-gray-600 font-semibold text-xs">{formatDate(row.original.createdAt)}</span>
+        <span className="text-[#222222] font-semibold text-xs">{formatDate(row.original.createdAt)}</span>
       )
     },
     {
@@ -125,7 +125,7 @@ export function MyApplications() {
       header: "Actions",
       cell: ({ row }) => (
         <Link to={`/career?job=${row.original.job?.id}`}>
-          <Button variant="ghost" size="sm" className="text-xs font-bold text-[#CB2A25] hover:text-[#CB2A25]/80 hover:bg-[#CB2A25]/5 flex items-center gap-1.5 px-3 py-1.5 rounded-xl">
+          <Button variant="ghost" size="sm" className="text-xs font-bold text-[#E1392A] hover:text-[#E1392A]/80 hover:bg-[#E1392A]/5 flex items-center gap-1.5 px-3 py-1.5 rounded-xl">
             View Job <ChevronRight className="w-3.5 h-3.5" />
           </Button>
         </Link>
@@ -184,7 +184,7 @@ export function MyApplications() {
         <div className="space-y-1.5">
           <span className="text-xs font-bold text-indigo-600 tracking-wider uppercase block">Careers Tracker 💼</span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">My Applications</h1>
-          <p className="text-xs sm:text-sm text-gray-500 max-w-lg leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#484848] max-w-lg leading-relaxed">
             Monitor the recruitment stage, interview invitations, and status of your active job applications.
           </p>
         </div>
@@ -215,7 +215,7 @@ export function MyApplications() {
                   {table.getHeaderGroups().map(headerGroup => (
                     <tr key={headerGroup.id} className="border-b border-gray-100 bg-gray-50/50">
                       {headerGroup.headers.map(header => (
-                        <th key={header.id} className="px-6 py-4 text-xs font-extrabold text-gray-400 uppercase tracking-wider">
+                        <th key={header.id} className="px-6 py-4 text-xs font-extrabold text-[#717171] uppercase tracking-wider">
                           {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -266,7 +266,7 @@ export function MyApplications() {
                         <h3 className="font-extrabold text-gray-900 text-base leading-snug">
                           {app.job?.title || "Job Position"}
                         </h3>
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-gray-400 font-medium">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-[#717171] font-medium">
                           <span className="flex items-center gap-1">
                             <Building className="w-3.5 h-3.5" />
                             {app.job?.company || "Company"}
@@ -283,7 +283,7 @@ export function MyApplications() {
                     {/* Applied Date & Status */}
                     <div className="flex items-center justify-between pt-2 border-t border-gray-50">
                       <div>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Applied On</p>
+                        <p className="text-[10px] text-[#717171] font-bold uppercase tracking-wider">Applied On</p>
                         <p className="text-xs font-bold text-gray-700 mt-0.5">
                           {formatDate(app.createdAt)}
                         </p>
@@ -307,7 +307,7 @@ export function MyApplications() {
                                 "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black transition-all border",
                                 isCompleted 
                                   ? "bg-indigo-600 border-indigo-600 text-white shadow-sm" 
-                                  : "bg-white border-gray-200 text-gray-400"
+                                  : "bg-white border-gray-200 text-[#717171]"
                               )}>
                                 {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : idx + 1}
                               </div>
@@ -326,7 +326,7 @@ export function MyApplications() {
                             {/* Stepper Label */}
                             <span className={cn(
                               "text-[10px] font-bold capitalize leading-tight",
-                              isCurrent ? "text-indigo-600" : isCompleted ? "text-gray-700" : "text-gray-400"
+                              isCurrent ? "text-indigo-600" : isCompleted ? "text-gray-700" : "text-[#717171]"
                             )}>
                               {stage}
                             </span>

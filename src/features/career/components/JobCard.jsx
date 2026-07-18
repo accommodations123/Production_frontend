@@ -48,7 +48,7 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
     }, [job?.positionType, job?.type]);
 
     return (
-        <div className="group relative bg-white rounded-3xl border border-gray-100 hover:border-[#CB2A25]/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-[350px] overflow-hidden">
+        <div className="group relative bg-white rounded-3xl border border-gray-100 hover:border-[#E1392A]/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-[350px] overflow-hidden">
             <div className="p-4 flex-1 flex flex-col gap-2 min-w-0 min-h-0">
                 {/* Title and Top Metas */}
                 <div className="flex items-start gap-4">
@@ -56,12 +56,12 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
                         {companyInitial}
                     </div>
                     <div className="min-w-0 flex-1">
-                        <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#CB2A25] transition-colors duration-200" title={job?.title || 'Senior Developer'}>
+                        <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#E1392A] transition-colors duration-200" title={job?.title || 'Senior Developer'}>
                             {job?.title || 'Senior Developer'}
                         </h3>
                         
                         {/* Client & Vendor details */}
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-gray-500 font-medium">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-[#484848] font-medium">
                             {job?.clientName && (
                                 <>
                                     <span className="text-gray-900">Client: {job.clientName}</span>
@@ -88,7 +88,7 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
 
                     {/* Visa Eligibility Badges */}
                     {visaList.map((visa, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded bg-gray-50 text-gray-600 text-[11px] font-semibold border border-gray-200">
+                        <span key={idx} className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded bg-gray-50 text-[#222222] text-[11px] font-semibold border border-gray-200">
                             <ShieldCheck className="h-3 w-3 text-emerald-500" />
                             {visa}
                         </span>
@@ -96,17 +96,17 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
                 </div>
 
                 {/* Structured Metadata Grid */}
-                <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 py-3 border-t border-b border-gray-50 mb-4 text-xs font-medium text-gray-600">
+                <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 py-3 border-t border-b border-gray-50 mb-4 text-xs font-medium text-[#222222]">
                     <div className="flex items-center gap-2 min-w-0">
-                        <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
+                        <MapPin className="h-4 w-4 text-[#717171] shrink-0" />
                         <span className="truncate">{job?.location || 'Remote'}</span>
                     </div>
                     <div className="flex items-center gap-2 min-w-0">
-                        <Briefcase className="h-4 w-4 text-gray-400 shrink-0" />
+                        <Briefcase className="h-4 w-4 text-[#717171] shrink-0" />
                         <span className="truncate">{job?.experience || '8+ Years'}</span>
                     </div>
                     <div className="flex items-center gap-2 min-w-0">
-                        <Clock className="h-4 w-4 text-gray-400 shrink-0" />
+                        <Clock className="h-4 w-4 text-[#717171] shrink-0" />
                         <span className="truncate">{job?.duration || '12+ Months'}</span>
                     </div>
                     <div className="flex items-center gap-2 min-w-0">
@@ -119,12 +119,12 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
                 {Array.isArray(job?.skills) && job.skills.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
                         {job.skills.slice(0, 3).map((skill, idx) => (
-                            <span key={idx} className="px-2 py-0.5 rounded bg-[#CB2A25]/5 text-[#CB2A25] text-[10px] font-medium border border-[#CB2A25]/10">
+                            <span key={idx} className="px-2 py-0.5 rounded bg-[#E1392A]/5 text-[#E1392A] text-[10px] font-medium border border-[#E1392A]/10">
                                 {skill}
                             </span>
                         ))}
                         {job.skills.length > 3 && (
-                            <span className="px-2 py-0.5 rounded bg-gray-50 text-gray-500 text-[10px] font-medium">
+                            <span className="px-2 py-0.5 rounded bg-gray-50 text-[#484848] text-[10px] font-medium">
                                 +{job.skills.length - 3} more
                             </span>
                         )}
@@ -134,7 +134,7 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
 
             {/* Footer Buttons */}
             <div className="px-5 border-t border-gray-50 flex items-center justify-between bg-gray-50/50 h-[60px] shrink-0">
-                <span className="text-[10px] text-gray-400 flex items-center gap-1 font-semibold">
+                <span className="text-[10px] text-[#717171] flex items-center gap-1 font-semibold">
                     <Calendar className="h-3 w-3" />
                     {job?.posted || '2 Days Ago'}
                 </span>
@@ -149,7 +149,7 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
                     </Button>
                     <Button
                         onClick={() => onApply?.(job)}
-                        className="flex-1 xs:flex-initial h-8 text-[11px] font-bold px-3.5 bg-[#CB2A25] hover:bg-[#b0221e] text-white rounded-lg shadow-sm hover:shadow transition-all"
+                        className="flex-1 xs:flex-initial h-8 text-[11px] font-bold px-3.5 bg-[#E1392A] hover:bg-[#b0221e] text-white rounded-lg shadow-sm hover:shadow transition-all"
                     >
                         Apply Now
                     </Button>

@@ -14,7 +14,7 @@ export const EventNotFound = memo(() => (
                     <Calendar className="h-10 w-10 text-white" />
                 </div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-4 text-center">Event Not Found</h1>
-                <p className="text-gray-600 mb-8 text-center">The event you are looking for does not exist or has been removed.</p>
+                <p className="text-[#222222] mb-8 text-center">The event you are looking for does not exist or has been removed.</p>
                 <Link to="/events" className="block">
                     <Button className="w-full bg-accent text-white hover:bg-accent/90 transition-all duration-300 shadow-xl transform hover:scale-105 rounded-2xl">
                         Back to Events

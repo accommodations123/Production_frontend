@@ -5,7 +5,7 @@ const TabButton = memo(({ tab, activeTab, onClick }) => (
         onClick={() => onClick(tab)}
         className={`flex-1 min-w-[100px] px-4 py-3 rounded-2xl font-medium capitalize transition-all duration-300 relative ${activeTab === tab
             ? 'text-white bg-accent shadow-lg transform scale-105'
-            : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+            : 'text-[#222222] hover:text-gray-900 hover:bg-white/50'
             }`}
     >
         {tab}

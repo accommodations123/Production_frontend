@@ -17,7 +17,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                         </div>
                     </div>
                     <div className="p-6 md:p-8">
-                        <p className="text-gray-600 mb-8 text-lg leading-relaxed">
+                        <p className="text-[#222222] mb-8 text-lg leading-relaxed">
                             This event will be hosted online. You can join from anywhere in the world using the link provided after registration.
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -26,14 +26,14 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                                     <Video className="h-6 w-6 text-white" />
                                 </div>
                                 <p className="font-semibold text-gray-900">Platform</p>
-                                <p className="text-gray-600 text-sm">{event.event_url ? new URL(event.event_url).hostname : 'Online Platform'}</p>
+                                <p className="text-[#222222] text-sm">{event.event_url ? new URL(event.event_url).hostname : 'Online Platform'}</p>
                             </div>
                             <div className="group bg-gradient-to-b from-gray-50 to-gray-100 rounded-2xl p-4 border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-105">
                                 <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                     <Wifi className="h-6 w-6 text-white" />
                                 </div>
                                 <p className="font-semibold text-gray-900">Requirements</p>
-                                <p className="text-gray-600 text-sm">Stable internet connection</p>
+                                <p className="text-[#222222] text-sm">Stable internet connection</p>
                             </div>
                         </div>
                         <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-100">
@@ -62,7 +62,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                         </div>
                     </div>
                     <div className="p-6 md:p-8">
-                        <p className="text-gray-600 mb-8 text-lg leading-relaxed">
+                        <p className="text-[#222222] mb-8 text-lg leading-relaxed">
                             This event offers both in-person and online attendance options. Choose what works best for you!
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -72,7 +72,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                                     In-Person Location
                                 </h3>
                                 <p className="text-gray-700 mb-4">{event.venueName || event.location}</p>
-                                <p className="text-gray-600 text-sm mb-4">{event.address}</p>
+                                <p className="text-[#222222] text-sm mb-4">{event.address}</p>
                                 <Button
                                     onClick={() => window.open(event.googleMapsUrl, '_blank')}
                                     className="w-full bg-accent text-white hover:bg-accent/90 transition-all duration-300 transform hover:scale-105 shadow-xl rounded-2xl"
@@ -87,7 +87,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                                 </h3>
                                 <p className="text-gray-700 mb-4">Join from anywhere in the world</p>
                                 {event.event_url && (
-                                    <p className="text-gray-600 text-sm mb-4 truncate">{event.event_url}</p>
+                                    <p className="text-[#222222] text-sm mb-4 truncate">{event.event_url}</p>
                                 )}
                                 <Button
                                     onClick={() => event.event_url && window.open(event.event_url.trim(), '_blank')}
@@ -116,7 +116,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
             <section className={`bg-gradient-to-b from-white to-gray-50 rounded-3xl shadow-xl overflow-hidden animate-section transition-all duration-700 ${visibleSections.has('venue') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                 <div className="relative h-64 md:h-80">
                     <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                        <MapPin className="h-20 w-20 text-gray-400" />
+                        <MapPin className="h-20 w-20 text-[#717171]" />
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 bg-accent/80 h-32"></div>
                     <div className="absolute bottom-4 left-4 right-4">
@@ -124,7 +124,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                     </div>
                 </div>
                 <div className="p-6 md:p-8">
-                    <p className="text-gray-600 mb-8 text-lg leading-relaxed">
+                    <p className="text-[#222222] mb-8 text-lg leading-relaxed">
                         {event.venueDescription}
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -133,7 +133,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                                 <MapPin className="h-6 w-6 text-white" />
                             </div>
                             <p className="font-semibold text-gray-900">Address</p>
-                            <p className="text-gray-600 text-sm">{event.address}</p>
+                            <p className="text-[#222222] text-sm">{event.address}</p>
                         </div>
                         {event.parkingInfo && (
                             <div className="group bg-gradient-to-b from-gray-50 to-gray-100 rounded-2xl p-4 border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-105">
@@ -141,7 +141,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                                     <Car className="h-6 w-6 text-white" />
                                 </div>
                                 <p className="font-semibold text-gray-900">Parking</p>
-                                <p className="text-gray-600 text-sm">{event.parkingInfo}</p>
+                                <p className="text-[#222222] text-sm">{event.parkingInfo}</p>
                             </div>
                         )}
                         {event.accessibilityInfo && (
@@ -150,7 +150,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                                     <Navigation className="h-6 w-6 text-white" />
                                 </div>
                                 <p className="font-semibold text-gray-900">Accessibility</p>
-                                <p className="text-gray-600 text-sm">{event.accessibilityInfo}</p>
+                                <p className="text-[#222222] text-sm">{event.accessibilityInfo}</p>
                             </div>
                         )}
                     </div>
@@ -174,7 +174,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                         </div>
                         <div>
                             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Venue Features</h2>
-                            <p className="text-gray-500 text-sm mt-1">Everything you need for a successful event</p>
+                            <p className="text-[#484848] text-sm mt-1">Everything you need for a successful event</p>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

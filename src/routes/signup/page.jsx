@@ -114,12 +114,12 @@ const Signup = () => {
 
                         <div className="md:hidden mb-6 text-center">
                             <h2 className="text-2xl font-bold text-gray-900">Sign Up</h2>
-                            <p className="text-gray-500">Create your account to get started</p>
+                            <p className="text-[#484848]">Create your account to get started</p>
                         </div>
 
                         <div className="hidden md:block mb-8 text-center">
                             <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
-                            <p className="text-gray-500">Enter your details below to get started</p>
+                            <p className="text-[#484848]">Enter your details below to get started</p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
@@ -193,7 +193,7 @@ const Signup = () => {
                             </Button>
 
                             <div className="text-center mt-8">
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-[#484848]">
                                     Already have an account?{' '}
                                     <Link
                                         to="/signin"

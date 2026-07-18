@@ -51,11 +51,11 @@ const MatchFinder = ({ trip, onClose }) => {
             <Users className="w-4.5 h-4.5 text-blue-500" />
             Find Travel Partners
           </h4>
-          <p className="text-xs text-gray-500">Travelers flying on a similar route or date</p>
+          <p className="text-xs text-[#484848]">Travelers flying on a similar route or date</p>
         </div>
         <button
           onClick={onClose}
-          className="text-xs font-bold text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-xl transition-all"
+          className="text-xs font-bold text-[#484848] hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-xl transition-all"
         >
           Close Matcher
         </button>
@@ -64,7 +64,7 @@ const MatchFinder = ({ trip, onClose }) => {
       {isFetching ? (
         <div className="flex flex-col items-center justify-center p-8 space-y-3">
           <Loader2 className="animate-spin text-blue-600 w-7 h-7" />
-          <p className="text-xs text-gray-500 font-semibold">Searching for companions...</p>
+          <p className="text-xs text-[#484848] font-semibold">Searching for companions...</p>
         </div>
       ) : searchResults?.results?.length > 0 ? (
         <div className="space-y-3">
@@ -80,7 +80,7 @@ const MatchFinder = ({ trip, onClose }) => {
                     <p className="font-extrabold text-gray-900 group-hover:text-blue-600 transition-colors text-sm">
                       {match.host?.full_name || "Traveler"}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
+                    <div className="flex items-center gap-2 text-xs text-[#717171] mt-0.5">
                       <span className="font-bold">{match.airline || "Airline"}</span>
                       <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                       <span>Flight {match.flight_number || "TBD"}</span>
@@ -107,17 +107,17 @@ const MatchFinder = ({ trip, onClose }) => {
             ))}
           {searchResults.results.filter(t => t.id !== trip.id).length === 0 && (
             <div className="text-center py-8 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-              <p className="text-gray-500 font-bold text-xs">No matching travelers found right now.</p>
-              <p className="text-[10px] text-gray-400 mt-0.5">Check back closer to your travel date.</p>
+              <p className="text-[#484848] font-bold text-xs">No matching travelers found right now.</p>
+              <p className="text-[10px] text-[#717171] mt-0.5">Check back closer to your travel date.</p>
             </div>
           )}
         </div>
       ) : (
         <div className="text-center py-8 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2.5 text-gray-400">
+          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2.5 text-[#717171]">
             <Users className="w-5 h-5" />
           </div>
-          <p className="text-gray-600 font-bold text-xs">No companion matches found for this route.</p>
+          <p className="text-[#222222] font-bold text-xs">No companion matches found for this route.</p>
         </div>
       )}
     </div>
@@ -184,7 +184,7 @@ export const Trips = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] py-16">
         <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-        <p className="text-sm text-gray-500 font-medium animate-pulse">Loading your journeys...</p>
+        <p className="text-sm text-[#484848] font-medium animate-pulse">Loading your journeys...</p>
       </div>
     );
   }
@@ -209,7 +209,7 @@ export const Trips = () => {
         <div className="space-y-1.5">
           <span className="text-xs font-bold text-emerald-600 tracking-wider uppercase block">Your Adventures ✈️</span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Your Journeys</h1>
-          <p className="text-xs sm:text-sm text-gray-500 max-w-lg leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#484848] max-w-lg leading-relaxed">
             Manage your trips, view travel itineraries, and connect with verified travel companions.
           </p>
         </div>
@@ -228,7 +228,7 @@ export const Trips = () => {
           {/* Incoming Connections */}
           {incomingRequests.length > 0 && (
             <div className="space-y-3">
-              <h4 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider pl-1">Incoming Travel Requests</h4>
+              <h4 className="text-xs font-extrabold text-[#717171] uppercase tracking-wider pl-1">Incoming Travel Requests</h4>
               <div className="grid gap-4 sm:grid-cols-2">
                 {incomingRequests.map(match => (
                   <div key={match.id} className="bg-white p-4.5 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between group">
@@ -238,7 +238,7 @@ export const Trips = () => {
                       </div>
                       <div>
                         <p className="font-extrabold text-gray-900 text-sm">{match.sender_host?.full_name || match.user?.full_name || "Traveler"}</p>
-                        <p className="text-[10px] text-gray-400">Wants to match on trip to {match.tripDetails?.to_city}</p>
+                        <p className="text-[10px] text-[#717171]">Wants to match on trip to {match.tripDetails?.to_city}</p>
                       </div>
                     </div>
                     <div className="flex gap-1.5 shrink-0">
@@ -266,12 +266,12 @@ export const Trips = () => {
           {/* Sent Connections */}
           {sentRequests.length > 0 && (
             <div className="space-y-3">
-              <h4 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider pl-1">Sent Requests Waiting</h4>
+              <h4 className="text-xs font-extrabold text-[#717171] uppercase tracking-wider pl-1">Sent Requests Waiting</h4>
               <div className="grid gap-4 sm:grid-cols-2">
                 {sentRequests.map(match => (
                   <div key={match.id} className="bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center font-bold text-gray-400 text-base">
+                      <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center font-bold text-[#717171] text-base">
                         {(match.receiver_host?.full_name?.[0] || match.host?.full_name?.[0] || "C")}
                       </div>
                       <div>
@@ -305,7 +305,7 @@ export const Trips = () => {
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold text-gray-900">Plan Your Next Trip</h3>
-              <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+              <p className="text-sm text-[#484848] max-w-sm mx-auto leading-relaxed">
                 Connect with travel partners, match flight details, and share your upcoming travel itineraries.
               </p>
             </div>
@@ -330,14 +330,14 @@ export const Trips = () => {
                     <div className="flex-1 w-full flex items-center justify-between md:justify-start gap-4 sm:gap-8">
                       {/* From */}
                       <div>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Origin</span>
+                        <span className="text-[10px] font-bold text-[#717171] uppercase tracking-wider">Origin</span>
                         <h3 className="text-xl font-black text-gray-900 mt-0.5">{trip.from_city}</h3>
-                        <p className="text-xs text-gray-500 font-medium">{trip.from_country}</p>
+                        <p className="text-xs text-[#484848] font-medium">{trip.from_country}</p>
                       </div>
 
                       {/* Route Line graphic */}
                       <div className="flex-1 max-w-[200px] flex flex-col items-center gap-1.5">
-                        <div className="flex items-center gap-1 bg-gray-50 border border-gray-100 px-3 py-1 rounded-full text-[10px] font-bold text-gray-500 font-mono">
+                        <div className="flex items-center gap-1 bg-gray-50 border border-gray-100 px-3 py-1 rounded-full text-[10px] font-bold text-[#484848] font-mono">
                           <span>{trip.airline}</span>
                           <span className="text-gray-300">•</span>
                           <span>{trip.flight_number}</span>
@@ -349,14 +349,14 @@ export const Trips = () => {
                           </div>
                         </div>
 
-                        <span className="text-[9px] text-gray-400 font-extrabold uppercase tracking-widest mt-1">Flight Itinerary</span>
+                        <span className="text-[9px] text-[#717171] font-extrabold uppercase tracking-widest mt-1">Flight Itinerary</span>
                       </div>
 
                       {/* To */}
                       <div className="text-right">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Destination</span>
+                        <span className="text-[10px] font-bold text-[#717171] uppercase tracking-wider">Destination</span>
                         <h3 className="text-xl font-black text-gray-900 mt-0.5">{trip.to_city}</h3>
-                        <p className="text-xs text-gray-500 font-medium">{trip.to_country}</p>
+                        <p className="text-xs text-[#484848] font-medium">{trip.to_country}</p>
                       </div>
                     </div>
 

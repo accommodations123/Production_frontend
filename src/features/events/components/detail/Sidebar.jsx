@@ -81,9 +81,9 @@ export const Sidebar = memo(({ event }) => {
                     </div>
                     <div>
                         <p className="font-bold text-gray-900 text-lg">{event?.host?.full_name || "Host"}</p>
-                        <p className="text-sm text-gray-500">Event Organizer</p>
-                        {event?.host?.phone && <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">📱 {event.host.phone}</p>}
-                        {event?.host?.email && <p className="text-sm text-gray-600 truncate">✉️ {event.host.email}</p>}
+                        <p className="text-sm text-[#484848]">Event Organizer</p>
+                        {event?.host?.phone && <p className="text-sm text-[#222222] mt-1 flex items-center gap-2">📱 {event.host.phone}</p>}
+                        {event?.host?.email && <p className="text-sm text-[#222222] truncate">✉️ {event.host.email}</p>}
                     </div>
                 </div>
 
@@ -107,7 +107,7 @@ export const Sidebar = memo(({ event }) => {
                         </div>
                     </div>
                 )}
-                <p className="text-sm text-gray-600 mb-6 text-center">{event?.attendeesCount || 0} people attending</p>
+                <p className="text-sm text-[#222222] mb-6 text-center">{event?.attendeesCount || 0} people attending</p>
                 <Button
                     onClick={handleInviteFriends}
                     className="w-full gap-2 bg-accent text-white hover:bg-accent/90 transition-all duration-300 transform hover:scale-105 shadow-lg rounded-2xl"
@@ -123,11 +123,11 @@ export const Sidebar = memo(({ event }) => {
                     } flex items-center justify-center`}>
                     {event.event_mode === 'online' ? <Video className="h-16 w-16 text-blue-600" /> :
                         event.event_mode === 'hybrid' ? <Monitor className="h-16 w-16 text-purple-600" /> :
-                            <MapPin className="h-16 w-16 text-gray-600" />}
+                            <MapPin className="h-16 w-16 text-[#222222]" />}
                 </div>
                 <div className="p-6">
                     <h3 className="font-bold text-gray-900 mb-2 capitalize">{event.event_mode} Event</h3>
-                    <p className="text-gray-600 text-sm mb-4">
+                    <p className="text-[#222222] text-sm mb-4">
                         {event.event_mode === 'online' ? 'Join from anywhere in the world' :
                             event.event_mode === 'hybrid' ? 'In-person and online options available' :
                                 'Held at the venue location'}

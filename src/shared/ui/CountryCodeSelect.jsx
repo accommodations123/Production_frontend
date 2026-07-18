@@ -54,7 +54,7 @@ export const CountryCodeSelect = ({ value, onChange, className, isoCode }) => {
                         </span>
                     </div>
                 )}
-                <ChevronDown className={cn("w-4 h-4 text-gray-500 shrink-0 transition-transform", isOpen && "rotate-180")} />
+                <ChevronDown className={cn("w-4 h-4 text-[#484848] shrink-0 transition-transform", isOpen && "rotate-180")} />
             </button>
 
             <AnimatePresence>

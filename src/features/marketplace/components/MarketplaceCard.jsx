@@ -50,7 +50,7 @@ export const MarketplaceCard = React.memo(({ product, onClick }) => {
     if (clean.includes("fair")) {
       return "bg-amber-50 text-amber-700 border border-amber-100/50";
     }
-    return "bg-gray-50 text-gray-600 border border-gray-150";
+    return "bg-gray-50 text-[#222222] border border-gray-150";
   };
 
   const handleCardClick = () => {
@@ -99,8 +99,8 @@ export const MarketplaceCard = React.memo(({ product, onClick }) => {
             itemType="buysell"
             className="h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-sm border border-white/20 bg-black/20 hover:bg-white group"
             iconSize={14}
-            outlineColor="text-white group-hover:text-[#CB2A25]"
-            filledColor="fill-[#CB2A25] text-[#CB2A25]"
+            outlineColor="text-white group-hover:text-[#E1392A]"
+            filledColor="fill-[#E1392A] text-[#E1392A]"
           />
         </div>
       </div>
@@ -108,7 +108,7 @@ export const MarketplaceCard = React.memo(({ product, onClick }) => {
       {/* Content Section */}
       <div className="flex flex-1 flex-col p-5">        {/* Title & Price Row */}
         <div className="flex justify-between items-start gap-2 min-w-0">
-          <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-1 text-[#00142E] group-hover:text-[#CB2A25] transition-colors" title={product.title}>
+          <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-1 text-[#00142E] group-hover:text-[#E1392A] transition-colors" title={product.title}>
             {product.title}
           </h3>
           <span className="font-bold text-[#00142E] text-sm sm:text-base whitespace-nowrap shrink-0">
@@ -117,8 +117,8 @@ export const MarketplaceCard = React.memo(({ product, onClick }) => {
         </div>
 
         {/* Location Row */}
-        <div className="flex items-center gap-1.5 text-gray-400 text-xs font-semibold">
-          <MapPin className="w-3.5 h-3.5 shrink-0 text-gray-400" />
+        <div className="flex items-center gap-1.5 text-[#717171] text-xs font-semibold">
+          <MapPin className="w-3.5 h-3.5 shrink-0 text-[#717171]" />
           <span className="truncate">
             {product.location || [product.city, product.state, product.country].filter(Boolean).join(", ") || "Location not specified"}
           </span>

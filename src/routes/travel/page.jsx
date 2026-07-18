@@ -335,7 +335,7 @@ export default function TravelPage() {
                 <h1 className="text-base sm:text-lg font-bold text-[#00142E] leading-tight">
                   Travel Partners
                 </h1>
-                <p className="text-[10px] sm:text-xs text-gray-500 font-medium hidden sm:block">
+                <p className="text-[10px] sm:text-xs text-[#484848] font-medium hidden sm:block">
                   Find co-travelers on your flight path
                 </p>
               </div>
@@ -355,7 +355,7 @@ export default function TravelPage() {
                 onClick={() => setShowModal(true)}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-lg shadow-[#CB2A25]/25 hover:shadow-[#CB2A25]/40 transition-all duration-300 cursor-pointer bg-gradient-to-r from-[#CB2A25] to-[#E04642]"
+                className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-lg shadow-[#E1392A]/25 hover:shadow-[#E1392A]/40 transition-all duration-300 cursor-pointer bg-gradient-to-r from-[#E1392A] to-[#E04642]"
               >
                 <Plane className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Post Your Trip</span>
@@ -396,10 +396,10 @@ export default function TravelPage() {
                     <Plane size={28} className="text-gray-300" />
                   </div>
                   <h3 className="text-lg sm:text-xl font-bold text-[#00142E] mb-1.5">No travelers found</h3>
-                  <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">Try adjusting your filters or be the first to post a trip!</p>
+                  <p className="text-sm text-[#484848] mb-6 max-w-sm mx-auto">Try adjusting your filters or be the first to post a trip!</p>
                   <button
                     onClick={() => setShowModal(true)}
-                    className="px-6 py-2.5 rounded-xl font-bold text-sm text-white shadow-lg cursor-pointer bg-gradient-to-r from-[#CB2A25] to-[#E04642] hover:shadow-xl transition-all"
+                    className="px-6 py-2.5 rounded-xl font-bold text-sm text-white shadow-lg cursor-pointer bg-gradient-to-r from-[#E1392A] to-[#E04642] hover:shadow-xl transition-all"
                   >
                     Post a New Trip
                   </button>

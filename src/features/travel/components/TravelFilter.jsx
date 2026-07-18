@@ -128,13 +128,13 @@ export default function TravelFilter({
                         {/* Search */}
                         <div className="flex-1 min-w-0 relative">
                             <Search
-                                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#717171]"
                                 size={16}
                             />
                             <input
                                 type="text"
                                 placeholder="Search traveler, airline, city..."
-                                className="w-full pl-10 pr-4 h-10 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#CB2A25]/30 focus:bg-white focus:ring-4 focus:ring-[#CB2A25]/5 outline-none transition-all font-medium text-sm text-[#00142E] placeholder:text-gray-400"
+                                className="w-full pl-10 pr-4 h-10 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#E1392A]/30 focus:bg-white focus:ring-4 focus:ring-[#E1392A]/5 outline-none transition-all font-medium text-sm text-[#00142E] placeholder:text-[#717171]"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -145,7 +145,7 @@ export default function TravelFilter({
                             <button
                                 type="button"
                                 onClick={() => setIsCountryOpen(!isCountryOpen)}
-                                className="w-full h-10 px-3.5 rounded-xl bg-gray-50 border border-gray-200 hover:border-[#CB2A25]/30 focus:border-[#CB2A25]/30 focus:bg-white focus:ring-4 focus:ring-[#CB2A25]/5 outline-none transition-all font-medium text-sm text-[#00142E] flex items-center justify-between gap-2"
+                                className="w-full h-10 px-3.5 rounded-xl bg-gray-50 border border-gray-200 hover:border-[#E1392A]/30 focus:border-[#E1392A]/30 focus:bg-white focus:ring-4 focus:ring-[#E1392A]/5 outline-none transition-all font-medium text-sm text-[#00142E] flex items-center justify-between gap-2"
                             >
 
                                     <div className="flex items-center gap-3">
@@ -218,7 +218,7 @@ export default function TravelFilter({
                                                 <div className="relative">
 
                                                     <Search
-                                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]"
                                                         size={14}
                                                     />
 
@@ -315,8 +315,8 @@ export default function TravelFilter({
                                 onClick={() => setIsCityOpen(!isCityOpen)}
                                 className={`w-full h-10 px-3.5 rounded-xl border transition-all font-medium text-sm flex items-center justify-between gap-2 ${
                                     !filters.country
-                                        ? "bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed text-gray-400"
-                                        : "bg-gray-50 border-gray-200 hover:border-[#CB2A25]/30 focus:border-[#CB2A25]/30 focus:bg-white focus:ring-4 focus:ring-[#CB2A25]/5 text-[#00142E]"
+                                        ? "bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed text-[#717171]"
+                                        : "bg-gray-50 border-gray-200 hover:border-[#E1392A]/30 focus:border-[#E1392A]/30 focus:bg-white focus:ring-4 focus:ring-[#E1392A]/5 text-[#00142E]"
                                 }`}
                             >
                                     <div className="flex items-center gap-3">
@@ -364,7 +364,7 @@ export default function TravelFilter({
                                             <div className="p-3 border-b border-gray-100">
                                                 <div className="relative">
                                                     <Search
-                                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]"
                                                         size={14}
                                                     />
                                                     <input
@@ -413,7 +413,7 @@ export default function TravelFilter({
                                                         </button>
                                                     ))
                                                 ) : (
-                                                    <div className="px-4 py-3 text-sm text-gray-400 italic text-center">
+                                                    <div className="px-4 py-3 text-sm text-[#717171] italic text-center">
                                                         No cities found
                                                     </div>
                                                 )}

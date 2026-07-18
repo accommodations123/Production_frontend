@@ -31,7 +31,7 @@ export default function WishlistPage() {
             return (
                 <div className="flex flex-col items-center justify-center min-h-[400px]">
                     <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                    <p className="text-gray-500 mt-4 animate-pulse">Loading your favourites...</p>
+                    <p className="text-[#484848] mt-4 animate-pulse">Loading your favourites...</p>
                 </div>
             );
         }
@@ -43,7 +43,7 @@ export default function WishlistPage() {
                         <Heart className="w-10 h-10 text-gray-300" />
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">No favourites yet</h3>
-                    <p className="text-gray-500 max-w-sm mb-8">
+                    <p className="text-[#484848] max-w-sm mb-8">
                         Start exploring and save items you love to create your personal collection.
                     </p>
                     <Link to="/" className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl">
@@ -230,7 +230,7 @@ export default function WishlistPage() {
                         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
                             Your Wishlist <Heart className="text-red-500 fill-red-500" />
                         </h1>
-                        <p className="text-gray-500">Manage and view all your saved items in one place</p>
+                        <p className="text-[#484848]">Manage and view all your saved items in one place</p>
                     </div>
                 </div>
 
@@ -245,10 +245,10 @@ export default function WishlistPage() {
                                 onClick={() => { setActiveTab(tab.id); setPage(1); }}
                                 className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-300 border ${isActive
                                     ? 'bg-black text-white border-black shadow-lg transform scale-105'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                                    : 'bg-white text-[#222222] border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                                     }`}
                             >
-                                <Icon size={16} className={isActive ? 'text-red-400' : 'text-gray-400'} />
+                                <Icon size={16} className={isActive ? 'text-red-400' : 'text-[#717171]'} />
                                 {tab.label}
                             </button>
                         );
@@ -268,7 +268,7 @@ export default function WishlistPage() {
                         >
                             Previous
                         </button>
-                        <span className="flex items-center font-bold text-gray-500">
+                        <span className="flex items-center font-bold text-[#484848]">
                             Page {page} of {data.pagination.totalPages}
                         </span>
                         <button

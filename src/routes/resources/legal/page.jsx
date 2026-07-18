@@ -53,7 +53,7 @@ export default function LegalPage() {
                                         }}
                                         className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${activeCountry.id === guide.id
                                             ? 'bg-[#00142E] text-white shadow-md'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                            : 'bg-gray-100 text-[#222222] hover:bg-gray-200'
                                             }`}
                                     >
                                         {guide.country}
@@ -66,11 +66,11 @@ export default function LegalPage() {
                                 {activeCountry.types.map((type, idx) => (
                                     <div key={idx} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                                         <h3 className="font-bold text-[#00142E] text-lg mb-2">{type.name}</h3>
-                                        <p className="text-sm text-gray-600 mb-4">{type.description}</p>
+                                        <p className="text-sm text-[#222222] mb-4">{type.description}</p>
                                         <ul className="space-y-2">
                                             {type.details?.map((detail, i) => (
                                                 <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                                                    <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#CB2A25] flex-shrink-0" />
+                                                    <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#E1392A] flex-shrink-0" />
                                                     <span>{detail}</span>
                                                 </li>
                                             ))}
@@ -87,11 +87,11 @@ export default function LegalPage() {
                                         <h3 className="font-bold text-[#00142E] flex items-center gap-2">
                                             <FileText className="h-5 w-5" /> Document Checklist: {activeCountry.country}
                                         </h3>
-                                        <span className="text-sm font-bold text-[#CB2A25]">{completedCount} of {totalCount} completed</span>
+                                        <span className="text-sm font-bold text-[#E1392A]">{completedCount} of {totalCount} completed</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                                         <div
-                                            className="bg-[#CB2A25] h-2.5 rounded-full transition-all duration-500 ease-out"
+                                            className="bg-[#E1392A] h-2.5 rounded-full transition-all duration-500 ease-out"
                                             style={{ width: `${progressPercentage}%` }}
                                         ></div>
                                     </div>
@@ -105,11 +105,11 @@ export default function LegalPage() {
                                             onClick={() => handleCheck(item)}
                                             className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
                                         >
-                                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${checkedItems[item] ? 'bg-[#CB2A25] border-[#CB2A25]' : 'border-gray-300 group-hover:border-[#CB2A25]'
+                                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${checkedItems[item] ? 'bg-[#E1392A] border-[#E1392A]' : 'border-gray-300 group-hover:border-[#E1392A]'
                                                 }`}>
                                                 {checkedItems[item] && <CheckCircle className="h-3.5 w-3.5 text-white" />}
                                             </div>
-                                            <span className={`text-sm font-medium transition-colors ${checkedItems[item] ? 'text-gray-400 line-through' : 'text-gray-700'
+                                            <span className={`text-sm font-medium transition-colors ${checkedItems[item] ? 'text-[#717171] line-through' : 'text-gray-700'
                                                 }`}>
                                                 {item}
                                             </span>
@@ -132,11 +132,11 @@ export default function LegalPage() {
                                             className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
                                         >
                                             <span className="font-bold text-[#00142E]">{right.title}</span>
-                                            <ChevronDown className={`h-5 w-5 text-gray-500 transition-transform ${expandedRight === right.id ? 'rotate-180' : ''}`} />
+                                            <ChevronDown className={`h-5 w-5 text-[#484848] transition-transform ${expandedRight === right.id ? 'rotate-180' : ''}`} />
                                         </button>
                                         {expandedRight === right.id && (
                                             <div className="p-4 bg-white border-t border-gray-200">
-                                                <p className="text-gray-600 mb-4 leading-relaxed">{right.content}</p>
+                                                <p className="text-[#222222] mb-4 leading-relaxed">{right.content}</p>
                                                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                                                     <h4 className="text-sm font-bold text-[#00142E] mb-2 uppercase tracking-wide">Key Takeaways</h4>
                                                     <ul className="space-y-2">
@@ -161,14 +161,14 @@ export default function LegalPage() {
 
                         {/* Fraud Warning */}
                         <div className="bg-red-50 border border-red-100 rounded-xl p-6">
-                            <div className="flex items-center gap-2 text-[#CB2A25] mb-3">
+                            <div className="flex items-center gap-2 text-[#E1392A] mb-3">
                                 <AlertTriangle className="h-5 w-5" />
                                 <h3 className="font-bold">Immigration Fraud</h3>
                             </div>
                             <p className="text-sm text-gray-700 mb-4">
                                 Avoid "guaranteed visa" agents. Only official government websites and accredited lawyers can provide legal immigration advice.
                             </p>
-                            <Button variant="destructive" className="w-full bg-[#CB2A25] hover:bg-[#a82f26]">
+                            <Button variant="destructive" className="w-full bg-[#E1392A] hover:bg-[#C82E20]">
                                 Report a Scam
                             </Button>
                         </div>
@@ -176,20 +176,20 @@ export default function LegalPage() {
                         {/* Official Resources */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                             <h3 className="font-bold text-[#00142E] mb-4 flex items-center gap-2">
-                                <ShieldCheck className="h-5 w-5 text-gray-500" /> Official Portals
+                                <ShieldCheck className="h-5 w-5 text-[#484848]" /> Official Portals
                             </h3>
                              <div className="space-y-3">
                                 <a href="#" className="block p-3 rounded-lg bg-gray-50 hover:bg-brand-50 transition-colors border border-gray-100 group">
-                                    <span className="block font-semibold text-[#00142E] text-sm group-hover:text-[#CB2A25]">USCIS (USA)</span>
-                                    <span className="text-xs text-gray-500">Official US Immigration Site</span>
+                                    <span className="block font-semibold text-[#00142E] text-sm group-hover:text-[#E1392A]">USCIS (USA)</span>
+                                    <span className="text-xs text-[#484848]">Official US Immigration Site</span>
                                 </a>
                                 <a href="#" className="block p-3 rounded-lg bg-gray-50 hover:bg-brand-50 transition-colors border border-gray-100 group">
-                                    <span className="block font-semibold text-[#00142E] text-sm group-hover:text-[#CB2A25]">GOV.UK (UK)</span>
-                                    <span className="text-xs text-gray-500">UK Visas and Immigration</span>
+                                    <span className="block font-semibold text-[#00142E] text-sm group-hover:text-[#E1392A]">GOV.UK (UK)</span>
+                                    <span className="text-xs text-[#484848]">UK Visas and Immigration</span>
                                 </a>
                                 <a href="#" className="block p-3 rounded-lg bg-gray-50 hover:bg-brand-50 transition-colors border border-gray-100 group">
-                                    <span className="block font-semibold text-[#00142E] text-sm group-hover:text-[#CB2A25]">IRCC (Canada)</span>
-                                    <span className="text-xs text-gray-500">Immigration, Refugees Canada</span>
+                                    <span className="block font-semibold text-[#00142E] text-sm group-hover:text-[#E1392A]">IRCC (Canada)</span>
+                                    <span className="text-xs text-[#484848]">Immigration, Refugees Canada</span>
                                 </a>
                             </div>
                         </div>

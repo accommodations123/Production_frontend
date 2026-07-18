@@ -30,7 +30,7 @@ export const EventsHero = memo(({ totalEvents, searchQuery, setSearchQuery, feat
 
 
                         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#00142E] mb-6 leading-[1.1] tracking-tight">
-                            Discover Amazing <span className="text-[#CB2A25]">Events</span>
+                            Discover Amazing <span className="text-[#E1392A]">Events</span>
                         </h1>
 
                         <p className="text-[#00142E]/70 text-base md:text-lg max-w-xl mb-8 font-medium leading-relaxed">
@@ -51,7 +51,7 @@ export const EventsHero = memo(({ totalEvents, searchQuery, setSearchQuery, feat
 
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start mb-6 sm:mb-8">
                             <Link to={hostPath}>
-                                <Button className="h-12 px-6 sm:px-8 bg-[#CB2A25] hover:bg-[#CB2A25]/90 text-white rounded-xl font-medium shadow-lg shadow-[#00142E]/20 flex items-center gap-2 transform hover:scale-105 transition-all duration-300 text-sm sm:text-base">
+                                <Button className="h-12 px-6 sm:px-8 bg-[#E1392A] hover:bg-[#E1392A]/90 text-white rounded-xl font-medium shadow-lg shadow-[#00142E]/20 flex items-center gap-2 transform hover:scale-105 transition-all duration-300 text-sm sm:text-base">
                                     <Plus className="h-5 w-5" />
                                     Host an Event
                                 </Button>

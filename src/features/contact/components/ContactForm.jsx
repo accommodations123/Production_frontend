@@ -79,14 +79,14 @@ export function ContactForm() {
 
     return (
         <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#CB2A25]/20 via-[#0A1C30]/20 to-[#D1CBB7]/20 rounded-3xl blur-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#E1392A]/20 via-[#0A1C30]/20 to-[#D1CBB7]/20 rounded-3xl blur-3xl" />
             <div className="relative bg-white/10 backdrop-blur-xl p-8 md:p-12 rounded-3xl shadow-2xl border border-white/20">
                 {/* Header Section */}
                 <div className="mb-10">
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="inline-flex items-center gap-2 bg-[#CB2A25]/10 backdrop-blur-sm border border-[#CB2A25]/20 rounded-full px-4 py-2 mb-6"
+                        className="inline-flex items-center gap-2 bg-[#E1392A]/10 backdrop-blur-sm border border-[#E1392A]/20 rounded-full px-4 py-2 mb-6"
                     >
                         <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
                         <span className="text-sm text-white/90 font-medium">We respond within 24 hours</span>
@@ -135,7 +135,7 @@ export function ContactForm() {
                             {/* Personal Information Section */}
                             <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                    <User className="h-5 w-5 text-[#CB2A25]" />
+                                    <User className="h-5 w-5 text-[#E1392A]" />
                                     Personal Information
                                 </h3>
                                 <div className="grid md:grid-cols-2 gap-5">
@@ -229,10 +229,10 @@ export function ContactForm() {
                                 <motion.div
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="flex items-center gap-3 p-4 bg-[#CB2A25]/10 border border-[#CB2A25]/20 rounded-xl"
+                                    className="flex items-center gap-3 p-4 bg-[#E1392A]/10 border border-[#E1392A]/20 rounded-xl"
                                 >
-                                    <AlertCircle className="h-5 w-5 text-[#CB2A25] shrink-0" />
-                                    <p className="text-sm text-[#CB2A25]">{error}</p>
+                                    <AlertCircle className="h-5 w-5 text-[#E1392A] shrink-0" />
+                                    <p className="text-sm text-[#E1392A]">{error}</p>
                                 </motion.div>
                             )}
 
@@ -242,11 +242,11 @@ export function ContactForm() {
                                     label={
                                         <>
                                             I agree to the{" "}
-                                            <a href="#" className="text-[#CB2A25] hover:text-[#CB2A25]/80 underline">
+                                            <a href="#" className="text-[#E1392A] hover:text-[#E1392A]/80 underline">
                                                 Privacy Policy
                                             </a>{" "}
                                             and{" "}
-                                            <a href="#" className="text-[#CB2A25] hover:text-[#CB2A25]/80 underline">
+                                            <a href="#" className="text-[#E1392A] hover:text-[#E1392A]/80 underline">
                                                 Terms of Service
                                             </a>
                                         </>
@@ -257,7 +257,7 @@ export function ContactForm() {
                                 <Button
                                     type="submit"
                                     disabled={sending}
-                                    className="group relative px-8 py-3 bg-[#CB2A25] hover:bg-[#a82220] text-white font-semibold rounded-xl shadow-lg shadow-[#CB2A25]/25 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shrink-0"
+                                    className="group relative px-8 py-3 bg-[#E1392A] hover:bg-[#a82220] text-white font-semibold rounded-xl shadow-lg shadow-[#E1392A]/25 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shrink-0"
                                 >
                                     <span className="flex items-center gap-2">
                                         {sending ? (

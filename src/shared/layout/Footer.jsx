@@ -62,7 +62,7 @@ export default function Footer() {
                             <li>
                                 <Link
                                     to="/help"
-                                    className="text-[15px] text-[#4B4B4B] hover:text-[#222222]"
+                                    className="text-[15px] text-[#222222] hover:underline hover:underline"
                                 >
                                     Help Center
                                 </Link>
@@ -72,7 +72,7 @@ export default function Footer() {
                             <li>
                                 <Link
                                     to="/trust"
-                                    className="text-[15px] text-[#4B4B4B] hover:text-[#222222]"
+                                    className="text-[15px] text-[#222222] hover:underline hover:underline"
                                 >
                                     Trust & Safety
                                 </Link>
@@ -81,7 +81,7 @@ export default function Footer() {
                             <li>
                                 <Link
                                     to="/community-guidelines"
-                                    className="text-[15px] text-[#4B4B4B] hover:text-[#222222]"
+                                    className="text-[15px] text-[#222222] hover:underline hover:underline"
                                 >
                                     Community Guidelines
                                 </Link>
@@ -90,7 +90,7 @@ export default function Footer() {
                             <li>
                                 <Link
                                     to="/contact"
-                                    className="text-[15px] text-[#4B4B4B] hover:text-[#222222]"
+                                    className="text-[15px] text-[#222222] hover:underline hover:underline"
                                 >
                                     Contact Support
                                 </Link>
@@ -112,7 +112,7 @@ export default function Footer() {
                             <li>
                                 <Link
                                     to="/host"
-                                    className="text-[15px] text-[#4B4B4B] hover:text-[#222222]"
+                                    className="text-[15px] text-[#222222] hover:underline hover:underline"
                                 >
                                     Become a Host
                                 </Link>
@@ -121,7 +121,7 @@ export default function Footer() {
                             <li>
                                 <Link
                                     to="/travel"
-                                    className="text-[15px] text-[#4B4B4B] hover:text-[#222222]"
+                                    className="text-[15px] text-[#222222] hover:underline hover:underline"
                                 >
                                     Travel Partners
                                 </Link>
@@ -130,7 +130,7 @@ export default function Footer() {
                             <li>
                                 <Link
                                     to="/events"
-                                    className="text-[15px] text-[#4B4B4B] hover:text-[#222222]"
+                                    className="text-[15px] text-[#222222] hover:underline hover:underline"
                                 >
                                     Host Events
                                 </Link>
@@ -139,7 +139,7 @@ export default function Footer() {
                             <li>
                                 <Link
                                     to="/marketplace"
-                                    className="text-[15px] text-[#4B4B4B] hover:text-[#222222]"
+                                    className="text-[15px] text-[#222222] hover:underline hover:underline"
                                 >
                                     Sell on Marketplace
                                 </Link>
@@ -162,7 +162,7 @@ export default function Footer() {
                             <li>
                                 <Link
                                     to="/about"
-                                    className="text-[15px] text-[#4B4B4B] hover:text-[#222222]"
+                                    className="text-[15px] text-[#222222] hover:underline hover:underline"
                                 >
                                     About Us
                                 </Link>
@@ -171,7 +171,7 @@ export default function Footer() {
                             <li>
                                 <Link
                                     to="/career"
-                                    className="text-[15px] text-[#4B4B4B] hover:text-[#222222]"
+                                    className="text-[15px] text-[#222222] hover:underline hover:underline"
                                 >
                                     Careers
                                 </Link>
@@ -180,7 +180,7 @@ export default function Footer() {
                             <li>
                                 <Link
                                     to="/privacy"
-                                    className="text-[15px] text-[#4B4B4B] hover:text-[#222222]"
+                                    className="text-[15px] text-[#222222] hover:underline hover:underline"
                                 >
                                     Privacy
                                 </Link>
@@ -189,7 +189,7 @@ export default function Footer() {
                             <li>
                                 <Link
                                     to="/terms"
-                                    className="text-[15px] text-[#4B4B4B] hover:text-[#222222]"
+                                    className="text-[15px] text-[#222222] hover:underline hover:underline"
                                 >
                                     Terms
                                 </Link>
@@ -203,7 +203,7 @@ export default function Footer() {
 
                 {/* Bottom */}
 
-                <div className="flex flex-col gap-5 pt-6 text-[14px] text-[#6A6A6A] lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col gap-5 pt-6 text-[14px] text-[#222222] lg:flex-row lg:items-center lg:justify-between">
 
                     <div className="flex flex-wrap items-center gap-3">
 
@@ -215,7 +215,7 @@ export default function Footer() {
 
                         <Link
                             to="/privacy"
-                            className="hover:text-[#222222]"
+                            className="hover:underline"
                         >
                             Privacy
                         </Link>
@@ -224,7 +224,7 @@ export default function Footer() {
 
                         <Link
                             to="/terms"
-                            className="hover:text-[#222222]"
+                            className="hover:underline"
                         >
                             Terms
                         </Link>
@@ -233,7 +233,7 @@ export default function Footer() {
 
                         <Link
                             to="/company"
-                            className="hover:text-[#222222]"
+                            className="hover:underline"
                         >
                             Company details
                         </Link>
@@ -242,7 +242,7 @@ export default function Footer() {
 
                     <div className="flex flex-wrap items-center gap-5">
 
-                        <button className="flex items-center gap-2 hover:text-[#222222]">
+                        <button className="flex items-center gap-2 hover:underline">
                             <Globe size={18} strokeWidth={1.75} />
                             English (IN)
                         </button>
@@ -256,7 +256,7 @@ export default function Footer() {
                                     href={social.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="hover:text-[#222222]"
+                                    className="hover:underline"
                                 >
                                     <social.icon size={18} strokeWidth={1.75} />
                                 </a>

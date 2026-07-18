@@ -29,7 +29,7 @@ export const EventsSection = memo(({ category, events, visibleSections, onViewDe
                     {events.map((event) => (
                         <div key={event.id} className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                             <h3 className="text-sm font-semibold text-gray-900">{event.title}</h3>
-                            <p className="text-xs text-gray-500">{event.city ? `${event.city}, ${event.country || ""}` : event.location || "Location TBA"}</p>
+                            <p className="text-xs text-[#484848]">{event.city ? `${event.city}, ${event.country || ""}` : event.location || "Location TBA"}</p>
                         </div>
                     ))}
                 </div>

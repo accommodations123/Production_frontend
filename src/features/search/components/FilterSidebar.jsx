@@ -123,7 +123,7 @@ export function FilterSidebar({ filters, onFilterChange, distinctValues = {}, cl
                                 checked={(filters.category || []).includes(cat)}
                                 onChange={() => handleCheckbox('category', cat)}
                             />
-                            <span className="text-sm text-gray-600 group-hover:text-gray-900">{cat}</span>
+                            <span className="text-sm text-[#222222] group-hover:text-gray-900">{cat}</span>
                         </label>
                     ))}
                 </div>

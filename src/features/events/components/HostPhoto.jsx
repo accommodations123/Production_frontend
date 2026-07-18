@@ -72,7 +72,7 @@ export const HostPhoto = React.memo(({ host }) => {
                 </>
             ) : (
                 <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-sm font-bold text-gray-600">{initialLetter}</span>
+                    <span className="text-sm font-bold text-[#222222]">{initialLetter}</span>
                 </div>
             )}
         </div>

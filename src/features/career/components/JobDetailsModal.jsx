@@ -71,12 +71,12 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
         if (isHtml(cleanDesc)) {
             return (
                 <div
-                    className="prose prose-red max-w-none text-gray-600 text-sm leading-relaxed w-full break-words"
+                    className="prose prose-red max-w-none text-[#222222] text-sm leading-relaxed w-full break-words"
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(cleanDesc || "") }}
                 />
             );
         }
-        return <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line w-full break-words">{cleanDesc}</p>;
+        return <p className="text-[#222222] text-sm leading-relaxed whitespace-pre-line w-full break-words">{cleanDesc}</p>;
     };
 
     return (
@@ -103,7 +103,7 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                         {/* Close button */}
                         <button
                             onClick={onClose}
-                            className="absolute top-5 right-5 p-2 rounded-full hover:bg-gray-100 transition-all z-[100] cursor-pointer text-gray-400 hover:text-gray-950 group"
+                            className="absolute top-5 right-5 p-2 rounded-full hover:bg-gray-100 transition-all z-[100] cursor-pointer text-[#717171] hover:text-gray-950 group"
                             aria-label="Close modal"
                             type="button"
                         >
@@ -119,7 +119,7 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-wrap gap-2 mb-2">
-                                            <span className="px-2.5 py-0.5 rounded bg-[#CB2A25]/10 text-[#CB2A25] text-[11px] font-bold uppercase tracking-wider">
+                                            <span className="px-2.5 py-0.5 rounded bg-[#E1392A]/10 text-[#E1392A] text-[11px] font-bold uppercase tracking-wider">
                                                 {job.positionType || job.type || 'C2C'}
                                             </span>
                                             <span className="px-2.5 py-0.5 rounded bg-gray-100 text-gray-700 text-[11px] font-bold uppercase tracking-wider">
@@ -129,19 +129,19 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                         <h2 className="text-xl md:text-2xl font-black text-gray-900 leading-tight mb-2 break-words">
                                             {job.title}
                                         </h2>
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500 font-semibold">
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[#484848] font-semibold">
                                             {job.clientName && (
                                                 <span className="flex items-center gap-1.5">
-                                                    <Building className="h-4 w-4 text-gray-400" />
+                                                    <Building className="h-4 w-4 text-[#717171]" />
                                                     Client: <span className="text-gray-800">{job.clientName}</span>
                                                 </span>
                                             )}
                                             <span className="flex items-center gap-1.5">
-                                                <Building className="h-4 w-4 text-gray-400" />
+                                                <Building className="h-4 w-4 text-[#717171]" />
                                                 Vendor: <span className="text-gray-800">{job.vendorName || 'NextKinLife LLC'}</span>
                                             </span>
                                             <span className="flex items-center gap-1.5">
-                                                <MapPin className="h-4 w-4 text-gray-400" />
+                                                <MapPin className="h-4 w-4 text-[#717171]" />
                                                 {job.location}
                                             </span>
                                         </div>
@@ -153,7 +153,7 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                             <div className="relative">
                                 {isLoading && (
                                     <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center">
-                                        <Loader2 className="h-8 w-8 text-[#CB2A25] animate-spin" />
+                                        <Loader2 className="h-8 w-8 text-[#E1392A] animate-spin" />
                                     </div>
                                 )}
 
@@ -161,7 +161,7 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                     {showApplicationForm ? (
                                         <div className="max-w-2xl mx-auto">
                                             <h3 className="text-lg font-bold text-gray-900 mb-6">
-                                                Apply for <span className="text-[#CB2A25]">{job.title}</span>
+                                                Apply for <span className="text-[#E1392A]">{job.title}</span>
                                             </h3>
                                             <ApplicationForm
                                                 jobId={job.id || job._id}
@@ -181,7 +181,7 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                 {/* Description */}
                                                 <div>
                                                     <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                                        <Briefcase className="h-4 w-4 text-[#CB2A25]" />
+                                                        <Briefcase className="h-4 w-4 text-[#E1392A]" />
                                                         Job Description
                                                     </h4>
                                                     <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 md:p-6 shadow-sm">
@@ -193,15 +193,15 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                 {Array.isArray(job.responsibilities) && job.responsibilities.length > 0 && (
                                                     <div>
                                                         <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                                            <CheckCircle className="h-4 w-4 text-[#CB2A25]" />
+                                                            <CheckCircle className="h-4 w-4 text-[#E1392A]" />
                                                             Key Responsibilities
                                                         </h4>
                                                         <ul className="space-y-2.5">
                                                             {job.responsibilities.map((resp, index) => {
                                                                 const cleanResp = typeof resp === 'string' ? resp.replace(/\u00a0/g, ' ') : resp;
                                                                 return (
-                                                                    <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
-                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CB2A25] mt-2 shrink-0" />
+                                                                    <li key={index} className="flex items-start gap-2.5 text-sm text-[#222222] leading-relaxed">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#E1392A] mt-2 shrink-0" />
                                                                         <span className="break-words w-full">{cleanResp}</span>
                                                                     </li>
                                                                 );
@@ -214,15 +214,15 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                 {Array.isArray(job.requirements) && job.requirements.length > 0 && (
                                                     <div>
                                                         <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                                            <Award className="h-4 w-4 text-[#CB2A25]" />
+                                                            <Award className="h-4 w-4 text-[#E1392A]" />
                                                             Requirements
                                                         </h4>
                                                         <ul className="space-y-2.5">
                                                             {job.requirements.map((req, index) => {
                                                                 const cleanReq = typeof req === 'string' ? req.replace(/\u00a0/g, ' ') : req;
                                                                 return (
-                                                                    <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
-                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CB2A25] mt-2 shrink-0" />
+                                                                    <li key={index} className="flex items-start gap-2.5 text-sm text-[#222222] leading-relaxed">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#E1392A] mt-2 shrink-0" />
                                                                         <span className="break-words w-full">{cleanReq}</span>
                                                                     </li>
                                                                 );
@@ -235,15 +235,15 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                 {Array.isArray(job.preferredSkills) && job.preferredSkills.length > 0 && (
                                                     <div>
                                                         <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                                            <Award className="h-4 w-4 text-[#CB2A25]" />
+                                                            <Award className="h-4 w-4 text-[#E1392A]" />
                                                             Preferred Skills
                                                         </h4>
                                                         <ul className="space-y-2.5">
                                                             {job.preferredSkills.map((skill, index) => {
                                                                 const cleanSkill = typeof skill === 'string' ? skill.replace(/\u00a0/g, ' ') : skill;
                                                                 return (
-                                                                    <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
-                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CB2A25] mt-2 shrink-0" />
+                                                                    <li key={index} className="flex items-start gap-2.5 text-sm text-[#222222] leading-relaxed">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#E1392A] mt-2 shrink-0" />
                                                                         <span className="break-words w-full">{cleanSkill}</span>
                                                                     </li>
                                                                 );
@@ -256,14 +256,14 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                 {Array.isArray(job.benefits) && job.benefits.length > 0 && (
                                                     <div>
                                                         <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                                            <TrendingUp className="h-4 w-4 text-[#CB2A25]" />
+                                                            <TrendingUp className="h-4 w-4 text-[#E1392A]" />
                                                             Benefits & Perks
                                                         </h4>
                                                         <ul className="space-y-2.5">
                                                             {job.benefits.map((benefit, index) => {
                                                                 const cleanBenefit = typeof benefit === 'string' ? benefit.replace(/\u00a0/g, ' ') : benefit;
                                                                 return (
-                                                                    <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
+                                                                    <li key={index} className="flex items-start gap-2.5 text-sm text-[#222222] leading-relaxed">
                                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
                                                                         <span className="break-words w-full">{cleanBenefit}</span>
                                                                     </li>
@@ -281,47 +281,47 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                     <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 pb-2 border-b border-gray-200/60">
                                                         Job Summary
                                                     </h3>
-                                                    <div className="space-y-3.5 text-xs font-semibold text-gray-600">
+                                                    <div className="space-y-3.5 text-xs font-semibold text-[#222222]">
                                                         <div className="flex justify-between items-center gap-2">
-                                                            <span className="text-gray-400">Position Type</span>
+                                                            <span className="text-[#717171]">Position Type</span>
                                                             <span className="text-gray-900 font-bold">{job.positionType || job.type || 'C2C'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
-                                                            <span className="text-gray-400">Client Name</span>
+                                                            <span className="text-[#717171]">Client Name</span>
                                                             <span className="text-gray-900 font-bold truncate max-w-[150px]">{job.clientName || 'N/A'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
-                                                            <span className="text-gray-400">Vendor Name</span>
+                                                            <span className="text-[#717171]">Vendor Name</span>
                                                             <span className="text-gray-900 font-bold truncate max-w-[150px]">{job.vendorName || 'NextKinLife LLC'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
-                                                            <span className="text-gray-400">Location</span>
+                                                            <span className="text-[#717171]">Location</span>
                                                             <span className="text-gray-900 font-bold truncate max-w-[150px]">{job.location}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
-                                                            <span className="text-gray-400">Work Mode</span>
+                                                            <span className="text-[#717171]">Work Mode</span>
                                                             <span className="text-gray-900 font-bold">{job.workStyle || 'Remote'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
-                                                            <span className="text-gray-400">Experience</span>
+                                                            <span className="text-[#717171]">Experience</span>
                                                             <span className="text-gray-900 font-bold">{job.experience || '8+ Years'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
-                                                            <span className="text-gray-400">Duration</span>
+                                                            <span className="text-[#717171]">Duration</span>
                                                             <span className="text-gray-900 font-bold">{job.duration || '12+ Months'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
-                                                            <span className="text-gray-400">Salary Range</span>
+                                                            <span className="text-[#717171]">Salary Range</span>
                                                             <span className="text-emerald-700 font-bold">{job.salary || 'Competitive'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
-                                                            <span className="text-gray-400">Visa Status</span>
+                                                            <span className="text-[#717171]">Visa Status</span>
                                                             <span className="text-gray-900 font-bold text-right truncate max-w-[150px]">
                                                                 {visaList.length > 0 ? visaList.join(', ') : 'All Authorizations'}
                                                             </span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
-                                                            <span className="text-gray-400">Start Date</span>
+                                                            <span className="text-[#717171]">Start Date</span>
                                                             <span className="text-gray-900 font-bold">{job.startDate ? formatUTCDate(job.startDate) : 'Immediate'}</span>
                                                         </div>
                                                     </div>
@@ -334,22 +334,22 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                     </h3>
                                                     <div className="space-y-4">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-full bg-[#CB2A25]/10 flex items-center justify-center text-[#CB2A25] font-bold">
+                                                            <div className="w-10 h-10 rounded-full bg-[#E1392A]/10 flex items-center justify-center text-[#E1392A] font-bold">
                                                                 {job.recruiterName ? job.recruiterName.charAt(0).toUpperCase() : 'V'}
                                                             </div>
                                                             <div>
                                                                 <p className="text-sm font-bold text-gray-900">{job.recruiterName || 'Vinod Kumar'}</p>
-                                                                <p className="text-[11px] text-gray-400 font-medium">Hiring Recruiter</p>
+                                                                <p className="text-[11px] text-[#717171] font-medium">Hiring Recruiter</p>
                                                             </div>
                                                         </div>
 
-                                                        <div className="space-y-2.5 text-xs font-semibold text-gray-600">
-                                                            <a href={`mailto:${job.recruiterEmail || 'careers@nextkinlife.com'}`} className="flex items-center gap-2 hover:text-[#CB2A25] transition-colors">
-                                                                <Mail className="h-4 w-4 text-gray-400 shrink-0" />
+                                                        <div className="space-y-2.5 text-xs font-semibold text-[#222222]">
+                                                            <a href={`mailto:${job.recruiterEmail || 'careers@nextkinlife.com'}`} className="flex items-center gap-2 hover:text-[#E1392A] transition-colors">
+                                                                <Mail className="h-4 w-4 text-[#717171] shrink-0" />
                                                                 <span>{job.recruiterEmail || 'careers@nextkinlife.com'}</span>
                                                             </a>
-                                                            <a href={`tel:${job.recruiterPhone || '+1 (555) 123-4567'}`} className="flex items-center gap-2 hover:text-[#CB2A25] transition-colors">
-                                                                <Phone className="h-4 w-4 text-gray-400 shrink-0" />
+                                                            <a href={`tel:${job.recruiterPhone || '+1 (555) 123-4567'}`} className="flex items-center gap-2 hover:text-[#E1392A] transition-colors">
+                                                                <Phone className="h-4 w-4 text-[#717171] shrink-0" />
                                                                 <span>{job.recruiterPhone || '+1 (555) 123-4567'}</span>
                                                             </a>
                                                             <a href={job.recruiterLinkedin ? `https://${job.recruiterLinkedin.replace(/^https?:\/\//, '')}` : 'https://linkedin.com/company/nextkinlife'} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-blue-600 transition-colors">
@@ -380,12 +380,12 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                     toast.success("Job link copied to clipboard");
                                                 }}
                                             >
-                                                <Share2 className="h-4 w-4 text-gray-400" />
+                                                <Share2 className="h-4 w-4 text-[#717171]" />
                                                 Share Job
                                             </Button>
                                         </div>
                                         <Button
-                                            className="flex-1 bg-[#CB2A25] hover:bg-[#b0221e] text-white transition-all h-11 rounded-xl text-xs font-bold shadow-md hover:shadow-lg"
+                                            className="flex-1 bg-[#E1392A] hover:bg-[#b0221e] text-white transition-all h-11 rounded-xl text-xs font-bold shadow-md hover:shadow-lg"
                                             onClick={() => {
                                                 if (!isAuthenticated) {
                                                     toast.error("Please login to apply for jobs");

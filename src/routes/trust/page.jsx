@@ -12,9 +12,9 @@ const TrustCard = ({ icon: Icon, title, description, delay }) => (
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay, duration: 0.5 }}
-        className="p-8 rounded-3xl bg-white border border-[#D1CBB7]/30 hover:border-[#CB2A25]/40 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(203,42,37,0.06)] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group cursor-pointer"
+        className="p-8 rounded-3xl bg-white border border-[#D1CBB7]/30 hover:border-[#E1392A]/40 hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(203,42,37,0.06)] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group cursor-pointer"
     >
-        <div className="w-14 h-14 bg-[#00142E] rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:bg-[#CB2A25] transition-colors">
+        <div className="w-14 h-14 bg-[#00142E] rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:bg-[#E1392A] transition-colors">
             <Icon className="text-white h-7 w-7" />
         </div>
         <h3 className="text-xl font-bold text-[#00142E] mb-4">{title}</h3>
@@ -37,7 +37,7 @@ export default function TrustPage() {
                 <motion.div
                     animate={{ opacity: [0.2, 0.4, 0.2] }}
                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -bottom-[30%] -right-[20%] w-[600px] h-[600px] rounded-full bg-[#CB2A25] blur-[200px] z-0"
+                    className="absolute -bottom-[30%] -right-[20%] w-[600px] h-[600px] rounded-full bg-[#E1392A] blur-[200px] z-0"
                 />
 
                 <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8 relative z-10 text-center">
@@ -46,13 +46,13 @@ export default function TrustPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                     >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#CB2A25]/20 border border-[#CB2A25]/30 text-white text-sm font-medium mb-8">
-                            <Shield className="h-4 w-4 text-[#CB2A25]" />
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#E1392A]/20 border border-[#E1392A]/30 text-white text-sm font-medium mb-8">
+                            <Shield className="h-4 w-4 text-[#E1392A]" />
                             <span>Your Safety is Our Priority</span>
                         </div>
                         <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tight">
                             Trust Built <br />
-                            <span className="text-[#CB2A25]">For You.</span>
+                            <span className="text-[#E1392A]">For You.</span>
                         </h1>
                         <p className="text-xl text-[#D1CBB7] max-w-2xl mx-auto leading-relaxed mb-12">
                             We've built a multi-layered defense system to ensure every interaction, booking, and community connection on NextKinLife is secure, verified, and worry-free for Indians abroad.
@@ -107,7 +107,7 @@ export default function TrustPage() {
                         <div className="space-y-8">
                             <h2 className="text-4xl font-bold text-[#00142E]">
                                 Our Community <br />
-                                <span className="text-[#CB2A25]">Commitment</span>
+                                <span className="text-[#E1392A]">Commitment</span>
                             </h2>
                             <p className="text-[#00142E]/70 text-lg leading-relaxed">
                                 Trust isn't just about technology; it's about people. We foster a community where respect and inclusion aren't just rules—they're our way of life.
@@ -122,7 +122,7 @@ export default function TrustPage() {
                                 ].map((item, i) => (
                                     <div key={i} className="flex gap-4">
                                         <div className="mt-1">
-                                            <div className="w-8 h-8 rounded-full bg-[#CB2A25]/10 flex items-center justify-center text-[#CB2A25]">
+                                            <div className="w-8 h-8 rounded-full bg-[#E1392A]/10 flex items-center justify-center text-[#E1392A]">
                                                 <CheckCircle size={16} />
                                             </div>
                                         </div>
@@ -136,14 +136,14 @@ export default function TrustPage() {
                         </div>
 
                         <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-[#CB2A25]/20 to-[#00142E]/20 rounded-3xl blur-2xl" />
+                            <div className="absolute inset-0 bg-gradient-to-tr from-[#E1392A]/20 to-[#00142E]/20 rounded-3xl blur-2xl" />
                             <div className="relative bg-[#00142E] border border-[#D1CBB7]/20 rounded-3xl p-8 shadow-2xl">
                                 <h3 className="text-2xl font-bold text-white mb-6">Need help with a safety issue?</h3>
                                 <p className="text-[#D1CBB7] mb-8">
                                     Our Trust & Safety team is standing by to assist you.
                                 </p>
                                 <div className="space-y-4">
-                                    <Button className="w-full h-14 bg-[#CB2A25] hover:bg-[#b02420] text-white font-bold text-lg rounded-xl">
+                                    <Button className="w-full h-14 bg-[#E1392A] hover:bg-[#C82E20] text-white font-bold text-lg rounded-xl">
                                         Visit Safety Center
                                     </Button>
                                     <Button variant="outline" className="w-full h-14 border-[#D1CBB7]/30 text-white hover:bg-white/5 font-bold text-lg rounded-xl flex items-center justify-center gap-2">

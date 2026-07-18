@@ -59,16 +59,16 @@ export function ContactInfo() {
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-[#CB2A25]/30 transition-all hover:bg-white/10"
+                                className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-[#E1392A]/30 transition-all hover:bg-white/10"
                             >
                                 <div className="absolute top-4 right-4">
-                                    <span className="px-3 py-1 bg-[#CB2A25]/20 text-[#CB2A25] text-xs font-semibold rounded-full">
+                                    <span className="px-3 py-1 bg-[#E1392A]/20 text-[#E1392A] text-xs font-semibold rounded-full">
                                         {item.badge}
                                     </span>
                                 </div>
                                 <div className="flex items-start gap-4">
-                                    <div className="p-3 rounded-xl bg-[#CB2A25]/10 group-hover:bg-[#CB2A25]/20 transition-all duration-300">
-                                        <Icon className="h-6 w-6 text-[#CB2A25]" />
+                                    <div className="p-3 rounded-xl bg-[#E1392A]/10 group-hover:bg-[#E1392A]/20 transition-all duration-300">
+                                        <Icon className="h-6 w-6 text-[#E1392A]" />
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="font-bold text-white text-lg mb-2">{item.title}</h3>
@@ -83,7 +83,7 @@ export function ContactInfo() {
             </div>
 
             {/* Features Section */}
-            <div className="bg-gradient-to-br from-[#CB2A25]/10 to-[#D1CBB7]/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20">
+            <div className="bg-gradient-to-br from-[#E1392A]/10 to-[#D1CBB7]/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20">
                 <h3 className="text-2xl font-bold text-white mb-6">Why Choose Us</h3>
                 <div className="grid gap-4">
                     {FEATURES.map((feature, index) => {
@@ -96,8 +96,8 @@ export function ContactInfo() {
                                 transition={{ delay: index * 0.1 + 0.4 }}
                                 className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
                             >
-                                <div className="p-2 bg-[#CB2A25]/10 rounded-lg">
-                                    <Icon className="h-5 w-5 text-[#CB2A25]" />
+                                <div className="p-2 bg-[#E1392A]/10 rounded-lg">
+                                    <Icon className="h-5 w-5 text-[#E1392A]" />
                                 </div>
                                 <div>
                                     <h4 className="font-semibold text-white">{feature.title}</h4>
@@ -127,10 +127,10 @@ export function ContactInfo() {
                         viewport={{ once: true }}
                         className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl border border-white/20 text-center max-w-md w-full hover:bg-white/15 transition-all"
                     >
-                        <MapPin className="h-12 w-12 mx-auto mb-4 text-[#CB2A25] animate-bounce" />
+                        <MapPin className="h-12 w-12 mx-auto mb-4 text-[#E1392A] animate-bounce" />
                         <h3 className="text-2xl font-bold text-white mb-2">Visit Our Office</h3>
                         <p className="text-white/70 mb-4">Experience our innovation hub firsthand</p>
-                        <button className="px-6 py-3 bg-[#CB2A25] hover:bg-[#a82220] text-white font-semibold rounded-xl transition-all">
+                        <button className="px-6 py-3 bg-[#E1392A] hover:bg-[#a82220] text-white font-semibold rounded-xl transition-all">
                             Get Directions
                         </button>
                     </motion.div>

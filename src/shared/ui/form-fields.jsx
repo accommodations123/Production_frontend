@@ -41,7 +41,7 @@ export const TextField = React.forwardRef(({
           <div
             className={cn(
               "absolute left-3 transition-colors pointer-events-none",
-              isDark ? "text-white/40 group-focus-within:text-accent" : "text-slate-400 group-focus-within:text-slate-600"
+              isDark ? "text-white/40 group-focus-within:text-accent" : "text-[#717171] group-focus-within:text-[#222222]"
             )}
           >
             <Icon className="w-5 h-5" />
@@ -56,7 +56,7 @@ export const TextField = React.forwardRef(({
             "w-full transition-all h-12 rounded-xl text-sm outline-none border",
             isDark 
               ? "bg-white/5 border-white/10 focus:border-accent focus:bg-white/10 text-white placeholder:text-white/30" 
-              : "bg-slate-50/50 border-slate-200 focus:border-slate-400 focus:bg-white text-slate-900 placeholder:text-slate-400",
+              : "bg-slate-50/50 border-slate-200 focus:border-slate-400 focus:bg-white text-slate-900 placeholder:text-[#717171]",
             Icon ? "pl-10" : "pl-4",
             rightElement ? "pr-12" : "pr-4",
             error 
@@ -124,7 +124,7 @@ export const TextareaField = React.forwardRef(({
           "w-full transition-all rounded-xl p-4 text-sm outline-none resize-none border",
           isDark
             ? "bg-white/5 border-white/10 focus:border-emerald-400 focus:bg-white/10 text-white placeholder:text-white/30"
-            : "bg-slate-50/50 border-slate-200 focus:border-slate-400 focus:bg-white text-slate-900 placeholder:text-slate-400",
+            : "bg-slate-50/50 border-slate-200 focus:border-slate-400 focus:bg-white text-slate-900 placeholder:text-[#717171]",
           error
             ? (isDark ? "border-accent focus:ring-1 focus:ring-accent/50" : "border-red-500 focus:ring-1 focus:ring-red-500/50")
             : (isDark ? "focus:ring-2 focus:ring-emerald-400/10" : "focus:ring-2 focus:ring-slate-100"),
@@ -147,7 +147,7 @@ export const TextareaField = React.forwardRef(({
         {maxLength && (
           <p className={cn(
             "text-xs font-medium",
-            isDark ? "text-white/40" : "text-slate-400"
+            isDark ? "text-white/40" : "text-[#717171]"
           )}>{charCount}/{maxLength} characters</p>
         )}
       </div>
@@ -258,7 +258,7 @@ export const CheckboxField = React.forwardRef(({
             "text-sm transition-colors selection:bg-accent/30",
             isDark
               ? "text-white/60 group-hover:text-white/80"
-              : "text-slate-600 group-hover:text-slate-800"
+              : "text-[#222222] group-hover:text-slate-800"
           )}
         >
           {label}

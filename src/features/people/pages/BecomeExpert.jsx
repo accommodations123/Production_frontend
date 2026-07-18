@@ -109,21 +109,21 @@ export default function BecomeExpert() {
     <div className="bg-[#FAFBFD] min-h-screen flex flex-col justify-between">
 
 
-      <main className="flex-grow pt-16 pb-16">
+      <main className="flex-grow pb-16">
 
         {/* Banner Section */}
         <div className="bg-[#00142E] text-white py-12 border-b border-slate-800">
           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
             <Link
               to="/people"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-all"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#717171] hover:text-white transition-all"
             >
               <ArrowLeft className="w-4 h-4" /> Back to Directory
             </Link>
             <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white pt-2">
               Join NextKinLife as an Expert
             </h1>
-            <p className="text-slate-400 text-sm max-w-xl font-medium">
+            <p className="text-[#717171] text-sm max-w-xl font-medium">
               Help global expats settle in your city. Offer consultations, document translations, and relocation guides while growing your local agency.
             </p>
           </div>
@@ -139,7 +139,7 @@ export default function BecomeExpert() {
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-extrabold text-slate-900">Application Submitted!</h2>
-                <p className="text-slate-500 text-sm leading-relaxed max-w-sm mx-auto">
+                <p className="text-[#484848] text-sm leading-relaxed max-w-sm mx-auto">
                   Your expert profile has been registered in the database. Newcomers can now view your listing in the local directory.
                 </p>
               </div>
@@ -159,7 +159,7 @@ export default function BecomeExpert() {
 
                 <div className="border-b border-slate-100 pb-4">
                   <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">Application Details</h2>
-                  <p className="text-slate-400 text-xs mt-0.5">Please provide accurate details about your expertise.</p>
+                  <p className="text-[#717171] text-xs mt-0.5">Please provide accurate details about your expertise.</p>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-5">
@@ -254,7 +254,7 @@ export default function BecomeExpert() {
                     <Button
                       type="submit"
                       disabled={submitting}
-                      className="w-full sm:w-auto h-12 px-8 bg-[#CB2A25] hover:bg-[#b0221e] text-white font-bold rounded-xl shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full sm:w-auto h-12 px-8 bg-[#E1392A] hover:bg-[#b0221e] text-white font-bold rounded-xl shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       {submitting ? (
                         <>
@@ -275,31 +275,31 @@ export default function BecomeExpert() {
 
                 {/* Visual Live Preview Box Header */}
                 <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.01)] space-y-4">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#717171] uppercase tracking-wider border-b border-slate-100 pb-3">
                     <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500" /> Real-time Card Preview
                   </div>
 
                   {/* Mock People Card rendering tracked form values */}
                   <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-xl flex items-center justify-center font-bold text-lg select-none shrink-0 border border-slate-150">
+                      <div className="w-12 h-12 bg-slate-100 text-[#717171] rounded-xl flex items-center justify-center font-bold text-lg select-none shrink-0 border border-slate-150">
                         {watchName ? watchName.charAt(0).toUpperCase() : "?"}
                       </div>
                       <div className="space-y-0.5 min-w-0">
                         <h4 className="font-extrabold text-slate-900 text-sm leading-snug truncate">
                           {watchName || "Your Full Name"}
                         </h4>
-                        <p className="text-[#CB2A25] font-bold text-[11px] truncate">
+                        <p className="text-[#E1392A] font-bold text-[11px] truncate">
                           {watchProfession || "Your Professional Title"}
                         </p>
                       </div>
                     </div>
 
-                    <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 min-h-[32px]">
+                    <p className="text-[#484848] text-xs leading-relaxed line-clamp-2 min-h-[32px]">
                       {watchBio || "Your short bio description will appear here as you type."}
                     </p>
 
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400 font-bold border-b border-slate-50 pb-3">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-[#717171] font-bold border-b border-slate-50 pb-3">
                       <span className="flex items-center gap-0.5">
                         <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> 5.0 (0)
                       </span>
@@ -315,7 +315,7 @@ export default function BecomeExpert() {
                         watchSkills.split(",").slice(0, 3).map((s, idx) => (
                           <span
                             key={idx}
-                            className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded-md"
+                            className="text-[9px] font-bold text-[#484848] bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded-md"
                           >
                             {s.trim()}
                           </span>
@@ -329,12 +329,12 @@ export default function BecomeExpert() {
 
                     <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2 text-xs">
                       <div>
-                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">Rate</span>
+                        <span className="text-[8px] font-bold text-[#717171] uppercase tracking-wider block">Rate</span>
                         <span className="text-slate-900 font-black text-sm">
-                          ${watchRate || "50"} <span className="text-slate-400 text-[9px] font-bold">/ hr</span>
+                          ${watchRate || "50"} <span className="text-[#717171] text-[9px] font-bold">/ hr</span>
                         </span>
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">
+                      <span className="text-[10px] font-bold text-[#717171] uppercase">
                         Preview only
                       </span>
                     </div>
@@ -351,7 +351,7 @@ export default function BecomeExpert() {
 
       </main>
 
-      <Footer />
+
     </div>
   );
 }

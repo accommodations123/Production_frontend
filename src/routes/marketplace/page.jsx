@@ -176,8 +176,8 @@ export default function MarketplacePage() {
                     <Tag className="h-8 w-8 text-red-400" />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">Unable to load products</h3>
-                  <p className="text-gray-500 mb-6 text-sm">Please check your connection and try again.</p>
-                  <Button onClick={() => refetch()} className="bg-[#CB2A25] hover:bg-[#a82220] text-white">
+                  <p className="text-[#484848] mb-6 text-sm">Please check your connection and try again.</p>
+                  <Button onClick={() => refetch()} className="bg-[#E1392A] hover:bg-[#a82220] text-white">
                     Try Again
                   </Button>
                 </div>
@@ -208,7 +208,7 @@ export default function MarketplacePage() {
                       />
                     </>
                   ) : (
-                    <div className="text-center py-12 text-gray-500">
+                    <div className="text-center py-12 text-[#484848]">
                       No products found.
                     </div>
                   )}
@@ -258,7 +258,7 @@ const Tip = ({ icon, title, desc }) => (
     <div className="p-2 bg-gray-100 rounded-lg">{icon}</div>
     <div>
       <h4 className="font-bold text-sm">{title}</h4>
-      <p className="text-xs text-gray-600">{desc}</p>
+      <p className="text-xs text-[#222222]">{desc}</p>
     </div>
   </div>
 );

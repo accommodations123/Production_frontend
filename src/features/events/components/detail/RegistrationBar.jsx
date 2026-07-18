@@ -37,7 +37,7 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
                    <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 pt-5">
                         <div className="flex items-center justify-between gap-4">
                             <div className="text-white flex items-center gap-3">
-                                <Clock className="h-5 w-5 text-gray-400" />
+                                <Clock className="h-5 w-5 text-[#717171]" />
                                 <div>
                                     <span className="font-bold">This event has ended</span>
                                     <p className="text-sm text-white/60">
@@ -60,7 +60,7 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
                     <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                         <div className="bg-gray-800 px-4 py-3">
                             <div className="flex items-center gap-2 text-white">
-                                <Clock className="h-4 w-4 text-gray-400 shrink-0" />
+                                <Clock className="h-4 w-4 text-[#717171] shrink-0" />
                                 <span className="font-bold text-sm">This event has ended</span>
                             </div>
                             <p className="text-white/60 text-xs mt-1">

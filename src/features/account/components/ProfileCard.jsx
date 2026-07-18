@@ -67,7 +67,7 @@ export const ProfileCard = ({ user, onUpdate, isLoading }) => {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                  <svg className="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-16 h-16 text-[#717171]" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                 </div>
@@ -103,7 +103,7 @@ export const ProfileCard = ({ user, onUpdate, isLoading }) => {
             <h3 className="text-xl font-bold text-gray-900 mb-1">
               {user?.full_name || user?.name || "Your Name"}
             </h3>
-            <p className="text-sm text-gray-500">Update your profile picture</p>
+            <p className="text-sm text-[#484848]">Update your profile picture</p>
           </div>
 
           {/* File Selected Indicator */}

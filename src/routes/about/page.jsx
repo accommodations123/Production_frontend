@@ -176,7 +176,7 @@ const AboutUs = () => {
               <div className="w-12 h-1 bg-purple-600 mb-6" />
               <h3 className="text-2xl font-bold mb-4">{card.title}</h3>
               {card.text ? (
-                <p className="text-gray-600">{card.text}</p>
+                <p className="text-[#222222]">{card.text}</p>
               ) : (
                 <ul className="space-y-2 text-gray-700">
                   {card.list.map((item) => (
@@ -194,13 +194,13 @@ const AboutUs = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
           <div>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6">Founded on Innovation</h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-[#222222] mb-6">
               Nextkinlife is a global IT Services & Consulting company proudly headquartered in Ellicott City, Maryland, USA, with a strong development and management team based in India.
             </p>
-            <p className="text-gray-600 mb-6">
+            <p className="text-[#222222] mb-6">
               We specialize in delivering complete end-to-end software solutions for our U.S. clients, powered by a highly skilled Indian workforce. In addition to client-based services, our team is actively engaged in building innovative internal products driving future technology advancements.
             </p>
-            <p className="text-gray-600 mb-10">
+            <p className="text-[#222222] mb-10">
               Our commitment to excellence, innovation, and client success defines everything we do.
             </p>
             <div className="flex gap-10 text-purple-600 font-medium">
@@ -276,7 +276,7 @@ const AboutUs = () => {
                     </div>
 
                     <h3 className={`text-2xl font-bold mb-4 text-center ${color.text}`}>{item.title}</h3>
-                    <p className="text-gray-600 text-center">{item.desc}</p>
+                    <p className="text-[#222222] text-center">{item.desc}</p>
 
                     {/* Arrow pointing to next step on desktop */}
                     {i < 5 && (
@@ -305,7 +305,7 @@ const AboutUs = () => {
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Why Choose Us?
             </h2>
-            <p className="text-gray-600 mb-10 max-w-xl">
+            <p className="text-[#222222] mb-10 max-w-xl">
               At NextKinLife, we blend innovation, expertise, and a client-first approach to deliver reliable tech solutions that drive real results. With a global team, proven track record, and commitment to quality, we turn your ideas into scalable, future-ready digital products.
             </p>
 
@@ -334,7 +334,7 @@ const AboutUs = () => {
                     </button>
 
                     {isOpen && (
-                      <p className="mt-4 text-gray-600">{item.content}</p>
+                      <p className="mt-4 text-[#222222]">{item.content}</p>
                     )}
                   </div>
                 );
@@ -354,7 +354,7 @@ const AboutUs = () => {
                 Would you like to start a project with us?
               </h3>
 
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-[#222222] leading-relaxed">
                 Let's turn your ideas into reality. Whether you're building something new or enhancing an existing project, our team is here to help you every step of the way. Reach out and let's create something exceptional together.
               </p>
             </div>

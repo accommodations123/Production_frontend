@@ -61,7 +61,7 @@ export default function HostEventPage() {
               <AlertCircle className="h-8 w-8 text-yellow-600" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Verification Pending</h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-[#222222] mb-6">
               {hostProfile?.status === 'pending'
                 ? "Your host application is currently under review. You can create events once your account is approved."
                 : "You need to be an approved host to create events."}
@@ -85,7 +85,7 @@ export default function HostEventPage() {
             <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
               {isEdit ? "Edit Event" : "Host an Event"}
             </h1>
-            <p className="text-gray-600 mt-2 text-lg">
+            <p className="text-[#222222] mt-2 text-lg">
               {isEdit ? "Update your event details below." : "Create memorable experiences for the NextKinLife community."}
             </p>
           </div>

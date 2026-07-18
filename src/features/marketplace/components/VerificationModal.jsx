@@ -50,12 +50,12 @@ export function VerificationModal({ isOpen, onClose, onComplete }) {
                             >
                                 <div className="text-center mb-3 sm:mb-4">
                                     <h3 className="font-bold text-gray-900 text-sm sm:text-base">Email Verification</h3>
-                                    <p className="text-xs sm:text-sm text-gray-500">We'll send a code to your email.</p>
+                                    <p className="text-xs sm:text-sm text-[#484848]">We'll send a code to your email.</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs sm:text-sm font-medium text-gray-700">Email Address</label>
                                     <div className="relative">
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#717171]" />
                                         <Input className="pl-9 border border-gray-300 text-gray-900 h-9 sm:h-10 text-sm" placeholder="you@example.com" />
                                     </div>
                                 </div>
@@ -72,12 +72,12 @@ export function VerificationModal({ isOpen, onClose, onComplete }) {
                             >
                                 <div className="text-center mb-3 sm:mb-4">
                                     <h3 className="font-bold text-gray-900 text-sm sm:text-base">Phone Verification</h3>
-                                    <p className="text-xs sm:text-sm text-gray-500">Secure your account with 2FA.</p>
+                                    <p className="text-xs sm:text-sm text-[#484848]">Secure your account with 2FA.</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs sm:text-sm font-medium text-gray-700">Phone Number</label>
                                     <div className="relative">
-                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#717171]" />
                                         <Input className="pl-9 border border-gray-300 text-gray-900 h-9 sm:h-10 text-sm" placeholder="+1 (555) 000-0000" />
                                     </div>
                                 </div>
@@ -94,10 +94,10 @@ export function VerificationModal({ isOpen, onClose, onComplete }) {
                             >
                                 <div className="text-center mb-3 sm:mb-4">
                                     <h3 className="font-bold text-gray-900 text-sm sm:text-base">ID Verification (Optional)</h3>
-                                    <p className="text-xs sm:text-sm text-gray-500">Upload ID to get the "Verified Seller" badge.</p>
+                                    <p className="text-xs sm:text-sm text-[#484848]">Upload ID to get the "Verified Seller" badge.</p>
                                 </div>
                                 <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 sm:p-6 text-center hover:border-primary/50 cursor-pointer transition-colors">
-                                    <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 mx-auto mb-2" />
+                                    <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-[#717171] mx-auto mb-2" />
                                     <p className="text-xs sm:text-sm font-medium text-gray-900">Upload ID / Passport</p>
                                 </div>
                                 <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg text-green-700 text-xs">

@@ -205,7 +205,7 @@ export default function SearchPage() {
                     <div className="flex items-center gap-2">
                         <Button
                             onClick={() => navigate(getHostPath('property', !!localStorage.getItem("user")))}
-                            className="gap-1.5 bg-[#CB2A25] hover:bg-[#CB2A25]/90 text-white rounded-xl font-bold h-9 px-3 text-xs cursor-pointer"
+                            className="gap-1.5 bg-[#E1392A] hover:bg-[#E1392A]/90 text-white rounded-xl font-bold h-9 px-3 text-xs cursor-pointer"
                         >
                             <Plus size={14} /> List Stay
                         </Button>
@@ -232,17 +232,17 @@ export default function SearchPage() {
                         <div className="flex items-center justify-between mb-6 hidden lg:flex">
                             <h1 className="text-2xl font-bold text-gray-900">
                                 {total > 0 ? `${total} Stays found` : 'Find your requested stay'}
-                                {filters.location && <span className="text-gray-500 font-normal ml-2">in {filters.location}</span>}
+                                {filters.location && <span className="text-[#484848] font-normal ml-2">in {filters.location}</span>}
                             </h1>
                             <div className="flex items-center gap-4">
                                 <Button
                                     onClick={() => navigate(getHostPath('property', !!localStorage.getItem("user")))}
-                                    className="gap-2 bg-[#CB2A25] hover:bg-[#CB2A25]/90 text-white rounded-xl font-bold transition-all duration-300 shadow-md hover:shadow-lg h-10 px-5 text-sm cursor-pointer"
+                                    className="gap-2 bg-[#E1392A] hover:bg-[#E1392A]/90 text-white rounded-xl font-bold transition-all duration-300 shadow-md hover:shadow-lg h-10 px-5 text-sm cursor-pointer"
                                 >
                                     <Plus size={16} /> List Stay
                                 </Button>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-gray-500">Sort by:</span>
+                                    <span className="text-sm text-[#484848]">Sort by:</span>
                                     <select
                                         value={sortBy}
                                         onChange={(e) => setSortBy(e.target.value)}
@@ -265,14 +265,14 @@ export default function SearchPage() {
                         </div>
 
                         {loading ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                                 {[1, 2, 3, 4, 5, 6].map((n) => (
                                     <div key={n} className="bg-white rounded-2xl h-[380px] animate-pulse" />
                                 ))}
                             </div>
                         ) : listings.length > 0 ? (
                             <>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 pb-8">
                                     {paginatedListings.map(item => (
                                         <PropertyCard key={item._id} property={item} />
                                     ))}
@@ -288,7 +288,7 @@ export default function SearchPage() {
                         ) : (
                             <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
                                 <h3 className="text-xl font-bold text-gray-900 mb-2">No listings found</h3>
-                                <p className="text-gray-500">Try adjusting your filters or search for a different location.</p>
+                                <p className="text-[#484848]">Try adjusting your filters or search for a different location.</p>
                                 <Button
                                     variant="link"
                                     onClick={() => setSearchParams({})}
@@ -337,7 +337,7 @@ export default function SearchPage() {
                                 <Button variant="outline" className="flex-1" onClick={() => handleFilterChange({})}>
                                     Clear
                                 </Button>
-                                <Button className="flex-1 bg-[#CB2A25] hover:bg-[#A9201C]" onClick={() => setSidebarOpen(false)}>
+                                <Button className="flex-1 bg-[#E1392A] hover:bg-[#C82E20]" onClick={() => setSidebarOpen(false)}>
                                     Show {total} Results
                                 </Button>
                             </div>

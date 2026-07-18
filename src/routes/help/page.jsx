@@ -8,9 +8,9 @@ import { Button } from "@/shared/ui/button"
 
 const CategoryCard = ({ icon: Icon, title, description }) => (
     <button
-        className="text-left p-6 rounded-2xl bg-white border border-[#D1CBB7]/30 shadow-sm hover:shadow-xl hover:border-[#CB2A25]/30-all group h-full"
+        className="text-left p-6 rounded-2xl bg-white border border-[#D1CBB7]/30 shadow-sm hover:shadow-xl hover:border-[#E1392A]/30-all group h-full"
     >
-        <div className="w-12 h-12 bg-[#00142E]/10 text-[#00142E] rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#CB2A25] group-hover:text-white transition-colors">
+        <div className="w-12 h-12 bg-[#00142E]/10 text-[#00142E] rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#E1392A] group-hover:text-white transition-colors">
             <Icon size={24} />
         </div>
         <h3 className="text-lg font-bold text-[#00142E] mb-2">{title}</h3>
@@ -54,12 +54,12 @@ const FAQItem = ({ question, answer, isOpen, onToggle }) => (
             className="w-full flex items-center justify-between gap-4 p-5 text-left hover:bg-[#D1CBB7]/5 transition-colors"
         >
             <div className="flex items-center gap-3">
-                <FileText size={18} className={`transition-colors ${isOpen ? 'text-[#CB2A25]' : 'text-[#00142E]/40'}`} />
-                <span className={`font-medium transition-colors ${isOpen ? 'text-[#CB2A25]' : 'text-[#00142E]'}`}>
+                <FileText size={18} className={`transition-colors ${isOpen ? 'text-[#E1392A]' : 'text-[#00142E]/40'}`} />
+                <span className={`font-medium transition-colors ${isOpen ? 'text-[#E1392A]' : 'text-[#00142E]'}`}>
                     {question}
                 </span>
             </div>
-            <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors ${isOpen ? 'bg-[#CB2A25] text-white' : 'bg-[#00142E]/10 text-[#00142E]'}`}>
+            <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors ${isOpen ? 'bg-[#E1392A] text-white' : 'bg-[#00142E]/10 text-[#00142E]'}`}>
                 {isOpen ? <Minus size={14} /> : <Plus size={14} />}
             </div>
         </button>
@@ -102,7 +102,7 @@ export default function HelpPage() {
                 <motion.div
                     animate={{ opacity: [0.2, 0.4, 0.2] }}
                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#CB2A25] rounded-full blur-[200px] opacity-20"
+                    className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#E1392A] rounded-full blur-[200px] opacity-20"
                 />
 
                 <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8 relative z-10 text-center">
@@ -112,7 +112,7 @@ export default function HelpPage() {
                         transition={{ duration: 0.6 }}
                     >
                         <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                            How can we <span className="text-[#CB2A25]">help you?</span>
+                            How can we <span className="text-[#E1392A]">help you?</span>
                         </h1>
                         <p className="text-[#D1CBB7] text-lg mb-8 max-w-xl mx-auto">
                             Find answers to common questions about accommodations, events, and more.
@@ -154,7 +154,7 @@ export default function HelpPage() {
 
                 {/* Popular Articles - Now Expandable FAQs */}
                 <div className="max-w-4xl mx-auto mb-20">
-                    <h2 className="text-2xl font-bold text-[#00142E] mb-8 pl-4 border-l-4 border-[#CB2A25]">Frequently Asked Questions</h2>
+                    <h2 className="text-2xl font-bold text-[#00142E] mb-8 pl-4 border-l-4 border-[#E1392A]">Frequently Asked Questions</h2>
                     <div className="bg-white rounded-2xl shadow-sm border border-[#D1CBB7]/30 overflow-hidden">
                         {faqArticles.map((faq, index) => (
                             <FAQItem
@@ -170,14 +170,14 @@ export default function HelpPage() {
 
                 {/* Contact CTA */}
                 <div className="max-w-4xl mx-auto bg-[#00142E] text-white rounded-3xl p-12 text-center relative overflow-hidden mb-20">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#CB2A25]/20 rounded-full blur-3xl -mr-16 -mt-16" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#E1392A]/20 rounded-full blur-3xl -mr-16 -mt-16" />
 
                     <div className="relative z-10">
                         <h2 className="text-3xl font-bold mb-4">Still need help?</h2>
                         <p className="text-[#D1CBB7] mb-8 max-w-xl mx-auto">
                             Our support team is available 24/7. We usually respond within minutes.
                         </p>
-                        <Button className="bg-[#CB2A25] hover:bg-[#b02420] text-white font-bold h-12 px-8 rounded-full">
+                        <Button className="bg-[#E1392A] hover:bg-[#C82E20] text-white font-bold h-12 px-8 rounded-full">
                             Contact Support
                         </Button>
                     </div>

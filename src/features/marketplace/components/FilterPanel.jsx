@@ -104,7 +104,7 @@ export function FilterPanel({ filters, onChange }) {
       <div className="flex flex-col md:flex-row gap-3 sm:gap-4 items-start justify-start">
         {/* Search */}
         <div className="relative flex-1 w-full border border-gray-300 rounded-lg">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#484848]" />
           <Input
             placeholder="Search for items..."
             value={filters.search || ""}

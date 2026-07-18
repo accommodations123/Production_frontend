@@ -30,7 +30,7 @@ export const EventModeSection = memo(({ event }) => {
                 </div>
                 <div>
                     <h2 className="text-2xl md:text-3xl font-bold text-gray-900">{title}</h2>
-                    <p className="text-gray-500 text-sm mt-1">Event Format Details</p>
+                    <p className="text-[#484848] text-sm mt-1">Event Format Details</p>
                 </div>
             </div>
             <div className={`bg-gradient-to-b ${isOnline ? 'from-blue-50 to-blue-100' :
@@ -84,7 +84,7 @@ export const EventModeSection = memo(({ event }) => {
                         </h3>
                         <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-gray-100">
                             <p className="text-gray-700">{event.venueName || event.location}</p>
-                            <p className="text-gray-600 text-sm mt-1">{event.address}</p>
+                            <p className="text-[#222222] text-sm mt-1">{event.address}</p>
                             <Button
                                 onClick={() => {
                                     if (event.googleMapsUrl) {

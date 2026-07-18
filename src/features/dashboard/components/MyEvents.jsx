@@ -131,7 +131,7 @@ export const MyEvents = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Your Hosted Events</h2>
-          <p className="text-xs text-gray-500 mt-1">Manage your planned experiences and local community get-togethers.</p>
+          <p className="text-xs text-[#484848] mt-1">Manage your planned experiences and local community get-togethers.</p>
         </div>
         <button 
           onClick={() => navigate("/events/host")}
@@ -152,11 +152,11 @@ export const MyEvents = () => {
                 "px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 border cursor-pointer",
                 activeFilterTab === "active"
                   ? "bg-[#0A1A2F] text-white border-transparent shadow-sm"
-                  : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+                  : "bg-white text-[#484848] border-gray-200 hover:bg-gray-50 hover:text-gray-900"
               )}
             >
               Active Events
-              <span className={cn("px-1.5 py-0.5 rounded-md text-[9px] font-extrabold", activeFilterTab === "active" ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500")}>
+              <span className={cn("px-1.5 py-0.5 rounded-md text-[9px] font-extrabold", activeFilterTab === "active" ? "bg-white/20 text-white" : "bg-gray-100 text-[#484848]")}>
                 {stats.activeCount}
               </span>
             </button>
@@ -167,11 +167,11 @@ export const MyEvents = () => {
                 "px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 border cursor-pointer",
                 activeFilterTab === "drafts"
                   ? "bg-[#0A1A2F] text-white border-transparent shadow-sm"
-                  : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+                  : "bg-white text-[#484848] border-gray-200 hover:bg-gray-50 hover:text-gray-900"
               )}
             >
               Drafts
-              <span className={cn("px-1.5 py-0.5 rounded-md text-[9px] font-extrabold", activeFilterTab === "drafts" ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500")}>
+              <span className={cn("px-1.5 py-0.5 rounded-md text-[9px] font-extrabold", activeFilterTab === "drafts" ? "bg-white/20 text-white" : "bg-gray-100 text-[#484848]")}>
                 {stats.draftsCount}
               </span>
             </button>
@@ -182,24 +182,24 @@ export const MyEvents = () => {
                 "px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 border cursor-pointer",
                 activeFilterTab === "archived"
                   ? "bg-[#0A1A2F] text-white border-transparent shadow-sm"
-                  : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+                  : "bg-white text-[#484848] border-gray-200 hover:bg-gray-50 hover:text-gray-900"
               )}
             >
               Past / Expired
-              <span className={cn("px-1.5 py-0.5 rounded-md text-[9px] font-extrabold", activeFilterTab === "archived" ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500")}>
+              <span className={cn("px-1.5 py-0.5 rounded-md text-[9px] font-extrabold", activeFilterTab === "archived" ? "bg-white/20 text-white" : "bg-gray-100 text-[#484848]")}>
                 {stats.archivedCount}
               </span>
             </button>
           </div>
           
-          <div className="text-xs font-bold text-gray-400">
+          <div className="text-xs font-bold text-[#717171]">
             Showing {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""}
           </div>
         </div>
 
         {/* Search */}
         <div className="relative w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#717171] w-4 h-4" />
           <input 
             type="text" 
             placeholder="Search by event title, location, category..." 
@@ -220,7 +220,7 @@ export const MyEvents = () => {
         ) : isLoading ? (
           <div className="py-24 flex flex-col items-center justify-center space-y-4">
             <Loader2 className="w-10 h-10 animate-spin text-emerald-600" />
-            <p className="text-sm text-gray-500 font-medium">Loading your experiences...</p>
+            <p className="text-sm text-[#484848] font-medium">Loading your experiences...</p>
           </div>
         ) : filteredEvents.length === 0 ? (
           <div className="py-20 text-center max-w-md mx-auto space-y-6 animate-in fade-in duration-300">
@@ -229,7 +229,7 @@ export const MyEvents = () => {
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold text-gray-900">Host Your First Experience</h3>
-              <p className="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
+              <p className="text-xs text-[#484848] max-w-xs mx-auto leading-relaxed">
                 Connect with the community by planning walks, group dinners, sports activities, or wellness sessions.
               </p>
             </div>
@@ -323,16 +323,16 @@ const EventItemCard = ({ event, onDelete }) => {
           <h3 className="font-extrabold text-gray-900 group-hover:text-emerald-600 transition-colors text-base line-clamp-1">
             {event.title || "Untitled Event"}
           </h3>
-          <p className="text-xs text-gray-400 font-semibold flex items-center gap-1">
+          <p className="text-xs text-[#717171] font-semibold flex items-center gap-1">
             <MapPin className="w-3.5 h-3.5 text-emerald-500" />
             {location}
           </p>
         </div>
 
         {/* Date / Time summary */}
-        <div className="bg-gray-50 p-2.5 rounded-xl text-xs font-semibold text-gray-600 flex justify-between items-center px-4">
-          <div className="flex items-center gap-1 text-[10px] text-gray-400 uppercase tracking-wider font-extrabold">
-            <Calendar className="w-3.5 h-3.5 text-gray-400" />
+        <div className="bg-gray-50 p-2.5 rounded-xl text-xs font-semibold text-[#222222] flex justify-between items-center px-4">
+          <div className="flex items-center gap-1 text-[10px] text-[#717171] uppercase tracking-wider font-extrabold">
+            <Calendar className="w-3.5 h-3.5 text-[#717171]" />
             <span>Date</span>
           </div>
           <span className="text-gray-800 font-extrabold">
@@ -341,7 +341,7 @@ const EventItemCard = ({ event, onDelete }) => {
         </div>
 
         {/* Mini stats */}
-        <div className="flex items-center gap-4 text-xs font-bold text-gray-400 border-t border-gray-50 pt-2.5">
+        <div className="flex items-center gap-4 text-xs font-bold text-[#717171] border-t border-gray-50 pt-2.5">
           <span className="flex items-center gap-1.5 hover:text-gray-700 cursor-pointer">
             <Eye className="w-3.5 h-3.5" />
             115 Views
@@ -376,7 +376,7 @@ const EventItemCard = ({ event, onDelete }) => {
             {/* Delete */}
             <button 
               type="button"
-              className="w-8.5 h-8.5 rounded-xl border border-gray-200 text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-all cursor-pointer bg-white"
+              className="w-8.5 h-8.5 rounded-xl border border-gray-200 text-[#717171] hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-all cursor-pointer bg-white"
               disabled={isDeleting}
               onClick={async () => {
                 setIsDeleting(true);

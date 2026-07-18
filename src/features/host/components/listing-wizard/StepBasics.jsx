@@ -14,7 +14,7 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-300">Property Title <span className="text-red-500 ml-1">*</span></label>
                     <div className="relative">
-                        <Quote className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Quote className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#717171]" />
                         <input
                             type="text"
                             placeholder="e.g. Cozy Studio in Downtown"
@@ -28,7 +28,7 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-300">Description <span className="text-red-500 ml-1">*</span></label>
                     <div className="relative">
-                        <Layout className="absolute left-4 top-3 h-5 w-5 text-gray-400" />
+                        <Layout className="absolute left-4 top-3 h-5 w-5 text-[#717171]" />
                         <textarea
                             placeholder="Fully furnished private room near metro station. Includes WiFi, electricity, kitchen access, and parking. Walking distance to grocery stores, universities, and offices."
                             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:border-accent outline-none min-h-[100px]"
@@ -36,7 +36,7 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         />
                     </div>
-                    <p className="text-xs text-gray-400 mt-1 leading-relaxed bg-white/5 border border-white/5 p-3 rounded-lg">
+                    <p className="text-xs text-[#717171] mt-1 leading-relaxed bg-white/5 border border-white/5 p-3 rounded-lg">
                         Mention nearby university, office, metro station, grocery stores, included utilities, parking, internet, and house rules.
                     </p>
                 </div>
@@ -55,7 +55,7 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                             }))}
                             className={`p-4 rounded-xl border text-left transition-all ${formData.category === cat.slug
                                 ? 'bg-accent/20 border-accent text-white'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                : 'bg-white/5 border-white/10 text-[#717171] hover:bg-white/10'
                                 }`}
                         >
                             <span className="text-2xl mb-2 block text-center"><cat.icon className="h-8 w-8 mx-auto" /></span>
@@ -68,7 +68,7 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
             {/* Property Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
                 <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-2">
-                    <div className="flex items-center gap-2 text-gray-400 mb-2">
+                    <div className="flex items-center gap-2 text-[#717171] mb-2">
                         <Users className="h-4 w-4" />
                         <span className="text-xs">Guests <span className="text-red-500 ml-1">*</span></span>
                     </div>
@@ -81,7 +81,7 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                     />
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-2">
-                    <div className="flex items-center gap-2 text-gray-400 mb-2">
+                    <div className="flex items-center gap-2 text-[#717171] mb-2">
                         <Bed className="h-4 w-4" />
                         <span className="text-xs">Bedrooms <span className="text-red-500 ml-1">*</span></span>
                     </div>
@@ -94,7 +94,7 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                     />
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-2">
-                    <div className="flex items-center gap-2 text-gray-400 mb-2">
+                    <div className="flex items-center gap-2 text-[#717171] mb-2">
                         <Bath className="h-4 w-4" />
                         <span className="text-xs">Bathrooms <span className="text-red-500 ml-1">*</span></span>
                     </div>
@@ -107,7 +107,7 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                     />
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-2">
-                    <div className="flex items-center gap-2 text-gray-400 mb-2">
+                    <div className="flex items-center gap-2 text-[#717171] mb-2">
                         <Sparkles className="h-4 w-4" />
                         <span className="text-xs">Sq Ft</span>
                     </div>
@@ -126,7 +126,7 @@ export function StepBasics({ formData, setFormData, categories, isEdit }) {
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-300">Property Type <span className="text-red-500 ml-1">*</span></label>
                     <div className="relative">
-                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#717171]" />
                         <select
                             value={formData.type}
                             onChange={(e) =>

@@ -13,7 +13,7 @@ import {
 } from "@/store/api/hostApi";
 import { useDispatch } from "react-redux";
 import { useTimeAgo } from "@/shared/hooks/useTimeAgo";
-import { 
+import {
     clearNotifications as clearLocalNotifications,
     markAllAsRead as markAllLocalAsRead,
     markAsRead as markLocalAsRead,
@@ -106,9 +106,9 @@ export function NotificationDropdown({ minimal = false }) {
             <div
                 className={cn(
                     "relative group p-3 rounded-xl transition-all border border-transparent hover:border-white/5",
-notif.is_read
-    ? "bg-white text-gray-500"
-    : "bg-blue-50 text-gray-900"                )}
+                    notif.is_read
+                        ? "bg-white text-[#484848]"
+                        : "bg-blue-50 text-gray-900")}
             >
                 <div className="flex gap-3">
                     <div
@@ -117,10 +117,10 @@ notif.is_read
                     />
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold truncate">{notif.title}</p>
-                        <p className="text-xs text-gray-600 line-clamp-2 mt-0.5">
+                        <p className="text-xs text-[#222222] line-clamp-2 mt-0.5">
                             {notif.message}
                         </p>
-                        <p className="text-[10px] text-gray-400 mt-1.5">
+                        <p className="text-[10px] text-[#717171] mt-1.5">
                             {timeAgo}
                         </p>
                     </div>
@@ -156,19 +156,19 @@ notif.is_read
 
     return (
         <div className="relative" ref={dropdownRef}>
-           <button
-  onClick={() => setIsOpen(!isOpen)}
-  className="relative p-2 rounded-full text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors"
->
-  <Bell className="w-6 h-6 stroke-[2]" />
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="relative p-2 rounded-full text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            >
+                <Bell className="w-6 h-6 stroke-[2]" />
 
-  {unreadCount > 0 && (
-    <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
-      <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping" />
-      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-600 border border-white" />
-    </span>
-  )}
-</button>
+                {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
+                        <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-600 border border-white" />
+                    </span>
+                )}
+            </button>
 
             <AnimatePresence>
                 {isOpen && (
@@ -177,7 +177,7 @@ notif.is_read
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                       className="
+                        className="
 absolute
 top-full
 right-0
@@ -200,7 +200,7 @@ z-50
                                 {unreadCount > 0 && (
                                     <button
                                         onClick={handleClearAll}
-                                        className="text-xs text-gray-500 hover:text-gray-900 transition-colors"
+                                        className="text-xs text-[#484848] hover:text-gray-900 transition-colors"
                                     >
                                         Mark all read
                                     </button>
@@ -208,7 +208,7 @@ z-50
                                 {notifications.length > 0 && (
                                     <button
                                         onClick={handleDeleteAll}
-                                        className="text-xs text-white/50 hover:text-red-400 transition-colors flex items-center gap-1"
+                                        className="text-xs text-[#484848] hover:text-red-400 transition-colors flex items-center gap-1"
                                         title="Delete all notifications"
                                     >
                                         <Trash2 className="w-3 h-3" />
@@ -228,12 +228,12 @@ z-50
                             }}
                         >
                             {isLoading ? (
-                                <div className="py-8 text-center text-gray-400 text-sm">
+                                <div className="py-8 text-center text-[#717171] text-sm">
                                     <div className="w-6 h-6 border-2 border-white/20 border-t-accent rounded-full animate-spin mx-auto mb-2" />
                                     Loading...
                                 </div>
                             ) : notifications.length === 0 ? (
-                                <div className="py-8 text-center text-gray-400 text-sm">
+                                <div className="py-8 text-center text-[#717171] text-sm">
                                     <Bell className="w-8 h-8 mx-auto mb-2 opacity-20" />
                                     No new notifications
                                 </div>

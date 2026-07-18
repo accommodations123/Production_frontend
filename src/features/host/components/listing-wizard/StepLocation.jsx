@@ -266,7 +266,7 @@ export function StepLocation({ formData, setFormData }) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-6">
                     <div>
                         <h4 className="font-bold text-xl">Pin Location</h4>
-                        <p className="text-sm text-gray-400">Google Maps location mapping verified</p>
+                        <p className="text-sm text-[#717171]">Google Maps location mapping verified</p>
                     </div>
                 </div>
             </div>
@@ -287,12 +287,12 @@ export function StepLocation({ formData, setFormData }) {
                     </label>
                     <div className="flex gap-2">
                         <div className="relative flex-1">
-                            <Navigation className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                            <Navigation className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#717171]" />
                             <input
                                 ref={inputRef}
                                 type="text"
                                 placeholder="Type address (e.g. 700 Lower State Rd)..."
-                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:border-accent outline-none text-white placeholder:text-gray-500"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:border-accent outline-none text-white placeholder:text-[#484848]"
                             />
                         </div>
                         <button
@@ -324,11 +324,11 @@ export function StepLocation({ formData, setFormData }) {
                     {/* Country - Derived & Read Only */}
                     <div className="col-span-2 space-y-2">
                         <label className="text-sm font-medium text-gray-300">Country (Selected in Header)</label>
-                        <div className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 flex items-center gap-3 text-gray-400">
+                        <div className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 flex items-center gap-3 text-[#717171]">
                             {countryObj?.flag ? (
                                 <img src={countryObj.flag} alt={countryObj.name} className="h-5 w-7 object-cover rounded" />
                             ) : (
-                                <Globe className="h-5 w-5 text-gray-500" />
+                                <Globe className="h-5 w-5 text-[#484848]" />
                             )}
                             <span className="font-semibold text-white">{countryObj?.name || formData.country || 'No Country Selected'}</span>
                         </div>
@@ -381,22 +381,22 @@ export function StepLocation({ formData, setFormData }) {
                                 onClick={() => setFormData(prev => ({ ...prev, locationPrivacy: "exact" }))}
                                 className={`p-4 rounded-xl border text-left transition-all ${formData.locationPrivacy === 'exact'
                                     ? 'bg-accent/20 border-accent text-white'
-                                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                    : 'bg-white/5 border-white/10 text-[#717171] hover:bg-white/10'
                                 }`}
                             >
                                 <span className="font-bold text-sm block">Show Exact Location</span>
-                                <span className="text-xs text-gray-400 mt-1 block leading-normal">Guests see exact street coordinates.</span>
+                                <span className="text-xs text-[#717171] mt-1 block leading-normal">Guests see exact street coordinates.</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setFormData(prev => ({ ...prev, locationPrivacy: "approximate" }))}
                                 className={`p-4 rounded-xl border text-left transition-all ${formData.locationPrivacy === 'approximate'
                                     ? 'bg-accent/20 border-accent text-white'
-                                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                    : 'bg-white/5 border-white/10 text-[#717171] hover:bg-white/10'
                                 }`}
                             >
                                 <span className="font-bold text-sm block">Show Approximate Location</span>
-                                <span className="text-xs text-gray-400 mt-1 block leading-normal">Only show general city/state details.</span>
+                                <span className="text-xs text-[#717171] mt-1 block leading-normal">Only show general city/state details.</span>
                             </button>
                         </div>
                     </div>

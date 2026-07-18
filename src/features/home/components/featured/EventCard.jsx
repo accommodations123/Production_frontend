@@ -23,7 +23,7 @@ const HostPhoto = ({ host, name }) => {
                     loading="lazy"
                 />
             ) : (
-                <span className="text-xs font-bold text-gray-500 uppercase">
+                <span className="text-xs font-bold text-[#484848] uppercase">
                     {(name || "O").charAt(0)}
                 </span>
             )}
@@ -107,7 +107,7 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
 
                     {/* Date Block Overlay */}
                     <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md rounded-xl p-1.5 text-center min-w-[3rem] shadow-lg border border-white/20">
-                        <span className="block text-[10px] font-bold text-[#CB2A25] uppercase tracking-wider">{month}</span>
+                        <span className="block text-[10px] font-bold text-[#E1392A] uppercase tracking-wider">{month}</span>
                         <span className="block text-lg font-black text-[#00142E] leading-none mt-0.5">{day}</span>
                     </div>
 
@@ -141,28 +141,28 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
             <div className={`p-3.5 flex-grow flex flex-col gap-2 min-h-0 min-w-0 ${viewMode === "list" ? "flex-grow flex flex-col justify-between" : ""}`}>
                 {/* Category Badge */}
                 <div className="flex items-center">
-                    <span className="inline-block bg-[#CB2A25] text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm uppercase tracking-wide">
+                    <span className="inline-block bg-[#E1392A] text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm uppercase tracking-wide">
                         {event.category || "Community"}
                     </span>
                 </div>
 
                 {/* Title */}
-                <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-2 text-[#00142E] group-hover:text-[#CB2A25] transition-colors min-h-[2.5rem]" title={event.title}>
+                <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-2 text-[#00142E] group-hover:text-[#E1392A] transition-colors min-h-[2.5rem]" title={event.title}>
                     {event.title}
                 </h3>
 
                 {/* Location & Time */}
-                <div className="flex items-center gap-1.5 text-gray-500 text-xs sm:text-sm font-medium">
-                    <MapPin className="h-3.5 w-3.5 text-[#CB2A25] shrink-0" />
+                <div className="flex items-center gap-1.5 text-[#484848] text-xs sm:text-sm font-medium">
+                    <MapPin className="h-3.5 w-3.5 text-[#E1392A] shrink-0" />
                     <span className="line-clamp-1">{event.city ? `${event.city}, ${event.country || ""}` : event.location || "Location TBA"}</span>
                     {(event.time || event.start_time) && (
-                        <span className="text-[10px] text-gray-400 ml-auto">
+                        <span className="text-[10px] text-[#717171] ml-auto">
                             {formatTime(event.time || event.start_time)}
                         </span>
                     )}
                 </div>
 
-                <p className="text-gray-600 text-xs line-clamp-2 leading-relaxed border-l-2 border-gray-100 pl-3">
+                <p className="text-[#222222] text-xs line-clamp-2 leading-relaxed border-l-2 border-gray-100 pl-3">
                     {event.description}
                 </p>
 
@@ -171,7 +171,7 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
                     <div className="flex items-center gap-2 min-w-0">
                         <HostPhoto host={event.Host || event.host || event.creator} name={getOrganizerName()} />
                         <div className="min-w-0">
-                            <p className="text-[9px] uppercase tracking-wider text-gray-400 font-bold leading-none">Hosted by</p>
+                            <p className="text-[9px] uppercase tracking-wider text-[#717171] font-bold leading-none">Hosted by</p>
                             <p className="text-xs font-bold text-[#00142E] truncate w-24 sm:w-28 mt-0.5" title={getOrganizerName()}>
                                 {getOrganizerName()}
                             </p>
@@ -180,13 +180,13 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
 
                     <div className="flex items-center gap-2 shrink-0">
                         <div className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-full border border-gray-100 shadow-inner">
-                            <Users className="h-3 w-3 text-[#CB2A25]" />
+                            <Users className="h-3 w-3 text-[#E1392A]" />
                             <span className="text-[10px] font-bold text-[#00142E]">{event.attendees_count || 0}</span>
                         </div>
                         <Button
                             onClick={() => onViewDetails(event.id || event._id)}
                             className={`h-9 px-3.5 rounded-xl text-xs font-bold transition-all duration-300 shadow-sm cursor-pointer ${
-                                isExpired ? "bg-gray-100 border border-gray-200 text-gray-500 hover:bg-gray-200" : "bg-[#CB2A25] hover:bg-[#A9201C] text-white"
+                                isExpired ? "bg-gray-100 border border-gray-200 text-[#484848] hover:bg-gray-200" : "bg-[#E1392A] hover:bg-[#C82E20] text-white"
                             }`}
                         >
                             View Details

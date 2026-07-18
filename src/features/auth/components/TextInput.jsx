@@ -27,7 +27,7 @@ const TextInput = ({
                 className="relative flex items-center"
             >
                 {Icon && (
-                    <div className="absolute left-3 text-gray-400 pointer-events-none">
+                    <div className="absolute left-3 text-[#717171] pointer-events-none">
                         <Icon size={18} />
                     </div>
                 )}
@@ -36,7 +36,7 @@ const TextInput = ({
                     value={value}
                     onChange={onChange}
                     placeholder={placeholder}
-                    className={`w-full bg-white/50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200 placeholder:text-gray-400 ${Icon ? 'pl-10' : 'pl-4'
+                    className={`w-full bg-white/50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200 placeholder:text-[#717171] ${Icon ? 'pl-10' : 'pl-4'
                         } ${rightElement ? 'pr-20' : 'pr-4'} py-2.5`}
                     {...props}
                 />

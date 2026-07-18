@@ -20,7 +20,7 @@ export function EmptyState({
       className={`flex flex-col items-center justify-center text-center p-8 sm:p-12 rounded-3xl border border-dashed border-gray-200/80 bg-white/40 backdrop-blur-sm shadow-sm max-w-lg mx-auto ${className || ""}`}
     >
       {Icon && (
-        <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-6 shadow-sm">
+        <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#717171] mb-6 shadow-sm">
           <Icon className="w-8 h-8" />
         </div>
       )}
@@ -28,7 +28,7 @@ export function EmptyState({
         {title}
       </h3>
       {description && (
-        <p className="text-sm text-slate-500 max-w-sm mb-6 leading-relaxed">
+        <p className="text-sm text-[#484848] max-w-sm mb-6 leading-relaxed">
           {description}
         </p>
       )}

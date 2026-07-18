@@ -3,6 +3,7 @@ import {
   User, MapPin, Edit2, Share2, 
   ExternalLink, Check, ShieldCheck
 } from "lucide-react";
+import { ProfileCard } from "@/features/account/components/ProfileCard";
 import { useCountry } from "@/context/CountryContext";
 import { COUNTRIES } from "@/shared/utils/mock-data";
 import { cn } from "@/shared/utils/utils";
@@ -31,7 +32,7 @@ const DetailCard = ({ title, description, children, onEdit, isEditing, icon: Ico
           </div>
           <div>
             <h3 className="text-lg font-bold text-gray-900">{title}</h3>
-            <p className="text-xs text-gray-500">{description}</p>
+            <p className="text-xs text-[#484848]">{description}</p>
           </div>
         </div>
 
@@ -86,7 +87,7 @@ const InfoField = ({
   onPrefixChange
 }) => (
   <div className="space-y-2">
-    <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 ml-1 block">
+    <label className="text-[10px] font-bold uppercase tracking-wider text-[#717171] ml-1 block">
       {label}
     </label>
     {isEditing ? (
@@ -395,7 +396,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
         <div className="space-y-1.5">
           <span className="text-xs font-bold text-blue-600 tracking-wider uppercase block">Identity Profile 🔒</span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Personal Information</h1>
-          <p className="text-xs sm:text-sm text-gray-500 max-w-lg leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#484848] max-w-lg leading-relaxed">
             Manage your personal verification details, contact numbers, primary locations, and social links.
           </p>
         </div>
@@ -443,7 +444,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
             className="z-20"
           >
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 ml-1 block">Country</label>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-[#717171] ml-1 block">Country</label>
               {editStates.location ? (
                 <SearchableDropdown
                   label=""
@@ -467,7 +468,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 ml-1 block">State / Province</label>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-[#717171] ml-1 block">State / Province</label>
               {editStates.location ? (
                 <SearchableDropdown
                   label=""
@@ -496,7 +497,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 ml-1 block">City</label>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-[#717171] ml-1 block">City</label>
               {editStates.location ? (
                 <SearchableDropdown
                   label=""
@@ -573,12 +574,17 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
 
         {/* Right Side: completion meter & Trust badge */}
         <div className="lg:col-span-4 space-y-6">
+          <ProfileCard
+            user={initialData}
+            onUpdate={onUpdate}
+            isLoading={isUpdating}
+          />
           <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] space-y-5">
             <h3 className="font-extrabold text-gray-900 text-base">Profile Strength</h3>
             
             <div className="space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-bold text-gray-600">Completeness</span>
+                <span className="font-bold text-[#222222]">Completeness</span>
                 <span className="font-extrabold text-blue-600">{completionScore}%</span>
               </div>
               <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
@@ -593,7 +599,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
               <ShieldCheck className="w-9 h-9 text-blue-600 shrink-0" />
               <div>
                 <p className="font-extrabold text-gray-900 text-xs">Verified Hosting Profile</p>
-                <p className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">
+                <p className="text-[10px] text-[#484848] mt-0.5 leading-relaxed">
                   Verifying your account details builds absolute credibility for guests matching on your listings.
                 </p>
               </div>

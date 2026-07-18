@@ -237,7 +237,7 @@ export default function PostTripModal({ onClose, onAdd }) {
                     <h2 className="text-xl font-bold text-gray-900 mb-2">
                         {hostProfile?.status === 'pending' ? "Account Verification Pending" : "Host Access Required"}
                     </h2>
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-[#222222] mb-6">
                         {hostProfile?.status === 'pending'
                             ? "Your host application is currently under review. You can post travel plans once your account is approved."
                             : "You need to be an approved host to post travel plans."
@@ -277,9 +277,9 @@ export default function PostTripModal({ onClose, onAdd }) {
                     <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                         <div>
                             <h2 className="text-xl font-extrabold text-[#00142E] flex items-center gap-2">
-                                <Plane className="text-[#CB2A25] w-5 h-5" /> Post Travel Plan
+                                <Plane className="text-[#E1392A] w-5 h-5" /> Post Travel Plan
                             </h2>
-                            <p className="text-xs text-gray-500 mt-1 font-medium">Share your itinerary to match with fellow travelers</p>
+                            <p className="text-xs text-[#484848] mt-1 font-medium">Share your itinerary to match with fellow travelers</p>
                         </div>
                     </div>
 
@@ -287,7 +287,7 @@ export default function PostTripModal({ onClose, onAdd }) {
                         {/* 1. Personal Details Section */}
                         <div className="space-y-4">
                             <h3 className="text-base font-bold text-[#00142E] flex items-center gap-2 pb-2 border-b border-gray-50">
-                                <User size={18} className="text-[#CB2A25]" /> Personal Information
+                                <User size={18} className="text-[#E1392A]" /> Personal Information
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
@@ -319,7 +319,7 @@ export default function PostTripModal({ onClose, onAdd }) {
                         {/* 2. Trip Details Section */}
                         <div className="space-y-6 pt-2">
                             <h3 className="text-base font-bold text-[#00142E] flex items-center gap-2 pb-2 border-b border-gray-50">
-                                <Plane size={18} className="text-[#CB2A25]" /> Trip Information
+                                <Plane size={18} className="text-[#E1392A]" /> Trip Information
                             </h3>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -496,7 +496,7 @@ export default function PostTripModal({ onClose, onAdd }) {
                                 type="submit"
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
-                                className="px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#CB2A25] hover:bg-[#a9201c] hover:shadow-[0_8px_20px_rgba(203,42,37,0.25)] active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2 cursor-pointer"
+                                className="px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#E1392A] hover:bg-[#C82E20] hover:shadow-[0_8px_20px_rgba(203,42,37,0.25)] active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2 cursor-pointer"
                             >
                                 {isSubmitting ? (
                                     <>

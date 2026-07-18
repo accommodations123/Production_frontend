@@ -8,7 +8,7 @@ export const ScheduleTab = memo(({ event, visibleSections }) => {
     }, [event])
 
     if (scheduleItems.length === 0) {
-        return <div id="schedule" className="text-center py-12 text-gray-500">No schedule published yet.</div>
+        return <div id="schedule" className="text-center py-12 text-[#484848]">No schedule published yet.</div>
     }
 
     return (
@@ -23,7 +23,7 @@ export const ScheduleTab = memo(({ event, visibleSections }) => {
                     </div>
                     <div>
                         <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Event Schedule</h2>
-                        <p className="text-gray-500 text-sm mt-1">Plan your day with our detailed timeline</p>
+                        <p className="text-[#484848] text-sm mt-1">Plan your day with our detailed timeline</p>
                     </div>
                 </div>
                 <div className="space-y-4">
@@ -48,7 +48,7 @@ export const ScheduleTab = memo(({ event, visibleSections }) => {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-gray-900 text-lg">{item.title}</h3>
-                                    <p className="text-sm text-gray-500 mt-1">{item.duration}</p>
+                                    <p className="text-sm text-[#484848] mt-1">{item.duration}</p>
                                 </div>
                             </div>
                         </div>

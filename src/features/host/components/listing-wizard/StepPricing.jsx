@@ -160,7 +160,7 @@ export function StepPricing({ formData, setFormData, contributionType = 'propert
         return (
             <div className="space-y-6 max-w-2xl mx-auto w-full">
                 <h2 className="text-2xl font-bold text-white mb-4">Event Pricing</h2>
-                <p className="text-sm text-gray-400 -mt-2 mb-6">Is this a free event or do attendees need tickets?</p>
+                <p className="text-sm text-[#717171] -mt-2 mb-6">Is this a free event or do attendees need tickets?</p>
 
                 <div className="space-y-6">
                     {/* Event Type Selection */}
@@ -169,7 +169,7 @@ export function StepPricing({ formData, setFormData, contributionType = 'propert
                             onClick={() => setFormData({ ...formData, eventPrice: 'free', priceAmount: 0 })}
                             className={`p-4 rounded-xl border text-left transition-all ${formData.eventPrice === 'free'
                                 ? 'bg-accent/20 border-accent text-white'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                : 'bg-white/5 border-white/10 text-[#717171] hover:bg-white/10'
                                 }`}
                         >
                             <span className="text-lg font-bold block mb-1">Free Event</span>
@@ -179,7 +179,7 @@ export function StepPricing({ formData, setFormData, contributionType = 'propert
                             onClick={() => setFormData({ ...formData, eventPrice: 'fixed_price' })}
                             className={`p-4 rounded-xl border text-left transition-all ${formData.eventPrice === 'fixed_price'
                                 ? 'bg-accent/20 border-accent text-white'
-                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                : 'bg-white/5 border-white/10 text-[#717171] hover:bg-white/10'
                                 }`}
                         >
                             <span className="text-lg font-bold block mb-1">Paid Ticket</span>
@@ -198,7 +198,7 @@ export function StepPricing({ formData, setFormData, contributionType = 'propert
                                     <input
                                         type="number"
                                         placeholder="0"
-                                        className="w-full bg-transparent border-none text-xl font-bold focus:outline-none placeholder:text-gray-600"
+                                        className="w-full bg-transparent border-none text-xl font-bold focus:outline-none placeholder:text-[#222222]"
                                         value={formData.priceAmount}
                                         onChange={e => setFormData({ ...formData, priceAmount: e.target.value })}
                                     />
@@ -234,14 +234,14 @@ export function StepPricing({ formData, setFormData, contributionType = 'propert
         return (
             <div className="space-y-6 max-w-2xl mx-auto w-full">
                 <h2 className="text-2xl font-bold text-white mb-4">Budget Preference</h2>
-                <p className="text-sm text-gray-400 -mt-2 mb-6">How do you plan to handle expenses?</p>
+                <p className="text-sm text-[#717171] -mt-2 mb-6">How do you plan to handle expenses?</p>
 
                 <div className="grid grid-cols-2 gap-4">
                     <button
                         onClick={() => setFormData({ ...formData, budgetPreference: 'shared' })}
                         className={`p-4 rounded-xl border text-left transition-all ${formData.budgetPreference === 'shared'
                             ? 'bg-accent/20 border-accent text-white'
-                            : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                            : 'bg-white/5 border-white/10 text-[#717171] hover:bg-white/10'
                             }`}
                     >
                         <span className="block mb-2"><Wallet className="h-6 w-6" /></span>
@@ -252,7 +252,7 @@ export function StepPricing({ formData, setFormData, contributionType = 'propert
                         onClick={() => setFormData({ ...formData, budgetPreference: 'separate' })}
                         className={`p-4 rounded-xl border text-left transition-all ${formData.budgetPreference === 'separate'
                             ? 'bg-accent/20 border-accent text-white'
-                            : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                            : 'bg-white/5 border-white/10 text-[#717171] hover:bg-white/10'
                             }`}
                     >
                         <span className="block mb-2"><DollarSign className="h-6 w-6" /></span>
@@ -268,7 +268,7 @@ export function StepPricing({ formData, setFormData, contributionType = 'propert
     return (
         <div className="space-y-6 max-w-2xl mx-auto w-full">
             <h2 className="text-2xl font-bold text-white mb-4">Set your price</h2>
-            <p className="text-sm text-gray-400 -mt-2 mb-6">You can offer discounts for longer stays.</p>
+            <p className="text-sm text-[#717171] -mt-2 mb-6">You can offer discounts for longer stays.</p>
 
             <div className="space-y-4">
                 <div className="bg-black/20 rounded-xl p-4 border border-white/10 flex items-center gap-4">
@@ -276,11 +276,11 @@ export function StepPricing({ formData, setFormData, contributionType = 'propert
                     <div className="flex-1">
                         <label className="text-sm font-bold block">Price Per Month <span className="text-red-500 ml-1">*</span></label>
                         <div className="flex items-center gap-2">
-                            <span className="text-lg font-bold text-gray-500 min-w-[20px] text-center">{displaySymbol}</span>
+                            <span className="text-lg font-bold text-[#484848] min-w-[20px] text-center">{displaySymbol}</span>
                             <input
                                 type="number"
                                 placeholder="1200"
-                                className="w-full bg-transparent border-none text-xl font-bold focus:outline-none placeholder:text-gray-600"
+                                className="w-full bg-transparent border-none text-xl font-bold focus:outline-none placeholder:text-[#222222]"
                                 value={formData.priceMonth}
                                 onChange={e => setFormData({ ...formData, priceMonth: e.target.value })}
                             />
@@ -290,7 +290,7 @@ export function StepPricing({ formData, setFormData, contributionType = 'propert
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="bg-black/20 rounded-xl p-4 border border-white/10">
-                        <label className="text-xs font-medium text-gray-400 block mb-1">Currency</label>
+                        <label className="text-xs font-medium text-[#717171] block mb-1">Currency</label>
                         <select
                             className="w-full bg-transparent border-none text-lg font-bold focus:outline-none text-white [&>option]:bg-gray-800"
                             value={formData.currency}
@@ -303,22 +303,22 @@ export function StepPricing({ formData, setFormData, contributionType = 'propert
                     </div>
 
                     <div className="bg-black/20 rounded-xl p-4 border border-white/10">
-                        <label className="text-xs font-medium text-gray-400 block mb-1">Per Week (Optional)</label>
+                        <label className="text-xs font-medium text-[#717171] block mb-1">Per Week (Optional)</label>
                         <input
                             type="number"
                             placeholder="0"
-                            className="w-full bg-transparent border-none text-lg font-bold focus:outline-none placeholder:text-gray-600 text-white"
+                            className="w-full bg-transparent border-none text-lg font-bold focus:outline-none placeholder:text-[#222222] text-white"
                             value={formData.priceWeek || ''}
                             onChange={e => setFormData({ ...formData, priceWeek: e.target.value })}
                         />
                     </div>
 
                     <div className="bg-black/20 rounded-xl p-4 border border-white/10">
-                        <label className="text-xs font-medium text-gray-400 block mb-1">Per Night (Optional)</label>
+                        <label className="text-xs font-medium text-[#717171] block mb-1">Per Night (Optional)</label>
                         <input
                             type="number"
                             placeholder="0"
-                            className="w-full bg-transparent border-none text-lg font-bold focus:outline-none placeholder:text-gray-600 text-white"
+                            className="w-full bg-transparent border-none text-lg font-bold focus:outline-none placeholder:text-[#222222] text-white"
                             value={formData.priceNight || ''}
                             onChange={e => setFormData({ ...formData, priceNight: e.target.value })}
                         />

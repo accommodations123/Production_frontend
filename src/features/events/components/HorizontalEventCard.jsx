@@ -117,25 +117,25 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
                 {/* Event Content */}
                 <div className="p-4 sm:p-5">
                     <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
-                        <span className="text-xs sm:text-sm text-gray-600 truncate">
+                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-[#484848]" />
+                        <span className="text-xs sm:text-sm text-[#222222] truncate">
                             {event.city ? `${event.city}, ${event.country || ""}` : event.location || "Location TBA"}
                         </span>
                     </div>
                     <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">{event.title}</h3>
-                    <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{event.description}</p>
+                    <p className="text-[#222222] text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{event.description}</p>
 
                     {/* Event Stats */}
                     <div className="flex items-center justify-between mb-3 sm:mb-4 border-t border-gray-50 pt-3">
                         <div className="flex items-center gap-2">
-                            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
-                            <span className="text-xs text-gray-600">
+                            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-[#484848]" />
+                            <span className="text-xs text-[#222222]">
                                 {formatDate(event.date || event.start_date)}
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
-                            <span className="text-xs text-gray-600">
+                            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-[#484848]" />
+                            <span className="text-xs text-[#222222]">
                                 {event.attendees_count || 0} attending
                             </span>
                         </div>
@@ -145,7 +145,7 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
                     <div className="flex items-center gap-3 mb-3 sm:mb-4">
                         <HostPhoto host={event.host} />
                         <div className="overflow-hidden">
-                            <p className="text-[10px] text-gray-500 uppercase tracking-wider">Organizer</p>
+                            <p className="text-[10px] text-[#484848] uppercase tracking-wider">Organizer</p>
                             <p className="text-sm font-medium text-gray-900 break-words">{getOrganizerName()}</p>
                         </div>
                     </div>
@@ -158,7 +158,7 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
                             <Button
                                 onClick={() => onViewDetails(event.id)}
                                 variant="outline"
-                                className="flex-1 border-gray-300 text-gray-500 rounded-lg h-9 text-xs font-medium transition-all duration-200"
+                                className="flex-1 border-gray-300 text-[#484848] rounded-lg h-9 text-xs font-medium transition-all duration-200"
                             >
                                 <Clock className="h-3 w-3 mr-1.5" />
                                 View Recap
@@ -171,7 +171,7 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
                                 View Details
                             </Button>
                         )}
-                        <Button variant="outline" className="w-9 h-9 p-0 border-gray-200 text-gray-500 hover:bg-gray-50 rounded-lg shrink-0">
+                        <Button variant="outline" className="w-9 h-9 p-0 border-gray-200 text-[#484848] hover:bg-gray-50 rounded-lg shrink-0">
                             <Share2 className="h-3.5 w-3.5" />
                         </Button>
                     </div>

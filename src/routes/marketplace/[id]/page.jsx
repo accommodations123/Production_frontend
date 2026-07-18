@@ -27,7 +27,7 @@ export default function ProductDetailsPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CB2A25]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E1392A]"></div>
             </div>
         );
     }
@@ -35,7 +35,7 @@ export default function ProductDetailsPage() {
     if (!rawProduct) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-                <AlertCircle className="w-12 h-12 text-gray-400 mb-4" />
+                <AlertCircle className="w-12 h-12 text-[#717171] mb-4" />
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Product Not Found</h2>
                 <Button onClick={() => navigate('/marketplace')} className="px-6 py-2">Back to Marketplace</Button>
             </div>
@@ -56,9 +56,9 @@ export default function ProductDetailsPage() {
             <div className="min-h-screen bg-gray-50 flex flex-col">
                 <Navbar />
                 <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
-                    <AlertCircle className="w-12 h-12 text-[#CB2A25] mb-4" />
+                    <AlertCircle className="w-12 h-12 text-[#E1392A] mb-4" />
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Item not available</h2>
-                    <p className="text-gray-500 mb-6">This item is not listed in {activeCountry.name}.</p>
+                    <p className="text-[#484848] mb-6">This item is not listed in {activeCountry.name}.</p>
                     <Button onClick={() => navigate('/marketplace')} className="px-6 py-2">Browse Marketplace</Button>
                 </div>
                 <Footer />
@@ -78,9 +78,9 @@ export default function ProductDetailsPage() {
                 {/* Back Navigation */}
                 <button
                     onClick={() => navigate('/marketplace')}
-                    className="group flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#CB2A25] mb-6 sm:mb-8 transition-colors"
+                    className="group flex items-center gap-2 text-sm font-semibold text-[#484848] hover:text-[#E1392A] mb-6 sm:mb-8 transition-colors"
                 >
-                    <div className="p-1 rounded-full bg-white border border-gray-200 group-hover:border-[#CB2A25] transition-colors">
+                    <div className="p-1 rounded-full bg-white border border-gray-200 group-hover:border-[#E1392A] transition-colors">
                         <ArrowLeft className="h-4 w-4" />
                     </div>
                     Back to Marketplace
@@ -109,7 +109,7 @@ export default function ProductDetailsPage() {
                                     itemType="buysell"
                                     className="w-8 h-8 sm:w-10 sm:h-10 bg-white/90 backdrop-blur-md flex items-center justify-center shadow-lg hover:bg-white transition-all hover:scale-105"
                                     iconSize={20}
-                                    outlineColor="text-gray-400"
+                                    outlineColor="text-[#717171]"
                                     filledColor="fill-red-500 text-red-500"
                                 />
                             </div>
@@ -126,7 +126,7 @@ export default function ProductDetailsPage() {
                                             setImageError(false);
                                         }}
                                         className={`relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex-shrink-0 rounded-xl sm:rounded-2xl overflow-hidden border-2 transition-all ${activeImage === idx
-                                            ? 'border-[#CB2A25] shadow-md scale-105'
+                                            ? 'border-[#E1392A] shadow-md scale-105'
                                             : 'border-white hover:border-gray-200 opacity-70 hover:opacity-100'
                                             }`}
                                     >
@@ -152,7 +152,7 @@ export default function ProductDetailsPage() {
                             </h1>
 
                             <div className="flex flex-wrap items-baseline gap-2 mb-4 sm:mb-6">
-                                <span className="text-3xl sm:text-4xl font-black text-[#CB2A25]">
+                                <span className="text-3xl sm:text-4xl font-black text-[#E1392A]">
                                     {product.currency || "$"} {product.price?.toLocaleString()}
                                 </span>
                                 {product.negotiable && (
@@ -162,13 +162,13 @@ export default function ProductDetailsPage() {
                                 )}
                             </div>
 
-                            <div className="flex flex-col gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600">
+                            <div className="flex flex-col gap-2 sm:gap-3 text-xs sm:text-sm text-[#222222]">
                                 <div className="flex items-center gap-2">
-                                    <MapPin className="h-4 w-4 text-[#CB2A25]" />
+                                    <MapPin className="h-4 w-4 text-[#E1392A]" />
                                     <span className="font-medium">{product.location || "Location not specified"}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Clock className="h-4 w-4 text-gray-400" />
+                                    <Clock className="h-4 w-4 text-[#717171]" />
                                     <span>Posted {(product.created_at || product.createdAt) ? new Date(product.created_at || product.createdAt).toLocaleDateString() : "Recently"}</span>
                                 </div>
                             </div>
@@ -177,7 +177,7 @@ export default function ProductDetailsPage() {
                         {/* Description */}
                         <div className="bg-white p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-[2.5rem] shadow-sm border border-gray-100">
                             <h3 className="font-bold text-base sm:text-lg text-[#00142E] mb-3 sm:mb-4">Description</h3>
-                            <p className="text-gray-600 leading-relaxed whitespace-pre-line text-sm sm:text-base">
+                            <p className="text-[#222222] leading-relaxed whitespace-pre-line text-sm sm:text-base">
                                 {product.description || "No description provided."}
                             </p>
                         </div>
@@ -185,7 +185,7 @@ export default function ProductDetailsPage() {
                         {/* Seller Card */}
                         <div className="bg-[#00142E] p-4 sm:p-6 rounded-2xl text-white relative overflow-hidden">
                             {/* Decorative BG */}
-                            <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-[#CB2A25]/20 rounded-full blur-3xl -mr-8 sm:-mr-10 -mt-8 sm:-mt-10" />
+                            <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-[#E1392A]/20 rounded-full blur-3xl -mr-8 sm:-mr-10 -mt-8 sm:-mt-10" />
 
                             <div className="relative z-10 flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                                 <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/10 rounded-xl sm:rounded-2xl flex items-center justify-center text-white font-bold text-xl sm:text-2xl border border-white/10">

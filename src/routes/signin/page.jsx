@@ -11,7 +11,7 @@ import { sendOtp, verifyOtp, fetchCurrentUser } from "@/store/slices/authSlice";
   --color-foreground: #00142E
   --color-primary: #00142E
   --color-secondary: #0A1C30
-  --color-accent: #CB2A25
+  --color-accent: #E1392A
   --color-neutral: #D1CBB7
   --color-navy-dark: #02152B
 */
@@ -80,7 +80,7 @@ const Signin = () => {
       <motion.div
         animate={{ opacity: [0.15, 0.25, 0.15] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -bottom-[30%] -right-[20%] w-[80vh] h-[80vh] rounded-full bg-[#CB2A25] blur-[200px] z-0"
+        className="absolute -bottom-[30%] -right-[20%] w-[80vh] h-[80vh] rounded-full bg-[#E1392A] blur-[200px] z-0"
       />
       <motion.div
         animate={{ opacity: [0.1, 0.2, 0.1] }}
@@ -96,13 +96,13 @@ const Signin = () => {
           <div className="absolute inset-0 opacity-5" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }} />
 
           {/* Accent Line */}
-          <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#CB2A25] via-[#CB2A25]/50 to-transparent" />
+          <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#E1392A] via-[#E1392A]/50 to-transparent" />
 
           {/* Glowing Orb */}
           <motion.div
             animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -bottom-32 -right-32 w-80 h-80 bg-[#CB2A25] rounded-full blur-[120px]"
+            className="absolute -bottom-32 -right-32 w-80 h-80 bg-[#E1392A] rounded-full blur-[120px]"
           />
 
           <div className="relative z-10">
@@ -127,9 +127,9 @@ const Signin = () => {
               >
                 <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-5">
                   {step === 'email' ? (
-                    <>Welcome to <br /><span className="text-[#CB2A25]">Your Community</span></>
+                    <>Welcome to <br /><span className="text-[#E1392A]">Your Community</span></>
                   ) : (
-                    <>One Step <br /><span className="text-[#CB2A25]">Closer</span></>
+                    <>One Step <br /><span className="text-[#E1392A]">Closer</span></>
                   )}
                 </h1>
                 <p className="text-[#D1CBB7]/80 text-base xl:text-lg max-w-xs leading-relaxed">
@@ -146,15 +146,15 @@ const Signin = () => {
           <div className="relative z-10 space-y-5">
             <div className="flex flex-wrap gap-3">
               <div className="flex items-center gap-2 bg-white/5 px-4 py-2.5 rounded-full backdrop-blur-md border border-white/10 text-sm">
-                <Home size={15} className="text-[#CB2A25]" />
+                <Home size={15} className="text-[#E1392A]" />
                 <span className="text-[#D1CBB7]">Accommodations</span>
               </div>
               <div className="flex items-center gap-2 bg-white/5 px-4 py-2.5 rounded-full backdrop-blur-md border border-white/10 text-sm">
-                <Users size={15} className="text-[#CB2A25]" />
+                <Users size={15} className="text-[#E1392A]" />
                 <span className="text-[#D1CBB7]">Community</span>
               </div>
               <div className="flex items-center gap-2 bg-white/5 px-4 py-2.5 rounded-full backdrop-blur-md border border-white/10 text-sm">
-                <ShieldCheck size={15} className="text-[#CB2A25]" />
+                <ShieldCheck size={15} className="text-[#E1392A]" />
                 <span className="text-[#D1CBB7]">Secure</span>
               </div>
             </div>
@@ -193,14 +193,14 @@ const Signin = () => {
                     <div className="space-y-1.5">
                       <label className="text-sm font-semibold text-[#00142E]/70 ml-1">Email Address</label>
                       <div className="relative group">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[#00142E]/30 group-focus-within:text-[#CB2A25] transition-colors h-5 w-5" />
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[#00142E]/30 group-focus-within:text-[#E1392A] transition-colors h-5 w-5" />
                         <input
                           type="email"
                           name="email"
                           value={formData.email}
                           onChange={handleChange}
                           placeholder="you@example.com"
-                          className="w-full bg-[#D1CBB7]/10 border-2 border-transparent text-[#00142E] rounded-xl py-4 pl-12 pr-4 outline-none focus:bg-white focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/10 transition-all font-medium placeholder:text-[#00142E]/30"
+                          className="w-full bg-[#D1CBB7]/10 border-2 border-transparent text-[#00142E] rounded-xl py-4 pl-12 pr-4 outline-none focus:bg-white focus:border-[#E1392A] focus:ring-4 focus:ring-[#E1392A]/10 transition-all font-medium placeholder:text-[#00142E]/30"
                           required
                         />
                       </div>
@@ -209,7 +209,7 @@ const Signin = () => {
                     <button
                       type="submit"
                       disabled={sendingOtp}
-                      className="w-full h-14 bg-[#CB2A25] hover:bg-[#b02420] text-white rounded-xl font-bold text-base shadow-lg shadow-[#CB2A25]/25 transition-all hover:shadow-xl hover:shadow-[#CB2A25]/30 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
+                      className="w-full h-14 bg-[#E1392A] hover:bg-[#C82E20] text-white rounded-xl font-bold text-base shadow-lg shadow-[#E1392A]/25 transition-all hover:shadow-xl hover:shadow-[#E1392A]/30 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
                     >
                       {sendingOtp ? <Loader2 className="animate-spin h-5 w-5" /> : <>Continue <ArrowRight size={18} /></>}
                     </button>
@@ -243,7 +243,7 @@ const Signin = () => {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="mb-8">
-                    <button onClick={() => setStep('email')} className="text-sm font-medium text-[#00142E]/50 hover:text-[#CB2A25] flex items-center gap-1.5 mb-5 transition-colors group">
+                    <button onClick={() => setStep('email')} className="text-sm font-medium text-[#00142E]/50 hover:text-[#E1392A] flex items-center gap-1.5 mb-5 transition-colors group">
                       <ArrowLeftIcon className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" /> Back
                     </button>
                     <h2 className="text-3xl font-bold text-[#00142E]">Verify OTP</h2>
@@ -254,14 +254,14 @@ const Signin = () => {
                     <div className="space-y-1.5">
                       <label className="text-sm font-semibold text-[#00142E]/70 ml-1">Verification Code</label>
                       <div className="relative group">
-                        <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-[#00142E]/30 group-focus-within:text-[#CB2A25] transition-colors h-5 w-5" />
+                        <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-[#00142E]/30 group-focus-within:text-[#E1392A] transition-colors h-5 w-5" />
                         <input
                           type="text"
                           name="otp"
                           value={formData.otp}
                           onChange={handleChange}
                           placeholder="Enter 6-digit code"
-                          className="w-full bg-[#D1CBB7]/10 border-2 border-transparent text-[#00142E] rounded-xl py-4 pl-12 pr-4 outline-none focus:bg-white focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/10 transition-all font-bold tracking-[0.3em] text-lg placeholder:text-[#00142E]/30 placeholder:tracking-normal placeholder:font-medium"
+                          className="w-full bg-[#D1CBB7]/10 border-2 border-transparent text-[#00142E] rounded-xl py-4 pl-12 pr-4 outline-none focus:bg-white focus:border-[#E1392A] focus:ring-4 focus:ring-[#E1392A]/10 transition-all font-bold tracking-[0.3em] text-lg placeholder:text-[#00142E]/30 placeholder:tracking-normal placeholder:font-medium"
                           maxLength={6}
                           required
                         />
@@ -271,7 +271,7 @@ const Signin = () => {
                     <button
                       type="submit"
                       disabled={verifyingOtp}
-                      className="w-full h-14 bg-[#CB2A25] hover:bg-[#b02420] text-white rounded-xl font-bold text-base shadow-lg shadow-[#CB2A25]/25 transition-all hover:shadow-xl hover:shadow-[#CB2A25]/30 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
+                      className="w-full h-14 bg-[#E1392A] hover:bg-[#C82E20] text-white rounded-xl font-bold text-base shadow-lg shadow-[#E1392A]/25 transition-all hover:shadow-xl hover:shadow-[#E1392A]/30 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
                     >
                       {verifyingOtp ? <Loader2 className="animate-spin h-5 w-5" /> : <>Verify & Sign In <ArrowRight size={18} /></>}
                     </button>

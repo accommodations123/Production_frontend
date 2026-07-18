@@ -11,7 +11,7 @@ const CommunityCard = ({ match, onConnect }) => {
 
     return (
         <div className="group block h-full select-none focus:outline-none">
-            <div className="bg-white rounded-[1.5rem] border border-[#E5E7EB] hover:border-[#CB2A25]/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden relative">
+            <div className="bg-white rounded-[1.5rem] border border-[#E5E7EB] hover:border-[#E1392A]/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden relative">
                 {/* Image Section */}
                 <div className="relative h-64 overflow-hidden bg-gray-100">
                     {match.image ? (
@@ -24,7 +24,7 @@ const CommunityCard = ({ match, onConnect }) => {
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                            <User className="w-16 h-16 text-gray-400" />
+                            <User className="w-16 h-16 text-[#717171]" />
                         </div>
                     )}
 
@@ -46,7 +46,7 @@ const CommunityCard = ({ match, onConnect }) => {
                                     className="w-full h-full rounded-full object-cover"
                                 />
                             ) : (
-                                <User className="w-5 h-5 text-gray-400" />
+                                <User className="w-5 h-5 text-[#717171]" />
                             )}
                         </div>
                     </div>
@@ -55,7 +55,7 @@ const CommunityCard = ({ match, onConnect }) => {
                 {/* Content Section */}
                 <div className="p-5 flex-grow flex flex-col gap-4">
                     <div className="space-y-1">
-                        <h3 className="font-bold text-lg leading-tight line-clamp-1 text-[#00142E] group-hover:text-[#CB2A25] transition-colors">
+                        <h3 className="font-bold text-lg leading-tight line-clamp-1 text-[#00142E] group-hover:text-[#E1392A] transition-colors">
                             {match.name}
                         </h3>
                         <div className="flex items-center gap-1.5 text-[#00142E]/60 text-sm font-medium">
@@ -67,7 +67,7 @@ const CommunityCard = ({ match, onConnect }) => {
                     {/* Trip Details */}
                     <div className="bg-[#F8F9FA] p-3 rounded-xl">
                         <div className="flex items-center gap-2 mb-1">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#CB2A25]" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#E1392A]" />
                             <span className="font-bold text-sm text-[#00142E] line-clamp-1">{match.tripTitle}</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-[#00142E]/60 ml-3.5">
@@ -84,7 +84,7 @@ const CommunityCard = ({ match, onConnect }) => {
                     <div className="mt-auto pt-4 border-t border-gray-100">
                         <button
                             onClick={() => onConnect(match)}
-                            className="w-full py-2.5 bg-[#00142E] text-white rounded-full font-bold flex items-center justify-center gap-2 hover:bg-[#CB2A25] transition-all shadow-md active:scale-95 text-sm"
+                            className="w-full py-2.5 bg-[#00142E] text-white rounded-full font-bold flex items-center justify-center gap-2 hover:bg-[#E1392A] transition-all shadow-md active:scale-95 text-sm"
                         >
                             <MessageCircle className="w-4 h-4" />
                             Connect Request

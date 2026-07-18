@@ -110,18 +110,16 @@ export default function PeopleHome() {
     <div className="bg-[#FAFBFD] min-h-screen flex flex-col justify-between">
 
 
-      <main className="flex-grow pt-16">
+      <main className="flex-grow">
 
         {/* Banner Hero */}
-        <PeopleHero />
+        <PeopleHero searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
         {/* Directory Layout Container */}
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
 
           {/* Filters Bar component */}
           <PeopleFilters
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
             selectedLocation={selectedLocation}
@@ -141,7 +139,7 @@ export default function PeopleHome() {
             <h2 className="text-base font-extrabold text-slate-800 uppercase tracking-wider">
               Available Support Advisors
             </h2>
-            <span className="text-xs font-bold text-slate-400">
+            <span className="text-xs font-bold text-[#717171]">
               Showing {displayedPeople.length} of {filteredPeople.length} experts
             </span>
           </div>
@@ -187,13 +185,13 @@ export default function PeopleHome() {
           <div className="bg-[#00142E] text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden border border-slate-800 shadow-xl mt-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             <div className="space-y-2 max-w-xl z-10">
               <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight">Are you a relocation expert?</h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
+              <p className="text-[#717171] text-sm leading-relaxed">
                 Start helping expat newcomers settle in your home city. Set your own hours, define services, and grow your local network.
               </p>
             </div>
             <Link to="/people/become" className="z-10 shrink-0">
               <Button className="h-12 px-6 bg-white hover:bg-slate-100 text-[#00142E] font-bold rounded-xl active:scale-95 transition-all cursor-pointer">
-                Join as an Expert <Sparkles className="w-4 h-4 ml-1.5 text-[#CB2A25]" />
+                Join as an Expert <Sparkles className="w-4 h-4 ml-1.5 text-[#E1392A]" />
               </Button>
             </Link>
           </div>
@@ -202,7 +200,7 @@ export default function PeopleHome() {
 
       </main>
 
-      <Footer />
+
     </div>
   );
 }

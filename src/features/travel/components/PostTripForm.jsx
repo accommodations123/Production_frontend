@@ -219,7 +219,7 @@ export default function PostTripForm({ onCancel, onAdd }) {
             <div>
                 <button
                     onClick={onCancel}
-                    className="group flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-accent transition-colors mb-4 cursor-pointer"
+                    className="group flex items-center gap-2 text-sm font-semibold text-[#484848] hover:text-accent transition-colors mb-4 cursor-pointer"
                 >
                     <ArrowLeft className="h-4 w-4" />
                     Back to Travel Partners

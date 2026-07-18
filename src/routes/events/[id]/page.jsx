@@ -205,7 +205,7 @@ export default function EventDetails() {
                 
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-gray-600 font-medium">Loading event details...</p>
+                    <p className="text-[#222222] font-medium">Loading event details...</p>
                 </div>
             </main>
         )

@@ -120,27 +120,27 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                 {/* Card Content */}
                 <div className={`p-3.5 flex-grow flex flex-col gap-2 min-h-0 min-w-0 ${viewMode === "list" ? "flex-grow flex flex-col justify-between" : ""}`}>
                     {/* Location & Time */}
-                    <div className="flex items-center gap-1.5 text-gray-500 text-xs sm:text-sm font-medium">
-                        <MapPin className="h-3.5 w-3.5 text-[#CB2A25] shrink-0" />
+                    <div className="flex items-center gap-1.5 text-[#484848] text-xs sm:text-sm font-medium">
+                        <MapPin className="h-3.5 w-3.5 text-[#E1392A] shrink-0" />
                         <span className="truncate">
                             {event.city ? `${event.city}, ${event.country || ""}` : event.location || "Location TBA"}
                         </span>
                         {event.date && (
-                            <span className="text-[10px] text-gray-400 ml-auto">
+                            <span className="text-[10px] text-[#717171] ml-auto">
                                 {formatDate(event.date || event.start_date)}
                             </span>
                         )}
                     </div>
 
-                    <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#CB2A25] transition-colors" title={event.title}>{event.title}</h3>
-                    <p className="text-gray-600 text-xs line-clamp-2 leading-relaxed border-l-2 border-gray-100 pl-3">{event.description}</p>
+                    <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#E1392A] transition-colors" title={event.title}>{event.title}</h3>
+                    <p className="text-[#222222] text-xs line-clamp-2 leading-relaxed border-l-2 border-gray-100 pl-3">{event.description}</p>
 
                     {/* Footer: Organizer & Action */}
                     <div className="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-gray-100 h-[60px] shrink-0">
                         <div className="flex items-center gap-2 min-w-0">
                             <HostPhoto host={event.host} />
                             <div className="min-w-0">
-                                <p className="text-[9px] uppercase tracking-wider text-gray-400 font-bold leading-none">Organized by</p>
+                                <p className="text-[9px] uppercase tracking-wider text-[#717171] font-bold leading-none">Organized by</p>
                                 <p className="text-xs font-bold text-gray-900 truncate w-24 sm:w-28 mt-0.5" title={getOrganizerName()}>{getOrganizerName()}</p>
                             </div>
                         </div>
@@ -149,7 +149,7 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                             <Button
                                 onClick={() => onViewDetails(event.id)}
                                 className={`h-9 px-3.5 rounded-xl text-xs font-bold transition-all duration-300 shadow-sm cursor-pointer ${
-                                    isExpired ? "bg-gray-100 border border-gray-200 text-gray-500 hover:bg-gray-200" : "bg-[#CB2A25] hover:bg-[#A9201C] text-white"
+                                    isExpired ? "bg-gray-100 border border-gray-200 text-[#484848] hover:bg-gray-200" : "bg-[#E1392A] hover:bg-[#C82E20] text-white"
                                 }`}
                             >
                                 View Details

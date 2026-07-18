@@ -136,7 +136,7 @@ export const MyListings = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Your Hosted Spaces</h2>
-          <p className="text-xs text-gray-500 mt-1">Manage your active spaces and draft accommodations.</p>
+          <p className="text-xs text-[#484848] mt-1">Manage your active spaces and draft accommodations.</p>
         </div>
         <button 
           onClick={() => navigate("/host/create")}
@@ -158,14 +158,14 @@ export const MyListings = () => {
             <TabButton label="Archived" active={activeTab === "archived"} count={stats.archivedCount} onClick={() => setActiveTab("archived")} />
           </div>
           
-          <div className="text-xs font-bold text-gray-400">
+          <div className="text-xs font-bold text-[#717171]">
             Showing {filteredListings.length} listing{filteredListings.length !== 1 ? "s" : ""}
           </div>
         </div>
 
         {/* Search */}
         <div className="relative w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#717171] w-4 h-4" />
           <input 
             type="text" 
             placeholder="Search by title, property type, city..." 
@@ -186,7 +186,7 @@ export const MyListings = () => {
         ) : isLoading ? (
           <div className="py-24 flex flex-col items-center justify-center space-y-4">
             <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-            <p className="text-sm text-gray-500 font-medium">Fetching listings...</p>
+            <p className="text-sm text-[#484848] font-medium">Fetching listings...</p>
           </div>
         ) : filteredListings.length === 0 ? (
           <div className="py-20 text-center max-w-md mx-auto space-y-6 animate-in fade-in duration-300">
@@ -195,7 +195,7 @@ export const MyListings = () => {
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold text-gray-900">Ready to welcome your first guest?</h3>
-              <p className="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
+              <p className="text-xs text-[#484848] max-w-xs mx-auto leading-relaxed">
                 Start hosting and connect with travelers from around the world.
               </p>
             </div>
@@ -242,11 +242,11 @@ const TabButton = ({ label, active, count, onClick }) => (
       "px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 border cursor-pointer",
       active 
         ? "bg-[#0A1A2F] text-white border-transparent shadow-md"
-        : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+        : "bg-white text-[#484848] border-gray-200 hover:bg-gray-50 hover:text-gray-900"
     )}
   >
     {label}
-    <span className={cn("px-1.5 py-0.5 rounded-md text-[9px] font-extrabold", active ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500")}>
+    <span className={cn("px-1.5 py-0.5 rounded-md text-[9px] font-extrabold", active ? "bg-white/20 text-white" : "bg-gray-100 text-[#484848]")}>
       {count}
     </span>
   </button>
@@ -311,14 +311,14 @@ const ListingItemCard = ({ item, onDelete }) => {
           <h3 className="font-extrabold text-gray-900 group-hover:text-blue-600 transition-colors text-base line-clamp-1">
             {item.title || "Untitled Space"}
           </h3>
-          <p className="text-xs text-gray-400 font-semibold flex items-center gap-1">
+          <p className="text-xs text-[#717171] font-semibold flex items-center gap-1">
             <MapPin className="w-3.5 h-3.5 text-blue-500" />
             {city}
           </p>
         </div>
 
         {/* Specs line like Airbnb */}
-        <p className="text-xs text-gray-500 font-bold tracking-tight">
+        <p className="text-xs text-[#484848] font-bold tracking-tight">
           {item.guests || 0} Guests · {item.bedrooms || 0} Beds · {item.bathrooms || 0} Baths
         </p>
 
@@ -370,7 +370,7 @@ const ListingItemCard = ({ item, onDelete }) => {
             {/* Delete icon button */}
             <button 
               type="button"
-              className="w-8.5 h-8.5 rounded-xl border border-gray-200 text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-all cursor-pointer bg-white"
+              className="w-8.5 h-8.5 rounded-xl border border-gray-200 text-[#717171] hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition-all cursor-pointer bg-white"
               disabled={isDeleting}
               onClick={async () => {
                 setIsDeleting(true);

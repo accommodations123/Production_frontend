@@ -86,12 +86,12 @@ const SearchableDropdown = ({
                     error && "border-red-500"
                 )}
             >
-                <span className={cn("truncate text-black", !selectedOption && "text-gray-400")}>
+                <span className={cn("truncate text-black", !selectedOption && "text-[#717171]")}>
                     {selectedOption ? (selectedOption.name || selectedOption.label) : placeholder}
                 </span>
                 <div className="flex items-center gap-2">
                     {isLoading && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
-                    <ChevronDown className={cn("h-5 w-5 text-gray-400 transition-transform", isOpen && "rotate-180")} />
+                    <ChevronDown className={cn("h-5 w-5 text-[#717171] transition-transform", isOpen && "rotate-180")} />
                 </div>
             </div>
 
@@ -105,7 +105,7 @@ const SearchableDropdown = ({
                     >
                         <div className="sticky top-0 bg-white p-2 border-b border-gray-100">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#717171]" />
                                 <input
                                     ref={inputRef}
                                     autoFocus
@@ -137,10 +137,10 @@ const SearchableDropdown = ({
                                     );
                                 })
                             ) : (
-                                <div className="px-4 py-3 text-sm text-gray-500 italic flex flex-col gap-1">
+                                <div className="px-4 py-3 text-sm text-[#484848] italic flex flex-col gap-1">
                                     <span>No results found</span>
                                     {searchQuery && (
-                                        <span className="text-xs text-gray-400 not-italic">
+                                        <span className="text-xs text-[#717171] not-italic">
                                             Type custom value and click "Use '{searchQuery}' (Manual Entry)" below.
                                         </span>
                                     )}

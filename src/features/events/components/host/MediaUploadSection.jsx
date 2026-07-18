@@ -21,7 +21,7 @@ export const MediaUploadSection = ({
             <div className="space-y-4">
                 <div className="border border-dashed rounded-lg p-4 bg-white border-[#00162d]">
                     <Label className="font-medium text-sm text-[#00162d]">Banner Image</Label>
-                    <p className="text-xs text-gray-500 mt-1">Max size: 10MB. Images will be compressed automatically.</p>
+                    <p className="text-xs text-[#484848] mt-1">Max size: 10MB. Images will be compressed automatically.</p>
 
                     {previewImages.banner && (
                         <div className="mt-3 relative">
@@ -53,7 +53,7 @@ export const MediaUploadSection = ({
 
                 <div className="border border-dashed rounded-lg p-4 bg-white border-[#00162d]">
                     <Label className="font-medium text-sm text-[#00162d]">Gallery Images</Label>
-                    <p className="text-xs text-gray-500 mt-1">Max size: 10MB per image. Images will be compressed automatically.</p>
+                    <p className="text-xs text-[#484848] mt-1">Max size: 10MB per image. Images will be compressed automatically.</p>
 
                     {previewImages.gallery.length > 0 && (
                         <div className="mt-3 grid grid-cols-3 gap-2">

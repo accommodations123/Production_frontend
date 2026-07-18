@@ -27,7 +27,7 @@ export function StepAmenities({
                             "px-5 py-3 rounded-full text-sm border transition-all duration-200",
                             formData.amenities.includes(item)
                                 ? "bg-accent border-accent text-white shadow-lg shadow-accent/20"
-                                : "bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:bg-white/10"
+                                : "bg-white/5 border-white/10 text-[#717171] hover:border-white/30 hover:bg-white/10"
                         )}
                     >
                         {item}
@@ -68,7 +68,7 @@ export function StepAmenities({
 
             {/* House Rules Section */}
             <div className="mt-8 pt-6 border-t border-white/10">
-                <label className="text-sm font-medium text-gray-300 block mb-2">House Rules - <span className="text-gray-500 text-xs">e.g. No smoking, Quiet hours after 10PM</span></label>
+                <label className="text-sm font-medium text-gray-300 block mb-2">House Rules - <span className="text-[#484848] text-xs">e.g. No smoking, Quiet hours after 10PM</span></label>
                 <div className="flex gap-2">
                     <input
                         type="text"

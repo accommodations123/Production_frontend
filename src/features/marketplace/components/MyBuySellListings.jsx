@@ -74,7 +74,7 @@ export function MyBuySellListings() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] py-16">
         <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-        <p className="text-sm text-gray-500 font-medium animate-pulse">Loading your shop listings...</p>
+        <p className="text-sm text-[#484848] font-medium animate-pulse">Loading your shop listings...</p>
       </div>
     );
   }
@@ -99,7 +99,7 @@ export function MyBuySellListings() {
         <div className="space-y-1.5">
           <span className="text-xs font-bold text-amber-600 tracking-wider uppercase block">Seller Console 🏷️</span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">My Buy/Sell Listings</h1>
-          <p className="text-xs sm:text-sm text-gray-500 max-w-lg leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#484848] max-w-lg leading-relaxed">
             Manage your listings, track views and message inquiries, and update product details.
           </p>
         </div>
@@ -121,7 +121,7 @@ export function MyBuySellListings() {
           </div>
           <div className="space-y-2">
             <h3 className="text-xl font-bold text-gray-900">List Your Products</h3>
-            <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+            <p className="text-sm text-[#484848] max-w-sm mx-auto leading-relaxed">
               Advertise items you wish to sell or trade with local travelers and hosts in the NextKin community.
             </p>
           </div>
@@ -173,7 +173,7 @@ export function MyBuySellListings() {
                 <div className="p-5 flex flex-col flex-1 space-y-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-md text-[9px] font-bold uppercase tracking-wider">
+                      <span className="px-2 py-0.5 bg-gray-100 text-[#484848] rounded-md text-[9px] font-bold uppercase tracking-wider">
                         {item.category || "Item"}
                       </span>
                       <span className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded-md text-[9px] font-bold uppercase tracking-wider border border-amber-100">
@@ -186,7 +186,7 @@ export function MyBuySellListings() {
                   </div>
 
                   {/* Mock Inquiry metrics */}
-                  <div className="flex items-center gap-4 text-xs font-bold text-gray-400 border-t border-gray-50 pt-3">
+                  <div className="flex items-center gap-4 text-xs font-bold text-[#717171] border-t border-gray-50 pt-3">
                     <span className="flex items-center gap-1.5 hover:text-gray-700 cursor-pointer">
                       <Eye className="w-3.5 h-3.5" />
                       {item.views} views
@@ -224,7 +224,7 @@ export function MyBuySellListings() {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="rounded-xl w-9 h-9 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                      className="rounded-xl w-9 h-9 p-0 text-[#717171] hover:text-red-600 hover:bg-red-50"
                       onClick={() => handleDelete(item.id || item._id)}
                     >
                       <Trash2 className="w-4 h-4" />

@@ -13,7 +13,7 @@ export const SuccessState = () => {
                 <CheckCircle className="h-8 w-8 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Event Submitted for Review!</h2>
-            <p className="text-gray-600">Your event is now under review. We'll notify you once it's approved.</p>
+            <p className="text-[#222222]">Your event is now under review. We'll notify you once it's approved.</p>
         </motion.div>
     )
 }

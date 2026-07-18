@@ -21,7 +21,7 @@ export function StepMedia({ formData, setFormData, handleFileChange, removeArray
                             </button>
                         </div>
                     ))}
-                    <label className="border-2 border-dashed border-white/20 rounded-xl aspect-square flex flex-col items-center justify-center cursor-pointer hover:border-accent hover:bg-white/5 transition-all text-gray-400 hover:text-white">
+                    <label className="border-2 border-dashed border-white/20 rounded-xl aspect-square flex flex-col items-center justify-center cursor-pointer hover:border-accent hover:bg-white/5 transition-all text-[#717171] hover:text-white">
                         <Plus className="h-6 w-6 mb-2" />
                         <span className="text-xs">Add Photo</span>
                         <input type="file" multiple accept="image/*" className="hidden" onChange={(e) => handleFileChange(e, 'images', true)} />

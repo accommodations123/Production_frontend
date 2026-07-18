@@ -68,7 +68,7 @@ export const EventsFilters = memo(({
                                 onClick={() => setActiveFilter("all")}
                                 className={`px-5 py-2.5 rounded-xl font-semibold whitespace-nowrap transition-all duration-300 flex items-center gap-2 text-sm shadow-sm hover:shadow-md ${activeFilter === "all"
                                         ? "bg-[#00142E] text-white"
-                                        : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                                        : "bg-white text-[#222222] border border-gray-200 hover:bg-gray-50"
                                     }`}
                             >
                                 <Grid className="h-4 w-4" />
@@ -81,7 +81,7 @@ export const EventsFilters = memo(({
                                     onClick={() => setActiveFilter(category.id)}
                                     className={`px-5 py-2.5 rounded-xl font-semibold whitespace-nowrap transition-all duration-300 flex items-center gap-2 text-sm shadow-sm hover:shadow-md ${activeFilter === category.id
                                             ? "bg-[#00142E] text-white"
-                                            : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                                            : "bg-white text-[#222222] border border-gray-200 hover:bg-gray-50"
                                         }`}
                                 >
                                     {category.icon && (
@@ -149,7 +149,7 @@ export const EventsFilters = memo(({
                         {/* Host Event Button */}
                         <Button
                             onClick={() => navigate(getHostPath('event', !!localStorage.getItem("user")))}
-                            className="bg-[#CB2A25] hover:bg-[#CB2A25]/90 text-white rounded-lg h-11 px-5 font-bold shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2 text-sm cursor-pointer"
+                            className="bg-[#E1392A] hover:bg-[#E1392A]/90 text-white rounded-lg h-11 px-5 font-bold shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2 text-sm cursor-pointer"
                         >
                             <Plus className="h-4 w-4" />
                             <span>Host Event</span>

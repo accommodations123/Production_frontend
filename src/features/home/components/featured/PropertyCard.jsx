@@ -158,8 +158,8 @@ export const PropertyCard = React.memo(({ property }) => {
                         itemType="property"
                         className="h-9 w-9 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-sm border border-white/20 bg-black/20 hover:bg-white group"
                         iconSize={16}
-                        outlineColor="text-white group-hover:text-[#CB2A25]"
-                        filledColor="fill-[#CB2A25] text-[#CB2A25]"
+                        outlineColor="text-white group-hover:text-[#E1392A]"
+                        filledColor="fill-[#E1392A] text-[#E1392A]"
                     />
                 </div>
             </div>
@@ -168,11 +168,11 @@ export const PropertyCard = React.memo(({ property }) => {
             <div className="p-3.5 flex-grow flex flex-col gap-2 min-h-0">
                 {/* Title & Location */}
                 <div className="space-y-1">
-                    <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-2 text-[#00142E] group-hover:text-[#CB2A25] transition-colors min-h-[2.5rem]" title={propertyData.title}>
+                    <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-2 text-[#00142E] group-hover:text-[#E1392A] transition-colors min-h-[2.5rem]" title={propertyData.title}>
                         {propertyData.title}
                     </h3>
                     <div className="flex items-center gap-1.5 text-[#00142E]/60 text-xs sm:text-sm font-medium">
-                        <MapPin className="w-3.5 h-3.5 shrink-0 text-[#CB2A25]" />
+                        <MapPin className="w-3.5 h-3.5 shrink-0 text-[#E1392A]" />
                         <span className="line-clamp-1">{propertyData.location}</span>
                     </div>
                 </div>
@@ -180,19 +180,19 @@ export const PropertyCard = React.memo(({ property }) => {
                 {/* Stats Row */}
                 <div className="flex items-center gap-3 text-sm text-[#00142E]/70">
                     <div className="flex items-center gap-1.5">
-                        <Users className="w-4 h-4 text-[#CB2A25]" />
+                        <Users className="w-4 h-4 text-[#E1392A]" />
                         <span className="font-medium">{propertyData.guests}</span>
                     </div>
                     <div className="w-px h-3 bg-[#00142E]/10" />
                     <div className="flex items-center gap-1.5">
-                        <Bed className="w-4 h-4 text-[#CB2A25]" />
+                        <Bed className="w-4 h-4 text-[#E1392A]" />
                         <span className="font-medium">{propertyData.bedrooms}</span>
                     </div>
                     {propertyData.bathrooms > 0 && (
                         <>
                             <div className="w-px h-3 bg-[#00142E]/10" />
                             <div className="flex items-center gap-1.5">
-                                <Bath className="w-4 h-4 text-[#CB2A25]" />
+                                <Bath className="w-4 h-4 text-[#E1392A]" />
                                 <span className="font-medium">{propertyData.bathrooms}</span>
                             </div>
                         </>

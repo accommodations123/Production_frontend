@@ -151,7 +151,7 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
                     <CheckCircle className="w-10 h-10 text-emerald-600 animate-bounce" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">Application Submitted!</h3>
-                <p className="text-sm text-gray-500 max-w-sm">
+                <p className="text-sm text-[#484848] max-w-sm">
                     Thank you for applying. We have received your application for <strong>{jobTitle}</strong>. Redirecting you to your applications...
                 </p>
             </div>
@@ -166,7 +166,7 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
                     <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Full Name *</label>
                     <input
                         {...register('full_name', { required: "Full name is required" })}
-                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/10 outline-none transition-all text-sm font-medium"
+                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#E1392A] focus:ring-4 focus:ring-[#E1392A]/10 outline-none transition-all text-sm font-medium"
                         placeholder="John Doe"
                     />
                     {errors.full_name && <span className="text-[10px] text-red-500 font-semibold">{errors.full_name.message}</span>}
@@ -181,7 +181,7 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
                             required: "Email is required",
                             pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" }
                         })}
-                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/10 outline-none transition-all text-sm font-medium"
+                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#E1392A] focus:ring-4 focus:ring-[#E1392A]/10 outline-none transition-all text-sm font-medium"
                         placeholder="john.doe@example.com"
                     />
                     {errors.email && <span className="text-[10px] text-red-500 font-semibold">{errors.email.message}</span>}
@@ -204,7 +204,7 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
                         </div>
                         <input
                             {...register('phone', { required: "Mobile number is required" })}
-                            className="flex-1 h-11 px-4 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/10 outline-none transition-all text-sm font-medium"
+                            className="flex-1 h-11 px-4 rounded-xl border border-gray-200 focus:border-[#E1392A] focus:ring-4 focus:ring-[#E1392A]/10 outline-none transition-all text-sm font-medium"
                             placeholder="(555) 000-0000"
                         />
                     </div>
@@ -216,7 +216,7 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
                     <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Current Location *</label>
                     <input
                         {...register('current_location', { required: "Current location is required" })}
-                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/10 outline-none transition-all text-sm font-medium"
+                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#E1392A] focus:ring-4 focus:ring-[#E1392A]/10 outline-none transition-all text-sm font-medium"
                         placeholder="Dallas, TX"
                     />
                     {errors.current_location && <span className="text-[10px] text-red-500 font-semibold">{errors.current_location.message}</span>}
@@ -227,7 +227,7 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
                     <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">LinkedIn URL</label>
                     <input
                         {...register('linkedin_url')}
-                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/10 outline-none transition-all text-sm font-medium"
+                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#E1392A] focus:ring-4 focus:ring-[#E1392A]/10 outline-none transition-all text-sm font-medium"
                         placeholder="linkedin.com/in/username"
                     />
                 </div>
@@ -237,7 +237,7 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
                     <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Work Authorization *</label>
                     <input
                         {...register('work_authorization', { required: "Work authorization is required" })}
-                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/10 outline-none transition-all text-sm font-medium"
+                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#E1392A] focus:ring-4 focus:ring-[#E1392A]/10 outline-none transition-all text-sm font-medium"
                         placeholder="e.g. USC, GC, H1B"
                     />
                     {errors.work_authorization && <span className="text-[10px] text-red-500 font-semibold">{errors.work_authorization.message}</span>}
@@ -248,7 +248,7 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
                     <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Years of Experience *</label>
                     <input
                         {...register('years_of_experience', { required: "Years of experience is required" })}
-                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/10 outline-none transition-all text-sm font-medium"
+                        className="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-[#E1392A] focus:ring-4 focus:ring-[#E1392A]/10 outline-none transition-all text-sm font-medium"
                         placeholder="e.g. 8 Years"
                     />
                     {errors.years_of_experience && <span className="text-[10px] text-red-500 font-semibold">{errors.years_of_experience.message}</span>}
@@ -264,7 +264,7 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
                     onDragLeave={handleDrag}
                     onDrop={handleDrop}
                     className={`relative border-2 border-dashed rounded-2xl p-6 transition-all text-center flex flex-col items-center justify-center ${
-                        dragActive ? 'border-[#CB2A25] bg-[#CB2A25]/5' : 
+                        dragActive ? 'border-[#E1392A] bg-[#E1392A]/5' : 
                         resumeFile ? 'border-emerald-300 bg-emerald-50/50' : 'border-gray-200 hover:border-gray-300'
                     }`}
                 >
@@ -275,12 +275,12 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
                             </div>
                             <div className="min-w-0 flex-1">
                                 <p className="font-bold text-xs text-gray-900 truncate">{resumeFile.name}</p>
-                                <p className="text-[10px] text-gray-400 font-semibold">{(resumeFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                <p className="text-[10px] text-[#717171] font-semibold">{(resumeFile.size / 1024 / 1024).toFixed(2)} MB</p>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => { setResumeFile(null); setValue('resume', null); }}
-                                className="p-1.5 rounded-full hover:bg-gray-200 text-gray-400 hover:text-red-500 transition-colors"
+                                className="p-1.5 rounded-full hover:bg-gray-200 text-[#717171] hover:text-red-500 transition-colors"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -289,7 +289,7 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
                         <>
                             <Upload className="w-8 h-8 text-gray-300 mb-2" />
                             <p className="text-xs font-bold text-gray-700 mb-0.5">Drag and drop resume here</p>
-                            <p className="text-[10px] text-gray-400 font-medium mb-3">PDF, DOC, DOCX up to 5MB</p>
+                            <p className="text-[10px] text-[#717171] font-medium mb-3">PDF, DOC, DOCX up to 5MB</p>
                             <label
                                 htmlFor="resume-file"
                                 className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-gray-700 hover:bg-gray-50 cursor-pointer shadow-sm transition-all"
@@ -320,7 +320,7 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
                 </Button>
                 <Button
                     type="submit"
-                    className="flex-1 h-11 bg-[#CB2A25] hover:bg-[#b0221e] text-white font-bold text-xs rounded-xl shadow-md"
+                    className="flex-1 h-11 bg-[#E1392A] hover:bg-[#b0221e] text-white font-bold text-xs rounded-xl shadow-md"
                     disabled={isLoading}
                 >
                     {isLoading ? (

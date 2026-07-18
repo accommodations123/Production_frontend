@@ -39,13 +39,13 @@ export function FilterSection({ title, options = [], selected = [], onChange }) 
                 <div className="flex items-center gap-2">
                     <span className="font-semibold text-gray-900 text-sm">{title}</span>
                     {activeCount > 0 && (
-                        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#CB2A25] text-white text-[11px] font-bold leading-none">
+                        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#E1392A] text-white text-[11px] font-bold leading-none">
                             {activeCount}
                         </span>
                     )}
                 </div>
                 <ChevronDown
-                    className={`h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                    className={`h-4 w-4 text-[#717171] group-hover:text-[#222222] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
                 />
             </button>
 
@@ -58,13 +58,13 @@ export function FilterSection({ title, options = [], selected = [], onChange }) 
                     {/* Search within filter */}
                     {isSearchable && isExpanded && (
                         <div className="relative mb-2">
-                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#717171]" />
                             <input
                                 type="text"
                                 value={filterQuery}
                                 onChange={(e) => setFilterQuery(e.target.value)}
                                 placeholder={`Search ${title.toLowerCase()}...`}
-                                className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-gray-200 bg-gray-50/80 text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#CB2A25]/20 focus:border-[#CB2A25]/40 transition-all"
+                                className="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-gray-200 bg-gray-50/80 text-gray-700 placeholder:text-[#717171] focus:outline-none focus:ring-2 focus:ring-[#E1392A]/20 focus:border-[#E1392A]/40 transition-all"
                             />
                         </div>
                     )}
@@ -79,7 +79,7 @@ export function FilterSection({ title, options = [], selected = [], onChange }) 
                                         key={option}
                                         className={`flex items-center gap-2.5 cursor-pointer px-2.5 py-2 rounded-lg transition-all duration-200 ${
                                             isActive
-                                                ? 'bg-[#CB2A25]/5 border border-[#CB2A25]/15'
+                                                ? 'bg-[#E1392A]/5 border border-[#E1392A]/15'
                                                 : 'hover:bg-gray-50 border border-transparent'
                                         }`}
                                     >
@@ -93,7 +93,7 @@ export function FilterSection({ title, options = [], selected = [], onChange }) 
                                             <div
                                                 className={`w-4 h-4 rounded flex items-center justify-center border-2 transition-all duration-200 ${
                                                     isActive
-                                                        ? 'bg-[#CB2A25] border-[#CB2A25]'
+                                                        ? 'bg-[#E1392A] border-[#E1392A]'
                                                         : 'border-gray-300 bg-white group-hover:border-gray-400'
                                                 }`}
                                             >
@@ -104,14 +104,14 @@ export function FilterSection({ title, options = [], selected = [], onChange }) 
                                                 )}
                                             </div>
                                         </div>
-                                        <span className={`text-sm transition-colors ${isActive ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
+                                        <span className={`text-sm transition-colors ${isActive ? 'text-gray-900 font-medium' : 'text-[#222222]'}`}>
                                             {option}
                                         </span>
                                     </label>
                                 )
                             })
                         ) : (
-                            <p className="text-xs text-gray-400 py-2 px-2.5">No options match your search</p>
+                            <p className="text-xs text-[#717171] py-2 px-2.5">No options match your search</p>
                         )}
                     </div>
                 </div>

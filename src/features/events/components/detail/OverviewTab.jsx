@@ -17,7 +17,7 @@ export const OverviewTab = memo(({ event, visibleSections }) => {
                     </div>
                     <div>
                         <h2 className="text-2xl md:text-3xl font-bold text-gray-900">About this Event</h2>
-                        <p className="text-gray-500 text-sm mt-1">Discover what makes this event special</p>
+                        <p className="text-[#484848] text-sm mt-1">Discover what makes this event special</p>
                     </div>
                 </div>
                 <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-100">
@@ -41,7 +41,7 @@ export const OverviewTab = memo(({ event, visibleSections }) => {
                         ))
                     ) : (
                         <div className="col-span-full text-center py-8">
-                            <p className="text-gray-500">No included items information available.</p>
+                            <p className="text-[#484848]">No included items information available.</p>
                         </div>
                     )}
                 </div>
@@ -57,12 +57,12 @@ export const OverviewTab = memo(({ event, visibleSections }) => {
                     </div>
                     <div>
                         <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Event Gallery</h2>
-                        <p className="text-gray-500 text-sm mt-1">Get a glimpse of past events</p>
+                        <p className="text-[#484848] text-sm mt-1">Get a glimpse of past events</p>
                     </div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {images.length === 0 ? (
-                        <p className="text-gray-500 col-span-full text-center">No gallery images available.</p>
+                        <p className="text-[#484848] col-span-full text-center">No gallery images available.</p>
                     ) : (
                         images.map((img, idx) => (
                             <div key={idx} className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition">
