@@ -46,9 +46,9 @@ export function HostDropdown({ isAuthenticated }) {
         <div className="relative mr-1" ref={hostDropdownRef}>
             <button
                 onClick={() => setIsHostDropdownOpen(!isHostDropdownOpen)}
-                className="inline-flex items-center gap-1.5 h-10 px-3 rounded-lg text-slate-700 hover:bg-gray-100 hover:text-slate-900 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E1392A] active:scale-[0.98]"
+                className="inline-flex items-center gap-1.5 h-10 px-3 rounded-lg text-slate-700 hover:bg-gray-100 hover:text-slate-900 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent active:scale-[0.98]"
             >
-                <Sparkles className="w-4 h-4 text-[#E1392A]" />
+                <Sparkles className="w-4 h-4 text-accent" />
                 <span className="hidden xl:inline whitespace-nowrap">Become Host</span>
                 <span className="xl:hidden">Host</span>
                 <ChevronDown className="w-3.5 h-3.5 text-[#717171]" />
@@ -76,11 +76,11 @@ export function HostDropdown({ isAuthenticated }) {
                                     }}
                                     className="w-full text-left p-3 rounded-xl hover:bg-gray-50/80 active:scale-[0.98] transition-all duration-200 flex items-center gap-3 group"
                                 >
-                                    <span className="p-2 rounded-lg bg-gray-100 text-[#222222] group-hover:bg-[#E1392A]/10 group-hover:text-[#E1392A] transition-colors">
+                                    <span className="p-2 rounded-lg bg-gray-100 text-[#222222] group-hover:bg-accent/10 group-hover:text-accent transition-colors">
                                         {option.icon}
                                     </span>
                                     <span className="flex-1">
-                                        <span className="block font-semibold text-foreground text-sm group-hover:text-[#E1392A] transition-colors">{option.title}</span>
+                                        <span className="block font-semibold text-foreground text-sm group-hover:text-accent transition-colors">{option.title}</span>
                                         <span className="block text-xs text-[#484848]">{option.description}</span>
                                     </span>
                                 </button>

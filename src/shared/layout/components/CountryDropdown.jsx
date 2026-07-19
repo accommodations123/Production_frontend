@@ -38,7 +38,7 @@ export function CountryDropdown() {
             <button
                 aria-label="Select country"
                 className={cn(
-                    "flex items-center gap-1.5 h-10 px-2.5 rounded-lg text-gray-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E1392A]",
+                    "flex items-center gap-1.5 h-10 px-2.5 rounded-lg text-gray-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                     isCountryOpen ? "bg-gray-100" : "hover:bg-gray-100"
                 )}
                 onClick={() => setIsCountryOpen(!isCountryOpen)}
@@ -78,7 +78,7 @@ export function CountryDropdown() {
                                     placeholder="Search country..."
                                     value={countrySearchQuery}
                                     onChange={(e) => setCountrySearchQuery(e.target.value)}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm text-gray-900 placeholder:text-[#717171] focus:outline-none focus:border-[#E1392A] focus:bg-white transition-colors"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm text-gray-900 placeholder:text-[#717171] focus:outline-none focus:border-accent focus:bg-white transition-colors"
                                     autoFocus
                                 />
                             </div>
@@ -91,7 +91,7 @@ export function CountryDropdown() {
                                         className={cn(
                                             "w-full text-left px-3 py-2.5 text-sm rounded-lg flex items-center justify-between transition-all duration-200 active:scale-[0.98]",
                                             getCountryCode() === country.code
-                                                ? "bg-[#E1392A]/8 text-[#E1392A] font-bold"
+                                                ? "bg-accent/8 text-accent font-bold"
                                                 : "text-gray-700 hover:bg-gray-50/80 hover:translate-x-1"
                                         )}
                                         onClick={() => {

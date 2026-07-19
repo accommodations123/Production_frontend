@@ -1,89 +1,121 @@
-import { ArrowRight, CalendarDays, ShieldCheck, Users } from "lucide-react"
-import { useNavigate } from "react-router-dom"
-import { toast } from "sonner"
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowRight, Star, ShieldCheck, Heart, Sparkles, MapPin, Search, Compass, Users } from 'lucide-react';
+import { toast } from 'sonner';
 
-import { Button } from "@/shared/ui/button"
-import { useGetMeQuery } from "@/store/api/authApi"
-
-const communityBenefits = [
-  { icon: ShieldCheck, label: "Verified stays" },
-  { icon: CalendarDays, label: "Local experiences" },
-  { icon: Users, label: "Real connections" },
-]
+import { Button } from '@/shared/ui/button';
+import { useGetMeQuery } from '@/store/api/authApi';
 
 export function Hero() {
-  const navigate = useNavigate()
-  const { data: userData } = useGetMeQuery()
+  const navigate = useNavigate();
+  const { data: userData } = useGetMeQuery();
 
   const handleJoinCommunity = () => {
     if (!userData?.user) {
-      navigate("/signup")
-      return
+      navigate('/signup');
+      return;
     }
-
     if (userData.user.isHost) {
-      toast.info("You are already a registered host!")
-      return
+      toast.info('You are already a registered host!');
+      return;
     }
+    navigate('/search');
+  };
 
-    navigate("/search")
-  }
+  const handleExploreStays = () => {
+    navigate('/search');
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.12,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 25 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: 'spring',
+        stiffness: 100,
+        damping: 15,
+      },
+    },
+  };
+
+
 
   return (
-    <section className="border-b border-gray-100 bg-white" aria-labelledby="home-hero-title">
-      <div className="mx-auto grid w-full max-w-7xl items-center gap-10 px-4 pt-4 pb-12 sm:px-6 sm:pt-6 sm:pb-16 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:px-8 lg:pt-6 lg:pb-16">
-        <div className="max-w-xl">
-          <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#E1392A]">
-            Your community, wherever you are
-          </p>
- 
-          <h1
-            id="home-hero-title"
-            className="text-4xl font-extrabold leading-[1.12] tracking-[-0.03em] text-[#00142E] sm:text-5xl sm:leading-[1.1] lg:text-[56px] lg:leading-[1.08]"
+    <section className="relative overflow-hidden border-b border-gray-100 bg-gradient-to-b from-cream/20 via-white to-white pt-16 pb-6 lg:pt-12 lg:pb-8" aria-labelledby="home-hero-title">
+      {/* Glow Orbs */}
+      <div className="absolute top-0 left-1/2 -z-10 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-accent/5 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-10 -z-10 h-[300px] w-[300px] rounded-full bg-primary/5 blur-[90px] pointer-events-none" />
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-col items-center"
+        >
+          {/* Badge */}
+          <motion.div
+            variants={itemVariants}
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-accent"
           >
-            Feel at home, even when you are far from it.
-          </h1>
- 
-          <p className="mt-6 max-w-lg text-base leading-relaxed text-[#484848] sm:text-lg sm:leading-8">
-            Discover trusted places to stay, meet people nearby, and take part in events that make a new city feel familiar.
-          </p>
- 
-          <div className="mt-8">
+            <Compass className="h-3.5 w-3.5 animate-[pulse_2s_infinite]" />
+            <span>Premium Expat Stays & Relocation</span>
+          </motion.div>
+
+          {/* Heading */}
+          <motion.h1
+            id="home-hero-title"
+            variants={itemVariants}
+            className="max-w-4xl text-4xl font-bold leading-[1.1] tracking-[-0.02em] text-primary sm:text-5xl lg:text-[60px]"
+          >
+            Feel at Home, <br className="hidden sm:inline" />
+            <span className="bg-gradient-to-r from-accent via-[#D5CBA8] to-primary bg-clip-text text-transparent">Wherever Life Takes You.</span>
+          </motion.h1>
+
+          {/* Subtitle */}
+          <motion.p
+            variants={itemVariants}
+            className="mt-6 max-w-2xl text-base leading-relaxed text-slate-500 font-normal sm:text-lg sm:leading-8"
+          >
+            Discover verified premium stays, access local relocation support, and connect with a trusted global community of expats and locals in your new city.
+          </motion.p>
+
+          {/* CTAs */}
+          <motion.div
+            variants={itemVariants}
+            className="mt-10 flex flex-col sm:flex-row gap-4 items-center justify-center w-full max-w-md"
+          >
             <Button
               type="button"
-              size="lg"
-              onClick={handleJoinCommunity}
-              className="h-12 rounded-xl bg-[#E1392A] px-6 text-base font-semibold text-white shadow-md shadow-[#E1392A]/15 transition-all duration-200 hover:bg-[#C82E20] hover:shadow-lg hover:shadow-[#E1392A]/25 focus-visible:ring-2 focus-visible:ring-[#E1392A] focus-visible:ring-offset-2 active:scale-[0.98]"
+              onClick={handleExploreStays}
+              className="w-full sm:w-auto h-12 rounded-xl bg-accent px-8 text-sm font-semibold text-white shadow-sm shadow-accent/10 hover:bg-accent/95 hover:shadow-md transition-all duration-200 cursor-pointer active:scale-98"
             >
-              Join the community
-              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+              Explore Stays
             </Button>
-          </div>
- 
-          <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-3 border-t border-gray-100 pt-6" aria-label="Community benefits">
-            {communityBenefits.map(({ icon: Icon, label }) => (
-              <li key={label} className="flex items-center gap-2 text-sm font-semibold text-[#484848]">
-                <Icon className="h-4.5 w-4.5 text-[#E1392A]" aria-hidden="true" />
-                {label}
-              </li>
-            ))}
-          </ul>
-        </div>
- 
-        <div className="relative min-h-[320px] overflow-hidden rounded-2xl bg-gray-100 sm:min-h-[420px] lg:min-h-[520px] shadow-sm">
-          <img
-            src="/photo-1522071820081-009f0129c71c.avif"
-            alt="Friends sharing time together in their local community"
-            className="absolute inset-0 h-full w-full object-cover"
-            fetchPriority="high"
-          />
-          <div className="absolute bottom-6 left-6 right-6 bg-[#00142E]/50 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
-            <p className="max-w-sm text-base font-semibold leading-relaxed text-white sm:text-lg">
-              “A familiar face can make any place feel closer to home.”
-            </p>
-          </div>
-        </div>
+            <button
+              type="button"
+              onClick={handleJoinCommunity}
+              className="w-full sm:w-auto h-12 rounded-xl border border-accent text-accent hover:bg-accent/5 px-8 text-sm font-semibold transition-all duration-200 cursor-pointer active:scale-98"
+            >
+              Join the Community
+            </button>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
-  )
+  );
 }
+

@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   User, MapPin, Edit2, Share2, 
-  ExternalLink, Check, ShieldCheck
+  ExternalLink, Check, ShieldCheck,
+  Facebook, Instagram, MessageCircle
 } from "lucide-react";
 import { ProfileCard } from "@/features/account/components/ProfileCard";
 import { useCountry } from "@/context/CountryContext";
 import { COUNTRIES } from "@/shared/utils/mock-data";
 import { cn } from "@/shared/utils/utils";
-import { Facebook, Instagram, MessageCircle } from "lucide-react";
 import { CountryCodeSelect } from "@/shared/ui/CountryCodeSelect";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";

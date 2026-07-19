@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
 import {
   User, Home, MapPin, Plane, Calendar,
-  LayoutDashboard, Briefcase, ShoppingBag, Users, Heart,
+  LayoutDashboard, Briefcase, ShoppingBag, Heart,
   CheckCircle2, Mail, Phone, ChevronRight, ShieldCheck, Instagram, Facebook,
-  Sparkles, Award, Star, Compass, ShieldAlert
+  Award, Compass, ShieldAlert
 } from "lucide-react";
-import { Navbar } from "@/shared/layout/Navbar";
 import { cn } from "@/shared/utils/utils";
 import { FaWhatsapp } from "react-icons/fa";
 import { MyListings } from "@/features/dashboard/components/MyListings";

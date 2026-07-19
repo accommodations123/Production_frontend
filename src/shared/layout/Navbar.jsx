@@ -218,7 +218,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                     <Link
                         to="/"
                         aria-label="NextKinLife home"
-                        className="flex shrink-0 items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E1392A] focus-visible:ring-offset-2"
+                        className="flex shrink-0 items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
                     >
                         <span className="flex h-12 w-28 items-center justify-center overflow-hidden rounded-lg bg-white">
                             <img src="/logo.jpeg" alt="NextKinLife" className="h-full w-full object-contain" />
@@ -235,9 +235,9 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                         to={item.path}
                                         aria-current={isActive ? "page" : undefined}
                                         className={cn(
-                                            "relative inline-flex items-center h-full lg:text-[14px] xl:text-sm lg:font-semibold xl:font-medium tracking-tight transition-all duration-200 ease-out whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E1392A] focus-visible:ring-offset-2 rounded-md lg:px-1.5 xl:px-1 group",
+                                            "relative inline-flex items-center h-full lg:text-[14px] xl:text-sm lg:font-semibold xl:font-medium tracking-tight transition-all duration-200 ease-out whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 rounded-md lg:px-1.5 xl:px-1 group",
                                             isActive
-                                                ? "text-[#E1392A]"
+                                                ? "text-accent"
                                                 : "text-[#222222] hover:text-slate-900"
                                         )}
                                     >
@@ -245,8 +245,8 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                             {item.name}
                                             <span
                                                 className={cn(
-                                                    "absolute bottom-0 left-0 right-0 h-[2px] rounded-full transition-transform duration-200 origin-left scale-x-0 group-hover:scale-x-100 bg-[#E1392A]/40",
-                                                    isActive ? "scale-x-100 bg-[#E1392A]" : ""
+                                                    "absolute bottom-0 left-0 right-0 h-[2px] rounded-full transition-transform duration-200 origin-left scale-x-0 group-hover:scale-x-100 bg-accent/40",
+                                                    isActive ? "scale-x-100 bg-accent" : ""
                                                 )}
                                             />
                                         </span>
@@ -351,7 +351,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                                         placeholder="Search country..."
                                                         value={countrySearchQuery}
                                                         onChange={(e) => setCountrySearchQuery(e.target.value)}
-                                                        className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm text-gray-900 placeholder:text-[#717171] focus:outline-none focus:border-[#E1392A] focus:bg-white transition-colors"
+                                                        className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm text-gray-900 placeholder:text-[#717171] focus:outline-none focus:border-accent focus:bg-white transition-colors"
                                                     />
                                                 </div>
                                             </div>
@@ -363,7 +363,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                                             className={cn(
                                                                 "w-full text-left px-3 py-2.5 text-sm rounded-lg flex items-center justify-between transition-colors",
                                                                 getCountryCode() === country.code
-                                                                    ? "bg-[#E1392A]/10 text-[#E1392A] font-semibold"
+                                                                    ? "bg-accent/10 text-accent font-semibold"
                                                                     : "text-gray-700 hover:bg-gray-50"
                                                             )}
                                                             onClick={() => {
@@ -436,13 +436,13 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-foreground font-semibold truncate">{displayName}</p>
-                                                    <Link to="/account-v2" className="text-xs text-[#E1392A] hover:underline" onClick={() => setIsMobileMenuOpen(false)}>View Profile</Link>
+                                                    <Link to="/account-v2" className="text-xs text-accent hover:underline" onClick={() => setIsMobileMenuOpen(false)}>View Profile</Link>
                                                 </div>
                                             </div>
                                         ) : (
                                             <div className="flex flex-col gap-3">
                                                 <p className="text-foreground font-semibold text-center">Welcome to NextKinLife</p>
-                                                <Button onClick={() => { navigate("/signin"); setIsMobileMenuOpen(false); }} className="w-full h-11 bg-[#E1392A] hover:bg-[#C82E20] text-white font-semibold rounded-xl">
+                                                <Button onClick={() => { navigate("/signin"); setIsMobileMenuOpen(false); }} className="w-full h-11 bg-accent hover:bg-accent/95 text-white font-semibold rounded-xl">
                                                     Sign In / Sign Up
                                                 </Button>
                                             </div>
@@ -460,7 +460,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                                     className={cn(
                                                         "flex items-center min-h-12 px-4 rounded-xl text-[15px] transition-colors",
                                                         isActive
-                                                            ? "bg-[#E1392A]/10 text-[#E1392A] font-semibold"
+                                                            ? "bg-accent/10 text-accent font-semibold"
                                                             : "text-gray-700 font-medium hover:bg-gray-50"
                                                     )}
                                                     onClick={() => setIsMobileMenuOpen(false)}
@@ -479,7 +479,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                             navigate(getHostPath('property', isAuthenticated))
                                             setIsMobileMenuOpen(false)
                                         }}
-                                        className="w-full h-12 rounded-xl bg-[#E1392A] hover:bg-[#C82E20] text-white font-semibold flex items-center justify-center gap-2 transition-colors my-4"
+                                        className="w-full h-12 rounded-xl bg-accent hover:bg-accent/95 text-white font-semibold flex items-center justify-center gap-2 transition-colors my-4"
                                     >
                                         <Sparkles className="w-4 h-4" />
                                         Become Host
@@ -498,7 +498,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                                     }}
                                                     className="w-full text-left min-h-12 px-4 rounded-xl hover:bg-gray-50 flex items-center gap-3 group transition-colors"
                                                 >
-                                                    <span className="p-2 rounded-lg bg-gray-100 text-[#484848] group-hover:text-[#E1392A] transition-colors">
+                                                    <span className="p-2 rounded-lg bg-gray-100 text-[#484848] group-hover:text-accent transition-colors">
                                                         {React.cloneElement(option.icon, { className: "w-5 h-5" })}
                                                     </span>
                                                     <span className="text-gray-700 font-medium group-hover:text-foreground">{option.title}</span>
@@ -540,7 +540,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                     {isAuthenticated && (
                                         <button
                                             onClick={handleLogout}
-                                            className="mt-auto w-full min-h-12 text-[#E1392A] font-semibold hover:bg-[#E1392A]/10 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                            className="mt-auto w-full min-h-12 text-accent font-semibold hover:bg-accent/10 rounded-xl transition-colors flex items-center justify-center gap-2"
                                         >
                                             <LogOut className="w-5 h-5" /> Sign Out
                                         </button>

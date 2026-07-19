@@ -24,14 +24,14 @@ export function ProfileDropdown({ resolvedUser, displayName, renderTimestamp, ha
         <div className="relative ml-1" ref={profileRef}>
             <button
                 aria-label="Account menu"
-                className="flex items-center gap-1.5 p-1 rounded-full hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E1392A]"
+                className="flex items-center gap-1.5 p-1 rounded-full hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
             >
                 <div className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-gray-200">
                     {resolvedUser?.profile_image ? (
                         <img src={`${resolvedUser.profile_image}?v=${renderTimestamp}`} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-[#00142E] text-white font-bold text-xs">
+                        <div className="w-full h-full flex items-center justify-center bg-primary text-white font-bold text-xs">
                             {displayName.slice(0, 2).toUpperCase()}
                         </div>
                     )}
@@ -50,7 +50,7 @@ export function ProfileDropdown({ resolvedUser, displayName, renderTimestamp, ha
                     >
                         <div className="px-4 py-3 border-b border-gray-100 mb-1">
                             <p className="text-foreground font-semibold truncate">{displayName}</p>
-                            <Link to="/account-v2?tab=personal" className="text-xs text-[#484848] hover:text-[#E1392A] transition-colors" onClick={() => setIsProfileOpen(false)}>
+                            <Link to="/account-v2?tab=personal" className="text-xs text-[#484848] hover:text-accent transition-colors" onClick={() => setIsProfileOpen(false)}>
                                 View Profile
                             </Link>
                         </div>
@@ -75,7 +75,7 @@ export function ProfileDropdown({ resolvedUser, displayName, renderTimestamp, ha
                                     setIsProfileOpen(false)
                                     handleLogout()
                                 }}
-                                className="w-full text-left px-3 py-2.5 text-sm text-[#E1392A] hover:bg-[#E1392A]/10 font-semibold rounded-lg flex items-center gap-3 transition-colors"
+                                className="w-full text-left px-3 py-2.5 text-sm text-accent hover:bg-accent/10 font-semibold rounded-lg flex items-center gap-3 transition-colors"
                             >
                                 <LogOut className="w-4 h-4" />
                                 Logout

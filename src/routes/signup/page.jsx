@@ -171,7 +171,7 @@ const Signup = () => {
                                         type="button"
                                         onClick={handleSendOtp}
                                         disabled={isSendingOtp || otpSent}
-                                        className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                                        className="text-xs font-semibold text-accent hover:text-accent/90 bg-accent/5 hover:bg-accent/10 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                                     >
                                         {isSendingOtp ? "Sending..." : otpSent ? "Resend OTP" : "Get OTP"}
                                     </button>
@@ -179,7 +179,7 @@ const Signup = () => {
                             />
 
 
-                            <Button type="submit" disabled={isVerifyingOtp} className="mt-6 w-full shadow-blue-500/20 py-3 text-base">
+                            <Button type="submit" disabled={isVerifyingOtp} className="mt-6 w-full shadow-accent/20 py-3 text-base">
                                 {isVerifyingOtp ? (
                                     <>
                                         <Loader2 className="animate-spin h-5 w-5" />
@@ -197,7 +197,7 @@ const Signup = () => {
                                     Already have an account?{' '}
                                     <Link
                                         to="/signin"
-                                        className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-all"
+                                        className="font-semibold text-accent hover:text-accent/90 hover:underline transition-all"
                                     >
                                         Sign In
                                     </Link>

@@ -15,11 +15,11 @@ const Button = ({
 
     const variants = {
         primary:
-            'bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:shadow-lg hover:from-blue-700 hover:to-violet-700',
+            'bg-accent text-white hover:shadow-lg hover:bg-accent/95 shadow-md active:scale-98 transition-all',
         secondary:
             'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:text-gray-900',
         outline:
-            'bg-transparent border border-blue-600 text-blue-600 hover:bg-blue-50',
+            'bg-transparent border border-accent text-accent hover:bg-accent/5',
         ghost:
             'bg-transparent text-[#222222] hover:bg-gray-100 shadow-none',
     };

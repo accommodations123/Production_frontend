@@ -2,13 +2,13 @@
 
 @theme {
   --color-background: #ffffff;
-  --color-foreground: #00142E;
-  --color-primary: #00142E;
+  --color-foreground: #00162D;
+  --color-primary: #00162D;
   --color-secondary: #0A1C30;
-  --color-accent: #E1392A;
+  --color-accent: #CB2A26;
   --color-neutral: #D5CBA8;
-  --color-cream: #FAF6EE;
-  --color-navy-dark: #00142E;
+  --color-cream: #F9EDD3;
+  --color-navy-dark: #00162D;
 
   --font-inter: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -40,9 +40,6 @@ html {
   text-rendering: optimizeLegibility;
 }
 
-.font-sans {
-  font-variation-settings: "wght" 450;
-}
 
 body {
   background-color: var(--color-background);

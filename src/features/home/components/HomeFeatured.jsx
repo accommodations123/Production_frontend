@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
-import { MapPin, Calendar, Plane
-} from 'lucide-react';
+import { MapPin, Calendar, Plane, ShoppingBag } from 'lucide-react';
 
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -267,7 +266,7 @@ const HomeFeatured = () => {
     <div className="bg-white font-sans text-foreground">
 
       {/* 1. Community Stays Section */}
-      <section className="py-6 sm:py-8 relative overflow-hidden">
+      <section className="pt-2 pb-6 sm:pt-4 sm:pb-8 relative overflow-hidden">
         {/* Decorative Blob */}
         <div className="absolute top-0 right-0 w-[300px] sm:w-[400px] lg:w-[500px] h-[300px] sm:h-[400px] lg:h-[500px] bg-gradient-to-br from-accent/5 to-transparent rounded-full blur-[100px] pointer-events-none" />
 
@@ -297,11 +296,11 @@ const HomeFeatured = () => {
                 </motion.div>
               ))
             ) : (
-              <div className="col-span-full py-8 sm:py-10 text-center bg-[#F8F9FA] rounded-[1.5rem] sm:rounded-[2rem] border-2 border-dashed border-[#D1CBB7]/30">
-                <MapPin className="w-10 h-10 sm:w-12 sm:h-12 text-[#D1CBB7] mx-auto mb-4" />
-                <h3 className="text-lg sm:text-xl font-bold text-[#00142E] mb-2">No Stays Found</h3>
-                <p className="text-[#00142E]/60 text-sm sm:text-base">Be the first to list a property in our community.</p>
-                <Button onClick={() => navigate('/host/create')} className="mt-4 sm:mt-6 bg-[#E1392A] hover:bg-[#a0221e] text-white rounded-full text-sm sm:text-base px-4 sm:px-6 py-2">List Your Property</Button>
+              <div className="col-span-full py-12 px-4 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                <MapPin className="w-10 h-10 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-primary mb-1">No Stays Found</h3>
+                <p className="text-slate-400 text-sm max-w-sm mx-auto mb-6">Be the first to list a premium property in our community.</p>
+                <Button onClick={() => navigate('/host/create')} className="bg-accent hover:bg-accent/95 text-white rounded-xl text-sm px-6 py-2 h-10 font-semibold shadow-sm transition-all duration-200">List Your Property</Button>
               </div>
             )}
           </div>
@@ -335,11 +334,11 @@ const HomeFeatured = () => {
                 </motion.div>
               ))
             ) : (
-              <div className="col-span-full py-8 sm:py-10 text-center bg-[#F8F9FA] rounded-[1.5rem] sm:rounded-[2rem] border-2 border-dashed border-[#D1CBB7]/30">
-                <Plane className="w-10 h-10 sm:w-12 sm:h-12 text-[#D1CBB7] mx-auto mb-4" />
-                <h3 className="text-lg sm:text-xl font-bold text-[#00142E] mb-2">No Travel Partners Found</h3>
-                <p className="text-[#00142E]/60 text-sm sm:text-base">Be the first to post a trip for our community.</p>
-                <Button onClick={() => navigate('/travel')} className="mt-4 sm:mt-6 bg-[#E1392A] hover:bg-[#a0221e] text-white rounded-full text-sm sm:text-base px-4 sm:px-6 py-2">Post Your Trip</Button>
+              <div className="col-span-full py-12 px-4 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                <Plane className="w-10 h-10 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-primary mb-1">No Travel Partners Found</h3>
+                <p className="text-slate-400 text-sm max-w-sm mx-auto mb-6">Be the first to post a trip for our community.</p>
+                <Button onClick={() => navigate('/travel')} className="bg-accent hover:bg-accent/95 text-white rounded-xl text-sm px-6 py-2 h-10 font-semibold shadow-sm transition-all duration-200">Post Your Trip</Button>
               </div>
             )}
           </div>
@@ -348,7 +347,7 @@ const HomeFeatured = () => {
 
 
       {/* 4. Community Events Section */}
-      <section className="py-4 sm:py-6 relative bg-[#F8F9FA] overflow-hidden">
+      <section className="py-4 sm:py-6 relative bg-slate-50/40 overflow-hidden">
         <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 2xl:px-12 relative z-10">
           <SectionHeader
             title="Events"
@@ -378,15 +377,13 @@ const HomeFeatured = () => {
                 </motion.div>
               ))
             ) : (
-              <div className="col-span-full py-8 sm:py-10 text-center bg-white rounded-[1.5rem] sm:rounded-[2rem] border border-gray-100">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#F8F9FA] rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-sm">
-                  <Calendar className="w-8 h-8 sm:w-10 sm:h-10 text-gray-300" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-bold text-[#00142E] mb-2">No Events Scheduled</h3>
-                <p className="text-[#00142E]/60 text-sm sm:text-base mb-6 sm:mb-8">Be the first to create a community event!</p>
-                <Link to="/events/host" className="inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 bg-[#00142E] text-white rounded-full font-bold hover:bg-[#E1392A] transition-all shadow-lg hover:shadow-xl text-sm sm:text-base">
+              <div className="col-span-full py-12 px-4 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                <Calendar className="w-10 h-10 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-primary mb-1">No Events Scheduled</h3>
+                <p className="text-slate-400 text-sm max-w-sm mx-auto mb-6">Be the first to create a community event!</p>
+                <Button onClick={() => navigate(getHostPath('event', isAuthenticated))} className="bg-accent hover:bg-accent/95 text-white rounded-xl text-sm px-6 py-2 h-10 font-semibold shadow-sm transition-all duration-200">
                   Host an Event
-                </Link>
+                </Button>
               </div>
             )}
           </div>
@@ -414,7 +411,14 @@ const HomeFeatured = () => {
                 </motion.div>
               ))
             ) : (
-              <div className="col-span-full text-center py-12 sm:py-16 text-[#00142E]/50">No active listings.</div>
+              <div className="col-span-full py-12 px-4 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                <ShoppingBag className="w-10 h-10 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-primary mb-1">No Active Listings</h3>
+                <p className="text-slate-400 text-sm max-w-sm mx-auto mb-6">Be the first to list an item in the community marketplace.</p>
+                <Button onClick={() => navigate(getHostPath('marketplace', isAuthenticated))} className="bg-accent hover:bg-accent/95 text-white rounded-xl text-sm px-6 py-2 h-10 font-semibold shadow-sm transition-all duration-200">
+                  Sell an Item
+                </Button>
+              </div>
             )}
           </div>
         </div>
