@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Sparkles, Home, Calendar, Plane, ShoppingBag, ChevronDown } from "lucide-react"
+import { Home, Calendar, Plane, ShoppingBag, Search, ChevronDown, Plus } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { getHostPath } from "@/shared/utils/navigationUtils"
@@ -14,32 +14,39 @@ export function HostDropdown({ isAuthenticated }) {
     const hostOptions = [
         {
             id: 'property',
-            title: 'Share Your Space',
-            description: 'List your property for stays',
+            title: 'Share Your Space (List Stay)',
+            description: 'Rent out your apartment, room or PG',
             icon: <Home className="h-5 w-5" />,
             path: getHostPath('property', isAuthenticated)
         },
         {
+            id: 'stay_request',
+            title: 'Look for Stay (Stay Request)',
+            description: 'Post details of the room you need',
+            icon: <Search className="h-5 w-5" />,
+            path: isAuthenticated ? '/search?action=request' : '/signin'
+        },
+        {
+            id: 'marketplace',
+            title: 'Sell an Item (Post Ad)',
+            description: 'List products in Buy/Sell marketplace',
+            icon: <ShoppingBag className="h-5 w-5" />,
+            path: getHostPath('marketplace', isAuthenticated)
+        },
+        {
             id: 'event',
-            title: 'Host an Event',
-            description: 'Organize workshops, meetups or festivals.',
+            title: 'Host an Event (Post Meetup)',
+            description: 'Organize workshops, meetups or festivals',
             icon: <Calendar className="h-5 w-5" />,
             path: getHostPath('event', isAuthenticated)
         },
         {
             id: 'travel',
             title: 'Become Travel Partner',
-            description: 'Connect with fellow travelers.',
+            description: 'Connect with fellow travelers and expats',
             icon: <Plane className="h-5 w-5" />,
             path: getHostPath('travel', isAuthenticated)
-        },
-        {
-            id: 'marketplace',
-            title: 'Sell an Item',
-            description: 'List products in Buy/Sell marketplace.',
-            icon: <ShoppingBag className="h-5 w-5" />,
-            path: getHostPath('marketplace', isAuthenticated)
-        },
+        }
     ]
 
     return (
@@ -48,9 +55,9 @@ export function HostDropdown({ isAuthenticated }) {
                 onClick={() => setIsHostDropdownOpen(!isHostDropdownOpen)}
                 className="inline-flex items-center gap-1.5 h-10 px-3 rounded-lg text-slate-700 hover:bg-gray-100 hover:text-slate-900 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent active:scale-[0.98]"
             >
-                <Sparkles className="w-4 h-4 text-accent" />
-                <span className="hidden xl:inline whitespace-nowrap">Become Host</span>
-                <span className="xl:hidden">Host</span>
+                <Plus className="w-4 h-4 text-accent stroke-[2.5]" />
+                <span className="hidden xl:inline whitespace-nowrap">Create Post</span>
+                <span className="xl:hidden">Post</span>
                 <ChevronDown className="w-3.5 h-3.5 text-[#717171]" />
             </button>
 
@@ -64,7 +71,7 @@ export function HostDropdown({ isAuthenticated }) {
                         className="absolute top-full right-0 mt-2 w-80 bg-white/95 backdrop-blur-md rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-gray-100 overflow-hidden z-50"
                     >
                         <div className="px-4 py-3 border-b border-gray-100">
-                            <p className="text-xs font-semibold text-[#484848] uppercase tracking-wide">Start Hosting</p>
+                            <p className="text-xs font-semibold text-[#484848] uppercase tracking-wide">Create Listing / Post Ad</p>
                         </div>
                         <div className="p-2">
                             {hostOptions.map((option) => (

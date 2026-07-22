@@ -39,9 +39,12 @@ export const PropertyCard = React.memo(({ property }) => {
         return `${CLOUDFRONT}/${imagePath.startsWith('/') ? imagePath.slice(1) : imagePath}`;
     };
 
+    const isSeekerRequest = (property.property_type || property.type || '').toLowerCase() === 'seeker_request';
+
     // Safely get property data
     const propertyData = {
         id: property.id || property._id || 'unknown',
+        isSeekerRequest,
         title: (property.title && !property.title.toLowerCase().includes("untitled"))
             ? property.title
             : (property.name && !property.name.toLowerCase().includes("untitled"))
@@ -110,19 +113,19 @@ export const PropertyCard = React.memo(({ property }) => {
                 property.email ||
                 ""
         }
-
-
     };
 
-
-
+    // If seeker request, override main image to be seeker's avatar/photo
+    const cardImage = propertyData.isSeekerRequest
+        ? (propertyData.hostImage || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80")
+        : (propertyData.image || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop");
 
     return (
         <CardContainer key={propertyData.id} linkTo={`/rooms/${propertyData.id}`}>
             {/* Image Section */}
             <div className="relative h-[150px] overflow-hidden bg-muted shrink-0">
                 <img
-                    src={propertyData.image}
+                    src={cardImage}
                     alt={propertyData.title}
                     className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03] ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
                     onLoad={() => setIsImageLoaded(true)}
@@ -137,7 +140,11 @@ export const PropertyCard = React.memo(({ property }) => {
 
                 {/* Top Badges */}
                 <div className="absolute top-4 left-4 z-20 flex gap-2">
-                    {propertyData.isVerified ? (
+                    {propertyData.isSeekerRequest ? (
+                        <div className="bg-[#00162D] backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-slate-700">
+                            <span className="text-[10px] font-bold text-white uppercase tracking-wider">Room Wanted</span>
+                        </div>
+                    ) : propertyData.isVerified ? (
                         <div className="bg-green-500/90 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-green-400/50">
                             <ShieldCheck className="w-3.5 h-3.5 text-white" />
                             <span className="text-xs font-bold text-white">Verified</span>
@@ -148,7 +155,6 @@ export const PropertyCard = React.memo(({ property }) => {
                             <span className="text-xs font-bold text-white">Unverified</span>
                         </div>
                     )}
-
                 </div>
 
                 {/* Top Right Heart */}
@@ -178,30 +184,44 @@ export const PropertyCard = React.memo(({ property }) => {
                 </div>
 
                 {/* Stats Row */}
-                <div className="flex items-center gap-3 text-sm text-[#00142E]/70">
-                    <div className="flex items-center gap-1.5">
-                        <Users className="w-4 h-4 text-[#E1392A]" />
-                        <span className="font-medium">{propertyData.guests}</span>
+                {propertyData.isSeekerRequest ? (
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs font-bold text-slate-500 min-h-[1.5rem]">
+                        <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-700">
+                            {property.stay_type || property.stayType || 'Long Term'}
+                        </span>
+                        <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-700">
+                            {property.furnishing || 'Furnished'}
+                        </span>
                     </div>
-                    <div className="w-px h-3 bg-[#00142E]/10" />
-                    <div className="flex items-center gap-1.5">
-                        <Bed className="w-4 h-4 text-[#E1392A]" />
-                        <span className="font-medium">{propertyData.bedrooms}</span>
+                ) : (
+                    <div className="flex items-center gap-3 text-sm text-[#00142E]/70">
+                        <div className="flex items-center gap-1.5">
+                            <Users className="w-4 h-4 text-[#E1392A]" />
+                            <span className="font-medium">{propertyData.guests}</span>
+                        </div>
+                        <div className="w-px h-3 bg-[#00142E]/10" />
+                        <div className="flex items-center gap-1.5">
+                            <Bed className="w-4 h-4 text-[#E1392A]" />
+                            <span className="font-medium">{propertyData.bedrooms}</span>
+                        </div>
+                        {propertyData.bathrooms > 0 && (
+                            <>
+                                <div className="w-px h-3 bg-[#00142E]/10" />
+                                <div className="flex items-center gap-1.5">
+                                    <Bath className="w-4 h-4 text-[#E1392A]" />
+                                    <span className="font-medium">{propertyData.bathrooms}</span>
+                                </div>
+                            </>
+                        )}
                     </div>
-                    {propertyData.bathrooms > 0 && (
-                        <>
-                            <div className="w-px h-3 bg-[#00142E]/10" />
-                            <div className="flex items-center gap-1.5">
-                                <Bath className="w-4 h-4 text-[#E1392A]" />
-                                <span className="font-medium">{propertyData.bathrooms}</span>
-                            </div>
-                        </>
-                    )}
-                </div>
+                )}
 
                 {/* Price & Actions Row */}
                 <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100 h-[60px] shrink-0">
                     <div className="flex items-baseline gap-1">
+                        <span className="text-sm font-semibold text-[#00142E]/60 mr-1">
+                            {propertyData.isSeekerRequest ? "Budget:" : ""}
+                        </span>
                         <span className="text-base sm:text-lg font-black text-[#00142E]">
                             {propertyData.price.amount > 0 ? formatPrice(propertyData.price.amount, propertyData.price.currency) : "On Request"}
                         </span>

@@ -1,4 +1,4 @@
-import { Hero } from "@/features/home/components/Hero"
+import { Hero } from "@/features/home/components/Hero/index"
 import HomeFeatured from "@/features/home/components/HomeFeatured"
 
 export default function Home() {

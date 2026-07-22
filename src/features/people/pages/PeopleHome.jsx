@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { Navbar } from "@/shared/layout/Navbar";
-import { Footer } from "@/shared/layout/Footer";
+import { Link, useSearchParams } from "react-router-dom";
 import PeopleHero from "../components/PeopleHero";
 import PeopleFilters from "../components/PeopleFilters";
 import PeopleCard from "../components/PeopleCard";
@@ -12,14 +10,35 @@ import { Users, Sparkles, ChevronDown } from "lucide-react";
 
 export default function PeopleHome() {
   // Load initial list from local state to pick up new registrants
-  const [peopleList, setPeopleList] = useState(() => {
+  const [peopleList] = useState(() => {
     const saved = localStorage.getItem("kinlife_people");
     return saved ? JSON.parse(saved) : MOCK_PEOPLE;
   });
 
-  // Filter criteria states
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get("query") || "";
+  const selectedCategory = searchParams.get("category") || "all";
+
+  const setSearchQuery = (val) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (val) {
+      nextParams.set("query", val);
+    } else {
+      nextParams.delete("query");
+    }
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const setSelectedCategory = (val) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (val && val !== "all") {
+      nextParams.set("category", val);
+    } else {
+      nextParams.delete("category");
+    }
+    setSearchParams(nextParams, { replace: true });
+  };
+
   const [selectedLocation, setSelectedLocation] = useState("all");
   const [selectedExperience, setSelectedExperience] = useState("all");
   const [selectedRating, setSelectedRating] = useState("all");
@@ -36,8 +55,7 @@ export default function PeopleHome() {
 
   // Handle clear/reset action
   const handleResetFilters = () => {
-    setSearchQuery("");
-    setSelectedCategory("all");
+    setSearchParams(new URLSearchParams(), { replace: true });
     setSelectedLocation("all");
     setSelectedExperience("all");
     setSelectedRating("all");

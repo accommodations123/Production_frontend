@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, Check, X, Trash2 } from "lucide-react";
+import { Bell, Check, X, Trash2, Clock, CheckSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/shared/utils/utils";
 import { useClickOutside } from "@/shared/hooks/useClickOutside";
@@ -105,50 +105,56 @@ export function NotificationDropdown({ minimal = false }) {
         return (
             <div
                 className={cn(
-                    "relative group p-3 rounded-xl transition-all border border-transparent hover:border-white/5",
+                    "relative group p-3.5 rounded-xl transition-all duration-200 border-l-3 flex gap-3.5 hover:shadow-xs",
                     notif.is_read
-                        ? "bg-white text-[#484848]"
-                        : "bg-blue-50 text-gray-900")}
+                        ? "bg-white border-transparent text-slate-600"
+                        : "bg-blue-50/40 border-[#CB2A26] text-[#00162D]"
+                )}
             >
-                <div className="flex gap-3">
-                    <div
-                        className="mt-1 w-2 h-2 rounded-full bg-accent shrink-0"
-                        style={{ opacity: notif.is_read ? 0 : 1 }}
-                    />
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold truncate">{notif.title}</p>
-                        <p className="text-xs text-[#222222] line-clamp-2 mt-0.5">
-                            {notif.message}
-                        </p>
-                        <p className="text-[10px] text-[#717171] mt-1.5">
-                            {timeAgo}
+                {/* Dot Status Indicator */}
+                {!notif.is_read && (
+                    <span className="absolute top-4 right-4 w-2 h-2 rounded-full bg-[#CB2A26] animate-pulse" />
+                )}
+
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                        <p className={cn("text-xs tracking-tight truncate", notif.is_read ? "font-semibold text-slate-700" : "font-black text-[#00162D]")}>
+                            {notif.title}
                         </p>
                     </div>
+                    <p className="text-[11px] text-slate-500 leading-relaxed mt-1">
+                        {notif.message}
+                    </p>
+                    <div className="flex items-center gap-1 text-[9px] text-slate-400 mt-2 font-semibold">
+                        <Clock className="w-2.5 h-2.5" />
+                        <span>{timeAgo}</span>
+                    </div>
+                </div>
 
-                    <div className="flex items-start gap-1">
-                        {!notif.is_read && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onRead(notif.id);
-                                }}
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-full transition-all text-white/60 hover:text-accent"
-                                title="Mark as read"
-                            >
-                                <Check className="w-3 h-3" />
-                            </button>
-                        )}
+                {/* Inline Hover Action Controls */}
+                <div className="flex flex-col items-center gap-1.5 shrink-0 self-start pt-0.5">
+                    {!notif.is_read && (
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onDelete(notif.id);
+                                onRead(notif.id);
                             }}
-                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded-full transition-all text-white/60 hover:text-red-400"
-                            title="Delete notification"
+                            className="p-1 hover:bg-slate-100/80 rounded-lg text-slate-400 hover:text-emerald-600 transition-colors cursor-pointer"
+                            title="Mark as read"
                         >
-                            <X className="w-3 h-3" />
+                            <Check className="w-3.5 h-3.5" />
                         </button>
-                    </div>
+                    )}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(notif.id);
+                        }}
+                        className="p-1 hover:bg-red-50 text-slate-400 hover:text-[#CB2A26] rounded-lg transition-colors cursor-pointer"
+                        title="Delete notification"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
                 </div>
             </div>
         );
@@ -158,14 +164,14 @@ export function NotificationDropdown({ minimal = false }) {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 rounded-full text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                className="relative p-2 rounded-full text-slate-750 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-none"
             >
-                <Bell className="w-6 h-6 stroke-[2]" />
+                <Bell className="w-5.5 h-5.5 stroke-[2.2]" />
 
                 {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
-                        <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping" />
-                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-600 border border-white" />
+                    <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
+                        <span className="absolute inline-flex h-full w-full rounded-full bg-[#CB2A26] opacity-75 animate-ping" />
+                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#CB2A26] border border-white" />
                     </span>
                 )}
             </button>
@@ -173,42 +179,37 @@ export function NotificationDropdown({ minimal = false }) {
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="
-absolute
-top-full
-right-0
-mt-3
-w-80
-sm:w-96
-rounded-2xl
-bg-white
-border
-border-gray-200
-shadow-xl
-overflow-hidden
-z-50
-"
+                        initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute top-full right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.12)] overflow-hidden z-50 py-1.5"
                     >
-                        {/* Header */}
-                        <div className="px-4 py-3 border-b border-gray/200 bg-gray/50 flex items-center justify-between">
-                            <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+                        {/* Header block with sand tinted accent */}
+                        <div className="px-4.5 py-3 border-b border-slate-100 bg-[#FCFAF6]/60 flex items-center justify-between">
                             <div className="flex items-center gap-2">
+                                <h3 className="text-xs font-black text-[#00162D] uppercase tracking-wider">Notifications</h3>
+                                {unreadCount > 0 && (
+                                    <span className="bg-[#CB2A26] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </div>
+                            
+                            <div className="flex items-center gap-2.5">
                                 {unreadCount > 0 && (
                                     <button
                                         onClick={handleClearAll}
-                                        className="text-xs text-[#484848] hover:text-gray-900 transition-colors"
+                                        className="text-[10px] font-bold text-slate-500 hover:text-[#CB2A26] hover:underline transition-colors flex items-center gap-1 cursor-pointer"
                                     >
-                                        Mark all read
+                                        <CheckSquare className="w-3 h-3" />
+                                        Mark read
                                     </button>
                                 )}
                                 {notifications.length > 0 && (
                                     <button
                                         onClick={handleDeleteAll}
-                                        className="text-xs text-[#484848] hover:text-red-400 transition-colors flex items-center gap-1"
+                                        className="text-[10px] font-bold text-slate-500 hover:text-[#CB2A26] hover:underline transition-colors flex items-center gap-1 cursor-pointer"
                                         title="Delete all notifications"
                                     >
                                         <Trash2 className="w-3 h-3" />
@@ -218,9 +219,9 @@ z-50
                             </div>
                         </div>
 
-                        {/* List */}
+                        {/* Notifications list workspace */}
                         <div
-                            className="max-h-[60vh] overflow-y-auto p-2 space-y-1"
+                            className="max-h-[50vh] overflow-y-auto p-2 space-y-1.5"
                             style={{
                                 scrollbarWidth: 'none',
                                 msOverflowStyle: 'none',
@@ -228,14 +229,17 @@ z-50
                             }}
                         >
                             {isLoading ? (
-                                <div className="py-8 text-center text-[#717171] text-sm">
-                                    <div className="w-6 h-6 border-2 border-white/20 border-t-accent rounded-full animate-spin mx-auto mb-2" />
-                                    Loading...
+                                <div className="py-12 text-center text-slate-400 text-xs font-semibold">
+                                    <div className="w-6 h-6 border-2 border-slate-200 border-t-[#CB2A26] rounded-full animate-spin mx-auto mb-2.5" />
+                                    Updating inbox...
                                 </div>
                             ) : notifications.length === 0 ? (
-                                <div className="py-8 text-center text-[#717171] text-sm">
-                                    <Bell className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                                    No new notifications
+                                <div className="py-12 text-center text-slate-400 text-xs flex flex-col items-center justify-center space-y-2">
+                                    <Bell className="w-8 h-8 opacity-15 text-[#00162D] animate-bounce" />
+                                    <div className="space-y-0.5">
+                                        <p className="font-bold text-[#00162D]">Your inbox is clear</p>
+                                        <p className="text-[10px] text-slate-400">relocation updates will show up here</p>
+                                    </div>
                                 </div>
                             ) : (
                                 notifications.map((notif) => (
@@ -246,7 +250,6 @@ z-50
                                         onDelete={handleDeleteNotification}
                                     />
                                 ))
-
                             )}
                         </div>
                     </motion.div>

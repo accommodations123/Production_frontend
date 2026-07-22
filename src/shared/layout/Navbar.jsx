@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Menu, Globe, User, ChevronDown, X, Search, Users, Briefcase, Home, Calendar, Building, Plane, ShoppingBag, Check, Sparkles, LogOut, Heart } from "lucide-react"
+import { Menu, User, ChevronDown, X, Search, Users, Briefcase, Home, Calendar, Building, Plane, ShoppingBag, Check, Sparkles, LogOut, Heart } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/shared/ui/button"
 import { cn } from "@/shared/utils/utils"
@@ -9,6 +9,7 @@ import { resolveImageUrl } from "@/shared/utils/imageUtils"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useCountry } from "@/context/CountryContext"
 import { useClickOutside } from "@/shared/hooks/useClickOutside"
+import { clearAuthCookie } from "@/shared/utils/cookieUtils"
 import { getSocket, disconnectSocket } from "@/shared/utils/socket"
 import { useDispatch, useSelector } from "react-redux"
 import { logoutUser, fetchCurrentUser } from "@/store/slices/authSlice"
@@ -87,8 +88,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
         disconnectSocket();
 
         // Force expire the access_token cookie
-        document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.nextkinlife.live;";
+        clearAuthCookie();
 
         localStorage.removeItem("user");
 
@@ -149,8 +149,8 @@ export function Navbar({ minimal = false, onMenuClick }) {
 
     // Close dropdowns on route change but keep the main menu open
     React.useEffect(() => {
-        setIsMobileCountryOpen(false)
-        // Note: We're NOT closing setIsMobileMenuOpen here
+        const t = setTimeout(() => setIsMobileCountryOpen(false), 0);
+        return () => clearTimeout(t);
     }, [location.pathname])
 
     // Click Outside Refs

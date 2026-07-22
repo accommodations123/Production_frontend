@@ -1,15 +1,13 @@
 import { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin,
   Calendar,
   Plane,
   ShoppingBag,
-  ArrowRight,
-  ChevronRight,
-  Sparkles,
-  ChevronDown
+  Briefcase,
+  Users
 } from 'lucide-react';
 
 import { useCountry } from '@/context/CountryContext';
@@ -227,7 +225,6 @@ export function HomeFeatured() {
   const { activeCountry } = useCountry();
 
   const [activeTab, setActiveTab] = useState('stays');
-  const [openFaq, setOpenFaq] = useState(null);
 
   // Queries
   const { data: allProperties, isLoading: propertiesLoading } = useGetAllPropertiesQuery({ country: activeCountry?.name, limit: 4 });
@@ -276,18 +273,19 @@ export function HomeFeatured() {
       icon: MapPin,
       badge: 'Accommodations',
       tags: ['Vetted Hosts', 'Flexible Rentals', 'Local Support'],
-      linkText: 'Browse Stays',
-      linkTo: '/search'
+      browseTo: '/search',
+      createTo: getHostPath('property', isAuthenticated),
+      requestTo: isAuthenticated ? '/search?action=request' : '/signin'
     },
     {
-      id: 'travel',
-      title: 'Travel Matching',
-      description: 'Connect with co-travelers flying the same route. Share international flights, coordinate airport rides, and organize shared trips.',
-      icon: Plane,
-      badge: 'Shared Travel',
-      tags: ['Flight Companions', 'Shared Cab Rides', 'Verify Identity'],
-      linkText: 'Match Flights',
-      linkTo: '/travel'
+      id: 'marketplace',
+      title: 'Trusted Marketplace',
+      description: 'Buy or sell furniture, appliances, and cultural items securely within your network. Free listings and no commission fees.',
+      icon: ShoppingBag,
+      badge: 'Buy & Sell',
+      tags: ['Pre-loved Goods', 'Expat Essentials', 'No Commissions'],
+      browseTo: '/marketplace',
+      createTo: getHostPath('marketplace', isAuthenticated)
     },
     {
       id: 'events',
@@ -296,18 +294,38 @@ export function HomeFeatured() {
       icon: Calendar,
       badge: 'Festivals & Meetups',
       tags: ['Diwali & Holi', 'Networking', 'Local Gatherings'],
-      linkText: 'View Events',
-      linkTo: '/events'
+      browseTo: '/events',
+      createTo: getHostPath('event', isAuthenticated)
     },
     {
-      id: 'marketplace',
-      title: 'Trusted Marketplace',
-      description: 'Buy or sell furniture, appliances, and cultural items securely within your network. Free listings and no commission fees.',
-      icon: ShoppingBag,
-      badge: 'Peer-to-Peer Trading',
-      tags: ['Furnitures', 'Ethnic Clothing', 'No Commissions'],
-      linkText: 'Shop Listings',
-      linkTo: '/marketplace'
+      id: 'travel',
+      title: 'Travel Matching',
+      description: 'Connect with co-travelers flying the same route. Share international flights, coordinate airport rides, and organize shared trips.',
+      icon: Plane,
+      badge: 'Shared Travel',
+      tags: ['Flight Companions', 'Shared Cab Rides', 'Verify Identity'],
+      browseTo: '/travel',
+      createTo: getHostPath('travel', isAuthenticated)
+    },
+    {
+      id: 'careers',
+      title: 'Expat Placement',
+      description: 'Discover professional expat opportunities and contracting assignments from leading tier-1 industry clients.',
+      icon: Briefcase,
+      badge: 'Careers & Jobs',
+      tags: ['W2 Benefits', 'Contract Placements', 'Global Recruits'],
+      browseTo: '/career',
+      createTo: '/contact'
+    },
+    {
+      id: 'people',
+      title: 'People Directory',
+      description: 'Find verified relocation experts, local immigration lawyers, visa consultants, tax advisors, and local expat guides.',
+      icon: Users,
+      badge: 'Expert Consultations',
+      tags: ['Visa Experts', 'Tax Advisors', 'Local Guides'],
+      browseTo: '/people',
+      createTo: '/hosts'
     }
   ];
 
@@ -323,22 +341,25 @@ export function HomeFeatured() {
     <div className="bg-white font-sans text-[#222222]">
 
       {/* 1. Services Overview Section (Professional Grid) */}
-      <section className="py-20 bg-white border-t border-slate-100">
-        <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 2xl:px-12 text-left">
+      <section className="pt-10 pb-24 bg-gradient-to-b from-[#FCFAF6] via-[#FFFFFF] to-[#FAF8F5]/35 border-t border-slate-100 relative">
+        {/* Soft decorative ambient glow */}
+        <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-[#D5CBA8]/5 rounded-full filter blur-[100px] pointer-events-none" />
+
+        <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 2xl:px-12 text-left relative z-10">
 
           <div className="max-w-3xl mb-16">
             <span className="text-xs uppercase font-bold tracking-widest text-accent mb-2 block">
               Core Capabilities
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-primary tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#00162D] tracking-tight leading-tight">
               Relocating with Vetted Support & Shared Culture
             </h2>
             <p className="text-slate-500 mt-3 text-base sm:text-lg max-w-2xl font-normal leading-relaxed">
-              Our platform brings utility, security, and familiarity to international moves. Browse the four pillars of our network.
+              Our platform brings utility, security, and familiarity to international moves. Choose an option below to browse active directories or post your own listings.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service, idx) => {
               const Icon = service.icon;
               return (
@@ -346,36 +367,42 @@ export function HomeFeatured() {
                   key={service.id}
                   {...fadeInUp}
                   transition={{ delay: idx * 0.08 }}
-                  onClick={() => {
-                    setActiveTab(service.id);
-                    const element = document.getElementById('explore-dashboard');
-                    if (element) {
-                      element.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
-                  className="hover-lift cursor-pointer flex flex-col p-6 rounded-xl border border-slate-200/60 bg-white hover:border-primary/20 transition-all"
+                  className="flex flex-col p-6 rounded-2xl border border-slate-200 bg-white hover:border-[#CB2A26]/40 hover:shadow-lg transition-all duration-300 h-full justify-between hover:-translate-y-1 group"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-accent/5 flex items-center justify-center text-accent mb-6">
-                    <Icon className="w-5 h-5" />
+                  <div>
+                    <div className="flex items-center gap-3.5 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-accent/5 flex items-center justify-center text-accent shrink-0 group-hover:bg-[#CB2A26] group-hover:text-white transition-colors duration-300">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="block text-[10px] uppercase font-black tracking-wider text-slate-400">
+                          {service.badge}
+                        </span>
+                        <h3 className="text-base font-extrabold text-[#00162D] group-hover:text-[#CB2A26] transition-colors duration-300 tracking-tight">{service.title}</h3>
+                      </div>
+                    </div>
+                    <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-4 font-normal min-h-[3rem]">
+                      {service.description}
+                    </p>
+
                   </div>
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">
-                    {service.badge}
-                  </span>
-                  <h3 className="text-lg font-bold text-primary mb-2 tracking-tight">{service.title}</h3>
-                  <p className="text-slate-500 text-sm leading-relaxed mb-6 flex-grow font-normal">
-                    {service.description}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5 mb-5">
-                    {service.tags.map((tag) => (
-                      <span key={tag} className="text-[10px] px-2 py-0.5 border border-slate-100 bg-slate-50 text-slate-500 rounded font-medium">
-                        {tag}
-                      </span>
-                    ))}
+                  <div className="space-y-2.5 pt-4 border-t border-slate-100">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => navigate(service.browseTo)}
+                        className="flex-1 h-9 rounded-xl border border-slate-250 text-[#00162D] hover:bg-slate-50 hover:border-slate-800 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Browse Listings
+                      </button>
+                      <button
+                        onClick={() => navigate(service.createTo)}
+                        className="flex-1 h-9 rounded-xl bg-[#CB2A26] hover:bg-[#A9221F] text-white text-xs font-bold transition-colors cursor-pointer shadow-sm hover:shadow"
+                      >
+                        {service.id === 'careers' ? 'Contact Support' : service.id === 'people' ? 'Become Expert' : 'Post Ad'}
+                      </button>
+                    </div>
+
                   </div>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent/90 transition-colors">
-                    {service.linkText}
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </span>
                 </motion.div>
               );
             })}
@@ -384,8 +411,10 @@ export function HomeFeatured() {
       </section>
 
       {/* 2. Interactive Explorer Dashboard Section */}
-      <section id="explore-dashboard" className="py-20 bg-slate-50/40 border-t border-slate-100">
-        <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 2xl:px-12">
+      <section id="explore-dashboard" className="py-24 bg-gradient-to-b from-[#FAF8F5]/30 to-[#FCFAF6]/60 border-t border-slate-100 relative">
+        <div className="absolute bottom-12 left-10 w-[350px] h-[350px] bg-[#E1392A]/5 rounded-full filter blur-[80px] pointer-events-none" />
+
+        <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 2xl:px-12 relative z-10">
 
           <div className="text-left mb-12">
             <span className="text-xs uppercase font-bold tracking-widest text-slate-400 mb-2 block">
@@ -400,8 +429,8 @@ export function HomeFeatured() {
           </div>
 
           {/* Tab selector */}
-          <div className="flex justify-start mb-12 overflow-x-auto no-scrollbar pb-2">
-            <div className="inline-flex p-1 bg-slate-200/50 backdrop-blur-md rounded-xl border border-slate-200/30 shrink-0">
+          <div className="flex justify-start mb-12 w-full">
+            <div className="grid grid-cols-2 sm:flex sm:flex-row p-1 bg-slate-200/50 backdrop-blur-md rounded-xl border border-slate-200/30 w-full sm:w-auto gap-1">
               {tabsList.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -409,7 +438,7 @@ export function HomeFeatured() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer focus:outline-none ${isActive ? 'text-primary' : 'text-slate-500 hover:text-slate-800'
+                    className={`relative flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer focus:outline-none w-full sm:w-auto whitespace-nowrap ${isActive ? 'text-primary' : 'text-slate-500 hover:text-slate-800'
                       }`}
                   >
                     {isActive && (
@@ -420,7 +449,7 @@ export function HomeFeatured() {
                       />
                     )}
                     <span className="relative z-10 flex items-center gap-2">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-accent' : 'text-slate-400'}`} />
+                      <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-accent' : 'text-slate-400'}`} />
                       {tab.label}
                     </span>
                   </button>

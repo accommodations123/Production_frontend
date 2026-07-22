@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { FilterSidebar } from '@/features/search/components/FilterSidebar';
+import PostStayRequestModal from '@/features/search/components/PostStayRequestModal';
 
 import { PropertyCard } from '@/features/home/components/featured/PropertyCard';
 import { Button } from '@/shared/ui/button';
@@ -8,6 +9,7 @@ import { Filter, X, Plus } from 'lucide-react';
 import { useCountry } from "@/context/CountryContext";
 import { AnimatePresence, motion } from 'framer-motion';
 import { getHostPath } from '@/shared/utils/navigationUtils';
+import { COUNTRIES } from "@/shared/utils/mock-data";
 
 import { useGetAllPropertiesQuery } from '@/store/api/hostApi';
 import { usePagination } from '@/shared/hooks/usePagination';
@@ -19,19 +21,55 @@ export default function SearchPage() {
     const [listings, setListings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
-    const [sortBy, setSortBy] = useState("recommended")
+    const [sortBy, setSortBy] = useState("recommended");
 
-    // Mobile State
+    // Seekers / Offered listing selection tab
+    const [listingTab, setListingTab] = useState("offered");
+
+    // Modal state for posting stay requests
+    const [isPostRequestModalOpen, setIsPostRequestModalOpen] = useState(false);
+
+    // Mobile Sidebar filter State
     const [isSidebarOpen, setSidebarOpen] = useState(false);
-    const { activeCountry } = useCountry();
+    const { activeCountry, setCountry } = useCountry();
 
     // Use getAllProperties to show pending/unverified listings too
     const { data: allProperties } = useGetAllPropertiesQuery({ country: activeCountry?.name });
 
+    // Synchronize activeCountry context with URL location search parameters
+    useEffect(() => {
+        const urlLocation = searchParams.get('location');
+        if (urlLocation) {
+            const matched = COUNTRIES.find(c =>
+                c.name.toLowerCase() === urlLocation.toLowerCase() ||
+                c.code.toLowerCase() === urlLocation.toLowerCase()
+            );
+            if (matched && matched.name !== activeCountry?.name) {
+                const t = setTimeout(() => {
+                    setCountry(matched);
+                }, 0);
+                return () => clearTimeout(t);
+            }
+        }
+    }, [searchParams, activeCountry, setCountry]);
 
+    // Auto-prompt post stay request modal if URL query param action=request is active
+    useEffect(() => {
+        if (searchParams.get('action') === 'request') {
+            const t = setTimeout(() => {
+                setIsPostRequestModalOpen(true);
+                setListingTab('seeker');
+            }, 0);
+            // Remove the parameter so it doesn't reopen on subsequent filter adjustments
+            const nextParams = new URLSearchParams(searchParams);
+            nextParams.delete('action');
+            setSearchParams(nextParams, { replace: true });
+            return () => clearTimeout(t);
+        }
+    }, [searchParams, setSearchParams]);
 
     // Extract filters from URL
-    const filters = {
+    const filters = useMemo(() => ({
         location: searchParams.get('location') || '',
         category: searchParams.getAll('category'),
         accommodationType: searchParams.getAll('accommodationType'),
@@ -39,7 +77,7 @@ export default function SearchPage() {
         maxPrice: searchParams.get('maxPrice'),
         stayType: searchParams.get('stayType'),
         furnishing: searchParams.get('furnishing'),
-    };
+    }), [searchParams]);
 
     const handleFilterChange = (newFilters) => {
         const params = new URLSearchParams();
@@ -66,7 +104,6 @@ export default function SearchPage() {
                         const rawHost = property.Host || property.host || {};
                         const mergedHost = {
                             ...rawHost,
-                            // Aggressively find available socials
                             instagram: rawHost.instagram || property.instagram || "",
                             facebook: rawHost.facebook || property.facebook || "",
                             whatsapp: rawHost.whatsapp || property.whatsapp || rawHost.phone || property.phone || "",
@@ -86,11 +123,11 @@ export default function SearchPage() {
                             image: (property.photos && property.photos.length > 0)
                                 ? property.photos[0]
                                 : "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop",
-                            type: property.property_type || "Apartment", // Matches 'House', 'Apartment', etc.
+                            type: property.property_type || "Apartment",
                             category:
                                 property.category ||
                                 property.property_type ||
-                                "Apartment", // Should probably match type
+                                "Apartment",
                             rating: 4.8, // Mock
                             reviews: 12, // Mock
                             isVerified: property.status === 'approved',
@@ -108,11 +145,15 @@ export default function SearchPage() {
                         return isVisible && isActive && notExpired;
                     });
 
+                    // Filter based on tab: offered vs seeker
+                    if (listingTab === 'seeker') {
+                        mapped = mapped.filter(item => (item.type || item.property_type || '').toLowerCase() === 'seeker_request');
+                    } else {
+                        mapped = mapped.filter(item => (item.type || item.property_type || '').toLowerCase() !== 'seeker_request');
+                    }
+
                     // Apply Filters
                     const { location, category, minPrice, maxPrice, stayType, furnishing } = filters;
-
-
-                    // Recommended = keep backend order
 
                     if (location) {
                         const locLower = location.toLowerCase();
@@ -147,9 +188,9 @@ export default function SearchPage() {
                     }
 
                     if (stayType) {
-                        // Sidebar uses 'ShortTerm', 'LongTerm'. Backend might use different.
                         mapped = mapped.filter(item => (item.stayType || "").toLowerCase() === stayType.toLowerCase());
                     }
+                    
                     // Apply Sorting AFTER filtering
                     if (sortBy === "low-to-high") {
                         mapped = [...mapped].sort(
@@ -163,7 +204,6 @@ export default function SearchPage() {
                         );
                     }
 
-                    // Recommended
                     if (sortBy === "recommended") {
                         mapped = [...mapped];
                     }
@@ -179,12 +219,10 @@ export default function SearchPage() {
         };
 
         fetchListings();
-        // Scroll only on initial load or severe changes, not every filter tweak to keep context? 
-        // User likely wants to see results at top if list refreshes.
         window.scrollTo(0, 0);
-    }, [searchParams, allProperties, sortBy]); // Dependencies correct as searchParams change on filter change
+    }, [searchParams, allProperties, sortBy, listingTab, filters]);
 
-    // ✅ Pagination Logic
+    // Pagination Logic
     const {
         currentItems: paginatedListings,
         currentPage,
@@ -194,21 +232,14 @@ export default function SearchPage() {
 
     return (
         <>
-            {/* Width, gutters, vertical rhythm, and navbar clearance come from RootLayout. */}
-
             <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+                
                 {/* Mobile Header & Filter Toggle */}
-                <div className="lg:hidden flex items-center justify-between mb-4">
-                    <h1 className="text-xl font-bold text-gray-900">
-                        {total > 0 ? `${total} Stays` : 'Access Stays'}
-                    </h1>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            onClick={() => navigate(getHostPath('property', !!localStorage.getItem("user")))}
-                            className="gap-1.5 bg-[#E1392A] hover:bg-[#E1392A]/90 text-white rounded-xl font-bold h-9 px-3 text-xs cursor-pointer"
-                        >
-                            <Plus size={14} /> List Stay
-                        </Button>
+                <div className="lg:hidden space-y-3 mb-4">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-xl font-bold text-gray-900">
+                            {total > 0 ? `${total} Stays` : 'Access Stays'}
+                        </h1>
                         <Button
                             variant="outline"
                             size="sm"
@@ -216,6 +247,26 @@ export default function SearchPage() {
                             className="gap-2 border-gray-300 h-9"
                         >
                             <Filter size={16} /> Filters
+                        </Button>
+                    </div>
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={() => navigate(getHostPath('property', !!localStorage.getItem("user")))}
+                            className="flex-1 gap-1.5 bg-[#E1392A] hover:bg-[#E1392A]/90 text-white rounded-xl font-bold h-9 px-3 text-xs cursor-pointer justify-center"
+                        >
+                            <Plus size={14} /> List Stay
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                if (!localStorage.getItem("user")) {
+                                    navigate("/signin");
+                                } else {
+                                    setIsPostRequestModalOpen(true);
+                                }
+                            }}
+                            className="flex-1 gap-1.5 bg-[#00162D] hover:bg-[#00162D]/90 text-white rounded-xl font-bold h-9 px-3 text-xs cursor-pointer justify-center border border-slate-700"
+                        >
+                            <Plus size={14} /> Post Stay Request
                         </Button>
                     </div>
                 </div>
@@ -234,14 +285,26 @@ export default function SearchPage() {
                                 {total > 0 ? `${total} Stays found` : 'Find your requested stay'}
                                 {filters.location && <span className="text-[#484848] font-normal ml-2">in {filters.location}</span>}
                             </h1>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3">
                                 <Button
                                     onClick={() => navigate(getHostPath('property', !!localStorage.getItem("user")))}
                                     className="gap-2 bg-[#E1392A] hover:bg-[#E1392A]/90 text-white rounded-xl font-bold transition-all duration-300 shadow-md hover:shadow-lg h-10 px-5 text-sm cursor-pointer"
                                 >
                                     <Plus size={16} /> List Stay
                                 </Button>
-                                <div className="flex items-center gap-2">
+                                <Button
+                                    onClick={() => {
+                                        if (!localStorage.getItem("user")) {
+                                            navigate("/signin");
+                                        } else {
+                                            setIsPostRequestModalOpen(true);
+                                        }
+                                    }}
+                                    className="gap-2 bg-[#00162D] hover:bg-[#00162D]/90 text-white border border-slate-700 rounded-xl font-bold transition-all duration-300 shadow-md hover:shadow-lg h-10 px-5 text-sm cursor-pointer"
+                                >
+                                    <Plus size={16} /> Post Stay Request
+                                </Button>
+                                <div className="flex items-center gap-2 ml-2">
                                     <span className="text-sm text-[#484848]">Sort by:</span>
                                     <select
                                         value={sortBy}
@@ -251,17 +314,39 @@ export default function SearchPage() {
                                         <option value="recommended">
                                             Recommended
                                         </option>
-
                                         <option value="low-to-high">
                                             Price: Low to High
                                         </option>
-
                                         <option value="high-to-low">
                                             Price: High to Low
                                         </option>
                                     </select>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Segment Tab Toggle */}
+                        <div className="flex border-b border-slate-200 mb-6">
+                            <button
+                                onClick={() => setListingTab('offered')}
+                                className={`py-3 px-6 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+                                    listingTab === 'offered'
+                                        ? 'border-[#CB2A26] text-[#00162D]'
+                                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                                }`}
+                            >
+                                Offered Stays
+                            </button>
+                            <button
+                                onClick={() => setListingTab('seeker')}
+                                className={`py-3 px-6 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+                                    listingTab === 'seeker'
+                                        ? 'border-[#CB2A26] text-[#00162D]'
+                                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                                }`}
+                            >
+                                Stay Requests (Looking for Stay)
+                            </button>
                         </div>
 
                         {loading ? (
@@ -343,6 +428,16 @@ export default function SearchPage() {
                             </div>
                         </motion.div>
                     </>
+                )}
+            </AnimatePresence>
+
+            {/* Seeker Stay Request Modal */}
+            <AnimatePresence>
+                {isPostRequestModalOpen && (
+                    <PostStayRequestModal
+                        onClose={() => setIsPostRequestModalOpen(false)}
+                        onAdd={(newPost) => setListings((prev) => [newPost, ...prev])}
+                    />
                 )}
             </AnimatePresence>
         </>
