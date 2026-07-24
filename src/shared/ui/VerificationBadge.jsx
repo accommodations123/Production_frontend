@@ -1,21 +1,37 @@
 import React from 'react';
-import { ShieldCheck, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/shared/utils/utils';
 
-export function VerificationBadge({ isVerified, className }) {
-    if (isVerified) {
-        return (
-            <div className={cn("flex items-center gap-1 bg-white/95 backdrop-blur-md text-gray-900 text-[10px] uppercase font-bold tracking-wide px-2.5 py-1 rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.15)]", className)}>
-                <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                <span>Verified</span>
-            </div>
-        );
-    }
+export function VerificationBadge({ isVerified, label = 'Verified Host', className, variant = 'default' }) {
+  if (!isVerified) {
+    return null;
+  }
 
+  if (variant === 'compact') {
     return (
-        <div className={cn("flex items-center gap-1 bg-gray-900/80 backdrop-blur-md text-white text-[10px] uppercase font-bold tracking-wide px-2.5 py-1 rounded-full shadow-sm", className)}>
-            <ShieldAlert className="w-3 h-3 text-amber-300" />
-            <span>Unverified</span>
-        </div>
+      <div
+        title="Verified Member • ID & Community Checked"
+        className={cn(
+          'inline-flex items-center gap-1 bg-[#CB2A26]/10 text-[#CB2A26] border border-[#CB2A26]/20 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider select-none',
+          className
+        )}
+      >
+        <ShieldCheck className="w-3 h-3 text-[#CB2A26]" />
+        <span>Verified</span>
+      </div>
     );
+  }
+
+  return (
+    <div
+      title="Verified Host • Identity & Expat Recommendations Confirmed"
+      className={cn(
+        'inline-flex items-center gap-1.5 bg-[#00162D] text-white px-2.5 py-1 rounded-full text-xs font-bold shadow-xs select-none',
+        className
+      )}
+    >
+      <CheckCircle2 className="w-3.5 h-3.5 text-[#CB2A26]" />
+      <span>{label}</span>
+    </div>
+  );
 }

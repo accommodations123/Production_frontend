@@ -113,3 +113,11 @@ h6 {
   display: none;
   /* Chrome, Safari, Opera */
 }
+
+/* Hide default calendar/time picker indicators in modern Webkit browsers */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  display: none !important;
+  -webkit-appearance: none !important;
+}
+

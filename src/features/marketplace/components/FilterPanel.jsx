@@ -99,7 +99,7 @@ export function FilterPanel({ filters, onChange }) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 shadow-sm">
+    <div className="mb-4 sm:mb-6">
       {/* TOP ROW */}
       <div className="flex flex-col md:flex-row gap-3 sm:gap-4 items-start justify-start">
         {/* Search */}

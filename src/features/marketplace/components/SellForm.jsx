@@ -4,7 +4,7 @@ import {
   Camera,
   Info,
   Loader2,
-
+  ShoppingBag
 } from "lucide-react";
 import { useCreateBuySellMutation, useUpdateBuySellMutation, useGetHostProfileQuery } from "@/store/api/hostApi";
 import { useGetMeQuery } from "@/store/api/authApi";
@@ -675,28 +675,49 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
   }
 
   return (
-    <div className="w-full py-8 space-y-6">
-      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
-        {isEditing ? "Update Listing" : "List an Item for Sale"}
-      </h2>
-      <p className="text-[#222222] mb-4 sm:mb-6 text-sm sm:text-base">
-        {isEditing ? "Update your listing details" : "Share your items with community"}
-      </p>
+    <div className="w-full bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-10 shadow-md space-y-6 text-left">
+      
+      {/* Top Return Header */}
+      <div className="flex items-center justify-between border-b border-gray-200/80 pb-4">
+        <button
+          type="button"
+          onClick={() => navigate("/marketplace")}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold text-[#00142E] bg-white border border-gray-200 hover:bg-gray-50 transition-all shadow-xs cursor-pointer active:scale-95"
+        >
+          <span>← Back to Marketplace</span>
+        </button>
+        <span className="text-xs font-bold text-gray-400">Post Buy/Sell Listing</span>
+      </div>
+
+      {/* Header with Icon & Clean Subtitle */}
+      <div className="flex items-center gap-3 pb-6 border-b border-gray-100 mb-2">
+        <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-[#00142E] shrink-0">
+          <ShoppingBag className="w-5 h-5 stroke-[2.5]" />
+        </div>
+        <div>
+          <h2 className="text-xl sm:text-2xl font-extrabold text-[#00142E] tracking-tight">
+            {isEditing ? "Update Listing" : "List an Item for Sale"}
+          </h2>
+          <p className="text-slate-500 text-xs sm:text-sm font-medium mt-0.5">
+            {isEditing ? "Update your listing details below." : "Share pre-owned furniture, electronics, and goods with fellow members."}
+          </p>
+        </div>
+      </div>
 
       {isError && (
-        <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">
+        <div className="bg-red-100 text-red-700 p-3 rounded-xl text-sm font-medium">
           {error?.data?.message || "Failed to create listing"}
         </div>
       )}
 
       {validationError && (
-        <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">
+        <div className="bg-red-100 text-red-700 p-3 rounded-xl text-sm font-medium">
           {validationError}
         </div>
       )}
 
       {isSuccess && (
-        <div className="bg-green-100 text-green-700 p-3 rounded mb-4 text-sm">
+        <div className="bg-green-100 text-green-700 p-3 rounded-xl text-sm font-medium">
           Listing created successfully
         </div>
       )}
@@ -1071,7 +1092,7 @@ inputMode="numeric"              className="flex-1"
         {/* ACTIONS */}
         <div className="flex gap-3 sm:gap-4 flex-col sm:flex-row">
 
-          <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
+          <Button type="submit" disabled={isLoading} className="w-full sm:w-auto bg-[#00142E] hover:bg-[#071F3B] text-white font-bold rounded-xl h-11 px-8 cursor-pointer">
             {isLoading ? (isEditing ? "Updating..." : "Posting...") : (isEditing ? "Update Listing" : "Post Listing")}
           </Button>
         </div>

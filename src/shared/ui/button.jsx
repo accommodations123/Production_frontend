@@ -1,50 +1,62 @@
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { cva } from "class-variance-authority"
-import { cn } from "@/shared/utils/utils"
+import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
+import { cva } from 'class-variance-authority';
+import { Loader2 } from 'lucide-react';
+import { cn } from '@/shared/utils/utils';
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold tracking-tight transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:scale-100",
-    {
-        variants: {
-            variant: {
-                default: "bg-accent text-white shadow-[0_1px_2px_rgba(0,0,0,0.08)] hover:bg-accent/95 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(203,72,71,0.25)]",
-                destructive:
-                    "bg-red-500 text-white shadow-[0_1px_2px_rgba(0,0,0,0.08)] hover:bg-red-500/90 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(239,68,68,0.25)]",
-                outline:
-                    "border border-input bg-background hover:bg-accent/5 hover:border-accent hover:text-accent",
-                secondary:
-                    "bg-secondary text-secondary-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:bg-secondary/90 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(10,28,48,0.1)]",
-                ghost: "hover:bg-accent hover:text-white",
-                link: "text-primary underline-offset-4 hover:underline",
-            },
-            size: {
-                default: "h-10 px-4 py-2",
-                sm: "h-9 rounded-lg px-3",
-                lg: "h-12 rounded-2xl px-8 text-[15px]",
-                pill: "h-12 rounded-full px-7 text-[15px]",
-                icon: "h-10 w-10",
-            },
-        },
-        defaultVariants: {
-            variant: "default",
-            size: "default",
-        },
+  'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-bold tracking-tight transition-all duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00162D] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:scale-100 select-none cursor-pointer',
+  {
+    variants: {
+      variant: {
+        default: 'bg-[#CB2A26] text-white hover:bg-[#A9221F] shadow-sm hover:shadow',
+        primary: 'bg-[#CB2A26] text-white hover:bg-[#A9221F] shadow-sm hover:shadow',
+        secondary: 'bg-[#00162D] text-white hover:bg-[#0A1C30] shadow-sm hover:shadow',
+        outline: 'border border-slate-200 bg-white text-[#00162D] hover:bg-slate-50 hover:border-slate-300 shadow-xs',
+        ghost: 'text-[#00162D] hover:bg-slate-100',
+        whatsapp: 'bg-[#25D366] text-white hover:bg-[#20BD5A] shadow-sm',
+        linkedin: 'bg-[#0A66C2] text-white hover:bg-[#08529C] shadow-sm',
+        link: 'text-[#CB2A26] underline-offset-4 hover:underline p-0 h-auto font-semibold'
+      },
+      size: {
+        default: 'h-10 px-4 py-2 text-xs sm:text-sm',
+        sm: 'h-8 rounded-lg px-3 text-xs',
+        lg: 'h-12 rounded-xl px-6 text-sm sm:text-base',
+        pill: 'h-11 rounded-full px-6 text-xs sm:text-sm',
+        icon: 'h-10 w-10 shrink-0'
+      }
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default'
     }
-)
+  }
+);
 
-const Button = React.forwardRef(
-    ({ className, variant, size, asChild = false, ...props }, ref) => {
-        const Comp = asChild ? Slot : "button"
-        return (
-            <Comp
-                className={cn(buttonVariants({ variant, size, className }))}
-                ref={ref}
-                {...props}
-            />
-        )
-    }
-)
-Button.displayName = "Button"
+export const Button = React.forwardRef(function Button(
+  { className, variant, size, asChild = false, isLoading = false, children, disabled, ...props },
+  ref
+) {
+  const Comp = asChild ? Slot : 'button';
+  return (
+    <Comp
+      className={cn(buttonVariants({ variant, size, className }))}
+      ref={ref}
+      disabled={disabled || isLoading}
+      {...props}
+    >
+      {isLoading ? (
+        <span className="flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+          <span>{children}</span>
+        </span>
+      ) : (
+        children
+      )}
+    </Comp>
+  );
+});
 
-export { Button, buttonVariants }
+Button.displayName = 'Button';
+
+export { buttonVariants };

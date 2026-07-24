@@ -168,7 +168,7 @@ export function HeroSearchCard() {
     <div className="w-full max-w-3xl mx-auto">
       
       {/* 1. Main Horizontal Console */}
-      <div className="w-full bg-white border border-slate-200 shadow-sm rounded-full flex items-center p-1.5 focus-within:border-slate-350 transition-all duration-150 relative">
+      <div className="w-full bg-white border-2 border-[#D5CBA8]/70 shadow-[0_15px_35px_rgba(0,0,0,0.06)] rounded-full flex items-center p-1.5 focus-within:border-[#D5CBA8] transition-all duration-150 relative">
         
         {/* Destination Click Trigger */}
         <div

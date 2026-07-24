@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plane, User, MapPin, Loader2 } from "lucide-react";
+import { X, Plane, User, MapPin, Loader2, Calendar, Clock } from "lucide-react";
 import { useCreateTripMutation, useGetHostProfileQuery } from "@/store/api/hostApi";
 import { useAuth } from "@/features/events/hooks/useAuth";
 import { useGetMeQuery } from "@/store/api/authApi";
@@ -441,43 +441,59 @@ export default function PostTripModal({ onClose, onAdd }) {
                                 <div>
                                     <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Departure Date & Time <span className="text-red-500 ml-1">*</span></label>
                                     <div className="flex gap-2">
-                                        <input
-                                            name="travel_date"
-                                            type="date"
-                                            className={`w-1/2 rounded-lg border ${formErrors.travel_date ? "border-red-500" : "border-gray-300"} bg-white px-3 py-2.5 text-sm outline-none transition-all`}
-                                            onChange={handleChange}
-                                            value={form.travel_date}
-                                            style={{ borderColor: formErrors.travel_date ? '#ef4444' : 'var(--color-neutral)', color: 'var(--color-foreground)' }}
-                                        />
-                                        <input
-                                            name="departure_time"
-                                            type="time"
-                                            className={`w-1/2 rounded-lg border ${formErrors.departure_time ? "border-red-500" : "border-gray-300"} bg-white px-3 py-2.5 text-sm outline-none transition-all`}
-                                            onChange={handleChange}
-                                            value={form.departure_time}
-                                            style={{ borderColor: formErrors.departure_time ? '#ef4444' : 'var(--color-neutral)', color: 'var(--color-foreground)' }}
-                                        />
+                                        <div className="relative w-1/2 flex items-center">
+                                            <input
+                                                name="travel_date"
+                                                type="date"
+                                                className={`w-full rounded-lg border ${formErrors.travel_date ? "border-red-500" : "border-gray-300"} bg-white pl-3 pr-10 py-2.5 text-sm outline-none transition-all cursor-pointer`}
+                                                onChange={handleChange}
+                                                value={form.travel_date}
+                                                onClick={(e) => e.target.showPicker?.()}
+                                                style={{ borderColor: formErrors.travel_date ? '#ef4444' : 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                            />
+                                            <Calendar className="absolute right-3 h-4 w-4 text-slate-400 pointer-events-none" />
+                                        </div>
+                                        <div className="relative w-1/2 flex items-center">
+                                            <input
+                                                name="departure_time"
+                                                type="time"
+                                                className={`w-full rounded-lg border ${formErrors.departure_time ? "border-red-500" : "border-gray-300"} bg-white pl-3 pr-10 py-2.5 text-sm outline-none transition-all cursor-pointer`}
+                                                onChange={handleChange}
+                                                value={form.departure_time}
+                                                onClick={(e) => e.target.showPicker?.()}
+                                                style={{ borderColor: formErrors.departure_time ? '#ef4444' : 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                            />
+                                            <Clock className="absolute right-3 h-4 w-4 text-slate-400 pointer-events-none" />
+                                        </div>
                                     </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Arrival Date & Time</label>
                                     <div className="flex gap-2">
-                                        <input
-                                            name="arrival_date"
-                                            type="date"
-                                            className="w-1/2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition-all"
-                                            onChange={handleChange}
-                                            value={form.arrival_date}
-                                            style={{ borderColor: 'var(--color-neutral)', color: 'var(--color-foreground)' }}
-                                        />
-                                        <input
-                                            name="arrival_time"
-                                            type="time"
-                                            className="w-1/2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition-all"
-                                            onChange={handleChange}
-                                            value={form.arrival_time}
-                                            style={{ borderColor: 'var(--color-neutral)', color: 'var(--color-foreground)' }}
-                                        />
+                                        <div className="relative w-1/2 flex items-center">
+                                            <input
+                                                name="arrival_date"
+                                                type="date"
+                                                className="w-full rounded-lg border border-gray-300 bg-white pl-3 pr-10 py-2.5 text-sm outline-none transition-all cursor-pointer"
+                                                onChange={handleChange}
+                                                value={form.arrival_date}
+                                                onClick={(e) => e.target.showPicker?.()}
+                                                style={{ borderColor: 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                            />
+                                            <Calendar className="absolute right-3 h-4 w-4 text-slate-400 pointer-events-none" />
+                                        </div>
+                                        <div className="relative w-1/2 flex items-center">
+                                            <input
+                                                name="arrival_time"
+                                                type="time"
+                                                className="w-full rounded-lg border border-gray-300 bg-white pl-3 pr-10 py-2.5 text-sm outline-none transition-all cursor-pointer"
+                                                onChange={handleChange}
+                                                value={form.arrival_time}
+                                                onClick={(e) => e.target.showPicker?.()}
+                                                style={{ borderColor: 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                            />
+                                            <Clock className="absolute right-3 h-4 w-4 text-slate-400 pointer-events-none" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

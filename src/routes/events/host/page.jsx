@@ -1,5 +1,6 @@
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/shared/ui/button"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle, Loader2, Calendar } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 
 // Components
@@ -16,6 +17,7 @@ import { useGetHostProfileQuery } from "@/store/api/hostApi"
 import { useGetMeQuery } from "@/store/api/authApi"
 
 export default function HostEventPage() {
+  const navigate = useNavigate()
   const { data: userData } = useGetMeQuery()
   const { data: hostProfile, isLoading: isProfileLoading } = useGetHostProfileQuery(undefined, {
     skip: !userData
@@ -53,15 +55,15 @@ export default function HostEventPage() {
 
   if (!isVerifiedHost) {
     return (
-      <main className="min-h-screen bg-gray-50 font-sans">
+      <main className="min-h-screen bg-[#FAF9F6] font-sans py-12 px-4">
         
-        <div className="flex items-center justify-center pb-12">
-          <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center border border-gray-100">
-            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertCircle className="h-8 w-8 text-yellow-600" />
+        <div className="flex items-center justify-center">
+          <div className="max-w-md w-full bg-white rounded-3xl shadow-md p-8 text-center border border-slate-200/80">
+            <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="h-8 w-8 text-amber-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Verification Pending</h2>
-            <p className="text-[#222222] mb-6">
+            <h2 className="text-2xl font-extrabold text-[#00142E] mb-2">Account Verification Pending</h2>
+            <p className="text-slate-500 text-sm mb-6 font-medium">
               {hostProfile?.status === 'pending'
                 ? "Your host application is currently under review. You can create events once your account is approved."
                 : "You need to be an approved host to create events."}
@@ -75,29 +77,46 @@ export default function HostEventPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 font-sans">
+    <main className="min-h-screen bg-[#FAF9F6] px-4 py-4 sm:py-6 sm:px-6 lg:px-8 font-sans">
       
+      <div className="w-full max-w-5xl mx-auto space-y-5">
+        
+        {/* Top Return Header */}
+        <div className="flex items-center justify-between border-b border-gray-200/80 pb-4">
+          <button
+            type="button"
+            onClick={() => navigate("/events")}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold text-[#00142E] bg-white border border-gray-200 hover:bg-gray-50 transition-all shadow-xs cursor-pointer active:scale-95"
+          >
+            <span>← Back to Events Directory</span>
+          </button>
+          <span className="text-xs font-bold text-gray-400">Host an Event</span>
+        </div>
 
-      <div className="pt-28 pb-12 px-4">
-        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
-          {/* Header with Brand Text */}
-          <div className="pb-6 border-b border-gray-200 mb-10 text-left">
-            <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-              {isEdit ? "Edit Event" : "Host an Event"}
-            </h1>
-            <p className="text-[#222222] mt-2 text-lg">
-              {isEdit ? "Update your event details below." : "Create memorable experiences for the NextKinLife community."}
-            </p>
-          </div>
+        {isSuccess ? (
+          <SuccessState />
+        ) : (
+          <div className="w-full bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-10 shadow-md">
+            
+            {/* Header with Icon & Clean Subtitle */}
+            <div className="flex items-center gap-3 pb-6 border-b border-gray-100 mb-6 text-left">
+              <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-[#00142E] shrink-0">
+                <Calendar className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-extrabold text-[#00142E] tracking-tight">
+                  {isEdit ? "Edit Event Details" : "Host an Event"}
+                </h1>
+                <p className="text-slate-500 text-xs sm:text-sm font-medium">
+                  {isEdit ? "Update your event details below." : "Organize local meetups, cultural festivals, and community celebrations."}
+                </p>
+              </div>
+            </div>
 
-          {isSuccess ? (
-            <SuccessState />
-          ) : (
-            <div className="w-full">
-              {/* Step Indicator */}
-              <StepIndicator step={step} />
+            {/* Step Indicator */}
+            <StepIndicator step={step} />
 
-              <form onSubmit={handleSubmit} className="py-8 space-y-6">
+            <form onSubmit={handleSubmit} className="py-6 space-y-6">
                 {/* Error Display */}
                 {error && (
                   <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200">
@@ -222,9 +241,6 @@ export default function HostEventPage() {
             </div>
           )}
         </div>
-      </div>
-
-      
-    </main>
-  )
-}
+      </main>
+    )
+  }

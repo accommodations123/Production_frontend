@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense, useCallback } from "react";
-import { Plane, Plus, Globe, RotateCcw, HelpCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plane, Plus, Globe, RotateCcw, HelpCircle, Search } from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { getHostPath } from "@/shared/utils/navigationUtils";
 
 import { useAuth } from "@/features/events/hooks/useAuth";
 import {
@@ -23,6 +26,7 @@ const PostTripModal = lazy(() => import("@/features/travel/components/PostTripMo
 import { Toaster } from "sonner";
 
 export default function TravelPage() {
+  const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [plans, setPlans] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -91,6 +95,14 @@ export default function TravelPage() {
           t.facebook ||
           ""
         ),
+        linkedin: getVal(
+          t.host?.linkedin ||
+          t.host?.User?.linkedin ||
+          t.user?.linkedin ||
+          t.user?.User?.linkedin ||
+          t.linkedin ||
+          ""
+        ),
         twitter: getVal(
           t.host?.twitter ||
           t.host?.x ||
@@ -139,16 +151,19 @@ export default function TravelPage() {
           from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.host.country)
         },
         user: {
-          fullName: trip.host.full_name,
-          age: trip.trip_meta.age || "",
-          languages: trip.trip_meta.languages || [],
-          gender: "",
-          country: trip.host.country,
-          state: trip.host.city,
-          city: trip.host.city,
-          image: resolveImageUrl(trip.host.profile_image || trip.host.User?.profile_image || trip.host.user?.profile_image || null),
-          verified: trip.host.verified || false
+          fullName: trip.host?.full_name || trip.user?.fullName || "Traveler",
+          age: trip.trip_meta?.age || trip.user?.age || null,
+          gender: trip.user?.gender || "",
+          country: normalizeCountry(trip.flight?.from_country || trip.host?.country),
+          state: trip.user?.state || trip.host?.city || "",
+          city: trip.user?.city || trip.host?.city || "",
+          languages: trip.trip_meta?.languages || [],
+          image: resolveImageUrl(trip.host?.profile_image || trip.host?.User?.profile_image || trip.user?.image || null),
+          verified: trip.host?.verified ?? false
         },
+        destination: trip.destination || `${trip.flight?.to}, ${normalizeCountry(trip.flight?.to_country)}`,
+        date: trip.date || trip.flight?.departureDate,
+        time: trip.flight?.departureTime,
         socials: socials
       };
     }
@@ -171,22 +186,11 @@ export default function TravelPage() {
     }
 
     // Determine full name
-    let fullName = "Traveler";
-    if (trip.host?.full_name) {
-      fullName = trip.host.full_name;
-    } else if (trip.user?.full_name) {
-      fullName = trip.user.full_name;
-    } else if (trip.host?.user?.full_name) {
-      fullName = trip.host.user.full_name;
-    } else if (trip.host_id === currentUser?.id && currentUser?.fullName) {
-      fullName = currentUser.fullName;
-    } else if (trip.host_id === currentUser?.id && (currentUser?.first_name || currentUser?.last_name)) {
-      fullName = `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim();
-    }
+    const fullName = trip.fullName || trip.user?.fullName || trip.user?.name || trip.host?.full_name || trip.host?.name || "Traveler";
 
     return {
-      id: trip.id,
-      host_id: trip.host_id,
+      id: trip.id || trip._id,
+      host_id: trip.host_id || trip.host?.id || trip.user?.id,
       matches: trip.matches || [],
       user: {
         fullName: fullName,
@@ -287,54 +291,74 @@ export default function TravelPage() {
       <style>{colorStyles}</style>
 
       <main className="min-h-screen bg-gradient-to-b from-[#FCFAF6] via-[#FFFFFF] to-[#FAF8F5]/35 pb-24 text-gray-900">
-        
-        {/* 1. High-Fidelity Travel Hero Header */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#00162D] via-[#08223C] to-[#12365A] text-white py-16 sm:py-20 px-4 border-b border-[#D5CBA8]/10">
-          {/* Backdrop blurring meshes */}
-          <div className="absolute top-0 left-1/4 w-[450px] h-[450px] bg-[#E1392A]/5 rounded-full filter blur-[100px] pointer-events-none -translate-y-1/2" />
-          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#D5CBA8]/10 rounded-full filter blur-[110px] pointer-events-none translate-y-1/3" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:16px_28px] pointer-events-none" />
 
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
-            
-            <div className="space-y-4 max-w-2xl text-left">
-              <span className="inline-flex items-center gap-1.5 bg-[#CB2A26]/10 border border-[#CB2A26]/30 text-[#E1392A] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                <Globe className="w-3 h-3 animate-spin-slow" />
-                Flight Path Matching
-              </span>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
-                Relocate Together, <span className="bg-gradient-to-r from-[#CB2A26] to-[#F15A24] bg-clip-text text-transparent">Fly Together.</span>
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-350 leading-relaxed font-medium">
-                Settle abroad with company. Find and connect with trusted expat co-travelers departing from your origin country to share luggage, itineraries, and layovers.
-              </p>
+        {/* 1. Harmonized Travel Hero Header (Matching EventsHero.jsx architecture) */}
+        {!showModal && (
+          <div className="relative bg-white pt-8 pb-8 sm:pb-10 md:pb-12 px-4 overflow-hidden border-b border-gray-100">
+            <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-10 lg:gap-12">
+                
+                <div className="text-center md:text-left max-w-2xl animate-fade-in">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#00142E] mb-6 leading-[1.1] tracking-tight">
+                    Discover Travel <span className="text-[#E1392A]">Partners</span>
+                  </h1>
+
+                  <p className="text-[#00142E]/70 text-base md:text-lg max-w-xl mb-8 font-medium leading-relaxed">
+                    Explore flight paths, connect with verified co-travelers, share luggage, and find layover companionship around the world.
+                  </p>
+
+                  {/* Search Bar - Matching Events & Buy/Sell Search Input */}
+                  <div className="relative mb-6 sm:mb-8 max-w-lg mx-auto md:mx-0 group">
+                    <input
+                      type="text"
+                      placeholder="Search co-travelers by name, destination, or flight..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full px-5 py-3 pl-12 rounded-xl bg-[#F8F9FA] border border-gray-200 text-[#00142E] placeholder-[#00142E]/50 focus:outline-none focus:border-[#00142E] focus:ring-2 focus:ring-[#00142E]/10 transition-all duration-300 shadow-sm hover:shadow-md"
+                    />
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#00142E]/50 group-focus-within:text-[#00142E] transition-colors duration-300" />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start mb-6 sm:mb-8">
+                    <Button
+                      onClick={() => navigate(getHostPath('travel', currentUser))}
+                      className="h-12 px-6 sm:px-8 bg-[#E1392A] hover:bg-[#E1392A]/90 text-white rounded-xl font-medium shadow-lg shadow-[#00142E]/20 flex items-center gap-2 transform hover:scale-105 transition-all duration-300 text-sm sm:text-base cursor-pointer border-0"
+                    >
+                      <Plus className="h-5 w-5" />
+                      Post Your Trip Plan
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Right Side Visual Card (Matching Events & Marketplace Hero Card) */}
+                <div className="w-full md:w-1/2 flex items-center justify-center animate-slide-in-right">
+                  <div className="relative w-full max-w-md h-64 sm:h-72 rounded-3xl overflow-hidden bg-gradient-to-br from-[#00142E] via-[#071F3B] to-slate-900 p-6 text-white flex flex-col justify-between shadow-xl">
+                    <div className="flex items-center justify-between">
+                      <span className="px-3 py-1 bg-white/10 backdrop-blur-md text-white text-xs font-bold rounded-full border border-white/15">
+                        Flight Match Network
+                      </span>
+                      <Globe className="w-6 h-6 text-[#E1392A]" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl sm:text-2xl font-extrabold">Verified Expat Co-Travelers</h3>
+                      <p className="text-xs text-slate-300 leading-relaxed">
+                        Departing together from origin countries. Share luggage allowance, layovers, and airport rides.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 pt-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                      <span className="text-xs font-bold text-emerald-300">Active Directory</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
-
-            <div className="shrink-0 flex items-center">
-              {showModal ? (
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs bg-white text-[#00162D] hover:bg-slate-50 transition-all shadow-lg cursor-pointer"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  Back to Directory
-                </button>
-              ) : (
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-black text-xs text-white shadow-xl shadow-[#CB2A26]/20 bg-gradient-to-r from-[#CB2A26] to-[#E1392A] hover:shadow-[#CB2A26]/30 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  Post Your Trip Plan
-                </button>
-              )}
-            </div>
-
           </div>
-        </div>
+        )}
 
         {/* 2. Page Content workspace */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-20">
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 ${showModal ? 'pt-8' : '-mt-6'}`}>
           {showModal ? (
             <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-md">
               <Suspense fallback={
@@ -352,9 +376,9 @@ export default function TravelPage() {
             </div>
           ) : (
             <div className="space-y-8">
-              
+
               {/* Floating Filter Console */}
-              <div className="bg-white rounded-2xl border border-slate-200/85 p-5 shadow-sm">
+              <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-lg shadow-slate-900/5 backdrop-blur-xl">
                 <TravelFilter
                   searchQuery={searchTerm}
                   setSearchQuery={setSearchTerm}
@@ -366,31 +390,36 @@ export default function TravelPage() {
 
               {/* Grid Content Listings */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">
-                    Browse co-travelers ({filteredPlans.length})
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                    <HelpCircle className="w-3.5 h-3.5" /> Shows departures matching selected destination
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#E1392A] animate-pulse" />
+                    <span className="text-xs uppercase font-black text-[#00142E] tracking-wider">
+                      Verified Co-Travelers ({filteredPlans.length})
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-extrabold text-slate-400 flex items-center gap-1.5 hidden sm:flex">
+                    <HelpCircle className="w-3.5 h-3.5 text-[#E1392A]" /> Direct Host Connect via Social Media
                   </span>
                 </div>
 
                 {filteredPlans.length === 0 ? (
-                  <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-center space-y-4">
-                    <div className="w-16 h-16 rounded-2xl bg-[#FCFAF6] border border-[#D5CBA8]/20 flex items-center justify-center">
-                      <Plane size={24} className="text-[#E1392A] -rotate-45 animate-pulse" />
+                  <div className="text-center py-20 bg-white rounded-3xl border border-slate-200/80 shadow-sm flex flex-col items-center justify-center space-y-5">
+                    <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#00142E] to-[#071F3B] p-0.5 shadow-xl">
+                      <div className="w-full h-full bg-white rounded-[22px] flex items-center justify-center">
+                        <Plane size={28} className="text-[#E1392A] -rotate-45 animate-pulse" />
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-base font-bold text-[#00162D]">No matching itineraries found</h3>
-                      <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto leading-relaxed">
-                        Try resetting your filters or be the first to post your journey details!
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-black text-[#00142E]">No Co-Travelers Match Your Filters</h3>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed font-medium">
+                        Try resetting your search filters or be the first to post your journey details to find flight partners!
                       </p>
                     </div>
                     <button
                       onClick={() => setShowModal(true)}
-                      className="px-5 py-2.5 rounded-xl font-bold text-xs text-white shadow-md bg-[#00162D] hover:bg-[#CB2A26] transition-all cursor-pointer"
+                      className="px-6 py-3 rounded-2xl font-black text-xs text-white shadow-xl bg-gradient-to-r from-[#CB2A26] to-[#E1392A] hover:shadow-[#CB2A26]/20 transition-all hover:-translate-y-0.5 cursor-pointer"
                     >
-                      Post Your Trip Now
+                      Post Your Trip Plan
                     </button>
                   </div>
                 ) : (

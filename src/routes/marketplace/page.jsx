@@ -112,8 +112,12 @@ export default function MarketplacePage() {
   const { data: user } = useGetMeQuery();
 
   const handleTabChange = (tab) => {
-    if (tab === 'sell' && !user) {
-      navigate('/signin');
+    if (tab === 'sell') {
+      if (!user) {
+        navigate('/signin');
+        return;
+      }
+      navigate('/marketplace/create');
       return;
     }
     setActiveTab(tab);

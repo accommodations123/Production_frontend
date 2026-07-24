@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin,
   Calendar,
   Plane,
   ShoppingBag,
   Briefcase,
-  Users
+  Users,
+  ChevronRight,
+  Plus
 } from 'lucide-react';
 
 import { useCountry } from '@/context/CountryContext';
@@ -20,614 +21,433 @@ import {
   useGetBuySellListingsQuery,
   useGetPublicTripsQuery
 } from '@/store/api/hostApi';
-import { useAuth } from '@/features/events/hooks/useAuth';
 
-import { Button } from '@/shared/ui/button';
-
-import { SectionHeader } from '@/features/home/components/featured/SectionHeader';
 import { PropertyCard } from '@/features/home/components/featured/PropertyCard';
 import { EventCard } from '@/features/home/components/featured/EventCard';
 import { MarketplaceCard } from '@/features/marketplace/components/MarketplaceCard';
 import TravelPartnerCard from '@/features/travel/components/TravelPartnerCard';
-import { resolveImageUrl } from '@/shared/utils/imageUtils';
 
-// Inline Skeleton helper
-const Skeleton = ({ className = '' }) => (
-  <div className={`animate-pulse bg-neutral/10 rounded-2xl ${className}`} />
-);
-
-const mapTripToPlan = (trip, currentUser = null) => {
-  const normalizeCountry = (c) => {
-    if (!c) return '';
-    const lower = c.toLowerCase().trim();
-    if (lower === 'united states' || lower === 'usa' || lower === 'us' || lower === 'united states of america') {
-      return 'United States of America';
+const formatEventDate = (evt) => {
+  const dateStr = evt.event_date || evt.date || evt.start_date;
+  if (!dateStr) return 'Date TBA';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) {
+    const cleanDateStr = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+    const fallbackDate = new Date(`${cleanDateStr}T00:00:00Z`);
+    if (!isNaN(fallbackDate.getTime())) {
+      return fallbackDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC'
+      });
     }
-    return c;
-  };
-
-  const extractSocials = (t) => {
-    const getVal = (val) => {
-      if (val === undefined || val === null) return '';
-      return String(val).trim();
-    };
-    return {
-      whatsapp: getVal(
-        t.host?.whatsapp ||
-        t.host?.phone ||
-        t.host?.User?.phone ||
-        t.user?.whatsapp ||
-        t.user?.phone ||
-        t.user?.User?.phone ||
-        t.whatsapp ||
-        t.phone ||
-        ''
-      ),
-      email: getVal(
-        t.host?.email ||
-        t.host?.User?.email ||
-        t.user?.email ||
-        t.user?.User?.email ||
-        t.email ||
-        ''
-      ),
-      instagram: getVal(
-        t.host?.instagram ||
-        t.host?.User?.instagram ||
-        t.user?.instagram ||
-        t.user?.User?.instagram ||
-        t.instagram ||
-        ''
-      ),
-      facebook: getVal(
-        t.host?.facebook ||
-        t.host?.User?.facebook ||
-        t.user?.facebook ||
-        t.user?.User?.facebook ||
-        t.facebook ||
-        ''
-      ),
-      twitter: getVal(
-        t.host?.twitter ||
-        t.host?.x ||
-        t.host?.User?.twitter ||
-        t.user?.twitter ||
-        t.user?.x ||
-        t.user?.User?.twitter ||
-        t.twitter ||
-        ''
-      )
-    };
-  };
-
-  const socials = extractSocials(trip, currentUser);
-
-  // Handle user's new "My Trips" structure (Lightweight response)
-  if (trip.sent_matches || trip.received_matches) {
-    return {
-      id: trip.id,
-      host_id: currentUser?.id, // It's my trip
-      matches: [
-        ...(trip.sent_matches || []),
-        ...(trip.received_matches || [])
-      ],
-      user: { fullName: currentUser?.fullName || 'Me', image: resolveImageUrl(currentUser?.image || null) },
-      flight: {
-        from: trip.from_city || '',
-        to: trip.to_city || '',
-        from_country: normalizeCountry(trip.from_country || ''),
-      },
-      destination: trip.to_city ? `${trip.to_city}` : '',
-      date: trip.travel_date,
-      status: trip.status || 'active',
-      socials: socials
-    };
+    return 'Date TBA';
   }
-
-  // Handle revised pre-formatted response from backend (host + trip_meta structure)
-  if (trip.flight && trip.host && trip.trip_meta) {
-    return {
-      ...trip,
-      matches: trip.matches || [],
-      host_id: trip.host?.id,
-      flight: {
-        ...trip.flight,
-        from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.host.country)
-      },
-      user: {
-        fullName: trip.host.full_name,
-        age: trip.trip_meta.age || '',
-        languages: trip.trip_meta.languages || [],
-        gender: '', // Not provided in payload, default to empty
-        country: trip.host.country,
-        state: trip.host.city,
-        city: trip.host.city,
-        image: resolveImageUrl(trip.host.profile_image || trip.host.User?.profile_image || trip.host.user?.profile_image || null),
-        verified: trip.host.verified || false
-      },
-      socials: socials
-    };
-  }
-
-  // Handle previous pre-formatted response (flight + user structure)
-  if (trip.flight && trip.user) {
-    return {
-      ...trip,
-      host_id: trip.host_id || (trip.host ? trip.host.id : undefined),
-      flight: {
-        ...trip.flight,
-        from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.user.country)
-      },
-      user: {
-        ...trip.user,
-        image: resolveImageUrl(trip.user.image || trip.user.profile_image || trip.user.User?.profile_image || trip.user.user?.profile_image || null)
-      },
-      socials: socials
-    };
-  }
-
-  // Determine the full name from various possible fields
-  let fullName = 'Traveler';
-
-  if (trip.host?.full_name) {
-    fullName = trip.host.full_name;
-  } else if (trip.user?.full_name) {
-    fullName = trip.user.full_name;
-  } else if (trip.host?.user?.full_name) {
-    fullName = trip.host.user.full_name;
-  } else if (trip.host_id === currentUser?.id && currentUser?.fullName) {
-    fullName = currentUser.fullName;
-  } else if (trip.host_id === currentUser?.id && (currentUser?.first_name || currentUser?.last_name)) {
-    fullName = `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim();
-  }
-
-  return {
-    id: trip.id,
-    host_id: trip.host_id,
-    matches: trip.matches || [],
-    user: {
-      fullName: fullName,
-      age: trip.age || trip.user?.age || trip.host?.age || '',
-      gender: trip.gender || trip.user?.gender || trip.host?.gender || '',
-      country: normalizeCountry(trip.user?.country || trip.host?.country || trip.from_country),
-      state: trip.user?.state || trip.host?.city || '',
-      city: trip.user?.city || trip.host?.city || '',
-      languages: (() => {
-        const rawLanguages = trip.languages || trip.user?.languages;
-        if (!rawLanguages) return trip.host?.languages || [];
-        return Array.isArray(rawLanguages) ? rawLanguages : rawLanguages.split(',').map(l => l.trim());
-      })(),
-      image: resolveImageUrl(trip.image || trip.user?.image || trip.user?.profile_image || trip.user?.User?.profile_image || trip.user?.user?.profile_image || trip.host?.image || trip.host?.profile_image || trip.host?.User?.profile_image || trip.host?.user?.profile_image || null),
-      verified: trip.host?.user?.verified || trip.user?.verified || false
-    },
-    destination: `${trip.to_city}, ${normalizeCountry(trip.to_country)}`,
-    date: trip.travel_date,
-    time: trip.departure_time,
-    flight: {
-      airline: trip.airline,
-      flightNumber: trip.flight_number,
-      from: trip.from_city,
-      to: trip.to_city,
-      from_country: normalizeCountry(trip.from_country || trip.flight?.from_country || trip.user?.country || trip.host?.country),
-      departureDate: trip.travel_date,
-      departureTime: trip.departure_time,
-      arrivalDate: trip.arrival_date,
-      arrivalTime: trip.arrival_time
-    },
-    socials: socials
-  };
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
 };
 
 export function HomeFeatured() {
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem('user');
-  const { user: currentUser } = useAuth();
   const { activeCountry } = useCountry();
 
+  // Selected Tab for Real-Time Community Listings Section
   const [activeTab, setActiveTab] = useState('stays');
 
-  // Queries
-  const { data: allProperties, isLoading: propertiesLoading } = useGetAllPropertiesQuery({ country: activeCountry?.name, limit: 4 });
-  const { data: approvedEvents, isLoading: eventsLoading } = useGetApprovedEventsQuery({ name: activeCountry?.name, limit: 4 });
-  const { data: marketplaceItems, isLoading: marketplaceLoading } = useGetBuySellListingsQuery({ country: activeCountry?.name, limit: 4 });
-  const { data: publicTripsData, isLoading: tripsLoading } = useGetPublicTripsQuery({
-    page: 1,
-    limit: 4,
-    country: activeCountry?.name === 'United States' || activeCountry?.name === 'USA' || activeCountry?.name === 'US'
-      ? 'United States of America'
-      : activeCountry?.name
+  /* -------------------------------
+     API Queries
+  -------------------------------- */
+  const { data: allProperties = [], isLoading: propertiesLoading } = useGetAllPropertiesQuery({
+    country: activeCountry?.name,
+    limit: 6
   });
 
-  const displayedTrips = useMemo(() => {
-    if (!publicTripsData?.results) return [];
-    return publicTripsData.results.map(trip => mapTripToPlan(trip, currentUser)).slice(0, 4);
-  }, [publicTripsData, currentUser]);
+  const { data: rawEvents = [], isLoading: eventsLoading } = useGetApprovedEventsQuery({
+    country: activeCountry?.name,
+    limit: 6
+  });
 
-  const displayedEvents = useMemo(() => {
-    if (!approvedEvents || approvedEvents.length === 0) return [];
-    const upcoming = filterUpcomingEvents(approvedEvents);
-    return upcoming.filter(event => {
-      if (!activeCountry?.name) return true;
-      const eventCountry = (event.country || '').toLowerCase().trim();
-      const selectedCountry = activeCountry.name.toLowerCase().trim();
-      const selectedCountryCode = (activeCountry.code || '').toLowerCase().trim();
+  const { data: marketplaceData, isLoading: marketplaceLoading } = useGetBuySellListingsQuery({
+    country: activeCountry?.name,
+    limit: 6
+  });
 
-      if (event.event_mode?.toLowerCase() === 'online') return true;
+  const { data: tripsData, isLoading: tripsLoading } = useGetPublicTripsQuery({
+    country: activeCountry?.name,
+    limit: 6
+  });
 
-      return eventCountry === selectedCountry || eventCountry === selectedCountryCode;
-    }).slice(0, 4);
-  }, [approvedEvents, activeCountry]);
+  // Filter valid events
+  const approvedEvents = useMemo(() => {
+    return filterUpcomingEvents(rawEvents);
+  }, [rawEvents]);
 
-  const fadeInUp = {
-    initial: { opacity: 0, y: 15 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true },
-    transition: { duration: 0.4, ease: 'easeOut' }
+  // Extract marketplace listings
+  const marketplaceListings = useMemo(() => {
+    if (!marketplaceData) return [];
+    if (Array.isArray(marketplaceData)) return marketplaceData;
+    if (Array.isArray(marketplaceData.listings)) return marketplaceData.listings;
+    if (Array.isArray(marketplaceData.data)) return marketplaceData.data;
+    return [];
+  }, [marketplaceData]);
+
+  const extractSocials = (t) => {
+    const getVal = (val) => (val === undefined || val === null ? "" : String(val).trim());
+    return {
+      whatsapp: getVal(t.host?.whatsapp || t.host?.phone || t.host?.User?.phone || t.user?.whatsapp || t.user?.phone || t.user?.User?.phone || t.whatsapp || t.phone || ""),
+      email: getVal(t.host?.email || t.host?.User?.email || t.user?.email || t.user?.User?.email || t.email || ""),
+      instagram: getVal(t.host?.instagram || t.host?.User?.instagram || t.user?.instagram || t.user?.User?.instagram || t.instagram || ""),
+      facebook: getVal(t.host?.facebook || t.host?.User?.facebook || t.user?.facebook || t.user?.User?.facebook || t.facebook || ""),
+      linkedin: getVal(t.host?.linkedin || t.host?.User?.linkedin || t.user?.linkedin || t.user?.User?.linkedin || t.linkedin || ""),
+      twitter: getVal(t.host?.twitter || t.host?.x || t.host?.User?.twitter || t.user?.twitter || t.user?.x || t.user?.User?.twitter || t.twitter || ""),
+    };
   };
 
-  const services = [
+  const mapTripToPlan = (trip) => {
+    if (!trip) return null;
+    return {
+      id: trip.id || trip._id,
+      user: {
+        id: trip.host?.id || trip.user?.id || trip.host_id || "",
+        fullName: trip.host?.full_name || trip.user?.fullName || trip.user?.name || "Traveler",
+        image: trip.host?.profile_image || trip.host?.User?.profile_image || trip.user?.image || trip.user?.profile_image || null,
+        age: trip.trip_meta?.age || trip.user?.age || null,
+        gender: trip.user?.gender || "",
+        languages: trip.trip_meta?.languages || trip.user?.languages || [],
+        verified: trip.host?.verified ?? trip.user?.verified ?? false,
+      },
+      flight: {
+        airline: trip.flight?.airline || "",
+        flightNumber: trip.flight?.flightNumber || "",
+        from: trip.flight?.from || trip.from_city || trip.origin || "",
+        from_country: trip.flight?.from_country || trip.from_country || "",
+        to: trip.flight?.to || trip.to_city || trip.destination || "",
+        to_country: trip.flight?.to_country || trip.to_country || "",
+        departureTime: trip.flight?.departureTime || trip.time || "",
+        arrivalTime: trip.flight?.arrivalTime || "",
+      },
+      destination: trip.destination || trip.flight?.to || "",
+      date: trip.date || trip.travel_date || trip.flight?.departureDate || "",
+      socials: extractSocials(trip),
+    };
+  };
+
+  // Extract public trips
+  const tripsList = useMemo(() => {
+    if (!tripsData) return [];
+    let raw = [];
+    if (Array.isArray(tripsData)) raw = tripsData;
+    else if (Array.isArray(tripsData.results)) raw = tripsData.results;
+    else if (Array.isArray(tripsData.trips)) raw = tripsData.trips;
+    else if (Array.isArray(tripsData.data)) raw = tripsData.data;
+    return raw.map(mapTripToPlan).filter(Boolean);
+  }, [tripsData]);
+
+  /* -------------------------------
+     6 Service Category Cards Config (Screenshot 2)
+  -------------------------------- */
+  const serviceCards = [
     {
-      id: 'stays',
+      id: 'accommodations',
       title: 'Expat Stays',
-      description: 'Rent verified rooms, shared flats, or apartments hosted by established community members. Navigate housing with cultural ease.',
+      tag: 'ACCOMMODATIONS',
+      tagBg: 'bg-red-50 text-[#E1392A]',
       icon: MapPin,
-      badge: 'Accommodations',
-      tags: ['Vetted Hosts', 'Flexible Rentals', 'Local Support'],
-      browseTo: '/search',
-      createTo: getHostPath('property', isAuthenticated),
-      requestTo: isAuthenticated ? '/search?action=request' : '/signin'
+      iconBg: 'bg-[#E1392A]',
+      description: 'Rent verified rooms, shared flats, or apartments hosted by established community members. Navigate housing with cultural ease.',
+      browsePath: '/search',
+      actionLabel: 'Post Ad',
+      actionPath: getHostPath('accommodations', isAuthenticated)
     },
     {
       id: 'marketplace',
       title: 'Trusted Marketplace',
-      description: 'Buy or sell furniture, appliances, and cultural items securely within your network. Free listings and no commission fees.',
+      tag: 'BUY & SELL',
+      tagBg: 'bg-emerald-50 text-[#10B981]',
       icon: ShoppingBag,
-      badge: 'Buy & Sell',
-      tags: ['Pre-loved Goods', 'Expat Essentials', 'No Commissions'],
-      browseTo: '/marketplace',
-      createTo: getHostPath('marketplace', isAuthenticated)
+      iconBg: 'bg-[#10B981]',
+      description: 'Buy or sell furniture, appliances, and cultural items securely within your network. Free listings and no commission fees.',
+      browsePath: '/marketplace',
+      actionLabel: 'Post Ad',
+      actionPath: getHostPath('marketplace', isAuthenticated)
     },
     {
       id: 'events',
       title: 'Cultural Events',
-      description: 'Attend local festivals, professional meetups, and language exchanges. Build a reliable local community close to home.',
+      tag: 'FESTIVALS & MEETUPS',
+      tagBg: 'bg-amber-50 text-[#D97706]',
       icon: Calendar,
-      badge: 'Festivals & Meetups',
-      tags: ['Diwali & Holi', 'Networking', 'Local Gatherings'],
-      browseTo: '/events',
-      createTo: getHostPath('event', isAuthenticated)
+      iconBg: 'bg-[#F59E0B]',
+      description: 'Attend local festivals, professional meetups, and language exchanges. Build a reliable local community close to home.',
+      browsePath: '/events',
+      actionLabel: 'Post Ad',
+      actionPath: getHostPath('events', isAuthenticated)
     },
     {
       id: 'travel',
       title: 'Travel Matching',
-      description: 'Connect with co-travelers flying the same route. Share international flights, coordinate airport rides, and organize shared trips.',
+      tag: 'SHARED TRAVEL',
+      tagBg: 'bg-blue-50 text-[#3B82F6]',
       icon: Plane,
-      badge: 'Shared Travel',
-      tags: ['Flight Companions', 'Shared Cab Rides', 'Verify Identity'],
-      browseTo: '/travel',
-      createTo: getHostPath('travel', isAuthenticated)
+      iconBg: 'bg-[#3B82F6]',
+      description: 'Connect with co-travelers flying the same route. Share international flights, coordinate airport rides, and organize shared trips.',
+      browsePath: '/travel',
+      actionLabel: 'Post Ad',
+      actionPath: getHostPath('travel', isAuthenticated)
     },
     {
       id: 'careers',
       title: 'Expat Placement',
-      description: 'Discover professional expat opportunities and contracting assignments from leading tier-1 industry clients.',
+      tag: 'CAREERS & JOBS',
+      tagBg: 'bg-purple-50 text-[#8B5CF6]',
       icon: Briefcase,
-      badge: 'Careers & Jobs',
-      tags: ['W2 Benefits', 'Contract Placements', 'Global Recruits'],
-      browseTo: '/career',
-      createTo: '/contact'
+      iconBg: 'bg-[#8B5CF6]',
+      description: 'Discover professional expat opportunities and contracting assignments from leading tier-1 industry clients.',
+      browsePath: '/career',
+      actionLabel: 'Contact Support',
+      actionPath: '/contact'
     },
     {
       id: 'people',
       title: 'People Directory',
-      description: 'Find verified relocation experts, local immigration lawyers, visa consultants, tax advisors, and local expat guides.',
+      tag: 'EXPERT CONSULTATIONS',
+      tagBg: 'bg-pink-50 text-[#EC4899]',
       icon: Users,
-      badge: 'Expert Consultations',
-      tags: ['Visa Experts', 'Tax Advisors', 'Local Guides'],
-      browseTo: '/people',
-      createTo: '/hosts'
+      iconBg: 'bg-[#EC4899]',
+      description: 'Find verified relocation experts, local immigration lawyers, visa consultants, tax advisors, and local expat guides.',
+      browsePath: '/people',
+      actionLabel: 'Become Expert',
+      actionPath: '/people/register'
     }
   ];
 
-
-  const tabsList = [
-    { id: 'stays', label: 'Verified Stays', icon: MapPin },
+  /* -------------------------------
+     Community Listings Tabs Config (Screenshot 3)
+  -------------------------------- */
+  const communityTabs = [
+    { id: 'stays', label: 'Accommodations', icon: MapPin },
+    { id: 'marketplace', label: 'Buy/Sell', icon: ShoppingBag },
     { id: 'travel', label: 'Travel Partners', icon: Plane },
-    { id: 'events', label: 'Cultural Events', icon: Calendar },
-    { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag }
+    { id: 'events', label: 'Events', icon: Calendar },
   ];
 
   return (
-    <div className="bg-white font-sans text-[#222222]">
+    <div className="bg-[#FAF9F6] font-sans text-[#222222] pt-14 pb-20">
+      <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 2xl:px-12 space-y-20">
 
-      {/* 1. Services Overview Section (Professional Grid) */}
-      <section className="pt-10 pb-24 bg-gradient-to-b from-[#FCFAF6] via-[#FFFFFF] to-[#FAF8F5]/35 border-t border-slate-100 relative">
-        {/* Soft decorative ambient glow */}
-        <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-[#D5CBA8]/5 rounded-full filter blur-[100px] pointer-events-none" />
-
-        <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 2xl:px-12 text-left relative z-10">
-
-          <div className="max-w-3xl mb-16">
-            <span className="text-xs uppercase font-bold tracking-widest text-accent mb-2 block">
-              Core Capabilities
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#00162D] tracking-tight leading-tight">
-              Relocating with Vetted Support & Shared Culture
-            </h2>
-            <p className="text-slate-500 mt-3 text-base sm:text-lg max-w-2xl font-normal leading-relaxed">
-              Our platform brings utility, security, and familiarity to international moves. Choose an option below to browse active directories or post your own listings.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service, idx) => {
-              const Icon = service.icon;
+        {/* ========================================================
+            SECTION 1: 6 Service Cards Grid (Exact Screenshot 2)
+           ======================================================== */}
+        <section aria-labelledby="services-grid-title">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {serviceCards.map((card) => {
+              const CardIcon = card.icon;
               return (
-                <motion.div
-                  key={service.id}
-                  {...fadeInUp}
-                  transition={{ delay: idx * 0.08 }}
-                  className="flex flex-col p-6 rounded-2xl border border-slate-200 bg-white hover:border-[#CB2A26]/40 hover:shadow-lg transition-all duration-300 h-full justify-between hover:-translate-y-1 group"
+                <div
+                  key={card.id}
+                  className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-7 flex flex-col justify-between shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-lg transition-all duration-300 text-left"
                 >
                   <div>
-                    <div className="flex items-center gap-3.5 mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-accent/5 flex items-center justify-center text-accent shrink-0 group-hover:bg-[#CB2A26] group-hover:text-white transition-colors duration-300">
-                        <Icon className="w-5 h-5" />
+                    {/* Top Row: Icon + Tag */}
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                      <div className={`w-12 h-12 rounded-2xl ${card.iconBg} flex items-center justify-center text-white shrink-0 shadow-sm`}>
+                        <CardIcon className="w-6 h-6 stroke-[2.2]" />
                       </div>
-                      <div>
-                        <span className="block text-[10px] uppercase font-black tracking-wider text-slate-400">
-                          {service.badge}
-                        </span>
-                        <h3 className="text-base font-extrabold text-[#00162D] group-hover:text-[#CB2A26] transition-colors duration-300 tracking-tight">{service.title}</h3>
-                      </div>
+                      <span className={`text-[10px] sm:text-[11px] font-black tracking-wider uppercase px-3 py-1 rounded-full ${card.tagBg}`}>
+                        {card.tag}
+                      </span>
                     </div>
-                    <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-4 font-normal min-h-[3rem]">
-                      {service.description}
+
+                    {/* Title */}
+                    <h3 className="text-lg sm:text-xl font-extrabold text-[#00162D] mb-2 tracking-tight">
+                      {card.title}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed mb-6">
+                      {card.description}
                     </p>
-
                   </div>
-                  <div className="space-y-2.5 pt-4 border-t border-slate-100">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => navigate(service.browseTo)}
-                        className="flex-1 h-9 rounded-xl border border-slate-250 text-[#00162D] hover:bg-slate-50 hover:border-slate-800 text-xs font-bold transition-all cursor-pointer"
-                      >
-                        Browse Listings
-                      </button>
-                      <button
-                        onClick={() => navigate(service.createTo)}
-                        className="flex-1 h-9 rounded-xl bg-[#CB2A26] hover:bg-[#A9221F] text-white text-xs font-bold transition-colors cursor-pointer shadow-sm hover:shadow"
-                      >
-                        {service.id === 'careers' ? 'Contact Support' : service.id === 'people' ? 'Become Expert' : 'Post Ad'}
-                      </button>
-                    </div>
 
+                  {/* Dual Action Buttons Row */}
+                  <div className="grid grid-cols-2 gap-3 pt-2">
+                    <button
+                      onClick={() => navigate(card.browsePath)}
+                      className="w-full h-11 rounded-xl border border-slate-900 text-slate-900 font-extrabold text-xs flex items-center justify-center hover:bg-slate-50 transition-colors cursor-pointer"
+                    >
+                      Browse Listings
+                    </button>
+                    <button
+                      onClick={() => navigate(card.actionPath)}
+                      className="w-full h-11 rounded-xl bg-[#E1392A] hover:bg-[#CB2A26] text-white font-extrabold text-xs flex items-center justify-center transition-colors cursor-pointer shadow-sm active:scale-95"
+                    >
+                      {card.actionLabel}
+                    </button>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 2. Interactive Explorer Dashboard Section */}
-      <section id="explore-dashboard" className="py-24 bg-gradient-to-b from-[#FAF8F5]/30 to-[#FCFAF6]/60 border-t border-slate-100 relative">
-        <div className="absolute bottom-12 left-10 w-[350px] h-[350px] bg-[#E1392A]/5 rounded-full filter blur-[80px] pointer-events-none" />
+        {/* ========================================================
+            SECTION 2: Real-Time Community Listings (Exact Screenshot 3)
+           ======================================================== */}
+        <section aria-labelledby="community-listings-title" className="text-left pt-4">
 
-        <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 2xl:px-12 relative z-10">
-
-          <div className="text-left mb-12">
-            <span className="text-xs uppercase font-bold tracking-widest text-slate-400 mb-2 block">
-              Marketplace & Matches
+          {/* Header */}
+          <div className="space-y-2 mb-6">
+            <span className="inline-block px-3 py-1 rounded-full bg-red-50 text-[#E1392A] text-xs font-extrabold uppercase tracking-wider">
+              MARKETPLACE & MATCHES
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-primary tracking-tight">
-              Real-Time Community Listings
+            <h2 id="community-listings-title" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#00162D] tracking-tight">
+              Real–Time Community Listings
             </h2>
-            <p className="text-slate-500 text-sm mt-1 max-w-xl font-normal leading-relaxed">
+            <p className="text-sm font-medium text-slate-500 max-w-3xl">
               Explore active properties, travel matches, local celebrations, and items submitted by verified members.
             </p>
           </div>
 
-          {/* Tab selector */}
-          <div className="flex justify-start mb-12 w-full">
-            <div className="grid grid-cols-2 sm:flex sm:flex-row p-1 bg-slate-200/50 backdrop-blur-md rounded-xl border border-slate-200/30 w-full sm:w-auto gap-1">
-              {tabsList.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`relative flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer focus:outline-none w-full sm:w-auto whitespace-nowrap ${isActive ? 'text-primary' : 'text-slate-500 hover:text-slate-800'
-                      }`}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeTabIndicator"
-                        className="absolute inset-0 bg-white rounded-lg shadow-sm border border-slate-200/20"
-                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                      />
-                    )}
-                    <span className="relative z-10 flex items-center gap-2">
-                      <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-accent' : 'text-slate-400'}`} />
-                      {tab.label}
-                    </span>
-                  </button>
-                );
-              })}
+          {/* Dark Navy Capsule Tab Bar */}
+          <div className="bg-[#00162D] rounded-2xl sm:rounded-full p-1.5 sm:p-2 flex items-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full sm:max-w-fit mb-8 shadow-md">
+            {communityTabs.map((tab) => {
+              const TabIcon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full font-extrabold text-xs transition-all whitespace-nowrap cursor-pointer ${isActive
+                    ? 'bg-white text-[#00162D] shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    }`}
+                >
+                  <TabIcon className="w-4 h-4 stroke-[2.2]" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Sub-header & Action for Active Tab */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h3 className="text-xl font-extrabold text-[#00162D]">
+                {activeTab === 'stays' && 'Available Stays'}
+                {activeTab === 'travel' && 'Available Travel Matches'}
+                {activeTab === 'events' && 'Upcoming Community Events'}
+                {activeTab === 'marketplace' && 'Marketplace Items'}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                {activeTab === 'stays' && 'Browse vetted flats and rooms listed directly by expat hosts.'}
+                {activeTab === 'travel' && 'Connect with verified co-travelers flying your destination route.'}
+                {activeTab === 'events' && 'Join local meetups, cultural festivals, and networking socials.'}
+                {activeTab === 'marketplace' && 'Buy and sell furniture, electronics, and goods from fellow expats.'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={() => {
+                  if (activeTab === 'stays') navigate(getHostPath('accommodations', isAuthenticated));
+                  if (activeTab === 'travel') navigate(getHostPath('travel', isAuthenticated));
+                  if (activeTab === 'events') navigate(getHostPath('events', isAuthenticated));
+                  if (activeTab === 'marketplace') navigate(getHostPath('marketplace', isAuthenticated));
+                }}
+                className="px-4 py-2.5 rounded-xl bg-[#E1392A] hover:bg-[#CB2A26] text-white font-extrabold text-xs flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 transition-all"
+              >
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span>
+                  {activeTab === 'stays' && 'Host a Stay'}
+                  {activeTab === 'travel' && 'Post Travel'}
+                  {activeTab === 'events' && 'Host Event'}
+                  {activeTab === 'marketplace' && 'Post Item'}
+                </span>
+              </button>
+
+              <button
+                onClick={() => {
+                  if (activeTab === 'stays') navigate('/search');
+                  if (activeTab === 'travel') navigate('/travel');
+                  if (activeTab === 'events') navigate('/events');
+                  if (activeTab === 'marketplace') navigate('/marketplace');
+                }}
+                className="text-xs font-extrabold text-[#E1392A] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>
+                  {activeTab === 'stays' && 'View All Stays'}
+                  {activeTab === 'travel' && 'View All Trips'}
+                  {activeTab === 'events' && 'View All Events'}
+                  {activeTab === 'marketplace' && 'View All Items'}
+                </span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
 
-          {/* Tab content area */}
-          <div className="min-h-[400px]">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                {activeTab === 'stays' && (
-                  <div>
-                    <SectionHeader
-                      title="Available Stays"
-                      subtitle="Browse vetted flats and rooms listed directly by expat hosts."
-                      linkText="View All Stays"
-                      linkTo="/search"
-                      actionText="Host a Stay"
-                      actionTo={getHostPath('property', isAuthenticated)}
-                    />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                      {propertiesLoading ? (
-                        [1, 2, 3, 4].map((n) => <Skeleton key={n} className="h-[380px]" />)
-                      ) : allProperties?.length > 0 ? (
-                        allProperties.slice(0, 4).filter(Boolean).map((property, idx) => (
-                          <motion.div
-                            key={property.id || property._id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="h-full"
-                          >
-                            <PropertyCard property={property} />
-                          </motion.div>
-                        ))
-                      ) : (
-                        <div className="col-span-full py-16 px-4 text-center bg-white rounded-xl border border-dashed border-slate-200">
-                          <MapPin className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                          <h3 className="text-lg font-bold text-primary mb-1">No Stays Found</h3>
-                          <p className="text-slate-450 text-sm max-w-sm mx-auto mb-6 font-normal">Be the first to list a premium property in our community.</p>
-                          <Button onClick={() => navigate('/host/create')} className="bg-accent hover:bg-accent/95 text-white rounded-xl text-sm px-6 py-2 h-10 font-semibold shadow-sm transition-all duration-200">List Your Property</Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+          {/* Active Tab Listings Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {activeTab === 'stays' && (
+              propertiesLoading ? (
+                <div className="col-span-full py-12 text-center text-slate-400 font-medium">Loading stays...</div>
+              ) : allProperties.length > 0 ? (
+                allProperties.slice(0, 4).map((prop) => (
+                  <PropertyCard key={prop.id} property={prop} />
+                ))
+              ) : (
+                <div className="col-span-full py-12 text-center text-slate-400 font-medium">No active stays available in this region.</div>
+              )
+            )}
 
-                {activeTab === 'travel' && (
-                  <div>
-                    <SectionHeader
-                      title="Travel Companions"
-                      subtitle={`Locate expats flying to or from ${activeCountry?.name || 'various destinations'}.`}
-                      linkText="View All Trips"
-                      linkTo="/travel"
-                      actionText="Post Trip Details"
-                      actionTo={getHostPath('travel', isAuthenticated)}
-                    />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                      {tripsLoading ? (
-                        [1, 2, 3, 4].map((n) => <Skeleton key={n} className="h-[320px]" />)
-                      ) : displayedTrips?.length > 0 ? (
-                        displayedTrips.map((plan, idx) => (
-                          <motion.div
-                            key={plan.id || plan._id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="h-full"
-                          >
-                            <TravelPartnerCard plan={plan} />
-                          </motion.div>
-                        ))
-                      ) : (
-                        <div className="col-span-full py-16 px-4 text-center bg-white rounded-xl border border-dashed border-slate-200">
-                          <Plane className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                          <h3 className="text-lg font-bold text-primary mb-1">No Travel Partners Found</h3>
-                          <p className="text-slate-450 text-sm max-w-sm mx-auto mb-6 font-normal">Be the first to post a trip for our community.</p>
-                          <Button onClick={() => navigate('/travel')} className="bg-accent hover:bg-accent/95 text-white rounded-xl text-sm px-6 py-2 h-10 font-semibold shadow-sm transition-all duration-200">Post Your Trip</Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+            {activeTab === 'travel' && (
+              tripsLoading ? (
+                <div className="col-span-full py-12 text-center text-slate-400 font-medium">Loading travel matches...</div>
+              ) : tripsList.length > 0 ? (
+                tripsList.slice(0, 4).map((trip) => (
+                  <TravelPartnerCard key={trip.id} plan={trip} />
+                ))
+              ) : (
+                <div className="col-span-full py-12 text-center text-slate-400 font-medium">No travel matches listed yet.</div>
+              )
+            )}
 
-                {activeTab === 'events' && (
-                  <div>
-                    <SectionHeader
-                      title="Upcoming Events"
-                      subtitle="Celebrate festivals, local meetups, and networking dinners."
-                      linkText="View All Events"
-                      linkTo="/events"
-                      actionText="Host an Event"
-                      actionTo={getHostPath('event', isAuthenticated)}
-                    />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                      {eventsLoading ? (
-                        [1, 2, 3, 4].map((n) => <Skeleton key={n} className="h-[350px]" />)
-                      ) : displayedEvents.length > 0 ? (
-                        displayedEvents.map((event, idx) => (
-                          <motion.div
-                            key={event.id || event._id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="h-full"
-                          >
-                            <EventCard
-                              event={event}
-                              viewMode="grid"
-                              onViewDetails={(id) => navigate(`/events/${id}`, { state: { eventParam: event } })}
-                            />
-                          </motion.div>
-                        ))
-                      ) : (
-                        <div className="col-span-full py-16 px-4 text-center bg-white rounded-xl border border-dashed border-slate-200">
-                          <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                          <h3 className="text-lg font-bold text-primary mb-1">No Events Scheduled</h3>
-                          <p className="text-slate-450 text-sm max-w-sm mx-auto mb-6 font-normal">Be the first to create a community event!</p>
-                          <Button onClick={() => navigate(getHostPath('event', isAuthenticated))} className="bg-accent hover:bg-accent/95 text-white rounded-xl text-sm px-6 py-2 h-10 font-semibold shadow-sm transition-all duration-200">
-                            Host an Event
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+            {activeTab === 'events' && (
+              eventsLoading ? (
+                <div className="col-span-full py-12 text-center text-slate-400 font-medium">Loading events...</div>
+              ) : approvedEvents.length > 0 ? (
+                approvedEvents.slice(0, 4).map((evt) => (
+                  <EventCard
+                    key={evt.id || evt._id}
+                    event={evt}
+                    onViewDetails={(id) => navigate(`/events/${id}`)}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full py-12 text-center text-slate-400 font-medium">No upcoming events scheduled.</div>
+              )
+            )}
 
-                {activeTab === 'marketplace' && (
-                  <div>
-                    <SectionHeader
-                      title="Community Marketplace"
-                      subtitle="Trade furniture, appliances, or clothes securely with nearby members."
-                      linkText="Browse Marketplace"
-                      linkTo="/marketplace"
-                      actionText="Post an Item"
-                      actionTo={getHostPath('marketplace', isAuthenticated)}
-                    />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                      {marketplaceLoading ? (
-                        [1, 2, 3, 4].map((n) => <Skeleton key={n} className="h-[320px]" />)
-                      ) : marketplaceItems?.length > 0 ? (
-                        marketplaceItems.slice(0, 4).filter(Boolean).map((item, idx) => (
-                          <motion.div
-                            key={item.id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="h-full"
-                          >
-                            <MarketplaceCard product={item} onClick={(p) => navigate(`/marketplace?product=${p.id}`)} />
-                          </motion.div>
-                        ))
-                      ) : (
-                        <div className="col-span-full py-16 px-4 text-center bg-white rounded-xl border border-dashed border-slate-200">
-                          <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                          <h3 className="text-lg font-bold text-primary mb-1">No Active Listings</h3>
-                          <p className="text-slate-450 text-sm max-w-sm mx-auto mb-6 font-normal">Be the first to list an item in the community marketplace.</p>
-                          <Button onClick={() => navigate(getHostPath('marketplace', isAuthenticated))} className="bg-accent hover:bg-accent/95 text-white rounded-xl text-sm px-6 py-2 h-10 font-semibold shadow-sm transition-all duration-200">
-                            Sell an Item
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
+            {activeTab === 'marketplace' && (
+              marketplaceLoading ? (
+                <div className="col-span-full py-12 text-center text-slate-400 font-medium">Loading marketplace items...</div>
+              ) : marketplaceListings.length > 0 ? (
+                marketplaceListings.slice(0, 4).map((item) => (
+                  <MarketplaceCard key={item.id} product={item} />
+                ))
+              ) : (
+                <div className="col-span-full py-12 text-center text-slate-400 font-medium">No marketplace items listed yet.</div>
+              )
+            )}
           </div>
-        </div>
-      </section>
+
+        </section>
+
+      </div>
     </div>
   );
 }

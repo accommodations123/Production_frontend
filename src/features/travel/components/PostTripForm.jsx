@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Plane, User, MapPin, Loader2, ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Plane, User, MapPin, Loader2 } from "lucide-react";
 import { useCreateTripMutation, useGetHostProfileQuery } from "@/store/api/hostApi";
+import { useAuth } from "@/features/events/hooks/useAuth";
 import { useGetMeQuery } from "@/store/api/authApi";
 import { loadLocationData } from '@/shared/utils/lazyLocationData';
 import SearchableDropdown from "@/shared/ui/SearchableDropdown";
-import { Input } from "@/shared/ui/input";
-import { Label } from "@/shared/ui/label";
+import { useNavigate } from "react-router-dom";
 
-export default function PostTripForm({ onCancel, onAdd }) {
+export default function PostTripModal({ onClose, onAdd }) {
+    const navigate = useNavigate();
+    const { user: currentUser } = useAuth();
     const [createTrip, { isLoading: isSubmitting }] = useCreateTripMutation();
     const [form, setForm] = useState({
         age: "",
@@ -29,6 +32,7 @@ export default function PostTripForm({ onCancel, onAdd }) {
         stops: [],
     });
 
+    const [activeTab, setActiveTab] = useState("personal");
     const [formErrors, setFormErrors] = useState({});
 
     // Lazy-loaded location modules
@@ -142,31 +146,73 @@ export default function PostTripForm({ onCancel, onAdd }) {
         const isValid = Object.keys(errors).length === 0;
 
         if (!isValid) {
-            alert("Please fill in all required fields.");
+            // Check which tab has errors
+            const personalFields = ["age", "languages"];
+            const hasPersonalErrors = Object.keys(errors).some(field => personalFields.includes(field));
+
+            if (hasPersonalErrors) {
+                setActiveTab("personal");
+            } else {
+                setActiveTab("trip");
+            }
+
+            alert("Please fill in all required fields marked in red.");
             return;
         }
 
         try {
             const payload = {
+                host_id: currentUser?.id || 1,
                 from_country: form.from_country,
                 from_state: form.from_state,
                 from_city: form.from_city,
                 to_country: form.to_country,
-                to_state: form.to_state,
                 to_city: form.to_city,
                 travel_date: form.travel_date,
                 departure_time: form.departure_time,
-                arrival_date: form.arrival_date || undefined,
-                arrival_time: form.arrival_time || undefined,
+                arrival_date: form.arrival_date,
+                arrival_time: form.arrival_time,
                 airline: form.airline,
-                flight_number: form.flight_number || undefined,
+                flight_number: form.flight_number,
                 travelers_count: Number(form.travelers_count),
                 age: Number(form.age),
                 languages: form.languages.split(",").map(lang => lang.trim()).filter(Boolean),
+                status: "pending",
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
             };
 
             const response = await createTrip(payload).unwrap();
-            onAdd?.(response);
+
+            onAdd({
+                ...response,
+                id: response.id || Date.now(),
+                user: {
+                    fullName: currentUser?.firstName ? `${currentUser.firstName} ${currentUser.lastName || ''}` : "Guest User",
+                    age: Number(form.age),
+                    languages: form.languages.split(",").map((l) => l.trim()),
+                    phone: currentUser?.phone || "",
+                    email: currentUser?.email || "",
+                    whatsapp: currentUser?.whatsapp || "",
+                    image: currentUser?.image || currentUser?.profile_image || "https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=200&q=80",
+                },
+                destination: `${form.to_city}, ${form.to_country}`,
+                date: form.travel_date,
+                time: form.departure_time,
+                flight: {
+                    airline: form.airline,
+                    flightName: form.flightName,
+                    flightNumber: form.flight_number,
+                    from: form.from_city,
+                    to: form.to_city,
+                    departureDate: form.travel_date,
+                    departureTime: form.departure_time,
+                    arrivalDate: form.arrival_date,
+                    arrivalTime: form.arrival_time,
+                },
+                travelers_count: form.travelers_count,
+            });
+            onClose();
         } catch (error) {
             console.error("Failed to post trip:", error);
             alert("Failed to post trip. Please try again.");
@@ -180,279 +226,291 @@ export default function PostTripForm({ onCancel, onAdd }) {
 
     const isVerifiedHost = hostProfile?.status === 'approved';
 
-    if (isProfileLoading) {
-        return (
-            <div className="flex items-center justify-center p-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
-    }
-
-    if (!isVerifiedHost) {
-        return (
-            <div className="max-w-md w-full mx-auto bg-background rounded-2xl p-8 text-center border border-border shadow-sm">
-                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Plane className="text-yellow-600" size={32} />
-                </div>
-                <h2 className="text-xl font-bold text-foreground mb-2">
-                    {hostProfile?.status === 'pending' ? "Account Verification Pending" : "Host Access Required"}
-                </h2>
-                <p className="text-muted-foreground mb-6">
-                    {hostProfile?.status === 'pending'
-                        ? "Your host application is currently under review. You can post travel plans once your account is approved."
-                        : "You need to be an approved host to post travel plans."
-                    }
-                </p>
-                <button
-                    onClick={onCancel}
-                    className="px-6 py-2.5 rounded-xl font-bold border border-border text-foreground text-xs hover:bg-secondary transition-colors"
-                >
-                    Back to Travel Partners
-                </button>
-            </div>
-        );
-    }
-
     return (
-        <div className="w-full max-w-none space-y-8">
-            {/* Header */}
-            <div>
-                <button
-                    onClick={onCancel}
-                    className="group flex items-center gap-2 text-sm font-semibold text-[#484848] hover:text-accent transition-colors mb-4 cursor-pointer"
+        <div className="w-full">
+            {/* Access Denied View */}
+            {!isProfileLoading && !isVerifiedHost && (
+                <div className="bg-white w-full max-w-2xl mx-auto rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] overflow-hidden p-8 text-center my-8">
+                    <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-2xl">🔒</span>
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-2">
+                        {hostProfile?.status === 'pending' ? "Account Verification Pending" : "Host Access Required"}
+                    </h2>
+                    <p className="text-[#222222] mb-6">
+                        {hostProfile?.status === 'pending'
+                            ? "Your host application is currently under review. You can post travel plans once your account is approved."
+                            : "You need to be an approved host to post travel plans."
+                        }
+                    </p>
+                    <div className="flex justify-center gap-4">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition shadow-sm cursor-pointer"
+                        >
+                            Back to Travel
+                        </button>
+                        {hostProfile?.status !== 'pending' && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    onClose();
+                                    navigate("/hosts");
+                                }}
+                                className="px-5 py-2 text-sm font-medium text-white bg-[#C93A30] rounded-lg hover:bg-[#b02e25] transition shadow-sm cursor-pointer"
+                            >
+                                Become a Host
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Normal Form View */}
+            {(isProfileLoading || isVerifiedHost) && (
+                <div
+                    className="bg-white w-full rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.015)] overflow-hidden"
+                    style={{ backgroundColor: 'var(--color-background)' }}
                 >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Travel Partners
-                </button>
-                <h2 className="text-3xl font-bold text-foreground mb-2">Post Travel Plan</h2>
-                <p className="text-muted-foreground">Share your travel details to match with co-travelers.</p>
-            </div>
-
-            <div className="space-y-8">
-                {/* 1. PERSONAL INFORMATION */}
-                <div className="pb-8 border-b border-border space-y-4">
-                    <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                        <User size={18} /> Personal Information
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Modern Header */}
+                    <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                         <div>
-                            <Label required={true}>Age</Label>
-                            <Input
-                                name="age"
-                                type="number"
-                                placeholder="Enter your age"
-                                state={formErrors.age ? "error" : "default"}
-                                onChange={handleChange}
-                                value={form.age}
-                            />
-                        </div>
-
-                        <div>
-                            <Label required={true}>Languages (comma separated)</Label>
-                            <Input
-                                name="languages"
-                                placeholder="e.g., English, Hindi, Spanish"
-                                state={formErrors.languages ? "error" : "default"}
-                                onChange={handleChange}
-                                value={form.languages}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* 2. TRIP INFORMATION */}
-                <div className="pb-8 border-b border-border space-y-4">
-                    <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                        <Plane size={18} /> Trip Information
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div>
-                            <Label required={true}>Airline</Label>
-                            <Input
-                                name="airline"
-                                placeholder="Enter airline name"
-                                state={formErrors.airline ? "error" : "default"}
-                                onChange={handleChange}
-                                value={form.airline}
-                            />
-                        </div>
-                        <div>
-                            <Label>Flight Number</Label>
-                            <Input
-                                name="flight_number"
-                                placeholder="Enter flight number (e.g., AF226)"
-                                onChange={handleChange}
-                                value={form.flight_number}
-                            />
-                        </div>
-                        <div>
-                            <Label required={true}>Number of Travelers</Label>
-                            <Input
-                                name="travelers_count"
-                                type="number"
-                                min="1"
-                                placeholder="How many are traveling?"
-                                onChange={handleChange}
-                                value={form.travelers_count}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* 3. FLIGHT PATH */}
-                <div className="pb-8 border-b border-border space-y-6">
-                    <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                        <MapPin size={18} /> Flight Path
-                    </h3>
-
-                    {/* Origin Section */}
-                    <div className="space-y-4">
-                        <h4 className="text-md font-medium text-foreground">Origin (Flying From)</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <SearchableDropdown
-                                label="Country"
-                                placeholder="Select Country"
-                                options={countriesList}
-                                value={form.from_country}
-                                onChange={handleFromCountryChange}
-                                error={formErrors.from_country}
-                                required={true}
-                            />
-                            <SearchableDropdown
-                                label="State"
-                                placeholder="Select State"
-                                options={fromStatesList}
-                                value={form.from_state}
-                                disabled={!selectedFromCountry}
-                                isLoading={!fromStatesList.length && selectedFromCountry}
-                                onChange={handleFromStateChange}
-                            />
-                            <SearchableDropdown
-                                label="City"
-                                placeholder="Select City"
-                                options={fromCitiesList}
-                                value={form.from_city}
-                                disabled={!selectedFromState}
-                                isLoading={!fromCitiesList.length && !fromCitiesFetched && selectedFromState}
-                                onChange={handleFromCityChange}
-                                error={formErrors.from_city}
-                                required={true}
-                            />
+                            <h2 className="text-xl font-extrabold text-[#00142E] flex items-center gap-2">
+                                <Plane className="text-[#00142E] w-5 h-5" /> Post Travel Plan
+                            </h2>
+                            <p className="text-xs text-[#484848] mt-1 font-medium">Share your itinerary to match with fellow travelers</p>
                         </div>
                     </div>
 
-                    {/* Destination Section */}
-                    <div className="space-y-4 pt-4 border-t border-border">
-                        <h4 className="text-md font-medium text-foreground">Destination (Flying To)</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <SearchableDropdown
-                                label="Country"
-                                placeholder="Select Country"
-                                options={countriesList}
-                                value={form.to_country}
-                                onChange={handleToCountryChange}
-                                error={formErrors.to_country}
-                                required={true}
-                            />
-                            <SearchableDropdown
-                                label="State"
-                                placeholder="Select State"
-                                options={toStatesList}
-                                value={form.to_state}
-                                disabled={!selectedToCountry}
-                                isLoading={!toStatesList.length && selectedToCountry}
-                                onChange={handleToStateChange}
-                            />
-                            <SearchableDropdown
-                                label="City"
-                                placeholder="Select City"
-                                options={toCitiesList}
-                                value={form.to_city}
-                                disabled={!selectedToState}
-                                isLoading={!toCitiesList.length && !toCitiesFetched && selectedToState}
-                                onChange={handleToCityChange}
-                                error={formErrors.to_city}
-                                required={true}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* 4. TRAVEL TIMELINE */}
-                <div className="pb-8 border-b border-border space-y-4">
-                    <h3 className="text-lg font-bold text-foreground">Travel Timeline</h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <Label required={true}>Departure Date & Time</Label>
-                            <div className="flex gap-2 mt-1">
-                                <Input
-                                    name="travel_date"
-                                    type="date"
-                                    className="w-1/2"
-                                    state={formErrors.travel_date ? "error" : "default"}
-                                    onChange={handleChange}
-                                    value={form.travel_date}
-                                />
-                                <Input
-                                    name="departure_time"
-                                    type="time"
-                                    className="w-1/2"
-                                    state={formErrors.departure_time ? "error" : "default"}
-                                    onChange={handleChange}
-                                    value={form.departure_time}
-                                />
+                    <div className="p-6 space-y-8">
+                        {/* 1. Personal Details Section */}
+                        <div className="space-y-4">
+                            <h3 className="text-base font-bold text-[#00142E] flex items-center gap-2 pb-2 border-b border-gray-50">
+                                <User size={18} className="text-[#00142E]" /> Personal Information
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Age <span className="text-red-500 ml-1">*</span></label>
+                                    <input
+                                        name="age"
+                                        type="number"
+                                        placeholder="Enter your age"
+                                        className={`w-full rounded-lg border ${formErrors.age ? "border-red-500" : "border-gray-300"} bg-white px-3 py-2.5 text-sm outline-none transition-all`}
+                                        onChange={handleChange}
+                                        value={form.age}
+                                        style={{ borderColor: formErrors.age ? '#ef4444' : 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Languages (comma separated) <span className="text-red-500 ml-1">*</span></label>
+                                    <input
+                                        name="languages"
+                                        placeholder="e.g., English, Hindi, Spanish"
+                                        className={`w-full rounded-lg border ${formErrors.languages ? "border-red-500" : "border-gray-300"} bg-white px-3 py-2.5 text-sm outline-none transition-all`}
+                                        onChange={handleChange}
+                                        value={form.languages}
+                                        style={{ borderColor: formErrors.languages ? '#ef4444' : 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                    />
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <Label>Arrival Date & Time</Label>
-                            <div className="flex gap-2 mt-1">
-                                <Input
-                                    name="arrival_date"
-                                    type="date"
-                                    className="w-1/2"
-                                    onChange={handleChange}
-                                    value={form.arrival_date}
-                                />
-                                <Input
-                                    name="arrival_time"
-                                    type="time"
-                                    className="w-1/2"
-                                    onChange={handleChange}
-                                    value={form.arrival_time}
-                                />
+
+                        {/* 2. Trip Details Section */}
+                        <div className="space-y-6 pt-2">
+                            <h3 className="text-base font-bold text-[#00142E] flex items-center gap-2 pb-2 border-b border-gray-50">
+                                <Plane size={18} className="text-[#00142E]" /> Trip Information
+                            </h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Airline <span className="text-red-500 ml-1">*</span></label>
+                                    <input
+                                        name="airline"
+                                        placeholder="Enter airline name"
+                                        className={`w-full rounded-lg border ${formErrors.airline ? "border-red-500" : "border-gray-300"} bg-white px-3 py-2.5 text-sm outline-none transition-all`}
+                                        onChange={handleChange}
+                                        value={form.airline}
+                                        style={{ borderColor: formErrors.airline ? '#ef4444' : 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Flight Number</label>
+                                    <input
+                                        name="flight_number"
+                                        placeholder="Enter flight number (e.g., AF226)"
+                                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition-all"
+                                        onChange={handleChange}
+                                        value={form.flight_number}
+                                        style={{ borderColor: 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Number of Travelers <span className="text-red-500 ml-1">*</span></label>
+                                    <input
+                                        name="travelers_count"
+                                        type="number"
+                                        min="1"
+                                        placeholder="How many are traveling?"
+                                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition-all"
+                                        onChange={handleChange}
+                                        value={form.travelers_count}
+                                        style={{ borderColor: 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                    />
+                                </div>
                             </div>
+
+                            {/* Origin Section */}
+                            <div className="space-y-4 pt-2">
+                                <h4 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--color-foreground)' }}>
+                                    <MapPin size={16} className="text-[#00142E]" /> Origin (Flying From)
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <SearchableDropdown
+                                        label="Country"
+                                        placeholder="Select Country"
+                                        options={countriesList}
+                                        value={form.from_country}
+                                        onChange={handleFromCountryChange}
+                                        error={formErrors.from_country}
+                                        required={true}
+                                    />
+                                    <SearchableDropdown
+                                        label="State"
+                                        placeholder="Select State"
+                                        options={fromStatesList}
+                                        value={form.from_state}
+                                        disabled={!selectedFromCountry}
+                                        isLoading={!fromStatesList.length && selectedFromCountry}
+                                        onChange={handleFromStateChange}
+                                    />
+                                    <SearchableDropdown
+                                        label="City"
+                                        placeholder="Select City"
+                                        options={fromCitiesList}
+                                        value={form.from_city}
+                                        disabled={!selectedFromState}
+                                        isLoading={!fromCitiesList.length && !fromCitiesFetched && selectedFromState}
+                                        onChange={handleFromCityChange}
+                                        error={formErrors.from_city}
+                                        required={true}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Destination Section */}
+                            <div className="space-y-4 pt-2">
+                                <h4 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--color-foreground)' }}>
+                                    <MapPin size={16} className="text-[#00142E]" /> Destination (Flying To)
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <SearchableDropdown
+                                        label="Country"
+                                        placeholder="Select Country"
+                                        options={countriesList}
+                                        value={form.to_country}
+                                        onChange={handleToCountryChange}
+                                        error={formErrors.to_country}
+                                        required={true}
+                                    />
+                                    <SearchableDropdown
+                                        label="State"
+                                        placeholder="Select State"
+                                        options={toStatesList}
+                                        value={form.to_state}
+                                        disabled={!selectedToCountry}
+                                        isLoading={!toStatesList.length && selectedToCountry}
+                                        onChange={handleToStateChange}
+                                    />
+                                    <SearchableDropdown
+                                        label="City"
+                                        placeholder="Select City"
+                                        options={toCitiesList}
+                                        value={form.to_city}
+                                        disabled={!selectedToState}
+                                        isLoading={!toCitiesList.length && !toCitiesFetched && selectedToState}
+                                        onChange={handleToCityChange}
+                                        error={formErrors.to_city}
+                                        required={true}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Timing Section */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Departure Date & Time <span className="text-red-500 ml-1">*</span></label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            name="travel_date"
+                                            type="date"
+                                            className={`w-1/2 rounded-lg border ${formErrors.travel_date ? "border-red-500" : "border-gray-300"} bg-white px-3 py-2.5 text-sm outline-none transition-all`}
+                                            onChange={handleChange}
+                                            value={form.travel_date}
+                                            style={{ borderColor: formErrors.travel_date ? '#ef4444' : 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                        />
+                                        <input
+                                            name="departure_time"
+                                            type="time"
+                                            className={`w-1/2 rounded-lg border ${formErrors.departure_time ? "border-red-500" : "border-gray-300"} bg-white px-3 py-2.5 text-sm outline-none transition-all`}
+                                            onChange={handleChange}
+                                            value={form.departure_time}
+                                            style={{ borderColor: formErrors.departure_time ? '#ef4444' : 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-foreground)' }}>Arrival Date & Time</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            name="arrival_date"
+                                            type="date"
+                                            className="w-1/2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition-all"
+                                            onChange={handleChange}
+                                            value={form.arrival_date}
+                                            style={{ borderColor: 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                        />
+                                        <input
+                                            name="arrival_time"
+                                            type="time"
+                                            className="w-1/2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition-all"
+                                            onChange={handleChange}
+                                            value={form.arrival_time}
+                                            style={{ borderColor: 'var(--color-neutral)', color: 'var(--color-foreground)' }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Submit Row */}
+                        <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 active:scale-95 transition-all cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                onClick={handleSubmit}
+                                disabled={isSubmitting}
+                                className="px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#00142E] hover:bg-[#071F3B] shadow-lg shadow-[#00142E]/20 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2 cursor-pointer"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        Submitting...
+                                    </>
+                                ) : (
+                                    "Submit Plan"
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex justify-end gap-4 pt-4">
-                <button
-                    onClick={onCancel}
-                    className="px-6 py-2.5 rounded-xl font-bold border border-border text-foreground hover:bg-secondary transition-colors text-sm h-11 cursor-pointer"
-                >
-                    Cancel
-                </button>
-                <button
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                    className="px-6 py-2.5 rounded-xl font-bold text-white flex items-center justify-center gap-2 text-sm bg-accent hover:bg-accent-dark transition-all h-11 min-w-[120px] cursor-pointer"
-                    style={{ opacity: isSubmitting ? 0.7 : 1 }}
-                >
-                    {isSubmitting ? (
-                        <>
-                            <Loader2 size={16} className="animate-spin" />
-                            Submitting...
-                        </>
-                    ) : (
-                        "Submit Plan"
-                    )}
-                </button>
-            </div>
+            )}
         </div>
     );
 }

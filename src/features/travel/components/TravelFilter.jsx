@@ -148,164 +148,164 @@ export default function TravelFilter({
                                 className="w-full h-10 px-3.5 rounded-xl bg-gray-50 border border-gray-200 hover:border-[#E1392A]/30 focus:border-[#E1392A]/30 focus:bg-white focus:ring-4 focus:ring-[#E1392A]/5 outline-none transition-all font-medium text-sm text-[#00142E] flex items-center justify-between gap-2"
                             >
 
-                                    <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3">
 
-                                        {selectedCountry ? (
-                                            <>
-                                                {selectedCountry.flag.startsWith("/") ||
-                                                    selectedCountry.flag.startsWith("http") ? (
-                                                    <img
-                                                        src={selectedCountry.flag}
-                                                        alt={selectedCountry.name}
-                                                        className="w-6 h-4 object-cover rounded"
-                                                    />
-                                                ) : (
-                                                    <span className="text-lg">
-                                                        {selectedCountry.flag}
-                                                    </span>
-                                                )}
-
-                                                <span className="truncate">
-                                                    {selectedCountry.name}
-                                                </span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Globe
-                                                    size={18}
-                                                    className="text-primary/40"
+                                    {selectedCountry ? (
+                                        <>
+                                            {selectedCountry.flag.startsWith("/") ||
+                                                selectedCountry.flag.startsWith("http") ? (
+                                                <img
+                                                    src={selectedCountry.flag}
+                                                    alt={selectedCountry.name}
+                                                    className="w-6 h-4 object-cover rounded"
                                                 />
-                                                <span className="text-primary/40">
-                                                    Select Country
+                                            ) : (
+                                                <span className="text-lg">
+                                                    {selectedCountry.flag}
                                                 </span>
-                                            </>
-                                        )}
-                                    </div>
+                                            )}
 
-                                    <ChevronDown
-                                        size={18}
-                                        className={`text-primary/40 transition-transform ${isCountryOpen
-                                            ? "rotate-180"
-                                            : ""
-                                            }`}
-                                    />
-                                </button>
-
-                                {/* Dropdown */}
-                                <AnimatePresence>
-                                    {isCountryOpen && (
-                                        <motion.div
-                                            initial={{
-                                                opacity: 0,
-                                                y: 10,
-                                                scale: 0.95
-                                            }}
-                                            animate={{
-                                                opacity: 1,
-                                                y: 0,
-                                                scale: 1
-                                            }}
-                                            exit={{
-                                                opacity: 0,
-                                                y: 10,
-                                                scale: 0.95
-                                            }}
-                                            transition={{ duration: 0.2 }}
-                                            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
-                                        >
-
-                                            <div className="p-3 border-b border-gray-100">
-                                                <div className="relative">
-
-                                                    <Search
-                                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]"
-                                                        size={14}
-                                                    />
-
-                                                    <input
-                                                        ref={countryInputRef}
-                                                        type="text"
-                                                        placeholder="Search country..."
-                                                        className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg"
-                                                        value={countrySearch}
-                                                        onChange={(e) =>
-                                                            setCountrySearch(
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="max-h-64 overflow-y-auto">
-
-                                                <button
-                                                    onClick={() => {
-                                                        setFilters({
-                                                            ...filters,
-                                                            country: ""
-                                                        });
-
-                                                        setIsCountryOpen(false);
-                                                    }}
-                                                    className="w-full text-left px-4 py-3 hover:bg-gray-50"
-                                                >
-                                                    All Countries
-                                                </button>
-
-                                                {filteredCountries.map(
-                                                    (country) => (
-                                                        <button
-                                                            key={country.code}
-                                                            onClick={() => {
-
-                                                                setFilters({
-                                                                    ...filters,
-                                                                    country:
-                                                                        country.name
-                                                                });
-
-                                                                setIsCountryOpen(false);
-                                                            }}
-                                                            className={`w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 ${filters.country ===
-                                                                country.name
-                                                                ? "bg-accent/10 text-accent font-bold"
-                                                                : ""
-                                                                }`}
-                                                        >
-
-                                                            {country.flag.startsWith("/") ||
-                                                                country.flag.startsWith(
-                                                                    "http"
-                                                                ) ? (
-                                                                <img
-                                                                    src={
-                                                                        country.flag
-                                                                    }
-                                                                    alt={
-                                                                        country.name
-                                                                    }
-                                                                    className="w-6 h-4 object-cover rounded"
-                                                                />
-                                                            ) : (
-                                                                <span className="text-lg">
-                                                                    {
-                                                                        country.flag
-                                                                    }
-                                                                </span>
-                                                            )}
-
-                                                            <span>
-                                                                {country.name}
-                                                            </span>
-                                                        </button>
-                                                    )
-                                                )}
-                                            </div>
-                                        </motion.div>
+                                            <span className="truncate">
+                                                {selectedCountry.name}
+                                            </span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Globe
+                                                size={18}
+                                                className="text-primary/40"
+                                            />
+                                            <span className="text-primary/40">
+                                                Select Country
+                                            </span>
+                                        </>
                                     )}
-                                </AnimatePresence>
-                            </div>
+                                </div>
+
+                                <ChevronDown
+                                    size={18}
+                                    className={`text-primary/40 transition-transform ${isCountryOpen
+                                        ? "rotate-180"
+                                        : ""
+                                        }`}
+                                />
+                            </button>
+
+                            {/* Dropdown */}
+                            <AnimatePresence>
+                                {isCountryOpen && (
+                                    <motion.div
+                                        initial={{
+                                            opacity: 0,
+                                            y: 10,
+                                            scale: 0.95
+                                        }}
+                                        animate={{
+                                            opacity: 1,
+                                            y: 0,
+                                            scale: 1
+                                        }}
+                                        exit={{
+                                            opacity: 0,
+                                            y: 10,
+                                            scale: 0.95
+                                        }}
+                                        transition={{ duration: 0.2 }}
+                                        className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
+                                    >
+
+                                        <div className="p-3 border-b border-gray-100">
+                                            <div className="relative">
+
+                                                <Search
+                                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]"
+                                                    size={14}
+                                                />
+
+                                                <input
+                                                    ref={countryInputRef}
+                                                    type="text"
+                                                    placeholder="Search country..."
+                                                    className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg"
+                                                    value={countrySearch}
+                                                    onChange={(e) =>
+                                                        setCountrySearch(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="max-h-64 overflow-y-auto">
+
+                                            <button
+                                                onClick={() => {
+                                                    setFilters({
+                                                        ...filters,
+                                                        country: ""
+                                                    });
+
+                                                    setIsCountryOpen(false);
+                                                }}
+                                                className="w-full text-left px-4 py-3 hover:bg-gray-50"
+                                            >
+                                                All Countries
+                                            </button>
+
+                                            {filteredCountries.map(
+                                                (country) => (
+                                                    <button
+                                                        key={country.code}
+                                                        onClick={() => {
+
+                                                            setFilters({
+                                                                ...filters,
+                                                                country:
+                                                                    country.name
+                                                            });
+
+                                                            setIsCountryOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-gray-50 ${filters.country ===
+                                                            country.name
+                                                            ? "bg-accent/10 text-accent font-bold"
+                                                            : ""
+                                                            }`}
+                                                    >
+
+                                                        {country.flag.startsWith("/") ||
+                                                            country.flag.startsWith(
+                                                                "http"
+                                                            ) ? (
+                                                            <img
+                                                                src={
+                                                                    country.flag
+                                                                }
+                                                                alt={
+                                                                    country.name
+                                                                }
+                                                                className="w-6 h-4 object-cover rounded"
+                                                            />
+                                                        ) : (
+                                                            <span className="text-lg">
+                                                                {
+                                                                    country.flag
+                                                                }
+                                                            </span>
+                                                        )}
+
+                                                        <span>
+                                                            {country.name}
+                                                        </span>
+                                                    </button>
+                                                )
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
 
                         {/* City Dropdown */}
                         <div className="relative sm:w-48 lg:w-56" ref={cityRef}>
@@ -313,115 +313,113 @@ export default function TravelFilter({
                                 type="button"
                                 disabled={!filters.country}
                                 onClick={() => setIsCityOpen(!isCityOpen)}
-                                className={`w-full h-10 px-3.5 rounded-xl border transition-all font-medium text-sm flex items-center justify-between gap-2 ${
-                                    !filters.country
+                                className={`w-full h-10 px-3.5 rounded-xl border transition-all font-medium text-sm flex items-center justify-between gap-2 ${!filters.country
                                         ? "bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed text-[#717171]"
                                         : "bg-gray-50 border-gray-200 hover:border-[#E1392A]/30 focus:border-[#E1392A]/30 focus:bg-white focus:ring-4 focus:ring-[#E1392A]/5 text-[#00142E]"
-                                }`}
+                                    }`}
                             >
-                                    <div className="flex items-center gap-3">
-                                        <Globe
-                                            size={18}
-                                            className={filters.city ? "text-accent" : "text-primary/40"}
-                                        />
-                                        {filters.city ? (
-                                            <span className="truncate">{filters.city}</span>
-                                        ) : (
-                                            <span className="text-primary/40">
-                                                {!filters.country ? "Select Country First" : "Select City"}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <ChevronDown
+                                <div className="flex items-center gap-3">
+                                    <Globe
                                         size={18}
-                                        className={`text-primary/40 transition-transform ${isCityOpen ? "rotate-180" : ""}`}
+                                        className={filters.city ? "text-accent" : "text-primary/40"}
                                     />
-                                </button>
-
-                                {/* Dropdown Menu */}
-                                <AnimatePresence>
-                                    {isCityOpen && (
-                                        <motion.div
-                                            initial={{
-                                                opacity: 0,
-                                                y: 10,
-                                                scale: 0.95
-                                            }}
-                                            animate={{
-                                                opacity: 1,
-                                                y: 0,
-                                                scale: 1
-                                            }}
-                                            exit={{
-                                                opacity: 0,
-                                                y: 10,
-                                                scale: 0.95
-                                            }}
-                                            transition={{ duration: 0.2 }}
-                                            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
-                                        >
-                                            <div className="p-3 border-b border-gray-100">
-                                                <div className="relative">
-                                                    <Search
-                                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]"
-                                                        size={14}
-                                                    />
-                                                    <input
-                                                        ref={cityInputRef}
-                                                        type="text"
-                                                        placeholder="Search city..."
-                                                        className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-black outline-none focus:border-accent transition-all"
-                                                        value={citySearch}
-                                                        onChange={(e) => setCitySearch(e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="max-h-64 overflow-y-auto">
-                                                <button
-                                                    onClick={() => {
-                                                        setFilters({
-                                                            ...filters,
-                                                            city: ""
-                                                        });
-                                                        setIsCityOpen(false);
-                                                    }}
-                                                    className="w-full text-left px-4 py-3 hover:bg-gray-50 text-black font-medium"
-                                                >
-                                                    All Cities
-                                                </button>
-
-                                                {filteredCities.length > 0 ? (
-                                                    filteredCities.map((city, index) => (
-                                                        <button
-                                                            key={`${city.name}-${index}`}
-                                                            onClick={() => {
-                                                                setFilters({
-                                                                    ...filters,
-                                                                    city: city.name
-                                                                });
-                                                                setIsCityOpen(false);
-                                                            }}
-                                                            className={`w-full text-left px-4 py-3 hover:bg-gray-50 text-black ${
-                                                                filters.city === city.name
-                                                                    ? "bg-accent/10 text-accent font-bold"
-                                                                    : ""
-                                                            }`}
-                                                        >
-                                                            {city.name}
-                                                        </button>
-                                                    ))
-                                                ) : (
-                                                    <div className="px-4 py-3 text-sm text-[#717171] italic text-center">
-                                                        No cities found
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </motion.div>
+                                    {filters.city ? (
+                                        <span className="truncate">{filters.city}</span>
+                                    ) : (
+                                        <span className="text-primary/40">
+                                            {!filters.country ? "Select Country First" : "Select City"}
+                                        </span>
                                     )}
-                                </AnimatePresence>
-                            </div>
+                                </div>
+
+                                <ChevronDown
+                                    size={18}
+                                    className={`text-primary/40 transition-transform ${isCityOpen ? "rotate-180" : ""}`}
+                                />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            <AnimatePresence>
+                                {isCityOpen && (
+                                    <motion.div
+                                        initial={{
+                                            opacity: 0,
+                                            y: 10,
+                                            scale: 0.95
+                                        }}
+                                        animate={{
+                                            opacity: 1,
+                                            y: 0,
+                                            scale: 1
+                                        }}
+                                        exit={{
+                                            opacity: 0,
+                                            y: 10,
+                                            scale: 0.95
+                                        }}
+                                        transition={{ duration: 0.2 }}
+                                        className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
+                                    >
+                                        <div className="p-3 border-b border-gray-100">
+                                            <div className="relative">
+                                                <Search
+                                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]"
+                                                    size={14}
+                                                />
+                                                <input
+                                                    ref={cityInputRef}
+                                                    type="text"
+                                                    placeholder="Search city..."
+                                                    className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg text-black outline-none focus:border-accent transition-all"
+                                                    value={citySearch}
+                                                    onChange={(e) => setCitySearch(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="max-h-64 overflow-y-auto">
+                                            <button
+                                                onClick={() => {
+                                                    setFilters({
+                                                        ...filters,
+                                                        city: ""
+                                                    });
+                                                    setIsCityOpen(false);
+                                                }}
+                                                className="w-full text-left px-4 py-3 hover:bg-gray-50 text-black font-medium"
+                                            >
+                                                All Cities
+                                            </button>
+
+                                            {filteredCities.length > 0 ? (
+                                                filteredCities.map((city, index) => (
+                                                    <button
+                                                        key={`${city.name}-${index}`}
+                                                        onClick={() => {
+                                                            setFilters({
+                                                                ...filters,
+                                                                city: city.name
+                                                            });
+                                                            setIsCityOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-4 py-3 hover:bg-gray-50 text-black ${filters.city === city.name
+                                                                ? "bg-accent/10 text-accent font-bold"
+                                                                : ""
+                                                            }`}
+                                                    >
+                                                        {city.name}
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-4 py-3 text-sm text-[#717171] italic text-center">
+                                                    No cities found
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                         {/* Clear button */}
                         {hasActiveFilters && (
                             <button

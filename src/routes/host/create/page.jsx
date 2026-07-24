@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { CATEGORIES } from '@/shared/utils/mock-data';
 import { toast } from 'sonner';
@@ -16,6 +17,7 @@ import { StepAmenities } from '@/features/host/components/listing-wizard/StepAme
 import { StepReview } from '@/features/host/components/listing-wizard/StepReview';
 
 export default function HostCreatePage() {
+    const navigate = useNavigate();
     const {
         formData,
         setFormData,
@@ -153,10 +155,22 @@ export default function HostCreatePage() {
         <main className="min-h-screen bg-gray-50 text-foreground font-sans pb-20">
             
 
-            <div className="w-full max-w-none px-4 pt-12 sm:px-6 lg:px-8 lg:pt-16">
+            <div className="w-full max-w-7xl mx-auto px-4 pt-6 sm:pt-8 sm:px-6 lg:px-8 space-y-6">
+                {/* Top Return Header */}
+                <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+                    <button
+                        type="button"
+                        onClick={() => navigate("/search")}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold text-[#00142E] bg-white border border-gray-200 hover:bg-gray-50 transition-all shadow-xs cursor-pointer active:scale-95"
+                    >
+                        <span>← Back to Accommodations Directory</span>
+                    </button>
+                    <span className="text-xs font-bold text-gray-400">Host Accommodation</span>
+                </div>
+
                 {/* Premium Page Header */}
-                <div className="mb-10 text-center lg:text-left">
-                    <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                <div className="mb-6 text-left">
+                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
                         {isEdit ? "Update Your Property Space" : "Host Your Space"}
                     </h1>
                     <p className="text-[#222222] mt-2 text-lg">
