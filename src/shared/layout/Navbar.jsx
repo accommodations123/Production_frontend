@@ -107,7 +107,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
             {/* ================= MOBILE ================= */}
             <div className="lg:hidden">
                 <div className="sticky top-0 z-50 px-4 h-16 flex items-center bg-white border-b border-gray-200">
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center justify-between w-full relative">
                         <button
                             onClick={() => setIsMobileMenuOpen((p) => !p)}
                             aria-label="Menu"
@@ -116,17 +116,32 @@ export function Navbar({ minimal = false, onMenuClick }) {
                             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
 
-                        <Link to="/" className="flex items-center gap-2 pr-26">
+                        <Link to="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
                             <div className="w-16 h-10 rounded-lg overflow-hidden ring-1 ring-gray-200">
                                 <img src="/logo.jpeg" alt="NextKinLife Logo" className="object-cover w-full h-full" />
                             </div>
                         </Link>
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 relative z-[60]">
                             {isAuthenticated && (
                                 <div className="text-gray-700">
                                     <NotificationDropdown />
                                 </div>
+                            )}
+                            {!isAuthenticated ? (
+                                <Button
+                                    onClick={() => navigate("/signin")}
+                                    className="h-9 rounded-xl bg-white border border-gray-300 text-foreground hover:bg-gray-50 px-3 text-xs font-semibold animate-none"
+                                >
+                                    Sign In
+                                </Button>
+                            ) : (
+                                <ProfileDropdown
+                                    resolvedUser={resolvedUser}
+                                    displayName={displayName}
+                                    renderTimestamp={renderTimestamp}
+                                    handleLogout={handleLogout}
+                                />
                             )}
                         </div>
                     </div>

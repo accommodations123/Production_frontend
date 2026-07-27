@@ -212,7 +212,7 @@ export function PersonalInfo({ initialData, verificationState, onUpdate, isUpdat
     <div className="space-y-6 animate-in fade-in duration-300 text-left">
       {/* Back button */}
       <div className="flex items-center justify-between pb-1">
-        <button type="button" onClick={() => navigate('/')} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold text-[#00142E] bg-white border border-gray-200 hover:bg-gray-50 transition-all shadow-xs cursor-pointer active:scale-95">
+        <button type="button" onClick={() => navigate('/account-v2')} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold text-[#00142E] bg-white border border-gray-200 hover:bg-gray-50 transition-all shadow-xs cursor-pointer active:scale-95">
           <span>&larr; Back to Account Console</span>
         </button>
         <span className="text-xs font-bold text-gray-400">Profile Settings</span>

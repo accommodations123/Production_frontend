@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom"
 import { AnimatePresence, motion } from "framer-motion"
-import { X, ChevronRight, LogOut, User, Settings } from "lucide-react"
+import { X, ChevronRight, LogOut, User, Settings, Home } from "lucide-react"
 import { cn } from "@/shared/utils/utils"
 
 const NAV_ITEMS = [
@@ -87,50 +87,7 @@ export function MobileMenu({
                                 })}
                             </nav>
 
-                            {/* Auth Section */}
-                            <div className="border-t border-gray-100 p-4">
-                                {isAuthenticated ? (
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-3 px-3 py-2">
-                                            <div className="w-9 h-9 rounded-full overflow-hidden bg-[#00162D] flex items-center justify-center">
-                                                {resolvedUser?.profile_image ? (
-                                                    <img
-                                                        src={resolvedUser.profile_image}
-                                                        alt="Profile"
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <span className="text-white text-xs font-bold">
-                                                        {displayName?.slice(0, 2).toUpperCase()}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <span className="text-sm font-bold text-[#00162D] truncate">
-                                                {displayName}
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={() => {
-                                                onClose()
-                                                handleLogout()
-                                            }}
-                                            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-[#CB2A26] hover:bg-red-50 rounded-xl transition-colors"
-                                        >
-                                            <LogOut className="w-4 h-4" />
-                                            Sign Out
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <Link
-                                        to="/signin"
-                                        onClick={onClose}
-                                        className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-[#00162D] text-white text-sm font-semibold rounded-xl hover:bg-[#00162D]/90 transition-colors"
-                                    >
-                                        <User className="w-4 h-4" />
-                                        Sign In
-                                    </Link>
-                                )}
-                            </div>
+
                         </div>
                     </motion.div>
                 </>
