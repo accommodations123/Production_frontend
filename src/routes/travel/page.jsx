@@ -1,15 +1,17 @@
-import React, { useState, useEffect, useMemo, lazy, Suspense, useCallback } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plane, Plus, Globe, RotateCcw, HelpCircle, Search } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { getHostPath } from "@/shared/utils/navigationUtils";
 
-import { useAuth } from "@/features/events/hooks/useAuth";
+import { useAuth } from "@/shared/hooks/useAuth";
 import {
   useGetMyTripsQuery,
   useGetPublicTripsQuery
-} from "@/store/api/hostApi";
+} from "@/store/api/travelApi";
 import { resolveImageUrl } from "@/shared/utils/imageUtils";
+import { extractSocials } from "@/shared/utils/socialExtract";
+import { normalizeCountryName } from "@/shared/utils/countryUtils";
 
 // Extracted Constants
 import {
@@ -45,78 +47,9 @@ export default function TravelPage() {
 
   // Mapping utility to transform backend trip to frontend structure
   const mapTripToPlan = useCallback((trip) => {
-    const normalizeCountry = (c) => {
-      if (!c) return "";
-      const lower = c.toLowerCase().trim();
-      if (lower === "united states" || lower === "usa" || lower === "us" || lower === "united states of america") {
-        return "United States of America";
-      }
-      return c;
-    };
+    const normalizeCountry = (c) => normalizeCountryName(c);
 
-    const extractSocials = (t) => {
-      const getVal = (val) => {
-        if (val === undefined || val === null) return "";
-        return String(val).trim();
-      };
-      return {
-        whatsapp: getVal(
-          t.host?.whatsapp ||
-          t.host?.phone ||
-          t.host?.User?.phone ||
-          t.user?.whatsapp ||
-          t.user?.phone ||
-          t.user?.User?.phone ||
-          t.whatsapp ||
-          t.phone ||
-          ""
-        ),
-        email: getVal(
-          t.host?.email ||
-          t.host?.User?.email ||
-          t.user?.email ||
-          t.user?.User?.email ||
-          t.email ||
-          ""
-        ),
-        instagram: getVal(
-          t.host?.instagram ||
-          t.host?.User?.instagram ||
-          t.user?.instagram ||
-          t.user?.User?.instagram ||
-          t.instagram ||
-          ""
-        ),
-        facebook: getVal(
-          t.host?.facebook ||
-          t.host?.User?.facebook ||
-          t.user?.facebook ||
-          t.user?.User?.facebook ||
-          t.facebook ||
-          ""
-        ),
-        linkedin: getVal(
-          t.host?.linkedin ||
-          t.host?.User?.linkedin ||
-          t.user?.linkedin ||
-          t.user?.User?.linkedin ||
-          t.linkedin ||
-          ""
-        ),
-        twitter: getVal(
-          t.host?.twitter ||
-          t.host?.x ||
-          t.host?.User?.twitter ||
-          t.user?.twitter ||
-          t.user?.x ||
-          t.user?.User?.twitter ||
-          t.twitter ||
-          ""
-        )
-      };
-    };
-
-    const socials = extractSocials(trip, currentUser);
+    const socials = extractSocials(trip);
 
     // Handle user's new "My Trips" structure (Lightweight response)
     if (trip.sent_matches || trip.received_matches) {
@@ -225,19 +158,10 @@ export default function TravelPage() {
     };
   }, [currentUser]);
 
-  const getBackendCountryName = (c) => {
-    if (!c) return c;
-    const lower = c.toLowerCase().trim();
-    if (lower === "united states" || lower === "usa" || lower === "us") {
-      return "United States of America";
-    }
-    return c;
-  };
-
   const { data: publicTripsData } = useGetPublicTripsQuery({
     page: 1,
     limit: 50,
-    from_country: getBackendCountryName(filters.country),
+    from_country: normalizeCountryName(filters.country),
   });
 
   // Sync Plans

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Slider } from '@/shared/ui/slider';
 // If no slider component, I'll use standard range input for now to be safe.
 import { Check, MapPin } from 'lucide-react';

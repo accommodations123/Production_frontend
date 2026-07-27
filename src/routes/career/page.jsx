@@ -1,12 +1,12 @@
 
-import React, { useState, useMemo, useEffect, useRef } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 
 
 import { JobCard } from "@/features/career/components/JobCard"
 import { FilterSection } from "@/features/career/components/FilterSection"
 import { JobDetailsModal } from "@/features/career/components/JobDetailsModal"
-import { useGetJobsQuery } from "@/store/api/hostApi"
+import { useGetJobsQuery } from "@/store/api/careerApi"
 import {
     Search, Filter, X, Building,
     TrendingUp, Users, Coffee, Award, Shield, Zap, Target, Wifi, Loader2

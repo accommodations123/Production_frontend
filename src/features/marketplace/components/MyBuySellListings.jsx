@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   useGetMyBuySellListingsQuery,
   useDeleteBuySellMutation,
@@ -20,7 +21,8 @@ import { toast } from "sonner";
 import { cn } from "@/shared/utils/utils";
 
 export function MyBuySellListings() {
-  const { data: listings = [], isLoading, isError } = useGetMyBuySellListingsQuery();
+  const navigate = useNavigate();
+  const { data: listings = [], isLoading, isError, refetch } = useGetMyBuySellListingsQuery();
   const [deleteListing] = useDeleteBuySellMutation();
   const [markAsSold] = useMarkBuySellAsSoldMutation();
 
@@ -85,7 +87,7 @@ export function MyBuySellListings() {
         <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
         <h4 className="font-extrabold text-red-700">Failed to load marketplace listings</h4>
         <p className="text-xs text-red-600/70 mt-1">Please try refreshing to fetch your products.</p>
-        <Button onClick={() => window.location.reload()} className="mt-4 bg-red-600 text-white rounded-xl">Reload Shop</Button>
+        <Button onClick={() => refetch()} className="mt-4 bg-red-600 text-white rounded-xl">Reload Shop</Button>
       </div>
     );
   }
@@ -98,13 +100,13 @@ export function MyBuySellListings() {
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-amber-50/50 to-orange-50/50 rounded-full blur-3xl -z-10"></div>
         <div className="space-y-1.5">
           <span className="text-xs font-bold text-amber-600 tracking-wider uppercase block">Seller Console 🏷️</span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">My Buy/Sell Listings</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#00142E] tracking-tight">My Buy/Sell Listings</h1>
           <p className="text-xs sm:text-sm text-[#484848] max-w-lg leading-relaxed">
             Manage your listings, track views and message inquiries, and update product details.
           </p>
         </div>
         <Button 
-          onClick={() => window.location.href = '/marketplace?tab=sell'}
+          onClick={() => navigate('/marketplace?tab=sell')}
           className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl h-11 px-5 text-sm font-semibold shadow-md transition-all flex items-center gap-2 self-start md:self-auto"
         >
           <Plus className="w-4 h-4" />
@@ -120,13 +122,13 @@ export function MyBuySellListings() {
             <Tag className="w-9 h-9 text-amber-500" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-bold text-gray-900">List Your Products</h3>
+            <h3 className="text-xl font-bold text-[#00142E]">List Your Products</h3>
             <p className="text-sm text-[#484848] max-w-sm mx-auto leading-relaxed">
               Advertise items you wish to sell or trade with local travelers and hosts in the NextKin community.
             </p>
           </div>
           <Button 
-            onClick={() => window.location.href = '/marketplace?tab=sell'}
+            onClick={() => navigate('/marketplace?tab=sell')}
             className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl px-5 h-11 font-semibold transition-all shadow-sm"
           >
             Sell First Item

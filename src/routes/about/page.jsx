@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Calendar, Globe, Plus, Minus, CheckCircle, Star, Users, Award, Code, ArrowRight } from "lucide-react";
+import { Breadcrumb } from "@/shared/ui/Breadcrumb";
 
 
 /* ================= DATA ================= */
@@ -133,7 +134,10 @@ const AboutUs = () => {
         style={{ backgroundImage: "url('/colleagues-working-project-discussing-details.jpg')" }}
       >
         <div className="absolute inset-0 bg-black/60" />
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 text-center text-white">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 text-center text-white space-y-4">
+          <div className="flex justify-center">
+            <Breadcrumb items={[{ label: "About Us" }]} className="text-white/80" />
+          </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">About Us</h1>
           <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 sm:mb-6">
             Welcome to The IT Consulting Agency

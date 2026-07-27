@@ -57,7 +57,7 @@ export function ProfileDropdown({ resolvedUser, displayName, renderTimestamp, ha
                         {/* Main Cockpit Actions */}
                         <div className="px-2 space-y-0.5">
                             <Link
-                                to="/account-v2?tab=overview"
+                                to="/account-v2?tab=listings"
                                 className="group flex items-center gap-3.5 px-3.5 py-2.5 text-slate-700 hover:text-[#00162D] hover:bg-slate-50 rounded-xl transition-all duration-200"
                                 onClick={() => setIsProfileOpen(false)}
                             >

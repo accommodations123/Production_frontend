@@ -1,10 +1,11 @@
-import React, { lazy } from "react";
+import { lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CountryProvider } from "@/context/CountryContext";
 import ScrollToTop from "@/shared/layout/ScrollToTop";
 import RootLayout from "@/app/RootLayout";
 import { ToastProvider } from "@/shared/ui/toast";
 import HostGuard from "@/features/auth/components/HostGuard";
+import { AppErrorBoundary } from "@/shared/components/AppErrorBoundary";
 
 // Lazy-loaded pages
 const Home = lazy(() => import("@/routes/home/page"));
@@ -18,6 +19,7 @@ const EventDetailsPage = lazy(() => import("@/routes/events/[id]/page"));
 const HostEventPage = lazy(() => import("@/routes/events/host/page"));
 const RoomDetails = lazy(() => import("@/routes/rooms/[id]/page"));
 const Search = lazy(() => import("@/routes/search/page"));
+const PostStayRequestPage = lazy(() => import("@/routes/search/post-request/page"));
 const HostCreatePage = lazy(() => import("@/routes/host/create/page"));
 const TravelPage = lazy(() => import("@/routes/travel/page"));
 const CreateTravelPlanPage = lazy(() => import("@/routes/travel/create/page"));
@@ -40,71 +42,78 @@ const SettingsPage = lazy(() => import("@/features/settings/pages/SettingsPage")
 
 export default function App() {
     return (
-        <BrowserRouter>
-            <ScrollToTop />
-            <ToastProvider />
-            <CountryProvider>
-                <Routes>
-                    <Route element={<RootLayout />}>
-                        <Route index element={<Home />} />
-                        <Route path="/career" element={<Career />} />
-                        <Route path="/career/job/:id" element={<Career />} />
-                        <Route path="/about" element={<About />} />
-                        <Route path="/trust" element={<Trust />} />
-                        <Route path="/help" element={<Help />} />
-                        <Route path="/contact" element={<Contact />} />
-                        <Route path="/account-v2" element={<NewDashboard />} />
-                        <Route path="/events" element={<EventsPage />} />
-                        <Route path="/events/host" element={
-                            <HostGuard>
-                                <HostEventPage />
-                            </HostGuard>
-                        } />
-                        <Route path="/events/:id" element={<EventDetailsPage />} />
-                        <Route path="/hosts" element={<HostOnboardingForm />} />
-                        <Route path="/rooms" element={<Navigate to="/search" replace />} />
-                        <Route path="/rooms/:id" element={<RoomDetails />} />
-                        <Route path="/search" element={<Search />} />
-                        <Route path="/host/create" element={
-                            <HostGuard>
-                                <HostCreatePage />
-                            </HostGuard>
-                        } />
-                        <Route path="/travel" element={<TravelPage />} />
-                        <Route path="/travel/create" element={
-                            <HostGuard>
-                                <CreateTravelPlanPage />
-                            </HostGuard>
-                        } />
-                        <Route path="/resources/legal" element={<LegalPage />} />
-                        <Route path="/marketplace" element={<MarketplacePage />} />
-                        <Route path="/marketplace/create" element={
-                            <HostGuard>
-                                <CreateMarketplacePage />
-                            </HostGuard>
-                        } />
-                        <Route path="/marketplace/sell" element={
-                            <HostGuard>
-                                <CreateMarketplacePage />
-                            </HostGuard>
-                        } />
-                        <Route path="/marketplace/:id" element={<ProductDetailsPage />} />
-                        <Route path="/signup" element={<Signup />} />
-                        <Route path="/signin" element={<Signin />} />
-                        <Route path="/privacy" element={<PrivacyPage />} />
-                        <Route path="/terms" element={<TermsPage />} />
-                        <Route path="/wishlist" element={
-                            <HostGuard>
-                                <WishlistPage />
-                            </HostGuard>
-                        } />
-                        <Route path="/people" element={<PeopleHome />} />
-                        <Route path="/people/become" element={<BecomeExpert />} />
-                        <Route path="/people/:id" element={<PeopleProfile />} />
-                        <Route path="/settings" element={<SettingsPage />} />
-                    </Route>
-                </Routes>
-            </CountryProvider>
-        </BrowserRouter>
+        <AppErrorBoundary>
+            <BrowserRouter>
+                <ScrollToTop />
+                <ToastProvider />
+                <CountryProvider>
+                    <Routes>
+                        <Route element={<RootLayout />}>
+                            <Route index element={<Home />} />
+                            <Route path="/career" element={<Career />} />
+                            <Route path="/career/job/:id" element={<Career />} />
+                            <Route path="/about" element={<About />} />
+                            <Route path="/trust" element={<Trust />} />
+                            <Route path="/help" element={<Help />} />
+                            <Route path="/contact" element={<Contact />} />
+                            <Route path="/account-v2" element={<NewDashboard />} />
+                            <Route path="/events" element={<EventsPage />} />
+                            <Route path="/events/host" element={
+                                <HostGuard>
+                                    <HostEventPage />
+                                </HostGuard>
+                            } />
+                            <Route path="/events/:id" element={<EventDetailsPage />} />
+                            <Route path="/hosts" element={<HostOnboardingForm />} />
+                            <Route path="/rooms" element={<Navigate to="/search" replace />} />
+                            <Route path="/rooms/:id" element={<RoomDetails />} />
+                            <Route path="/search" element={<Search />} />
+                            <Route path="/search/post-request" element={
+                                <HostGuard>
+                                    <PostStayRequestPage />
+                                </HostGuard>
+                            } />
+                            <Route path="/host/create" element={
+                                <HostGuard>
+                                    <HostCreatePage />
+                                </HostGuard>
+                            } />
+                            <Route path="/travel" element={<TravelPage />} />
+                            <Route path="/travel/create" element={
+                                <HostGuard>
+                                    <CreateTravelPlanPage />
+                                </HostGuard>
+                            } />
+                            <Route path="/resources/legal" element={<LegalPage />} />
+                            <Route path="/marketplace" element={<MarketplacePage />} />
+                            <Route path="/marketplace/create" element={
+                                <HostGuard>
+                                    <CreateMarketplacePage />
+                                </HostGuard>
+                            } />
+                            <Route path="/marketplace/sell" element={
+                                <HostGuard>
+                                    <CreateMarketplacePage />
+                                </HostGuard>
+                            } />
+                            <Route path="/marketplace/:id" element={<ProductDetailsPage />} />
+                            <Route path="/signup" element={<Signup />} />
+                            <Route path="/signin" element={<Signin />} />
+                            <Route path="/privacy" element={<PrivacyPage />} />
+                            <Route path="/terms" element={<TermsPage />} />
+                            <Route path="/wishlist" element={
+                                <HostGuard>
+                                    <WishlistPage />
+                                </HostGuard>
+                            } />
+                            <Route path="/people" element={<PeopleHome />} />
+                            <Route path="/people/become" element={<BecomeExpert />} />
+                            <Route path="/people/:id" element={<PeopleProfile />} />
+                            <Route path="/settings" element={<SettingsPage />} />
+                        </Route>
+                    </Routes>
+                </CountryProvider>
+            </BrowserRouter>
+        </AppErrorBoundary>
     );
 }

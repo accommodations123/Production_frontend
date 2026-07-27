@@ -1,4 +1,4 @@
-import { Shield, Home, Landmark, Briefcase, Languages, Terminal } from "lucide-react";
+// Icon references are used as string keys for dynamic icon mapping
 
 export const PEOPLE_CATEGORIES = [
   {

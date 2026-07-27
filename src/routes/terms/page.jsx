@@ -1,5 +1,6 @@
 
 import { FileText, Users, Home, ShoppingBag, Calendar, Plane, AlertTriangle, Scale, Mail } from "lucide-react";
+import { Breadcrumb } from "@/shared/ui/Breadcrumb";
 
 export default function TermsPage() {
     const lastUpdated = "February 1, 2025";
@@ -27,6 +28,9 @@ export default function TermsPage() {
                 </div>
 
                 <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                    <div className="flex justify-center mb-6">
+                        <Breadcrumb items={[{ label: "Terms of Service" }]} className="text-white/80" />
+                    </div>
                     {/* Badge */}
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full mb-8">
                         <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />

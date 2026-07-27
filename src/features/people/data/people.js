@@ -1,3 +1,4 @@
+// Static sample data for the People feature. Not connected to an API.
 export const MOCK_PEOPLE = [
   {
     id: "people_1",

@@ -112,38 +112,25 @@ export const CountryProvider = ({ children }) => {
   const formatPrice = useCallback((amount, customCurrency) => {
     if (amount === undefined || amount === null) return "";
 
-    // Securely validate and sanitize currency inputs
-    let currency = 'USD'; // Safe baseline currency
+    let currency = 'USD';
     if (typeof customCurrency === 'string' && /^[A-Za-z]{3}$/.test(customCurrency)) {
       currency = customCurrency.toUpperCase();
     } else if (activeCountry?.currency && /^[A-Za-z]{3}$/.test(activeCountry.currency)) {
       currency = activeCountry.currency.toUpperCase();
     } else {
-      currency = 'INR'; // Fallback
+      currency = 'INR';
     }
 
-    const locale = currency === 'INR' ? 'en-IN' : 'en-US';
-
     try {
+      const locale = currency === 'INR' ? 'en-IN' : 'en-US';
       return new Intl.NumberFormat(locale, {
         style: 'currency',
-        currency: currency,
+        currency,
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
       }).format(amount);
-    } catch (e) {
-      console.error("formatPrice failed securely with error:", e);
-      try {
-        // Safe secondary fallback
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
-        }).format(amount);
-      } catch (innerErr) {
-        return `${currency} ${amount}`;
-      }
+    } catch {
+      return `${currency} ${amount}`;
     }
   }, [activeCountry]);
 

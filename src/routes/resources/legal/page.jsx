@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from "@/shared/ui/button";
 import { Scale, FileText, Globe, AlertTriangle, CheckCircle, ShieldCheck, ChevronDown } from "lucide-react";
 import { VISA_GUIDES, LEGAL_RIGHTS } from "@/shared/utils/legal-data";

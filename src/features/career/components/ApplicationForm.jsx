@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useApplyForJobMutation } from '@/store/api/hostApi';
@@ -8,7 +8,7 @@ import { Button } from '@/shared/ui/button';
 import { useCountry } from '@/context/CountryContext';
 import { COUNTRIES } from '@/shared/utils/mock-data';
 import { CountryCodeSelect } from '@/shared/ui/CountryCodeSelect';
-import { useAuth } from '@/features/events/hooks/useAuth';
+import { useAuth } from '@/shared/hooks/useAuth';
 
 export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCancel }) => {
     const navigate = useNavigate();

@@ -78,7 +78,7 @@ const baseQueryWithLogger = async (args, api, extraOptions) => {
                 (status === 400 && url.includes('my-events'));             // No events
 
             if (!isExpected) {
-                console.error(`⬅️ RTK Request Error [${status}] on ${url}:`, result.error);
+                console.error(`RTK Request Error [${status}] on ${url}:`, result.error);
             }
 
             // Sync localStorage on auth errors
@@ -102,7 +102,7 @@ const baseQueryWithLogger = async (args, api, extraOptions) => {
         if (err.name === 'AbortError') {
             return { error: { status: 'CUSTOM_ERROR', error: 'Request was cancelled.' } };
         }
-        console.error("❌ RTK baseQuery fatal error", err)
+        console.error("RTK baseQuery fatal error", err)
         return {
             error: {
                 status: 'CUSTOM_ERROR',
@@ -723,11 +723,11 @@ export const hostApi = createApi({
                         responsibilities,
                         requirements,
                         benefits,
-                        recruiterName: jobItem.recruiter_name || "Vinod Kumar",
-                        recruiterEmail: jobItem.recruiter_email || "careers@nextkinlife.com",
-                        recruiterPhone: jobItem.recruiter_phone || "+1 (555) 123-4567",
-                        recruiterLinkedin: jobItem.recruiter_linkedin || "linkedin.com/company/nextkinlife",
-                        companyLinkedin: jobItem.company_linkedin || "https://linkedin.com/company/nextkinlife",
+                        recruiterName: jobItem.recruiter_name || '',
+                        recruiterEmail: jobItem.recruiter_email || '',
+                        recruiterPhone: jobItem.recruiter_phone || '',
+                        recruiterLinkedin: jobItem.recruiter_linkedin || '',
+                        companyLinkedin: jobItem.company_linkedin || '',
                         postedDate: jobItem.createdAt || jobItem.created_at || new Date().toISOString(),
                         posted: getTimeAgo(jobItem.createdAt || jobItem.created_at),
                         skills: Array.isArray(jobItem.skills) ? jobItem.skills : [],
@@ -791,11 +791,11 @@ export const hostApi = createApi({
                     responsibilities,
                     requirements,
                     benefits,
-                    recruiterName: job.recruiter_name || "Vinod Kumar",
-                    recruiterEmail: job.recruiter_email || "careers@nextkinlife.com",
-                    recruiterPhone: job.recruiter_phone || "+1 (555) 123-4567",
-                    recruiterLinkedin: job.recruiter_linkedin || "linkedin.com/company/nextkinlife",
-                    companyLinkedin: job.company_linkedin || "https://linkedin.com/company/nextkinlife",
+                    recruiterName: job.recruiter_name || '',
+                    recruiterEmail: job.recruiter_email || '',
+                    recruiterPhone: job.recruiter_phone || '',
+                    recruiterLinkedin: job.recruiter_linkedin || '',
+                    companyLinkedin: job.company_linkedin || '',
                     postedDate: job.createdAt || job.postedDate,
                 };
             },
@@ -874,20 +874,11 @@ export const hostApi = createApi({
                 const items = response?.notifications || response?.data || response || [];
                 if (!Array.isArray(items)) return [];
 
-                const deletedIds = JSON.parse(localStorage.getItem('deletedNotifications') || '[]');
-                const deleteAllTime = parseInt(localStorage.getItem('deleteAllNotificationsTime') || '0', 10);
-
-                return items
-                    .filter(n => {
-                        const notifId = n.id || n._id;
-                        const notifTime = new Date(n.createdAt || n.created_at || 0).getTime();
-                        return !deletedIds.includes(notifId) && notifTime >= deleteAllTime;
-                    })
-                    .map(n => ({
-                        ...n,
-                        id: n.id || n._id,
-                        is_read: n.is_read !== undefined ? n.is_read : n.read
-                    }));
+                return items.map(n => ({
+                    ...n,
+                    id: n.id || n._id,
+                    is_read: n.is_read !== undefined ? n.is_read : n.read
+                }));
             },
         }),
 
@@ -909,33 +900,19 @@ export const hostApi = createApi({
 
         // Delete single notification
         deleteNotification: builder.mutation({
-            queryFn: async (id, _queryApi, _extraOptions, baseQuery) => {
-                await baseQuery({
-                    url: `notification/${id}`,
-                    method: "DELETE"
-                });
-
-                const deletedIds = JSON.parse(localStorage.getItem('deletedNotifications') || '[]');
-                if (!deletedIds.includes(id)) {
-                    deletedIds.push(id);
-                    localStorage.setItem('deletedNotifications', JSON.stringify(deletedIds));
-                }
-                return { data: { success: true } };
-            },
+            query: (id) => ({
+                url: `notification/${id}`,
+                method: "DELETE",
+            }),
             invalidatesTags: ["Notification"],
         }),
 
         // Delete all notifications
         deleteAllNotifications: builder.mutation({
-            queryFn: async (_, _queryApi, _extraOptions, baseQuery) => {
-                await baseQuery({
-                    url: "notification/",
-                    method: "DELETE"
-                });
-
-                localStorage.setItem('deleteAllNotificationsTime', Date.now().toString());
-                return { data: { success: true } };
-            },
+            query: () => ({
+                url: "notification/",
+                method: "DELETE",
+            }),
             invalidatesTags: ["Notification"],
         }),
 

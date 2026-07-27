@@ -14,9 +14,9 @@ import {
     useUpdatePropertyRulesMutation,
     useUpdatePropertyMediaMutation,
     useUpdatePropertyVideoMutation,
-    useSubmitPropertyMutation,
-    useCreateEventMutation
-} from '@/store/api/hostApi';
+    useSubmitPropertyMutation
+} from '@/store/api/propertyApi';
+import { useCreateEventMutation } from '@/store/api/eventApi';
 
 export function useHostSubmission({
     formData,

@@ -1,17 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useCountry } from '@/context/CountryContext';
-import { useSendOtpMutation, useVerifyOtpMutation } from '@/store/api/authApi';
+import { useSendOtpMutation, useVerifyOtpMutation, useLazyGetMeQuery } from '@/store/api/authApi';
 import { getTermsFor } from '@/shared/utils/host-terms-data';
-import { fetchCurrentUser } from '@/store/slices/authSlice';
 import { useHostSubmission } from '@/features/host/hooks/useHostSubmission';
 import {
     useGetHostProfileQuery,
     useGetPropertyByIdQuery,
     useGetMyListingsQuery
-} from '@/store/api/hostApi';
+} from '@/store/api/propertyApi';
 
 export const STEPS = [
     { title: "Basics", description: "Title, type & capacity" },
@@ -109,7 +108,6 @@ const getFormDataStructure = (type = 'property') => {
 };
 
 export function useHostCreation() {
-    const dispatch = useDispatch();
     const { activeCountry } = useCountry();
     const [searchParams] = useSearchParams();
     const editId = searchParams.get('edit');
@@ -122,6 +120,7 @@ export function useHostCreation() {
 
     const [sendOtp] = useSendOtpMutation();
     const [verifyOtp] = useVerifyOtpMutation();
+    const [triggerGetMe] = useLazyGetMeQuery();
 
     const isExistingHost = !!hostProfile && !isHostError;
 
@@ -341,13 +340,13 @@ export function useHostCreation() {
                 toast.success("Verification Successful! You are logged in.");
                 setIsEmailVerified(true);
                 // Hydrate global auth state
-                dispatch(fetchCurrentUser());
+                triggerGetMe();
                 setShowOtpModal(false);
             } else {
                 if (response.message === "Email verified successfully" || response.success) {
                     toast.success("Email verified.");
                     setIsEmailVerified(true);
-                    dispatch(fetchCurrentUser());
+                    triggerGetMe();
                     setShowOtpModal(false);
                 } else {
                     toast.error(`Verification failed: ${response.message}`);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FaWhatsapp, FaInstagram, FaLinkedin, FaEnvelope, FaPhone } from 'react-icons/fa6';
 import { X, ShieldAlert, ExternalLink, Copy, Check, Sparkles } from 'lucide-react';
 import { getSocialUrl } from '@/shared/utils/socialUtils';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button } from '@/shared/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from "@/shared/utils/utils";

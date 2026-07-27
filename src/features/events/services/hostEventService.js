@@ -1,21 +1,15 @@
-import axios from "axios";
+import { axiosClient } from "@/shared/utils/axiosClient";
+import { API_BASE_URL } from "@/shared/utils/apiConfig";
 
-const API_URL = import.meta.env.PROD
-    ? "https://api.nextkinlife.live"
-    : "/api";
-
-// Helper function for API calls
 export const apiCall = async (endpoint, method = "GET", data = null) => {
     try {
-        const response =
-            await axios({
-                url: `${API_URL}${endpoint}`,
-                method,
-                data,
-                withCredentials: true
-            })
+        const response = await axiosClient({
+            url: endpoint,
+            method,
+            data,
+        });
 
-        return response.data
+        return response.data;
     } catch (error) {
         console.error(
             "API call error:",
@@ -122,21 +116,18 @@ export const hostEventService = {
             }
 
             try {
-                const response =
-                    await axios.put(
-                        `${API_URL}/events/media/${id}`,
-                        mediaFormData,
-                        {
-                            withCredentials: true,
-                            onUploadProgress: (event) => {
-                                if (!event.total) return;
-
-                                const percentComplete = (event.loaded / event.total) * 100;
-                                progressArray[index] = percentComplete;
-                                updateOverallProgress();
-                            }
+                const response = await axiosClient.put(
+                    `/events/media/${id}`,
+                    mediaFormData,
+                    {
+                        onUploadProgress: (event) => {
+                            if (!event.total) return;
+                            const percentComplete = (event.loaded / event.total) * 100;
+                            progressArray[index] = percentComplete;
+                            updateOverallProgress();
                         }
-                    );
+                    }
+                );
 
                 progressArray[index] = 100;
                 updateOverallProgress();

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ArrowLeft, Phone, MessageSquare, Check, User, Mail, Calendar, Shield, Star } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';

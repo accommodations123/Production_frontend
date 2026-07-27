@@ -1,10 +1,10 @@
 
-import React from "react"
 
 
 import { motion } from "framer-motion"
 import { Shield, Eye, UserCheck, AlertTriangle, CheckCircle, HeartHandshake, Phone } from "lucide-react"
 import { Button } from "@/shared/ui/button"
+import { Breadcrumb } from "@/shared/ui/Breadcrumb"
 
 const TrustCard = ({ icon: Icon, title, description, delay }) => (
     <motion.div
@@ -46,6 +46,9 @@ export default function TrustPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                     >
+                        <div className="flex justify-center mb-6">
+                            <Breadcrumb items={[{ label: "Trust & Safety" }]} className="text-white/80" />
+                        </div>
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#E1392A]/20 border border-[#E1392A]/30 text-white text-sm font-medium mb-8">
                             <Shield className="h-4 w-4 text-[#E1392A]" />
                             <span>Your Safety is Our Priority</span>

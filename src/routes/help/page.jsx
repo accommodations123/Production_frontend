@@ -1,10 +1,11 @@
 
-import React, { useState } from "react"
+import { useState } from "react"
 
 
 import { motion, AnimatePresence } from "framer-motion"
 import { Book, MessageSquare, CreditCard, Home, Settings, FileText, Shield, Plus, Minus } from "lucide-react"
 import { Button } from "@/shared/ui/button"
+import { Breadcrumb } from "@/shared/ui/Breadcrumb"
 
 const CategoryCard = ({ icon: Icon, title, description }) => (
     <button
@@ -111,6 +112,9 @@ export default function HelpPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
+                        <div className="flex justify-center mb-6">
+                            <Breadcrumb items={[{ label: "Help & FAQs" }]} className="text-white/80" />
+                        </div>
                         <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
                             How can we <span className="text-[#E1392A]">help you?</span>
                         </h1>

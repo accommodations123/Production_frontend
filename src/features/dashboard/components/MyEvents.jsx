@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { 
   Calendar, Eye, Plus, Search, AlertCircle, 
   Trash2, Users, MapPin, Loader2

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Toaster as SonnerToaster, toast } from 'sonner';
 
 export function ToastProvider() {

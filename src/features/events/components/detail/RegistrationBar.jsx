@@ -1,4 +1,5 @@
-import React, { memo } from "react"
+import { memo } from "react"
+import { useNavigate } from "react-router-dom"
 import { TrendingUp, CheckCircle, Ticket, Clock } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 import { COUNTRIES } from "@/shared/utils/mock-data"
@@ -6,6 +7,7 @@ import { useCountry } from "@/context/CountryContext"
 import { isEventExpired } from "@/shared/utils/eventUtils"
 
 export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave, event, isLoading, errorMessage, successMessage }) => {
+    const navigate = useNavigate()
     const expired = isEventExpired(event)
 
     const getCurrencySymbol = (countryName) => {
@@ -46,7 +48,7 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
                                 </div>
                             </div>
                             <Button
-                                onClick={() => window.location.href = "/events"}
+                                onClick={() => navigate("/events")}
                                 className="font-bold py-3 px-8 rounded-full bg-white text-gray-800 hover:bg-gray-100 transition-all duration-300 shadow-xl"
                             >
                                 Browse Events
@@ -69,7 +71,7 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
                         </div>
                         <div className="p-4 flex items-center justify-center">
                             <Button
-                                onClick={() => window.location.href = "/events"}
+                                onClick={() => navigate("/events")}
                                 className="w-full font-bold py-3 px-6 rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-all duration-300 shadow-lg"
                             >
                                 Browse Upcoming Events

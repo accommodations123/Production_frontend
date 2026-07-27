@@ -1,12 +1,12 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { Calendar, MapPin, Clock } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 import { formatUTCDate } from "@/shared/utils/timezone"
 import { HostPhoto } from "@/features/events/components/HostPhoto"
-import { COUNTRIES } from "@/shared/utils/mock-data"
 import WishlistButton from "@/shared/ui/WishlistButton"
 import { useCountry } from "@/context/CountryContext"
 import { getEventStatus } from "@/shared/utils/eventUtils"
+import { getCurrencySymbol } from "@/shared/utils/countryUtils"
 
 export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
     const status = getEventStatus(event)
@@ -35,22 +35,6 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
     };
 
     const eventImage = getEventImage();
-
-    const getCurrencySymbol = (countryName) => {
-        if (!countryName) return '$';
-        const normalized = (countryName === "United States" || countryName === "United States of America") ? "United States of America" : countryName;
-        const country = COUNTRIES.find(c => c.name === normalized || c.code === normalized);
-        if (!country || !country.currency) return '$';
-
-        try {
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: country.currency,
-            }).formatToParts(0).find(part => part.type === 'currency')?.value || country.currency;
-        } catch (e) {
-            return country.currency;
-        }
-    };
 
     const { activeCountry } = useCountry();
     const targetCountryName = event.country || activeCountry?.name;

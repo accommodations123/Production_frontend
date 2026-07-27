@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { ChevronRight } from "lucide-react"
 
 export const EventsSection = memo(({ category, events, visibleSections, onViewDetails, categoryIndex, onViewAll }) => {

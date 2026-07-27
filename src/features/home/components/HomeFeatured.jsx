@@ -21,11 +21,11 @@ import {
   useGetBuySellListingsQuery,
   useGetPublicTripsQuery
 } from '@/store/api/hostApi';
+import { useGetMeQuery } from '@/store/api/authApi';
 
 import { PropertyCard } from '@/features/home/components/featured/PropertyCard';
 import { EventCard } from '@/features/home/components/featured/EventCard';
-import { MarketplaceCard } from '@/features/marketplace/components/MarketplaceCard';
-import TravelPartnerCard from '@/features/travel/components/TravelPartnerCard';
+import { MarketplaceCard, TravelPartnerCard } from '@/shared/components/cards';
 
 const formatEventDate = (evt) => {
   const dateStr = evt.event_date || evt.date || evt.start_date;
@@ -53,7 +53,8 @@ const formatEventDate = (evt) => {
 
 export function HomeFeatured() {
   const navigate = useNavigate();
-  const isAuthenticated = !!localStorage.getItem('user');
+  const { data: currentUser } = useGetMeQuery();
+  const isAuthenticated = !!currentUser;
   const { activeCountry } = useCountry();
 
   // Selected Tab for Real-Time Community Listings Section

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { CATEGORIES } from '@/shared/utils/mock-data';
 import { toast } from 'sonner';
 import { Check, AlertCircle, FileText, MapPin, DollarSign, Image, Sparkles, ShieldCheck } from 'lucide-react';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 
 // Import New Hook & Components
 import { useHostCreation } from '@/features/host/hooks/useHostCreation';
@@ -156,15 +157,14 @@ export default function HostCreatePage() {
             
 
             <div className="w-full max-w-7xl mx-auto px-4 pt-6 sm:pt-8 sm:px-6 lg:px-8 space-y-6">
-                {/* Top Return Header */}
-                <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-                    <button
-                        type="button"
-                        onClick={() => navigate("/search")}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold text-[#00142E] bg-white border border-gray-200 hover:bg-gray-50 transition-all shadow-xs cursor-pointer active:scale-95"
-                    >
-                        <span>← Back to Accommodations Directory</span>
-                    </button>
+                {/* Top Return Header & Breadcrumbs */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 pb-4">
+                    <Breadcrumb
+                        items={[
+                            { label: 'Accommodations', path: '/search' },
+                            { label: isEdit ? 'Edit Property' : 'Host Space' }
+                        ]}
+                    />
                     <span className="text-xs font-bold text-gray-400">Host Accommodation</span>
                 </div>
 

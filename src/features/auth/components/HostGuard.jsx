@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useGetMeQuery } from '@/store/api/authApi';
 import { useGetHostProfileQuery } from '@/store/api/hostApi';

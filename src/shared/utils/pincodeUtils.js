@@ -1,37 +1,25 @@
-import axios from "axios";
+// Fetch city/state/country from a 6-digit Indian pincode via the public postalpincode API.
+// Falls back gracefully — the caller should handle null gracefully.
 
-/**
- * Utility to fetch address details (City, State, Country) from an Indian Pincode.
- * Uses the free Post Office API (api.postalpincode.in).
- * 
- * @param {string} pincode - 6-digit Indian pincode
- * @returns {Promise<{city: string, state: string, country: string} | null>}
- */
+const PINCODE_API = "https://api.postalpincode.in/pincode";
+
 export async function fetchAddressByPincode(pincode) {
-    if (!pincode || pincode.length !== 6 || !/^\d+$/.test(pincode)) {
-        return null;
-    }
+  if (!pincode || !/^\d{6}$/.test(String(pincode))) return null;
 
-    try {
-        const response =
-            await axios.get(
-                `https://api.postalpincode.in/pincode/${pincode}`,
-                { timeout: 5000 }
-            );
+  try {
+    const res = await fetch(`${PINCODE_API}/${pincode}`);
+    if (!res.ok) return null;
 
-        const data = response.data;
+    const [data] = await res.json();
+    if (data?.Status !== "Success" || !data.PostOffice?.length) return null;
 
-        if (data && data[0].Status === "Success" && data[0].PostOffice?.length > 0) {
-            const details = data[0].PostOffice[0];
-            return {
-                city: details.District || details.Block || "",
-                state: details.State || "",
-                country: details.Country || "India"
-            };
-        }
-        return null;
-    } catch (error) {
-        console.error("Error fetching pincode details:", error);
-        return null;
-    }
+    const po = data.PostOffice[0];
+    return {
+      city: po.District || "",
+      state: po.State || "",
+      country: po.Country || "India",
+    };
+  } catch {
+    return null;
+  }
 }

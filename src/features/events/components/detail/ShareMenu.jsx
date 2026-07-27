@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { Facebook, Linkedin, Copy, Check } from "lucide-react"
 
 const XIcon = ({ size = 16 }) => (

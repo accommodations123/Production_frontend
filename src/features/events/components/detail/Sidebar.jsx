@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo } from "react"
+import { useState, useMemo, memo } from "react"
 import { Users, Check, MessageCircle, UserPlus, MapPin, Video, Monitor } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 import { toast } from "sonner"
@@ -14,7 +14,7 @@ export const Sidebar = memo(({ event }) => {
     const handleContactHost = () => {
         if (event?.host?.phone) {
             const cleanPhone = event.host.phone.replace(/\D/g, '');
-            window.open(`https://wa.me/${cleanPhone}`, '_blank');
+            window.open(`https://wa.me/${cleanPhone}`, '_blank', 'noopener,noreferrer');
         } else {
             toast.error("Host contact number not available");
         }
@@ -27,7 +27,7 @@ export const Sidebar = memo(({ event }) => {
     const handleOpenMaps = () => {
         const url = getMapsUrl();
         if (url) {
-            window.open(url, '_blank');
+            window.open(url, '_blank', 'noopener,noreferrer');
         } else {
             toast.error("Event location details not available");
         }
@@ -134,7 +134,7 @@ export const Sidebar = memo(({ event }) => {
                     </p>
                     {event.event_mode === 'online' && event.event_url && (
                         <Button
-                            onClick={() => window.open(event.event_url.trim(), '_blank')}
+                            onClick={() => window.open(event.event_url.trim(), '_blank', 'noopener,noreferrer')}
                             className="w-full bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-xl rounded-2xl"
                         >
                             Join Event

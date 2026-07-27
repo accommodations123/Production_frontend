@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { ChevronDown, Search } from 'lucide-react'
 
 const SEARCHABLE_THRESHOLD = 6

@@ -5,13 +5,9 @@ import { CountryCodeSelect } from "@/shared/ui/CountryCodeSelect"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import axios from "axios"
+import { axiosClient } from "@/shared/utils/axiosClient"
 import { contactSchema } from "@/shared/schemas/contact.schema"
 import { TextField, TextareaField, SelectField, CheckboxField } from "@/shared/ui/form-fields"
-
-const API_BASE = import.meta.env.PROD
-    ? 'https://api.nextkinlife.live'
-    : '/api';
 
 export function ContactForm() {
     const [phoneCode, setPhoneCode] = useState("+91");
@@ -47,8 +43,8 @@ export function ContactForm() {
             setSending(true);
             setError("");
 
-            await axios.post(
-                `${API_BASE}/contact/submit`,
+            await axiosClient.post(
+                "contact/submit",
                 {
                     firstName: data.firstName,
                     lastName: data.lastName,

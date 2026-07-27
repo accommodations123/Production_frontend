@@ -1,4 +1,3 @@
-import React from "react"
 import { MapPin } from "lucide-react"
 import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"

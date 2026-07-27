@@ -1,16 +1,15 @@
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { MarketplaceLayout } from "@/features/marketplace/components/MarketplaceLayout";
 import { FilterPanel } from "@/features/marketplace/components/FilterPanel";
 import { MarketplaceCard } from "@/features/marketplace/components/MarketplaceCard";
 import { SellForm } from "@/features/marketplace/components/SellForm";
 import ProductDetailView from "@/features/marketplace/components/ProductDetailView";
 
-import { VerificationModal } from "@/features/marketplace/components/VerificationModal";
 import { ShieldCheck, Zap, Tag } from "lucide-react";
 import { useCountry } from "@/context/CountryContext";
 import { Button } from "@/shared/ui/button";
-import { useGetBuySellListingsQuery, useGetBuySellByIdQuery } from "@/store/api/hostApi";
+import { useGetBuySellListingsQuery, useGetBuySellByIdQuery } from "@/store/api/marketplaceApi";
 import { useGetMeQuery } from "@/store/api/authApi";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import HostGuard from "@/features/auth/components/HostGuard";
@@ -67,7 +66,6 @@ export default function MarketplacePage() {
 
   const [viewProduct, setViewProduct] = useState(null);
   const [prevProductFromUrl, setPrevProductFromUrl] = useState(null);
-  const [isVerificationOpen, setIsVerificationOpen] = useState(false);
   // products state is now managed by RTK Query
   const { data: productsData, isLoading: loading, error, refetch } = useGetBuySellListingsQuery({
     country: filters.country || activeCountry?.name,
@@ -99,6 +97,13 @@ export default function MarketplacePage() {
       setSearchParams({});
     }
   }, [filters]); // only reset on filter change; do NOT depend on productIdFromUrl or clicking a card would instantly clear the view
+
+  // Scroll to top when viewing product details
+  useEffect(() => {
+    if (viewProduct) {
+      window.scrollTo(0, 0);
+    }
+  }, [viewProduct]);
 
   // Clear URL param when closing product view
   const handleBackFromProduct = () => {
@@ -158,6 +163,7 @@ export default function MarketplacePage() {
         <MarketplaceLayout
           activeTab={activeTab}
           onTabChange={handleTabChange}
+          hideHero={!!viewProduct}
         >
           {/* ================= BUY TAB ================= */}
           {activeTab === "buy" && (
@@ -237,17 +243,6 @@ export default function MarketplacePage() {
           )}
         </MarketplaceLayout>
       </div>
-
-
-
-      <VerificationModal
-        isOpen={isVerificationOpen}
-        onClose={() => setIsVerificationOpen(false)}
-        onComplete={() => {
-          setIsVerificationOpen(false);
-          alert("Verification Complete. Listing is live.");
-        }}
-      />
 
       </>
     </div>

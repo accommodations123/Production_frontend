@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from "react"
+import { memo, useMemo } from "react"
 import { Clock } from "lucide-react"
 
 export const ScheduleTab = memo(({ event, visibleSections }) => {

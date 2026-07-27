@@ -116,8 +116,13 @@ export const getSocialUrl = (platform, value) => {
       return `https://mail.google.com/mail/?view=cm&fs=1&to=${trimmed}`;
     }
 
-    default:
+    default: {
+      if (/^javascript:/i.test(trimmed) || /^data:/i.test(trimmed)) return "";
+      if (!/^https?:\/\//i.test(trimmed) && !/^(mailto:|tel:)/i.test(trimmed)) {
+        return `https://${trimmed}`;
+      }
       return trimmed;
+    }
   }
 };
 

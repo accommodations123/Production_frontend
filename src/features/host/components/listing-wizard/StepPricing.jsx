@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import { useMemo, useEffect } from 'react';
 import { DollarSign, Ticket, Wallet } from 'lucide-react';
 import { COUNTRIES } from '@/shared/utils/mock-data';
 

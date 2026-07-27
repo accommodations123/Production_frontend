@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Calendar, MapPin, ArrowRight, Clock, Users, Heart, Globe, Star, TrendingUp, Share2 } from "lucide-react"
 import { Link } from "react-router-dom"

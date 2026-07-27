@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 
 const TabButton = memo(({ tab, activeTab, onClick }) => (
     <button

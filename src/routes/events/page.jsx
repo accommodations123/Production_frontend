@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 
 
 import { EVENT_CATEGORIES } from "@/shared/utils/mock-events"
 import { TrendingUp, Sparkles, ChevronRight } from "lucide-react"
-import { useGetApprovedEventsQuery } from "@/store/api/hostApi"
+import { useGetApprovedEventsQuery } from "@/store/api/eventApi"
 import { useCountry } from "@/context/CountryContext"
 import { filterUpcomingEvents } from "@/shared/utils/eventUtils"
 

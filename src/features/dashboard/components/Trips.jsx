@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { useGetMyTripsQuery, useLazySearchTripsQuery, useTravelMatchActionMutation } from '@/store/api/authApi';
+import { useState } from 'react';
+import { useGetMyTripsQuery, useLazySearchTripsQuery } from '@/store/api/hostApi';
+import { useTravelMatchActionMutation } from '@/store/api/travelApi';
 import { useGetHostProfileQuery } from "@/store/api/hostApi";
 import {
   Calendar, Clock, Plane, UserPlus, Check, X,
@@ -125,7 +126,7 @@ const MatchFinder = ({ trip, onClose }) => {
 };
 
 export const Trips = () => {
-  const { data, isLoading, isError } = useGetMyTripsQuery();
+  const { data, isLoading, isError, refetch } = useGetMyTripsQuery();
   const { data: hostProfile } = useGetHostProfileQuery();
   const [sendAction] = useTravelMatchActionMutation();
   const navigate = useNavigate();
@@ -195,7 +196,7 @@ export const Trips = () => {
         <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3 animate-bounce" />
         <h4 className="font-extrabold text-red-700">Failed to load trips</h4>
         <p className="text-xs text-red-600/70 mt-1">Please try reloading the page to fetch itineraries.</p>
-        <Button onClick={() => window.location.reload()} className="mt-4 bg-red-600 text-white rounded-xl">Reload Page</Button>
+        <Button onClick={() => refetch()} className="mt-4 bg-red-600 text-white rounded-xl">Reload Page</Button>
       </div>
     );
   }

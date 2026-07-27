@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MessageSquareCode, ShieldCheck, BellRing, Save } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { VerificationBadge } from '@/shared/ui/VerificationBadge';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { notify } from '@/shared/ui/toast';
 
 export function SettingsPage() {
@@ -26,8 +27,13 @@ export function SettingsPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FB] py-12 px-4 sm:px-6 lg:px-8 text-[#00162D] text-left">
       <div className="max-w-3xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="space-y-1">
+        {/* Breadcrumb & Header */}
+        <div className="space-y-3">
+          <Breadcrumb
+            items={[
+              { label: "Settings" }
+            ]}
+          />
           <h1 className="text-3xl font-black tracking-tight text-[#00162D]">
             Account & Direct Contact Settings
           </h1>

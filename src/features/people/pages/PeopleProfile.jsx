@@ -1,10 +1,11 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Navbar } from "@/shared/layout/Navbar";
-import { Footer } from "@/shared/layout/Footer";
+import Footer from "@/shared/layout/Footer";
 import { MOCK_PEOPLE } from "../data/people";
 import { Star, MapPin, ShieldCheck, Mail, Send, Award, Languages, Image, ArrowLeft, Calendar, HelpCircle } from "lucide-react";
 import { Button } from "@/shared/ui/button";
+import { Breadcrumb } from "@/shared/ui/Breadcrumb";
 import { toast } from "sonner";
 
 export default function PeopleProfile() {
@@ -12,8 +13,12 @@ export default function PeopleProfile() {
 
   // Load dynamically from localStorage/mock data
   const peopleList = useMemo(() => {
-    const saved = localStorage.getItem("kinlife_people");
-    return saved ? JSON.parse(saved) : MOCK_PEOPLE;
+    try {
+      const saved = localStorage.getItem("kinlife_people");
+      return saved ? JSON.parse(saved) : MOCK_PEOPLE;
+    } catch {
+      return MOCK_PEOPLE;
+    }
   }, []);
 
   // Find target advisor
@@ -99,7 +104,15 @@ export default function PeopleProfile() {
         </div>
 
         {/* Main Details Wrapper Grid */}
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 -mt-24 pb-16 relative z-10">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 -mt-24 pb-16 relative z-10 space-y-4">
+          <div className="bg-white/90 backdrop-blur-md rounded-xl p-3 border border-slate-200/80 shadow-xs">
+            <Breadcrumb
+              items={[
+                { label: "People & Experts", path: "/people" },
+                { label: person.name || "Advisor Profile" }
+              ]}
+            />
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
             {/* Left side details block */}

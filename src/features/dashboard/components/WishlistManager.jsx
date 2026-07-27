@@ -1,17 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useGetWishlistQuery } from '@/store/api/hostApi';
-import { PropertyCard } from '@/features/home/components/featured/PropertyCard';
-import { EventCard } from '@/features/events/components/EventCard';
-import { ProductCard } from '@/features/marketplace/components/ProductCard';
-import TripCard from '@/features/travel/components/TripCard';
+import { PropertyCard, EventCard, ProductCard, TripCard } from '@/shared/components/cards';
 import { Heart, ShoppingBag, Calendar, Home, Plane } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { cn } from "@/shared/utils/utils";
 import { resolveImageUrl } from '@/shared/utils/imageUtils';
 import { CardSkeleton } from "@/shared/ui/Skeleton";
 import { EmptyState } from "@/shared/ui/EmptyState";
 
 export function WishlistManager() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('property');
   const [page, setPage] = useState(1);
 
@@ -106,7 +104,7 @@ export function WishlistManager() {
                     return (
                       <EventCard
                         event={normalizedEvent}
-                        onViewDetails={(id) => window.location.href = `/events/${id}`}
+                        onViewDetails={(id) => navigate(`/events/${id}`)}
                       />
                     );
                   }

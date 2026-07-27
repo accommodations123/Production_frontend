@@ -1,12 +1,6 @@
 import { useState, useMemo } from 'react';
 
-/**
- * Custom hook for client-side pagination.
- * 
- * @param {Array} items - The full list of items to paginate
- * @param {number} itemsPerPage - Number of items to show per page
- * @returns {Object} Pagination state and controls
- */
+// Client-side pagination hook. Returns current page slice and navigation controls.
 export function usePagination(items = [], itemsPerPage = 12) {
     const [currentPage, setCurrentPage] = useState(1);
 

@@ -5,6 +5,7 @@ import {
   Star, ChevronRight, ChevronDown, ChevronUp, Flag, AlertTriangle, Shield, ArrowRight, CheckCircle, Phone, Mail
 } from "lucide-react";
 import WishlistButton from "@/shared/ui/WishlistButton";
+import { Breadcrumb } from "@/shared/ui/Breadcrumb";
 import { useCountry } from "@/context/CountryContext";
 import { useGetBuySellByIdQuery, useGetBuySellListingsQuery } from "@/store/api/hostApi";
 import { toast } from "sonner";
@@ -122,7 +123,7 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
 
   const handleContact = () => {
     if (product.sellerPhone) {
-      window.open(`https://wa.me/${product.sellerPhone.replace(/\D/g, "")}`, "_blank");
+      window.open(`https://wa.me/${product.sellerPhone.replace(/\D/g, "")}`, "_blank", "noopener,noreferrer");
     } else if (product.sellerEmail) {
       window.open(`mailto:${product.sellerEmail}`);
     } else {
@@ -193,7 +194,7 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
           <button
             onClick={() => {
               const cleanNumber = product.sellerPhone.replace(/\D/g, '');
-              window.open(`https://wa.me/${cleanNumber}`, '_blank');
+              window.open(`https://wa.me/${cleanNumber}`, '_blank', 'noopener,noreferrer');
             }}
             className="w-full h-12 bg-[#E1392A] hover:bg-[#C82E20] text-white font-extrabold rounded-xl text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm shadow-[#E1392A]/10 active:scale-[0.98]"
           >
@@ -251,21 +252,17 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
   return (
     <div className="pt-2 bg-[#FAFBFD] min-h-screen" style={{ fontFamily: BODY_FONT }}>
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        
+
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-xs font-bold text-[#717171] mb-6">
-          <button onClick={onBack} className="hover:text-[#E1392A] transition-colors">Home</button>
-          <ChevronRight size={12} className="text-slate-300" />
-          <button onClick={onBack} className="hover:text-[#E1392A] transition-colors">Marketplace</button>
-          {product.category && (
-            <>
-              <ChevronRight size={12} className="text-slate-300" />
-              <button onClick={onBack} className="hover:text-[#E1392A] transition-colors">{product.category}</button>
-            </>
-          )}
-          <ChevronRight size={12} className="text-slate-300" />
-          <span className="text-[#222222] truncate max-w-[240px]">{product.title}</span>
-        </nav>
+        <div className="mb-4">
+          <Breadcrumb
+            items={[
+              { label: "Marketplace", path: "/marketplace" },
+              ...(product.category ? [{ label: product.category, path: `/marketplace?category=${encodeURIComponent(product.category)}` }] : []),
+              { label: product.title }
+            ]}
+          />
+        </div>
 
         {/* ── Top section: gallery + sidebar ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
@@ -274,13 +271,13 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
           <div className="lg:col-span-7 min-w-0 space-y-3">
             <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden relative shadow-[0_4px_24px_rgba(0,0,0,0.015)]">
               <div className="relative h-[280px] sm:h-[420px] w-full">
-                <img 
-                  src={mainImage} 
-                  alt={product.title} 
-                  onError={() => setImgError(true)} 
-                  className="w-full h-full object-cover transition-all duration-300" 
+                <img
+                  src={mainImage}
+                  alt={product.title}
+                  onError={() => setImgError(true)}
+                  className="w-full h-full object-cover transition-all duration-300"
                 />
-                
+
                 {/* Floating controls */}
                 <div className="absolute top-4 left-4 flex gap-2 z-10">
                   {product.condition && (
@@ -292,19 +289,19 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
 
                 <div className="absolute top-4 right-4 flex gap-2.5 z-10">
                   <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-slate-100">
-                    <WishlistButton 
-                      itemId={product.id || product._id} 
-                      itemType="buysell" 
-                      className="h-full w-full flex items-center justify-center cursor-pointer" 
-                      iconSize={14} 
-                      outlineColor="text-[#222222]" 
-                      filledColor="fill-[#E1392A] text-[#E1392A]" 
+                    <WishlistButton
+                      itemId={product.id || product._id}
+                      itemType="buysell"
+                      className="h-full w-full flex items-center justify-center cursor-pointer"
+                      iconSize={14}
+                      outlineColor="text-[#222222]"
+                      filledColor="fill-[#E1392A] text-[#E1392A]"
                     />
                   </div>
                   <button onClick={copyLink} className="p-2 bg-white rounded-full shadow-sm border border-slate-100 hover:bg-slate-50 text-[#484848] hover:text-[#222222] transition-all cursor-pointer" title="Share Link">
                     <Share2 size={14} />
                   </button>
-                  <button onClick={() => window.open(mainImage, "_blank")} className="p-2 bg-white rounded-full shadow-sm border border-slate-100 hover:bg-slate-50 text-[#484848] hover:text-[#222222] transition-all cursor-pointer" title="Zoom Image">
+                  <button onClick={() => window.open(mainImage, "_blank", "noopener,noreferrer")} className="p-2 bg-white rounded-full shadow-sm border border-slate-100 hover:bg-slate-50 text-[#484848] hover:text-[#222222] transition-all cursor-pointer" title="Zoom Image">
                     <ZoomIn size={14} />
                   </button>
                 </div>
@@ -321,8 +318,8 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
             {images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto scrollbar-none py-1">
                 {images.map((img, i) => (
-                  <button 
-                    key={i} 
+                  <button
+                    key={i}
                     onClick={() => { setActiveImg(i); setImgError(false); }}
                     className={`w-20 h-16 rounded-xl border-2 overflow-hidden shrink-0 transition-all cursor-pointer ${i === activeImg ? "border-[#E1392A]" : "border-slate-200 hover:border-slate-900"}`}
                   >
@@ -336,7 +333,7 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
           {/* Product Sidebar Column (col-span-5) */}
           <div className="lg:col-span-5">
             <div className="bg-white rounded-2xl border border-slate-200/60 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.02)] space-y-6">
-              
+
               {/* Product Info details */}
               <div>
                 <div className="flex flex-wrap items-center gap-1.5 mb-2.5">
@@ -347,9 +344,9 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
                   )}
                   {product.category && <Badge variant="default">{product.category}</Badge>}
                 </div>
-                
+
                 <h1 className="text-xl sm:text-2xl font-extrabold text-[#222222] mb-2 leading-tight">{product.title}</h1>
-                
+
                 <div className="flex flex-wrap items-center gap-2.5 text-xs font-semibold text-[#484848]">
                   <span className="flex items-center gap-1"><MapPin size={12} className="text-slate-400" /> {product.location}</span>
                   <span className="text-slate-350">•</span>
@@ -417,7 +414,7 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
                   </div>
                 </div>
 
-                <button 
+                <button
                   onClick={scrollToSeller}
                   className="px-3.5 py-1.5 text-xs font-bold rounded-xl border border-slate-200 text-[#484848] bg-white hover:bg-slate-50 hover:border-slate-350 transition-all cursor-pointer"
                 >
@@ -432,10 +429,10 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
 
         {/* ── Below the fold layout: details + safety (col-span-8 and col-span-4) ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* Main Details (col-span-8) */}
           <div className="lg:col-span-8 space-y-6">
-            
+
             {/* Specifications Card */}
             <div className="bg-white rounded-2xl border border-slate-200/60 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.015)]">
               <h2 className="font-extrabold text-[#222222] text-base mb-4">Specifications</h2>
@@ -470,7 +467,7 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
             {/* Pickup Location Card with Figma Road Map */}
             <div className="bg-white rounded-2xl border border-slate-200/60 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.015)]">
               <h2 className="font-extrabold text-[#222222] text-base mb-4">Pickup Location</h2>
-              
+
               {/* Figma Map Blueprint */}
               <div
                 className="w-full rounded-2xl border border-slate-200 overflow-hidden relative shadow-inner"
@@ -531,8 +528,8 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {related.map((item) => (
-                    <button 
-                      key={item.id || item._id} 
+                    <button
+                      key={item.id || item._id}
                       onClick={() => openRelated(item)}
                       className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden group hover:shadow-[0_12px_24px_rgba(0,0,0,0.03)] transition-all text-left flex flex-col h-full cursor-pointer"
                     >
@@ -553,11 +550,11 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
                             <span className="text-sm font-extrabold text-[#222222] shrink-0">{formatPrice(item.price || 0)}</span>
                           </div>
                           <div className="flex items-center gap-1 text-xs text-[#717171] font-semibold mb-3">
-                            <MapPin size={11} /> 
+                            <MapPin size={11} />
                             <span className="line-clamp-1">{item.location || [item.city, item.country].filter(Boolean).join(", ")}</span>
                           </div>
                         </div>
-                        
+
                         <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
                           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{item.category || "Item"}</span>
                           {(item.sellerRating || item.rating) && (
@@ -578,7 +575,7 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
 
           {/* Sidebar right column (col-span-4) */}
           <div className="lg:col-span-4 space-y-4">
-            
+
             {/* Full Seller Information Card */}
             <div id="seller-info" className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-[0_8px_32px_rgba(0,0,0,0.015)] space-y-4">
               <h3 className="font-extrabold text-[#222222] text-sm mb-1">Seller Information</h3>
@@ -670,9 +667,9 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
           </div>
         </div>
         <div className="flex-1 max-w-[200px]">
-          <button 
-            onClick={handleContact} 
-            className="w-full py-2.5 text-sm font-bold rounded-xl text-white hover:bg-[#C82E20] transition-colors shadow-sm cursor-pointer" 
+          <button
+            onClick={handleContact}
+            className="w-full py-2.5 text-sm font-bold rounded-xl text-white hover:bg-[#C82E20] transition-colors shadow-sm cursor-pointer"
             style={{ backgroundColor: RED }}
           >
             Contact

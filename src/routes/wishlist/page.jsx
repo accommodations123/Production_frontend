@@ -1,13 +1,16 @@
 
-import React, { useState } from 'react';
-import { useGetWishlistQuery } from '@/store/api/hostApi';
+import { useState } from 'react';
+import { useGetWishlistQuery } from '@/store/api/wishlistApi';
 import { PropertyCard } from '@/features/home/components/featured/PropertyCard';
 import { EventCard } from '@/features/events/components/EventCard';
 import { MarketplaceCard } from '@/features/marketplace/components/MarketplaceCard';
 import TravelPartnerCard from '@/features/travel/components/TravelPartnerCard';
 import { Loader2, Heart, ShoppingBag, Calendar, Home, Plane } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { resolveImageUrl } from '@/shared/utils/imageUtils';
+import { extractSocials } from '@/shared/utils/socialExtract';
+import { normalizeCountryName } from '@/shared/utils/countryUtils';
 
 export default function WishlistPage() {
     const [activeTab, setActiveTab] = useState('property');
@@ -62,6 +65,7 @@ export default function WishlistPage() {
                     switch (activeTab) {
                         case 'property': {
                             // Normalize data for PropertyCard
+                            const propertySocials = extractSocials(details);
                             const normalizedProperty = {
                                 ...details,
                                 id: details.id || details._id,
@@ -77,12 +81,12 @@ export default function WishlistPage() {
                                 // Ensure host object has necessary social fields
                                 host: {
                                     ...(details.host || details.Host || details.creator || {}),
-                                    whatsapp: details.whatsapp || details.phone || details.contact || details.mobile || details.host?.whatsapp || details.Host?.whatsapp,
-                                    phone: details.phone || details.contact || details.mobile || details.host?.phone
+                                    whatsapp: propertySocials.whatsapp,
+                                    phone: propertySocials.phone
                                 },
                                 // Top level fallbacks
-                                phone: details.phone || details.contact || details.mobile,
-                                whatsapp: details.whatsapp || details.phone || details.contact
+                                phone: propertySocials.phone,
+                                whatsapp: propertySocials.whatsapp
                             };
                             return <PropertyCard key={item.id} property={normalizedProperty} />;
                         }
@@ -94,67 +98,8 @@ export default function WishlistPage() {
                             return <MarketplaceCard key={item.id} product={details} />;
 
                         case 'trip': {
-                            const normalizeCountry = (c) => {
-                                if (!c) return "";
-                                const lower = c.toLowerCase().trim();
-                                if (lower === "united states" || lower === "usa" || lower === "us" || lower === "united states of america") {
-                                    return "United States of America";
-                                }
-                                return c;
-                            };
-
-                            const getVal = (val) => {
-                                if (val === undefined || val === null) return "";
-                                return String(val).trim();
-                            };
-
-                            const socials = {
-                                whatsapp: getVal(
-                                    details.host?.whatsapp ||
-                                    details.host?.phone ||
-                                    details.host?.User?.phone ||
-                                    details.user?.whatsapp ||
-                                    details.user?.phone ||
-                                    details.user?.User?.phone ||
-                                    details.whatsapp ||
-                                    details.phone ||
-                                    ""
-                                ),
-                                email: getVal(
-                                    details.host?.email ||
-                                    details.host?.User?.email ||
-                                    details.user?.email ||
-                                    details.user?.User?.email ||
-                                    details.email ||
-                                    ""
-                                ),
-                                instagram: getVal(
-                                    details.host?.instagram ||
-                                    details.host?.User?.instagram ||
-                                    details.user?.instagram ||
-                                    details.user?.User?.instagram ||
-                                    details.instagram ||
-                                    ""
-                                ),
-                                facebook: getVal(
-                                    details.host?.facebook ||
-                                    details.host?.User?.facebook ||
-                                    details.user?.facebook ||
-                                    details.user?.User?.facebook ||
-                                    details.facebook ||
-                                    ""
-                                ),
-                                twitter: getVal(
-                                    details.host?.twitter ||
-                                    details.host?.x ||
-                                    details.host?.User?.twitter ||
-                                    details.user?.twitter ||
-                                    details.user?.x ||
-                                    details.user?.User?.twitter ||
-                                    details.twitter ||
-                                    ""
-                                )
-                            };
+                            const normalizeCountry = (c) => normalizeCountryName(c);
+                            const socials = extractSocials(details);
 
                             let fullName = "Traveler";
                             if (details.host?.full_name) {
@@ -224,8 +169,8 @@ export default function WishlistPage() {
 
     return (
         <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-10 space-y-6">
-            {/* RootLayout owns page width, gutters, vertical rhythm, and navbar clearance. */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 sm:mb-8 gap-3 sm:gap-4">
+            <Breadcrumb items={[{ label: 'Saved Wishlist' }]} />
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 sm:mb-8 gap-3 sm:gap-4">
                     <div>
                         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
                             Your Wishlist <Heart className="text-red-500 fill-red-500" />

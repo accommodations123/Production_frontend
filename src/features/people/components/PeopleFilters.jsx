@@ -1,4 +1,3 @@
-import React from "react";
 import { Grid, Shield, Home, Landmark, Briefcase, Languages, Terminal, MapPin, Star, ShieldCheck, RefreshCw } from "lucide-react";
 import { PEOPLE_CATEGORIES } from "../data/categories";
 

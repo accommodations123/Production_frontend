@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { Heart } from 'lucide-react';
 import { useCheckWishlistStatusQuery, useToggleWishlistMutation } from '@/store/api/hostApi';

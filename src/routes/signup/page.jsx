@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Mail, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import TextInput from '@/features/auth/components/TextInput';
 import Button from '@/features/auth/components/Button';
-import { useDispatch } from 'react-redux';
-import { sendOtp, verifyOtp, fetchCurrentUser } from '@/store/slices/authSlice';
+import { useSendOtpMutation, useVerifyOtpMutation, useLazyGetMeQuery } from '@/store/api/authApi';
 
 const Signup = () => {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -19,8 +18,9 @@ const Signup = () => {
         confirmPassword: '',
     });
 
-    const [isSendingOtp, setIsSendingOtp] = useState(false);
-    const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+    const [sendOtp, { isLoading: isSendingOtp }] = useSendOtpMutation();
+    const [verifyOtp, { isLoading: isVerifyingOtp }] = useVerifyOtpMutation();
+    const [triggerGetMe] = useLazyGetMeQuery();
 
     const [otpSent, setOtpSent] = useState(false);
 
@@ -31,22 +31,19 @@ const Signup = () => {
 
     const handleSendOtp = async () => {
         if (!formData.email) {
-            alert("Please enter an email address first.");
+            toast.error("Please enter an email address first.");
             return;
         }
-        setIsSendingOtp(true);
         try {
-            await dispatch(sendOtp({
+            await sendOtp({
                 email: formData.email,
                 phone: "0000000000" // Backend requires phone field currently
-            })).unwrap();
+            }).unwrap();
             setOtpSent(true);
-            alert("OTP sent to your email!");
+            toast.success("OTP sent to your email!");
         } catch (error) {
             console.error("Failed to send OTP:", error);
-            alert(error || "Failed to send OTP. Please try again.");
-        } finally {
-            setIsSendingOtp(false);
+            toast.error(error?.data?.message || "Failed to send OTP. Please try again.");
         }
     };
 
@@ -54,31 +51,28 @@ const Signup = () => {
         e.preventDefault();
 
         if (!formData.otp) {
-            alert("Please enter the verification code sent to your email.");
+            toast.error("Please enter the verification code sent to your email.");
             return;
         }
 
-        setIsVerifyingOtp(true);
         try {
-            const response = await dispatch(verifyOtp({
+            const response = await verifyOtp({
                 email: formData.email,
                 otp: formData.otp
-            })).unwrap();
+            }).unwrap();
 
             if (response) {
-                dispatch(fetchCurrentUser());
-                alert("Account verified successfully!");
+                await triggerGetMe();
+                toast.success("Account verified successfully!");
                 navigate("/"); // Redirect to home, Navbar will refresh auth via getMe query
             } else {
-                alert("Verified, but login failed. Please try logging in.");
+                toast.info("Verified, but login failed. Please try logging in.");
                 navigate("/signin");
             }
 
         } catch (error) {
             console.error("Verification Error:", error);
-            alert(error || "Wrong OTP. Please try again.");
-        } finally {
-            setIsVerifyingOtp(false);
+            toast.error(error?.data?.message || "Wrong OTP. Please try again.");
         }
     };
 

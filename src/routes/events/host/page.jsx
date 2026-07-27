@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom"
 import { Button } from "@/shared/ui/button"
 import { AlertCircle, Loader2, Calendar } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
+import { Breadcrumb } from "@/shared/ui/Breadcrumb"
 
 // Components
 import { StepIndicator } from "@/features/events/components/host/StepIndicator"
@@ -13,7 +14,7 @@ import { SuccessState } from "@/features/events/components/host/SuccessState"
 
 // Hooks
 import { useHostEvent } from "@/features/events/hooks/useHostEvent"
-import { useGetHostProfileQuery } from "@/store/api/hostApi"
+import { useGetHostProfileQuery } from "@/store/api/propertyApi"
 import { useGetMeQuery } from "@/store/api/authApi"
 
 export default function HostEventPage() {
@@ -81,15 +82,14 @@ export default function HostEventPage() {
       
       <div className="w-full max-w-5xl mx-auto space-y-5">
         
-        {/* Top Return Header */}
-        <div className="flex items-center justify-between border-b border-gray-200/80 pb-4">
-          <button
-            type="button"
-            onClick={() => navigate("/events")}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold text-[#00142E] bg-white border border-gray-200 hover:bg-gray-50 transition-all shadow-xs cursor-pointer active:scale-95"
-          >
-            <span>← Back to Events Directory</span>
-          </button>
+        {/* Top Return Header & Breadcrumb */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200/80 pb-4">
+          <Breadcrumb
+            items={[
+              { label: "Events", path: "/events" },
+              { label: isEdit ? "Edit Event" : "Host Event" }
+            ]}
+          />
           <span className="text-xs font-bold text-gray-400">Host an Event</span>
         </div>
 

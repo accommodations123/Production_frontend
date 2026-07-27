@@ -33,4 +33,10 @@ dist-ssr
 *.sln
 *.sw?
 .agents
-.kiro
+.kiro
+.agents
+.codex
+.vscode
+CLAUDE.md
+DESIGN.md
+skills-lock.json

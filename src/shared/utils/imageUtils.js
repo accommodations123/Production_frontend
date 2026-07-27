@@ -1,14 +1,4 @@
-/**
- * Resolves an image path to a full URL.
- * 
- * The backend sometimes returns just an S3 key (e.g. "properties/abc.jpeg")
- * or a raw S3 URL instead of the full CloudFront URL. This helper ensures
- * we always get a valid, absolute URL for image sources.
- * 
- * @param {string|null} imagePath - The image path or URL from the API
- * @param {string} [fallback] - Optional fallback image URL
- * @returns {string|null} The resolved full URL
- */
+// Resolves an image path (S3 key, S3 URL, or CloudFront URL) to a full CloudFront URL.
 export const CLOUDFRONT_BASE = import.meta.env.VITE_CLOUDFRONT_URL || 'https://d3dqp3l6ug81j3.cloudfront.net';
 
 export function resolveImageUrl(imagePath, fallback = null) {
@@ -41,16 +31,7 @@ export function resolveImageUrl(imagePath, fallback = null) {
     return `${CLOUDFRONT_BASE}${cleanPath}`;
 }
 
-/**
- * Compresses an image file (JPEG/PNG) on the client side using Canvas.
- * 
- * @param {File} file - The raw File object from input
- * @param {object} options - Optional compression configurations
- * @param {number} options.maxWidth - Maximum width of output image (default: 1200)
- * @param {number} options.maxHeight - Maximum height of output image (default: 1200)
- * @param {number} options.quality - Compression quality between 0.1 and 1.0 (default: 0.7)
- * @returns {Promise<File>} Compressed File object
- */
+// Compresses an image file on the client side using Canvas, with max dimensions and quality settings.
 export function compressImage(file, { maxWidth = 1200, maxHeight = 1200, quality = 0.7 } = {}) {
     return new Promise((resolve, reject) => {
         if (!file || !file.type || !file.type.startsWith("image/")) {

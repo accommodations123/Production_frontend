@@ -1,24 +1,9 @@
-/**
- * Event date/expiration utilities.
- *
- * Centralises all "is this event over?" logic so every component
- * uses the same source of truth.
- *
- * Rules:
- *   1. Use `end_date` + `end_time` when available.
- *   2. Fall back to `start_date`/`date` + `start_time`/`time`.
- *   3. If only a date exists (no time), assume end-of-day (23:59:59).
- *   4. An event is "expired" when `now > resolvedEndDateTime`.
- */
+// Event date/expiration utilities.
+// Rules: prefer end_date+end_time, fall back to start_date+start_time,
+// treat date-only as end-of-day, event expired when now > resolved end.
 
-// ────────────────────────────────────────────────────────────────
 // Helpers
-// ────────────────────────────────────────────────────────────────
-
-/**
- * Build a Date from a date string and an optional time string.
- * Returns `null` when `dateStr` is falsy or unparseable.
- */
+// Build a Date from a date string and optional time string (null if unparseable).
 const buildDateTime = (dateStr, timeStr) => {
     if (!dateStr) return null
 
@@ -43,18 +28,9 @@ const buildDateTime = (dateStr, timeStr) => {
     }
 }
 
-// ────────────────────────────────────────────────────────────────
 // Public API
-// ────────────────────────────────────────────────────────────────
 
-/**
- * Resolve the effective end-time of an event.
- * Accepts both raw API shapes and the UI-mapped shapes used in
- * components (camelCase vs snake_case).
- *
- * @param {object} event
- * @returns {Date|null}
- */
+// Resolve the effective end-time of an event from either API shape.
 export const getEventEndDate = (event) => {
     if (!event) return null
 
@@ -72,24 +48,12 @@ export const getEventEndDate = (event) => {
     return buildDateTime(startDate, startTime)
 }
 
-/**
- * Is the event's period already over?
- *
- * @param {object} event
- * @returns {boolean}  `true` when the event has ended.
- */
 export const isEventExpired = (event) => {
     const end = getEventEndDate(event)
     if (!end) return false // can't determine → treat as active
     return Date.now() > end.getTime()
 }
 
-/**
- * Partition an array of events into `{ upcoming, expired }`.
- *
- * @param {object[]} events
- * @returns {{ upcoming: object[], expired: object[] }}
- */
 export const partitionEvents = (events = []) => {
     const upcoming = []
     const expired = []
@@ -105,21 +69,9 @@ export const partitionEvents = (events = []) => {
     return { upcoming, expired }
 }
 
-/**
- * Filter an array to only upcoming (non-expired) events.
- *
- * @param {object[]} events
- * @returns {object[]}
- */
 export const filterUpcomingEvents = (events = []) =>
     events.filter((e) => !isEventExpired(e))
 
-/**
- * Human-readable status label for an event.
- *
- * @param {object} event
- * @returns {"expired" | "happening-now" | "upcoming"}
- */
 export const getEventStatus = (event) => {
     if (isEventExpired(event)) return "expired"
 

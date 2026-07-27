@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useParams } from "react-router-dom"
 
 
-import { useGetEventByIdQuery, useJoinEventMutation, useLeaveEventMutation } from "@/store/api/hostApi"
+import { useGetEventByIdQuery, useJoinEventMutation, useLeaveEventMutation } from "@/store/api/eventApi"
 import { toast } from "sonner"
 
 // Hooks & Services
-import { useAuth } from "@/features/events/hooks/useAuth"
+import { useAuth } from "@/shared/hooks/useAuth"
 
 // Components
 import { HeroSection } from "@/features/events/components/detail/HeroSection"
@@ -18,6 +18,7 @@ import { VenueTab } from "@/features/events/components/detail/VenueTab"
 
 import { Sidebar } from "@/features/events/components/detail/Sidebar"
 import { EventNotFound } from "@/features/events/components/detail/EventNotFound"
+import { Breadcrumb } from "@/shared/ui/Breadcrumb"
 
 export default function EventDetails() {
     const { id } = useParams()
@@ -67,7 +68,6 @@ export default function EventDetails() {
         }
     }, [apiEvent])
 
-    // const [isSaved, setIsSaved] = useState(false) // Removed local state
     const [showShareMenu, setShowShareMenu] = useState(false)
     const [isRegistered, setIsRegistered] = useState(false)
     const [prevEvent, setPrevEvent] = useState(null)
@@ -215,7 +215,14 @@ export default function EventDetails() {
 
     return (
         <main className="min-h-screen bg-white">
-            
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+                <Breadcrumb
+                    items={[
+                        { label: "Events", path: "/events" },
+                        { label: event.title || "Event Details" }
+                    ]}
+                />
+            </div>
             <HeroSection
                 event={event}
                 shareOpen={showShareMenu}

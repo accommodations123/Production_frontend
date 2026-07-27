@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { X, MapPin, Briefcase, Building, Share2, Mail, Phone, Award, TrendingUp, CheckCircle, Linkedin } from 'lucide-react'
 import DOMPurify from 'dompurify'
 import { Button } from "@/shared/ui/button"
@@ -8,7 +8,7 @@ import { toast } from "sonner"
 import { useGetJobByIdQuery } from "@/store/api/hostApi"
 import { Loader2 } from "lucide-react"
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/features/events/hooks/useAuth'
+import { useAuth } from '@/shared/hooks/useAuth'
 import { formatUTCDate } from '@/shared/utils/timezone'
 
 export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply }) {

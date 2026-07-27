@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { Video, Monitor, MapPin, Link2, ExternalLink, Volume2 } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 import { toast } from "sonner"
@@ -57,7 +57,7 @@ export const EventModeSection = memo(({ event }) => {
                                 {event.event_url.trim()}
                             </a>
                             <Button
-                                onClick={() => window.open(event.event_url.trim(), '_blank')}
+                                onClick={() => window.open(event.event_url.trim(), '_blank', 'noopener,noreferrer')}
                                 className="bg-accent text-white hover:bg-accent/90 transition-all duration-300 transform hover:scale-105 shadow-lg rounded-xl px-4 py-2"
                             >
                                 <ExternalLink className="h-4 w-4" />
@@ -88,7 +88,7 @@ export const EventModeSection = memo(({ event }) => {
                             <Button
                                 onClick={() => {
                                     if (event.googleMapsUrl) {
-                                        window.open(event.googleMapsUrl, '_blank');
+                                        window.open(event.googleMapsUrl, '_blank', 'noopener,noreferrer');
                                     } else {
                                         toast.error("Location not available");
                                     }

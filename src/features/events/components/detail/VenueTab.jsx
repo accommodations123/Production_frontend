@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { MapPin, Video, Monitor, Car, Navigation, Shield, Wifi, CheckCircle } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 
@@ -74,7 +74,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                                 <p className="text-gray-700 mb-4">{event.venueName || event.location}</p>
                                 <p className="text-[#222222] text-sm mb-4">{event.address}</p>
                                 <Button
-                                    onClick={() => window.open(event.googleMapsUrl, '_blank')}
+                                    onClick={() => window.open(event.googleMapsUrl, '_blank', 'noopener,noreferrer')}
                                     className="w-full bg-accent text-white hover:bg-accent/90 transition-all duration-300 transform hover:scale-105 shadow-xl rounded-2xl"
                                 >
                                     Get Directions
@@ -90,7 +90,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                                     <p className="text-[#222222] text-sm mb-4 truncate">{event.event_url}</p>
                                 )}
                                 <Button
-                                    onClick={() => event.event_url && window.open(event.event_url.trim(), '_blank')}
+                                    onClick={() => event.event_url && window.open(event.event_url.trim(), '_blank', 'noopener,noreferrer')}
                                     className="w-full bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 shadow-xl rounded-2xl"
                                 >
                                     Join Online
@@ -155,7 +155,7 @@ export const VenueTab = memo(({ event, visibleSections }) => {
                         )}
                     </div>
                     <Button
-                        onClick={() => window.open(event.googleMapsUrl, '_blank')}
+                        onClick={() => window.open(event.googleMapsUrl, '_blank', 'noopener,noreferrer')}
                         className="w-full sm:w-auto bg-accent text-white hover:bg-accent/90 transition-all duration-300 transform hover:scale-105 shadow-xl rounded-2xl"
                     >
                         Get Directions

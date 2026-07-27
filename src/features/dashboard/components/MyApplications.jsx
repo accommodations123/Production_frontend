@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useGetMyApplicationsQuery } from "@/store/api/hostApi";
 import { 
   Briefcase, MapPin, Clock, Building, ChevronRight, CheckCircle2, AlertCircle 

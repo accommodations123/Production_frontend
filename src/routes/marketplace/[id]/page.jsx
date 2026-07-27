@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Navbar } from "@/shared/layout/Navbar";
-import { useGetBuySellByIdQuery } from '@/store/api/hostApi';
-import { Footer } from "@/shared/layout/Footer";
+import { useGetBuySellByIdQuery } from '@/store/api/marketplaceApi';
 import { Button } from "@/shared/ui/button";
 import {
     MapPin, Clock, ShieldCheck, User, ArrowLeft,
@@ -12,6 +10,7 @@ import WishlistButton from "@/shared/ui/WishlistButton";
 import { useCountry } from "@/context/CountryContext";
 import { toast } from "sonner";
 import { SellerContactButtons } from '@/shared/ui/SocialConnect';
+import { extractSocials } from "@/shared/utils/socialExtract";
 
 // Placeholder for missing images
 const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'%3E%3C/circle%3E%3Cpolyline points='21 15 16 10 5 21'%3E%3C/polyline%3E%3C/svg%3E";
@@ -42,26 +41,25 @@ export default function ProductDetailsPage() {
         );
     }
 
+    const socials = extractSocials(rawProduct);
     const product = {
         ...rawProduct,
         sellerName: rawProduct.sellerName || rawProduct.name || "Seller",
-        sellerPhone: rawProduct.sellerPhone || rawProduct.phone,
-        sellerEmail: rawProduct.sellerEmail || rawProduct.email || rawProduct.seller_email,
-        sellerInstagram: rawProduct.sellerInstagram || rawProduct.instagram || rawProduct.seller_instagram,
-        sellerFacebook: rawProduct.sellerFacebook || rawProduct.facebook || rawProduct.seller_facebook || rawProduct.Host?.facebook || rawProduct.host?.facebook,
+        sellerPhone: socials.phone || socials.whatsapp || rawProduct.sellerPhone,
+        sellerEmail: socials.email || rawProduct.sellerEmail,
+        sellerInstagram: socials.instagram || rawProduct.sellerInstagram,
+        sellerFacebook: socials.facebook || rawProduct.sellerFacebook,
     };
 
     if (activeCountry && product.country && product.country !== activeCountry.name) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col">
-                <Navbar />
                 <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                     <AlertCircle className="w-12 h-12 text-[#E1392A] mb-4" />
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Item not available</h2>
                     <p className="text-[#484848] mb-6">This item is not listed in {activeCountry.name}.</p>
                     <Button onClick={() => navigate('/marketplace')} className="px-6 py-2">Browse Marketplace</Button>
                 </div>
-                <Footer />
             </div>
         );
     }
@@ -72,7 +70,6 @@ export default function ProductDetailsPage() {
 
     return (
         <div className="min-h-screen bg-[#F8F9FA] font-sans text-gray-900">
-            <Navbar />
 
             <div className="pt-20 sm:pt-24 pb-16 sm:pb-20 container mx-auto px-4 sm:px-6 max-w-7xl">
                 {/* Back Navigation */}
@@ -206,7 +203,7 @@ export default function ProductDetailsPage() {
                                       <button
                                           onClick={() => {
                                               const cleanNumber = product.sellerPhone.replace(/\D/g, '');
-                                              window.open(`https://wa.me/${cleanNumber}`, '_blank');
+                                              window.open(`https://wa.me/${cleanNumber}`, '_blank', 'noopener,noreferrer');
                                           }}
                                           className="w-full h-11 sm:h-12 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/20 hover:-translate-y-0.5 active:scale-95 text-sm sm:text-base"
                                       >
@@ -252,7 +249,6 @@ export default function ProductDetailsPage() {
                 </div>
             </div>
 
-            <Footer />
         </div>
     );
 }

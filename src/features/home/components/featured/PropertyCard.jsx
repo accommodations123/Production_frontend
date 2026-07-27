@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapPin, Users, Bed, ShieldCheck, Bath } from 'lucide-react';
 import { SocialQuickConnect } from '@/shared/ui/SocialConnect';
 import { useCountry } from '@/context/CountryContext';
@@ -6,16 +7,17 @@ import WishlistButton from '@/shared/ui/WishlistButton';
 import { CLOUDFRONT_BASE } from '@/shared/utils/imageUtils';
 
 export const CardContainer = ({ children, linkTo, className = "" }) => {
-    const navigate = (e) => {
+    const navigate = useNavigate();
+    const handleNavigate = (e) => {
         // Ignore clicks on buttons/icons
         if (e.target.closest("button")) return;
 
-        window.location.href = linkTo;
+        navigate(linkTo);
     };
 
     return (
         <div
-            onClick={navigate}
+            onClick={handleNavigate}
             className={`group block h-full cursor-pointer select-none focus:outline-none`}
         >
             <div className={`bg-white rounded-3xl border border-border hover:border-accent/30 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] h-[350px] flex flex-col overflow-hidden relative ${className}`}>
@@ -41,7 +43,7 @@ export const PropertyCard = React.memo(({ property }) => {
 
     const isSeekerRequest = (property.property_type || property.type || '').toLowerCase() === 'seeker_request';
 
-    // Safely get property data
+    // Normalize property domain fields across host listings and seeker stay requests
     const propertyData = {
         id: property.id || property._id || 'unknown',
         isSeekerRequest,

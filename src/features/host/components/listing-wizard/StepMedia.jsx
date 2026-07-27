@@ -1,4 +1,3 @@
-import React from 'react';
 import { Plus, X } from 'lucide-react';
 
 export function StepMedia({ formData, setFormData, handleFileChange, removeArrayItem }) {

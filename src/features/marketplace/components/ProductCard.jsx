@@ -93,6 +93,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
         <img
           src={imageUrl}
           alt={product.title}
+          loading="lazy"
           className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => setIsImageLoaded(true)}
           onError={(e) => {
@@ -101,7 +102,6 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
             e.target.className = "w-1/2 h-1/2 object-contain mx-auto my-auto opacity-50";
             e.target.classList.remove('opacity-0');
           }}
-          loading="lazy"
         />
 
         {/* Top Badges */}

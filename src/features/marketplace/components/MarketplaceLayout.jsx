@@ -1,17 +1,17 @@
-import React from 'react';
 import { ShoppingBag, Tag, Plus } from 'lucide-react';
 import { Button } from "@/shared/ui/button";
 import { motion } from "framer-motion";
 
-export function MarketplaceLayout({ children, activeTab, onTabChange }) {
+export function MarketplaceLayout({ children, activeTab, onTabChange, hideHero = false }) {
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      
+
       {/* Harmonized Hero Section (Matching EventsHero.jsx & Travel Page) */}
-      <div className="relative bg-white pt-8 pb-8 sm:pb-10 md:pb-12 px-4 overflow-hidden border-b border-gray-100">
+      {!hideHero && (
+        <div className="relative bg-white pt-8 pb-8 sm:pb-10 md:pb-12 px-4 overflow-hidden border-b border-gray-100">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-10 lg:gap-12">
-            
+
             {/* Left Content */}
             <div className="text-center md:text-left max-w-2xl animate-fade-in">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#00142E] mb-6 leading-[1.1] tracking-tight">
@@ -27,11 +27,10 @@ export function MarketplaceLayout({ children, activeTab, onTabChange }) {
                 <div className="flex bg-gradient-to-br from-gray-100 to-gray-50 p-1.5 rounded-2xl shadow-inner border border-gray-200/50">
                   <button
                     onClick={() => onTabChange('buy')}
-                    className={`relative flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${
-                      activeTab === 'buy'
+                    className={`relative flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${activeTab === 'buy'
                         ? 'bg-white text-[#00142E] shadow-lg shadow-gray-200/50'
                         : 'text-[#484848] hover:text-gray-700'
-                    }`}
+                      }`}
                   >
                     <ShoppingBag className="h-4 w-4 relative z-10" />
                     <span className="relative z-10">Buy Items</span>
@@ -39,11 +38,10 @@ export function MarketplaceLayout({ children, activeTab, onTabChange }) {
 
                   <button
                     onClick={() => onTabChange('sell')}
-                    className={`relative flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${
-                      activeTab === 'sell'
+                    className={`relative flex items-center gap-2 px-5 sm:px-8 py-2.5 sm:py-3 rounded-xl text-sm font-bold transition-all duration-300 cursor-pointer ${activeTab === 'sell'
                         ? 'bg-[#E1392A] text-white shadow-lg shadow-[#E1392A]/30'
                         : 'text-[#484848] hover:text-gray-700'
-                    }`}
+                      }`}
                   >
                     <Tag className="h-4 w-4 relative z-10" />
                     <span className="relative z-10">Sell Items</span>
@@ -87,6 +85,7 @@ export function MarketplaceLayout({ children, activeTab, onTabChange }) {
           </div>
         </div>
       </div>
+      )}
 
       {/* Main Content Area */}
       <main className="mx-auto w-full max-w-none px-4 sm:px-6 lg:px-8 pt-6 pb-12">

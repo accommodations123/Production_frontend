@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { FilterSidebar } from '@/features/search/components/FilterSidebar';
-import PostStayRequestModal from '@/features/search/components/PostStayRequestModal';
 
 import { PropertyCard } from '@/features/home/components/featured/PropertyCard';
 import { Button } from '@/shared/ui/button';
@@ -11,13 +11,16 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { getHostPath } from '@/shared/utils/navigationUtils';
 import { COUNTRIES } from "@/shared/utils/mock-data";
 
-import { useGetAllPropertiesQuery } from '@/store/api/hostApi';
+import { useGetAllPropertiesQuery } from '@/store/api/propertyApi';
+import { extractSocials } from '@/shared/utils/socialExtract';
+import { normalizeCountryName } from '@/shared/utils/countryUtils';
 import { usePagination } from '@/shared/hooks/usePagination';
 import { Pagination } from '@/shared/ui/Pagination';
 
 export default function SearchPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
+    const { isAuthenticated } = useSelector((state) => state.auth);
     const [listings, setListings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
@@ -34,7 +37,7 @@ export default function SearchPage() {
     const { activeCountry, setCountry } = useCountry();
 
     // Use getAllProperties to show pending/unverified listings too
-    const { data: allProperties } = useGetAllPropertiesQuery({ country: activeCountry?.name });
+    const { data: allProperties } = useGetAllPropertiesQuery({ country: normalizeCountryName(activeCountry?.name) });
 
     // Synchronize activeCountry context with URL location search parameters
     useEffect(() => {
@@ -100,15 +103,16 @@ export default function SearchPage() {
             try {
                 if (allProperties) {
                     let mapped = allProperties.map((property) => {
-                        // Resolve Host object (check Host, host, and property root for fallback socials)
+                        // Resolve Host object using shared social extraction
                         const rawHost = property.Host || property.host || {};
+                        const socials = extractSocials(property);
                         const mergedHost = {
                             ...rawHost,
-                            instagram: rawHost.instagram || property.instagram || "",
-                            facebook: rawHost.facebook || property.facebook || "",
-                            whatsapp: rawHost.whatsapp || property.whatsapp || rawHost.phone || property.phone || "",
-                            twitter: rawHost.twitter || rawHost.x || property.twitter || property.x || "",
-                            email: rawHost.email || rawHost.User?.email || property.email || ""
+                            instagram: socials.instagram || "",
+                            facebook: socials.facebook || "",
+                            whatsapp: socials.whatsapp || socials.phone || "",
+                            twitter: socials.twitter || "",
+                            email: socials.email || "",
                         };
 
                         return {
@@ -251,19 +255,13 @@ export default function SearchPage() {
                     </div>
                     <div className="flex gap-2">
                         <Button
-                            onClick={() => navigate(getHostPath('property', !!localStorage.getItem("user")))}
+                            onClick={() => navigate(getHostPath('property', isAuthenticated))}
                             className="flex-1 gap-1.5 bg-[#E1392A] hover:bg-[#E1392A]/90 text-white rounded-xl font-bold h-9 px-3 text-xs cursor-pointer justify-center"
                         >
                             <Plus size={14} /> List Stay
                         </Button>
                         <Button
-                            onClick={() => {
-                                if (!localStorage.getItem("user")) {
-                                    navigate("/signin");
-                                } else {
-                                    setIsPostRequestModalOpen(true);
-                                }
-                            }}
+                            onClick={() => navigate(getHostPath('seeker_request', isAuthenticated))}
                             className="flex-1 gap-1.5 bg-[#00162D] hover:bg-[#00162D]/90 text-white rounded-xl font-bold h-9 px-3 text-xs cursor-pointer justify-center border border-slate-700"
                         >
                             <Plus size={14} /> Post Stay Request
@@ -287,19 +285,13 @@ export default function SearchPage() {
                             </h1>
                             <div className="flex items-center gap-3">
                                 <Button
-                                    onClick={() => navigate(getHostPath('property', !!localStorage.getItem("user")))}
+                                    onClick={() => navigate(getHostPath('property', isAuthenticated))}
                                     className="gap-2 bg-[#E1392A] hover:bg-[#E1392A]/90 text-white rounded-xl font-bold transition-all duration-300 shadow-md hover:shadow-lg h-10 px-5 text-sm cursor-pointer"
                                 >
                                     <Plus size={16} /> List Stay
                                 </Button>
                                 <Button
-                                    onClick={() => {
-                                        if (!localStorage.getItem("user")) {
-                                            navigate("/signin");
-                                        } else {
-                                            setIsPostRequestModalOpen(true);
-                                        }
-                                    }}
+                                    onClick={() => navigate(getHostPath('seeker_request', isAuthenticated))}
                                     className="gap-2 bg-[#00162D] hover:bg-[#00162D]/90 text-white border border-slate-700 rounded-xl font-bold transition-all duration-300 shadow-md hover:shadow-lg h-10 px-5 text-sm cursor-pointer"
                                 >
                                     <Plus size={16} /> Post Stay Request
@@ -428,16 +420,6 @@ export default function SearchPage() {
                             </div>
                         </motion.div>
                     </>
-                )}
-            </AnimatePresence>
-
-            {/* Seeker Stay Request Modal */}
-            <AnimatePresence>
-                {isPostRequestModalOpen && (
-                    <PostStayRequestModal
-                        onClose={() => setIsPostRequestModalOpen(false)}
-                        onAdd={(newPost) => setListings((prev) => [newPost, ...prev])}
-                    />
                 )}
             </AnimatePresence>
         </>

@@ -9,7 +9,7 @@ import {
   useUpdatePropertyPricingMutation,
   useSubmitPropertyMutation
 } from "@/store/api/hostApi";
-import { useAuth } from "@/features/events/hooks/useAuth";
+import { useAuth } from "@/shared/hooks/useAuth";
 import { loadLocationData } from "@/shared/utils/lazyLocationData";
 import SearchableDropdown from "@/shared/ui/SearchableDropdown";
 import { toast } from "sonner";

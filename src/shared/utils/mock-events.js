@@ -1,10 +1,2 @@
-export const EVENT_CATEGORIES = [
-    { id: "trending", title: "Trending Now" },
-    { id: "festival", title: "Music & Nightlife" },
-    { id: "meetup", title: "Community Meetups" },
-    { id: "party", title: "Food & Drink" },
-    { id: "workshop", title: "Workshops & Classes" },
-    { id: "sports", title: "Sports & Wellness" },
-    { id: "online", title: "Online Events" },
-    { id: "other", title: "Other" }
-]
+// Re-exports from eventCategories.js for backward compatibility
+export { EVENT_CATEGORIES } from './eventCategories'

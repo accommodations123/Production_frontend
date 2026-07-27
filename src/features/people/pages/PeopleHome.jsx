@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import PeopleHero from "../components/PeopleHero";
 import PeopleFilters from "../components/PeopleFilters";
@@ -11,8 +11,12 @@ import { Users, Sparkles, ChevronDown } from "lucide-react";
 export default function PeopleHome() {
   // Load initial list from local state to pick up new registrants
   const [peopleList] = useState(() => {
-    const saved = localStorage.getItem("kinlife_people");
-    return saved ? JSON.parse(saved) : MOCK_PEOPLE;
+    try {
+      const saved = localStorage.getItem("kinlife_people");
+      return saved ? JSON.parse(saved) : MOCK_PEOPLE;
+    } catch {
+      return MOCK_PEOPLE;
+    }
   });
 
   const [searchParams, setSearchParams] = useSearchParams();

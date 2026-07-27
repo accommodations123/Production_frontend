@@ -1,4 +1,3 @@
-import React from 'react';
 import { MapPin, Calendar, Users, Clock } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { getEventStatus } from '@/shared/utils/eventUtils';

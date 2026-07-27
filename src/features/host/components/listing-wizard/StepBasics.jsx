@@ -1,4 +1,3 @@
-import React from 'react';
 import { Users, Bed, Bath, Sparkles, Building2, Quote, Layout } from 'lucide-react';
 import { PROPERTY_TYPES } from '@/shared/utils/accommodation-data';
 

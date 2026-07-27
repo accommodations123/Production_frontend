@@ -1,4 +1,4 @@
-import React, { memo, useEffect } from "react"
+import { memo, useEffect } from "react"
 import { Grid, List, Filter, Plus } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 import { useCountry } from "@/context/CountryContext"

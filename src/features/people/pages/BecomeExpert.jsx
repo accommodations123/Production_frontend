@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Navbar } from "@/shared/layout/Navbar";
-import { Footer } from "@/shared/layout/Footer";
+import Footer from "@/shared/layout/Footer";
 import { TextField, TextareaField, SelectField } from "@/shared/ui/form-fields";
 import { Button } from "@/shared/ui/button";
 import { Sparkles, Star, MapPin, ShieldCheck, CheckCircle2, Loader2, ArrowLeft, Heart, DollarSign } from "lucide-react";
@@ -69,8 +69,13 @@ export default function BecomeExpert() {
       // Simulate validation onboarding delay
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      const savedPeople = localStorage.getItem("kinlife_people");
-      const currentList = savedPeople ? JSON.parse(savedPeople) : MOCK_PEOPLE;
+      let currentList = MOCK_PEOPLE;
+      try {
+        const savedPeople = localStorage.getItem("kinlife_people");
+        if (savedPeople) currentList = JSON.parse(savedPeople);
+      } catch (err) {
+        console.error("Error reading kinlife_people from storage:", err);
+      }
 
       // Map Zod variables to registry attributes
       const newExpert = {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapPin, Globe, Navigation, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { COUNTRIES } from '@/shared/utils/mock-data';

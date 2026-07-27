@@ -9,6 +9,7 @@ export const getHostPath = (type, isAuthenticated) => {
         case 'event': return '/events/host';
         case 'travel': return '/travel/create';
         case 'marketplace': return '/marketplace?action=sell';
+        case 'seeker_request': return '/search/post-request';
         default: return '/hosts';
     }
 };

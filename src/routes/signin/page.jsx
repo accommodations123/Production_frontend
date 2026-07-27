@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, KeyRound, ArrowRight, Loader2, ShieldCheck, Users, Home } from "lucide-react";
 import { toast } from "sonner";
-import { useDispatch } from "react-redux";
-import { sendOtp, verifyOtp, fetchCurrentUser } from "@/store/slices/authSlice";
+import { useSendOtpMutation, useVerifyOtpMutation, useLazyGetMeQuery } from "@/store/api/authApi";
 
 /* Brand Colors:
   --color-background: #ffffff
@@ -18,10 +17,10 @@ import { sendOtp, verifyOtp, fetchCurrentUser } from "@/store/slices/authSlice";
 
 const Signin = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [sendOtp, { isLoading: sendingOtp }] = useSendOtpMutation();
+  const [verifyOtp, { isLoading: verifyingOtp }] = useVerifyOtpMutation();
+  const [triggerGetMe] = useLazyGetMeQuery();
 
   const [step, setStep] = useState("email");
   const [formData, setFormData] = useState({ email: "", otp: "" });
@@ -33,30 +32,24 @@ const Signin = () => {
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    setSendingOtp(true);
     try {
-      await dispatch(sendOtp({ email: formData.email })).unwrap();
+      await sendOtp({ email: formData.email }).unwrap();
       toast.success("OTP sent to your email");
       setStep("otp");
     } catch (error) {
-      toast.error(error || "Failed to send OTP");
-    } finally {
-      setSendingOtp(false);
+      toast.error(error?.data?.message || "Failed to send OTP");
     }
   };
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    setVerifyingOtp(true);
     try {
-      await dispatch(verifyOtp(formData)).unwrap();
-      dispatch(fetchCurrentUser());
+      await verifyOtp(formData).unwrap();
+      await triggerGetMe();
       toast.success("Signed in successfully");
       navigate("/");
     } catch (error) {
-      toast.error(error || "Login failed. Please check your OTP.");
-    } finally {
-      setVerifyingOtp(false);
+      toast.error(error?.data?.message || "Login failed. Please check your OTP.");
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { 
   Home, Plus, Search, AlertCircle, Trash2, MapPin, Loader2, Clock
 } from "lucide-react";

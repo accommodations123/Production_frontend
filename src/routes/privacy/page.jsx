@@ -1,5 +1,6 @@
 
 import { Shield, Eye, Lock, Database, Users, Globe, Mail, Calendar } from "lucide-react";
+import { Breadcrumb } from "@/shared/ui/Breadcrumb";
 
 export default function PrivacyPage() {
     const lastUpdated = "February 1, 2025";
@@ -148,6 +149,9 @@ export default function PrivacyPage() {
 
                     {/* Glassmorphism Hero Card */}
                     <div className="relative">
+                        <div className="flex justify-center mb-6">
+                            <Breadcrumb items={[{ label: "Privacy Policy" }]} className="text-white/80" />
+                        </div>
                         {/* Icon with Glow */}
                         <div className="relative inline-flex items-center justify-center w-24 h-24 mb-8">
                             <div className="absolute inset-0 bg-blue-500/30 rounded-3xl blur-xl" />

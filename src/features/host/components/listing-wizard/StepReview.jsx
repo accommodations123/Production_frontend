@@ -1,4 +1,3 @@
-import React from 'react';
 import { Check, AlertTriangle } from 'lucide-react';
 
 export function StepReview({

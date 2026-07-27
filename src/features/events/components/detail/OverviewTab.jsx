@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { Calendar, CheckCircle, Camera, ExternalLink } from "lucide-react"
 import { EventModeSection } from "@/features/events/components/detail/EventModeSection"
 

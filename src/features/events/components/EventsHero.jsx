@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 import { Link } from "react-router-dom"
 import { Search, Plus } from "lucide-react"
 import { Button } from "@/shared/ui/button"
@@ -12,10 +12,7 @@ export const EventsHero = memo(({ totalEvents, searchQuery, setSearchQuery, feat
     const { data: userData, isError: isAuthError } = useGetMeQuery()
     const isAuthenticated = !!userData && !isAuthError
 
-    // Fallback to localStorage to prevent hydration mismatch/flicker if query is loading but local data exists
-    const effectiveAuth = isAuthenticated || !!localStorage.getItem("user");
-
-    const hostPath = getHostPath('event', effectiveAuth)
+    const hostPath = getHostPath('event', isAuthenticated)
 
     return (
         <div className="relative bg-white pt-8 pb-8 sm:pb-10 md:pb-12 px-4 overflow-hidden border-b border-gray-100">

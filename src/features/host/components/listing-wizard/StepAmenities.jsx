@@ -1,4 +1,3 @@
-import React from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/shared/utils/utils'; // Assuming this utility exists
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { SiGmail } from 'react-icons/si';
 import { FaWhatsapp, FaInstagram, FaFacebookF, FaXTwitter, FaLinkedinIn } from 'react-icons/fa6';
 import { validateSocial, getSocialUrl } from '@/shared/utils/socialUtils';

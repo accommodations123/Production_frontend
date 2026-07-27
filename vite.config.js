@@ -12,6 +12,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // WARNING: The dev proxy only binds to localhost by default (Vite's safe default).
+  // Never expose the dev server to a public network.
   server: {
     port: 5173,
     strictPort: true,
@@ -37,13 +39,10 @@ export default defineConfig({
         },
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
-            console.log('proxy error', err);
           });
           proxy.on('proxyReq', (proxyReq, req, _res) => {
-            console.log('Sending Request to the Target:', req.method, req.url);
           });
           proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
             const setCookie = proxyRes.headers['set-cookie'];
             if (setCookie) {
               proxyRes.headers['set-cookie'] = setCookie.map(cookie => {
@@ -85,6 +84,9 @@ export default defineConfig({
     }
   },
   build: {
+    esbuild: {
+      drop: ['console'],
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
