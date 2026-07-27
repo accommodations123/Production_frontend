@@ -4,7 +4,7 @@ import { Navbar } from "@/shared/layout/Navbar"
 import Footer from "@/shared/layout/Footer"
 import { Button } from "@/shared/ui/button"
 
-export default function EventNotFound() {
+export function EventNotFound() {
     return (
         <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
             <Navbar />
