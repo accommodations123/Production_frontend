@@ -8,6 +8,7 @@ import { travelApi } from '@/store/api/travelApi'
 import { notificationApi } from '@/store/api/notificationApi'
 import { wishlistApi } from '@/store/api/wishlistApi'
 import { hostApi } from '@/store/api/hostApi'
+import { peopleApi } from '@/store/api/peopleApi'
 import authReducer from '@/store/slices/authSlice'
 import notificationReducer from '@/store/slices/notificationSlice'
 
@@ -22,6 +23,7 @@ export const store = configureStore({
         [notificationApi.reducerPath]: notificationApi.reducer,
         [wishlistApi.reducerPath]: wishlistApi.reducer,
         [hostApi.reducerPath]: hostApi.reducer,
+        [peopleApi.reducerPath]: peopleApi.reducer,
         auth: authReducer,
         notifications: notificationReducer,
     },
@@ -36,5 +38,7 @@ export const store = configureStore({
             notificationApi.middleware,
             wishlistApi.middleware,
             hostApi.middleware,
+            peopleApi.middleware,
         ),
 })
+
