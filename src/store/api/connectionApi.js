@@ -62,14 +62,27 @@ export const connectionApi = createApi({
         }),
 
         updateRequestStatus: builder.mutation({
-            query: ({ requestId, id, status, action }) => {
+            async queryFn({ requestId, id, status, action }, _queryApi, _extraOptions, fetchWithBQ) {
                 const reqId = requestId || id;
                 const finalStatus = status || action || 'accepted';
-                return {
+                
+                // Primary PATCH attempt
+                let result = await fetchWithBQ({
                     url: `connection-requests/${reqId}/status`,
                     method: 'PATCH',
                     body: { status: finalStatus, action: finalStatus },
-                };
+                });
+
+                // If method PATCH is blocked or fails, fallback to PUT
+                if (result.error && (result.error.status === 'FETCH_ERROR' || result.error.status === 405)) {
+                    result = await fetchWithBQ({
+                        url: `connection-requests/${reqId}/status`,
+                        method: 'PUT',
+                        body: { status: finalStatus, action: finalStatus },
+                    });
+                }
+
+                return result.data ? { data: result.data } : { error: result.error };
             },
             invalidatesTags: [
                 { type: 'ConnectionRequests', id: 'LIST' },
