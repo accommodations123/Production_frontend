@@ -55,8 +55,8 @@ export function PeopleCard({ person }) {
     });
   }, [person, followingList]);
 
-  const [isFollowingState, setIsFollowingState] = useState(false);
-  const isFollowing = isFollowingServer || isFollowingState;
+  const [localFollowOverride, setLocalFollowOverride] = useState(null);
+  const isFollowing = localFollowOverride !== null ? localFollowOverride : isFollowingServer;
 
   // Check wishlist status from API if authenticated
   const { data: statusData } = useCheckWishlistStatusQuery(
@@ -112,13 +112,17 @@ export function PeopleCard({ person }) {
       return;
     }
 
+    const nextState = !isFollowing;
+    setLocalFollowOverride(nextState);
+
     const targetId = person.user_id || person.id;
     try {
       const res = await toggleFollowMutation(targetId).unwrap();
-      const followed = res?.data?.followed ?? res?.followed ?? !isFollowing;
-      setIsFollowingState(followed);
+      const followed = res?.data?.followed ?? res?.followed ?? nextState;
+      setLocalFollowOverride(followed);
       toast.success(followed ? `You are now following ${person.name || "this professional"}!` : `Unfollowed ${person.name || "this professional"}.`);
     } catch (err) {
+      setLocalFollowOverride(!nextState);
       toast.error("Failed to update follow status.");
     }
   };

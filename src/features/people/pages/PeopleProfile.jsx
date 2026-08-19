@@ -52,11 +52,9 @@ import {
   useGetExpertRatingQuery,
   useGetExpertPortfolioQuery,
   useGetExpertRecommendationsQuery,
-  useCheckFollowStatusQuery,
   useGetFollowersQuery,
+  useGetMyFollowingQuery,
   useToggleFollowMutation,
-  useFollowExpertMutation,
-  useUnfollowExpertMutation,
   useAddReviewMutation,
   useTrackAnalyticsEventMutation
 } from "@/store/api/peopleApi";
@@ -100,13 +98,6 @@ export default function PeopleProfile() {
   const { data: recsResponse } = useGetExpertRecommendationsQuery(id, { skip: !id });
   const recommendations = person?.recommendations || recsResponse?.data?.recommendations || recsResponse?.recommendations || [];
 
-  // 5. Follow status & mutations
-  const { data: followStatusData } = useCheckFollowStatusQuery(id, { skip: !isAuthenticated || !id });
-  const isFollowing = Boolean(followStatusData?.data?.isFollowing || followStatusData?.isFollowing);
-
-  const [followExpert, { isLoading: isFollowingLoading }] = useFollowExpertMutation();
-  const [unfollowExpert, { isLoading: isUnfollowingLoading }] = useUnfollowExpertMutation();
-
   // 6. Track view analytics on mount
   const [trackEvent] = useTrackAnalyticsEventMutation();
   useEffect(() => {
@@ -143,7 +134,7 @@ export default function PeopleProfile() {
   // Message Modal & Follow state
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [toggleFollowMutation, { isLoading: isToggleFollowLoading }] = useToggleFollowMutation();
-  const [isFollowingState, setIsFollowingState] = useState(false);
+  const [localFollowOverride, setLocalFollowOverride] = useState(null);
 
   const targetUserId = person?.user_id || person?.id || id;
 
@@ -153,27 +144,52 @@ export default function PeopleProfile() {
     return isSelfUser(currentUser, person);
   }, [currentUser, person]);
 
-  // 5. Follow status check from followers endpoint
-  const { data: followersResponse } = useGetFollowersQuery(targetUserId, { skip: !targetUserId });
-  const [hasInitializedFollow, setHasInitializedFollow] = useState(false);
+  // Query my followings list for reactive follow state matching PeopleCard and dashboard
+  const { data: myFollowingResponse } = useGetMyFollowingQuery(currentUserId, {
+    skip: !isAuthenticated || !currentUserId,
+  });
 
-  useEffect(() => {
-    if (!hasInitializedFollow && followersResponse) {
-      const list = Array.isArray(followersResponse?.data)
-        ? followersResponse.data
-        : Array.isArray(followersResponse)
-          ? followersResponse
-          : [];
+  const followingList = useMemo(() => {
+    if (!myFollowingResponse) return [];
+    if (Array.isArray(myFollowingResponse)) return myFollowingResponse;
+    if (Array.isArray(myFollowingResponse.data)) return myFollowingResponse.data;
+    if (Array.isArray(myFollowingResponse.following)) return myFollowingResponse.following;
+    return [];
+  }, [myFollowingResponse]);
 
-      if (currentUserId && list.length > 0) {
-        const isUserFollowing = list.some(
-          (f) => String(f.follower_user_id) === String(currentUserId) || String(f.user_id) === String(currentUserId)
-        );
-        setIsFollowingState(isUserFollowing);
-      }
-      setHasInitializedFollow(true);
-    }
-  }, [followersResponse, currentUserId, hasInitializedFollow]);
+  const { data: followersResponse } = useGetFollowersQuery(targetUserId, {
+    skip: !targetUserId,
+  });
+
+  const followersList = useMemo(() => {
+    if (!followersResponse) return [];
+    if (Array.isArray(followersResponse)) return followersResponse;
+    if (Array.isArray(followersResponse.data)) return followersResponse.data;
+    if (Array.isArray(followersResponse.followers)) return followersResponse.followers;
+    return [];
+  }, [followersResponse]);
+
+  const isFollowingFromServer = useMemo(() => {
+    if (!isAuthenticated || !currentUserId) return false;
+    const tUserId = String(person?.user_id || "");
+    const tProfId = String(person?.id || id || "");
+
+    const inMyFollowing = followingList.some((item) => {
+      const fId = String(item.following_user_id || item.user_id || item.id || item.expert_id || item.profile_id || "");
+      return (tUserId && fId === tUserId) || (tProfId && fId === tProfId);
+    });
+    if (inMyFollowing) return true;
+
+    const inTargetFollowers = followersList.some((item) => {
+      const uId = String(item.follower_user_id || item.user_id || item.id || "");
+      return String(currentUserId) === uId;
+    });
+    if (inTargetFollowers) return true;
+
+    return false;
+  }, [isAuthenticated, currentUserId, followingList, followersList, person, id]);
+
+  const isFollowing = localFollowOverride !== null ? localFollowOverride : isFollowingFromServer;
 
   const handleFollowToggle = async () => {
     if (!isAuthenticated) {
@@ -185,20 +201,22 @@ export default function PeopleProfile() {
       return;
     }
 
-    const nextState = !isFollowingState;
-    setIsFollowingState(nextState);
+    const nextState = !isFollowing;
+    setLocalFollowOverride(nextState);
 
+    const followTargetId = person?.user_id || person?.id || id;
     try {
-      const res = await toggleFollowMutation(targetUserId).unwrap();
+      const res = await toggleFollowMutation(followTargetId).unwrap();
       const followed = res?.data?.followed ?? res?.followed ?? nextState;
-      setIsFollowingState(followed);
+      setLocalFollowOverride(followed);
       toast.success(followed ? `You are now following ${person?.name || "this professional"}.` : `Unfollowed ${person?.name || "this professional"}.`);
     } catch (err) {
-      setIsFollowingState(!nextState);
+      setLocalFollowOverride(!nextState);
       toast.error(err?.data?.message || "Failed to update follow status.");
     }
   };
 
+  const [isConnectionRequestedLocally, setIsConnectionRequestedLocally] = useState(false);
   const [sendConnectionReq, { isLoading: isSendingConnectionReq }] = useSendConnectionRequestMutation();
   const profileItemId = person?.id || id || targetUserId;
   const { data: connectionStatusResponse } = useGetConnectionStatusQuery(
@@ -208,7 +226,8 @@ export default function PeopleProfile() {
     }
   );
 
-  const connStatus = connectionStatusResponse?.status || "none";
+  const serverConnStatus = connectionStatusResponse?.status || connectionStatusResponse?.data?.status || "none";
+  const connStatus = isOwnProfile ? "accepted" : (isConnectionRequestedLocally ? "pending" : serverConnStatus);
 
   const handleMessageAction = async () => {
     if (!isAuthenticated) {
@@ -232,6 +251,7 @@ export default function PeopleProfile() {
     }
 
     try {
+      setIsConnectionRequestedLocally(true);
       await sendConnectionReq({
         targetUserId,
         targetName: person?.name || "Professional",
@@ -245,6 +265,7 @@ export default function PeopleProfile() {
 
       toast.success(`✓ Connection request sent to ${person?.name || "the advisor"}! Waiting for approval.`);
     } catch (err) {
+      setIsConnectionRequestedLocally(false);
       toast.error(err?.data?.message || "Failed to send connection request.");
     }
   };
@@ -455,14 +476,14 @@ export default function PeopleProfile() {
                       <Button
                         onClick={handleFollowToggle}
                         disabled={isToggleFollowLoading}
-                        variant={isFollowingState ? "secondary" : "default"}
+                        variant={isFollowing ? "secondary" : "default"}
                         className={`rounded-2xl h-11 px-5 text-xs font-bold transition-all shadow-xs cursor-pointer ${
-                          isFollowingState
+                          isFollowing
                             ? "bg-slate-100 text-slate-800 border border-slate-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                             : "bg-[#00142E] text-white hover:bg-slate-800"
                         }`}
                       >
-                        {isFollowingState ? (
+                        {isFollowing ? (
                           <>
                             <UserCheck className="w-4 h-4 mr-1.5 text-emerald-600" /> Following
                           </>

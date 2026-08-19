@@ -62,12 +62,20 @@ export const connectionApi = createApi({
         }),
 
         updateRequestStatus: builder.mutation({
-            query: ({ requestId, status }) => ({
-                url: `connection-requests/${requestId}/status`,
-                method: 'PATCH',
-                body: { status },
-            }),
-            invalidatesTags: ['ConnectionRequests'],
+            query: ({ requestId, id, status, action }) => {
+                const reqId = requestId || id;
+                const finalStatus = status || action || 'accepted';
+                return {
+                    url: `connection-requests/${reqId}/status`,
+                    method: 'PATCH',
+                    body: { status: finalStatus, action: finalStatus },
+                };
+            },
+            invalidatesTags: [
+                { type: 'ConnectionRequests', id: 'LIST' },
+                { type: 'ConnectionRequests', id: 'STATUS' },
+                'ConnectionRequests',
+            ],
         }),
     }),
 })
