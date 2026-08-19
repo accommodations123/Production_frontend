@@ -40,7 +40,10 @@ const parsePrice = (priceVal) => {
 const EventsPage = () => {
   const navigate = useNavigate()
   const { activeCountry } = useCountry()
-  const { data: apiEvents = [], isLoading, isError, refetch } = useGetApprovedEventsQuery(activeCountry?.name)
+  const { data: apiEvents = [], isLoading, isError, refetch } = useGetApprovedEventsQuery({
+    name: activeCountry?.name,
+    code: activeCountry?.code
+  })
 
   // (Removed handleScroll and visibleSections logic)
   const [activeFilter, setActiveFilter] = useState("all")

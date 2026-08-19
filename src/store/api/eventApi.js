@@ -28,6 +28,8 @@ function fixEventImages(event) {
     return event
 }
 
+import { COUNTRIES } from '@/lib/mock-data'
+
 export const eventApi = createApi({
     reducerPath: 'eventApi',
     baseQuery: baseQueryWithAuth,
@@ -36,30 +38,40 @@ export const eventApi = createApi({
         // ── Event queries ─────────────────────────────────────
         getApprovedEvents: builder.query({
             query: (arg) => {
-                // Support both string (countryName) and object ({ name, code, limit })
-                let countryName = typeof arg === 'string' ? arg : (arg?.name || arg?.code)
-                const limit = typeof arg === 'object' ? arg?.limit : undefined
+                let countryCode = typeof arg === 'string' ? (arg.length === 2 ? arg : undefined) : arg?.code
+                let countryName = typeof arg === 'string' ? arg : arg?.name
 
-                // Resolve from localStorage if not provided via argument
-                if (!countryName) {
+                if (!countryCode && !countryName) {
                     const countryData = localStorage.getItem('selectedCountry')
                     if (countryData) {
                         try {
                             const c = JSON.parse(countryData)
-                            countryName = c.name || c.code
-                        } catch {
-                            // ignore
-                        }
+                            countryCode = c.code
+                            countryName = c.name
+                        } catch { }
                     }
                 }
 
+                if (!countryCode && countryName) {
+                    const found = COUNTRIES.find(c => c.name?.toLowerCase() === countryName?.toLowerCase() || c.code === countryName?.toUpperCase())
+                    if (found) {
+                        countryCode = found.code
+                        countryName = found.name
+                    }
+                }
+
+                const limit = typeof arg === 'object' ? arg?.limit : undefined
+
                 const params = {}
                 if (limit) params.limit = limit
-                if (countryName) params.country = countryName
+                if (countryCode) params.country = countryCode
+                else if (countryName) params.country = countryName
+
+                const headerCountry = countryCode || countryName
 
                 return {
                     url: 'events/approved',
-                    headers: countryName ? { 'X-Country': countryName } : undefined,
+                    headers: headerCountry ? { 'X-Country': headerCountry, 'X-Country-Code': countryCode || headerCountry } : undefined,
                     params,
                 }
             },

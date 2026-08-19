@@ -273,7 +273,11 @@ const HomeFeatured = () => {
       : activeCountry?.name,
     limit: 4
   });
-  const { data: approvedEvents, isLoading: eventsLoading } = useGetApprovedEventsQuery({ name: activeCountry?.name, limit: 4 });
+  const { data: approvedEvents, isLoading: eventsLoading } = useGetApprovedEventsQuery({
+    name: activeCountry?.name,
+    code: activeCountry?.code,
+    limit: 4
+  });
   const { data: marketplaceItems, isLoading: marketplaceLoading } = useGetBuySellListingsQuery({ country: activeCountry?.name, limit: 4 });
   const { data: peopleData, isLoading: peopleLoading } = useGetPublicProfilesQuery({
     page: 1,
