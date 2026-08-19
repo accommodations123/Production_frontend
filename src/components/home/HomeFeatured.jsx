@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { useCountry } from '@/context/CountryContext';
 import { filterUpcomingEvents } from '@/lib/eventUtils';
 import { getHostPath } from '@/lib/navigationUtils';
+import { normalizeCountryName } from '@/shared/utils/countryUtils';
 
 // API Hooks
 import {
