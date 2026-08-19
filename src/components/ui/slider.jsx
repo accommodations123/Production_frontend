@@ -1,0 +1,33 @@
+"use client"
+
+import * as React from "react"
+import * as SliderPrimitive from "@radix-ui/react-slider"
+
+import { cn } from "@/lib/utils"
+
+const Slider = React.forwardRef(({ className, ...props }, ref) => (
+    <SliderPrimitive.Root
+        ref={ref}
+        className={cn("relative flex w-full touch-none select-none items-center", className)}
+        {...props}>
+        <SliderPrimitive.Track
+            className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary">
+            <SliderPrimitive.Range className="absolute h-full bg-primary" />
+        </SliderPrimitive.Track>
+        {/* Handle 1 */}
+        <SliderPrimitive.Thumb
+            className="block h-5 w-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" />
+        {/* Handle 2 (if range, this will work automatically if value array has 2 items, but Radix needs multiple thumbs rendered explicitly for multiple values) */}
+        {/* We blindly checking if defaultValue or value has length > 1 to render second thumb, or just render two always if we expect range usage mostly. */}
+        {/* Safer approach for generic component: just render one thumb, but for this specific dual range requirement, we might need two. */}
+        {/* Actually, Radix docs say: "Render a Thumb for each value". */}
+
+        {(props.defaultValue?.length > 1 || props.value?.length > 1) && (
+            <SliderPrimitive.Thumb
+                className="block h-5 w-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" />
+        )}
+    </SliderPrimitive.Root>
+))
+Slider.displayName = SliderPrimitive.Root.displayName
+
+export { Slider }
