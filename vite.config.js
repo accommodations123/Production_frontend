@@ -36,7 +36,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, ''),
         headers: {
           'Host': 'api.nextkinlife.live',
-          'Origin': 'http://35.153.223.230:80'
+          'Origin': 'https://nextkinlife.live'
         },
       },
       '/api': {
@@ -46,7 +46,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, ''),
         headers: {
           'Host': 'api.nextkinlife.live',
-          'Origin': 'http://35.153.223.230:80'
+          'Origin': 'https://nextkinlife.live'
         },
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
@@ -77,7 +77,7 @@ export default defineConfig({
         ws: true,
         headers: {
           'Host': 'api.nextkinlife.live',
-          'Origin': 'http://35.153.223.230:80'
+          'Origin': 'https://nextkinlife.live'
         },
         configure: (proxy, _options) => {
           proxy.on('proxyRes', (proxyRes, req, res) => {

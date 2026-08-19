@@ -3,7 +3,7 @@ import { CLOUDFRONT_BASE } from '../../lib/imageUtils';
 
 const rawBase = fetchBaseQuery({
     baseUrl: import.meta.env.PROD
-        ? (import.meta.env.VITE_API_URL || "http://35.153.223.230:5000")
+        ? (import.meta.env.VITE_API_URL || "https://api.nextkinlife.live")
         : "/api",
     credentials: 'include',
     prepareHeaders: (headers) => {
