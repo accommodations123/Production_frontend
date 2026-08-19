@@ -93,7 +93,7 @@ const Signup = () => {
 
     const loginWithGoogle = () => {
         const googleAuthUrl = import.meta.env.PROD
-            ? "https://api.nextkinlife.live/auth/google"
+            ? `${import.meta.env.VITE_API_URL || "http://35.153.223.230:5000"}/auth/google`
             : "/api/auth/google";
 
         window.location.href = googleAuthUrl;

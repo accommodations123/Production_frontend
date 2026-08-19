@@ -8,7 +8,7 @@ import axios from 'axios';
 const RECENT_SEARCHES_KEY = 'recentLocationSearches';
 const MAX_RECENT_SEARCHES = 5;
 const API_BASE = import.meta.env.PROD
-    ? "https://api.nextkinlife.live"
+    ? (import.meta.env.VITE_API_URL || "http://35.153.223.230:5000")
     : "/api";
 
 // Get recent searches from localStorage

@@ -3,8 +3,8 @@
 // The backend logout endpoint (res.clearCookie) is the primary cookie-clearing mechanism.
 export function clearAuthCookie() {
     const doc = window.document;
-    // Production: clear with matching domain and attributes
-    doc.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.nextkinlife.live; Secure; SameSite=Lax";
-    // Localhost / exact-origin fallback (cookies set without domain attribute)
+    // Clear cookie on current host/origin
+    doc.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
+    doc.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=35.153.223.230; SameSite=Lax";
     doc.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 }

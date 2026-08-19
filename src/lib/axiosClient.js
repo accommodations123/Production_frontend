@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const baseURL = import.meta.env.PROD ? "https://api.nextkinlife.live" : "/api";
+const baseURL = import.meta.env.PROD 
+    ? (import.meta.env.VITE_API_URL || "http://35.153.223.230:5000") 
+    : "/api";
 
 export const axiosClient = axios.create({
     baseURL,

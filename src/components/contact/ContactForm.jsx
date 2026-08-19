@@ -8,7 +8,7 @@ import { Link } from "react-router-dom"
 import axios from "axios"
 
 const API_BASE = import.meta.env.PROD
-    ? 'https://api.nextkinlife.live'
+    ? (import.meta.env.VITE_API_URL || 'http://35.153.223.230:5000')
     : '/api';
 
 export function ContactForm() {
