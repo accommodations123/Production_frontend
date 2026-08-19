@@ -56,7 +56,9 @@ export const MyEvents = () => {
       if (isDeleted) calculatedStatus = "deleted";
       else if (isExpired) calculatedStatus = "expired";
       else if (status === "pending") calculatedStatus = "pending";
+      else if (status === "rejected") calculatedStatus = "rejected";
       else if (status === "draft" || !status) calculatedStatus = "draft";
+      else if (status === "approved" || status === "active" || status === "accepted") calculatedStatus = "active";
 
       return {
         ...e,
@@ -280,13 +282,16 @@ const EventItemCard = ({ event, onDelete }) => {
   const getStatus = () => {
     switch (event.calculatedStatus) {
       case "active":
+      case "approved":
         return { text: "Live", class: "bg-green-500 text-white" };
       case "pending":
-        return { text: "Pending", class: "bg-yellow-500 text-white" };
+        return { text: "Pending Review", class: "bg-yellow-500 text-white" };
       case "draft":
         return { text: "Draft", class: "bg-blue-500 text-white" };
       case "expired":
         return { text: "Expired", class: "bg-red-500 text-white" };
+      case "rejected":
+        return { text: "Rejected", class: "bg-red-500 text-white" };
       default:
         return { text: "Live", class: "bg-green-500 text-white" };
     }

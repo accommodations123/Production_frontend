@@ -330,13 +330,24 @@ const HomeFeatured = () => {
     return upcoming.filter(event => {
       if (!activeCountry?.name) return true;
       const eventCountry = (event.country || "").toLowerCase().trim();
-      const selectedCountry = activeCountry.name.toLowerCase().trim();
+      const selectedCountry = (activeCountry.name || "").toLowerCase().trim();
       const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim();
 
       // Allow online events to show globally
       if (event.event_mode?.toLowerCase() === "online") return true;
 
-      return eventCountry === selectedCountry || eventCountry === selectedCountryCode;
+      if (!eventCountry) return true;
+
+      const normEvent = normalizeCountryName(event.country)?.toLowerCase() || eventCountry;
+      const normSelected = normalizeCountryName(activeCountry.name)?.toLowerCase() || selectedCountry;
+
+      return (
+        eventCountry === selectedCountry ||
+        eventCountry === selectedCountryCode ||
+        normEvent === normSelected ||
+        normEvent.includes(normSelected) ||
+        normSelected.includes(normEvent)
+      );
     }).slice(0, 4);
   }, [approvedEvents, activeCountry]);
 

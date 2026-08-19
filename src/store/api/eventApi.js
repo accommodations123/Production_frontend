@@ -10,9 +10,14 @@ function fixImage(img) {
     return img
 }
 
-/** Patch host image fields on a single event object (mutates in place). */
-function fixEventHostImages(event) {
+/** Patch image fields on a single event object (mutates in place). */
+function fixEventImages(event) {
     if (!event || typeof event !== 'object') return event
+    if (event.banner_image) event.banner_image = fixImage(event.banner_image)
+    if (event.image) event.image = fixImage(event.image)
+    if (Array.isArray(event.gallery_images)) {
+        event.gallery_images = event.gallery_images.map(fixImage)
+    }
     const host = event.Host || event.host || {}
     if (host.profile_image) host.profile_image = fixImage(host.profile_image)
     if (host.selfie_photo) host.selfie_photo = fixImage(host.selfie_photo)
@@ -60,11 +65,19 @@ export const eventApi = createApi({
             },
             providesTags: ['Event'],
             transformResponse: (response) => {
-                const items = response?.data?.events || response?.events || response?.data || response || []
-                if (Array.isArray(items)) {
-                    items.forEach(fixEventHostImages)
+                let items = response?.data?.events || response?.events || response?.data?.results || response?.results || response?.data?.items || response?.data || response || []
+                if (!Array.isArray(items) && items && typeof items === 'object') {
+                    if (Array.isArray(items.events)) items = items.events
+                    else if (Array.isArray(items.data)) items = items.data
+                    else if (Array.isArray(items.results)) items = items.results
+                    else if (Array.isArray(items.items)) items = items.items
+                    else items = []
                 }
-                return items
+                if (Array.isArray(items)) {
+                    items.forEach(fixEventImages)
+                    return items
+                }
+                return []
             },
         }),
 
@@ -87,8 +100,13 @@ export const eventApi = createApi({
             },
             providesTags: (result, error, id) => [{ type: 'Event', id }],
             transformResponse: (response) => {
-                const event = response?.event || response?.data || response
-                fixEventHostImages(event)
+                let event = response?.event || response?.data?.event || response?.data || response
+                if (event && typeof event === 'object' && !event.title && event.event) {
+                    event = event.event
+                }
+                if (event && typeof event === 'object') {
+                    fixEventImages(event)
+                }
                 // Merge is_registered if it exists at the root level but not in the event object
                 if (response?.is_registered !== undefined && event && typeof event === 'object') {
                     return { ...event, is_registered: response.is_registered }
@@ -121,8 +139,17 @@ export const eventApi = createApi({
             },
             providesTags: ['Event'],
             transformResponse: (response) => {
-                const results = response?.data?.events || response?.events || response || []
-                return Array.isArray(results) ? results : []
+                let results = response?.data?.events || response?.events || response?.data?.results || response?.results || response?.data || response || []
+                if (!Array.isArray(results) && results && typeof results === 'object') {
+                    if (Array.isArray(results.events)) results = results.events
+                    else if (Array.isArray(results.data)) results = results.data
+                    else results = []
+                }
+                if (Array.isArray(results)) {
+                    results.forEach(fixEventImages)
+                    return results
+                }
+                return []
             },
         }),
 

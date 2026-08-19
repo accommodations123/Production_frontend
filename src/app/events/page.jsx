@@ -18,6 +18,8 @@ import { EventCard } from "./components/EventCard"
 import { usePagination } from "@/hooks/usePagination"
 import { Pagination } from "@/components/ui/Pagination"
 
+import { normalizeCountryName } from "@/shared/utils/countryUtils"
+
 // Constants for better maintainability
 const SCROLL_THRESHOLD = 50
 const VISIBILITY_THRESHOLD = 0.8
@@ -87,16 +89,16 @@ const EventsPage = () => {
       if (e.event_mode === "online") {
         return "online";
       }
-      const t = e.type?.toLowerCase().replace(/\s+/g, "").trim();
-      if (!t) return "other";
-      if (t === "public") return "sports";
-      if (t === "private") return "online";
-      if (t === "festival" || t === "music") return "festival";
-      if (t === "meetup" || t === "community") return "meetup";
-      if (t === "party" || t === "food") return "party";
-      if (t === "workshop" || t === "class" || t === "workshops") return "workshop";
-      if (t === "sports" || t === "wellness") return "sports";
-      if (t === "online") return "online";
+      const raw = (e.event_type || e.type || e.category || "").toLowerCase().replace(/\s+/g, "").trim();
+      if (!raw) return "other";
+      if (raw === "public") return "sports";
+      if (raw === "private") return "online";
+      if (raw.includes("festival") || raw.includes("music") || raw.includes("nightlife")) return "festival";
+      if (raw.includes("meetup") || raw.includes("community")) return "meetup";
+      if (raw.includes("party") || raw.includes("food") || raw.includes("drink")) return "party";
+      if (raw.includes("workshop") || raw.includes("class") || raw.includes("workshops")) return "workshop";
+      if (raw.includes("sport") || raw.includes("wellness")) return "sports";
+      if (raw === "online") return "online";
       return "other";
     };
 
@@ -107,38 +109,68 @@ const EventsPage = () => {
     const filteredApiEvents = activeApiEvents.filter(event => {
       if (!activeCountry?.name) return true;
       const eventCountry = (event.country || "").toLowerCase().trim();
-      const selectedCountry = activeCountry.name.toLowerCase().trim();
+      const selectedCountry = (activeCountry.name || "").toLowerCase().trim();
       const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim();
 
       // Allow online events to show globally
       if (event.event_mode?.toLowerCase() === "online") return true;
 
-      return eventCountry === selectedCountry || eventCountry === selectedCountryCode;
+      if (!eventCountry) return true;
+
+      const normEvent = normalizeCountryName(event.country)?.toLowerCase() || eventCountry;
+      const normSelected = normalizeCountryName(activeCountry.name)?.toLowerCase() || selectedCountry;
+
+      return (
+        eventCountry === selectedCountry ||
+        eventCountry === selectedCountryCode ||
+        normEvent === normSelected ||
+        normEvent.includes(normSelected) ||
+        normSelected.includes(normEvent)
+      );
     });
 
     filteredApiEvents.forEach(event => {
       const categoryId = classifyEventCategory(event);
+      const hostObj = event.Host || event.host || event.User || event.user || null;
+      const hostName = hostObj?.full_name || hostObj?.name || hostObj?.User?.full_name || event.organizer || event.hostName || "Host";
+      const hostPhoto = hostObj?.profile_image || hostObj?.selfie_photo || hostObj?.avatar || hostObj?.User?.profile_image || null;
+
+      const locationStr = event.location || 
+        (event.city && event.country ? `${event.city}, ${event.country}` : event.city || event.street_address || event.venue_name || event.address || "Location TBA");
+
       const uiEvent = {
         id: event._id || event.id,
-        title: event.title || event.eventName || "Untitled Event",
-        description: event.description || "No description available",
-        date: event.date || event.start_date,
-        time: event.time || event.start_time,
-        location: event.location || event.venue || "Location TBA",
-        city: event.city,
-        country: event.country,
-        image: event.image || event.banner_image || (event.gallery_images && event.gallery_images.length > 0 ? event.gallery_images[0] : null),
-        price: event.price || event.ticketPrice,
-        organizer: event.organizer || event.hostName,
-        type: event.type || "Event",
+        title: event.title || event.eventName || event.name || "Untitled Event",
+        description: event.description || event.desc || "No description available",
+        date: event.start_date || event.date || event.event_date,
+        time: event.start_time || event.time,
+        end_date: event.end_date || event.endDate,
+        end_time: event.end_time || event.endTime,
+        location: locationStr,
+        city: event.city || "",
+        country: event.country || "",
+        image: event.banner_image || event.image || (Array.isArray(event.gallery_images) && event.gallery_images.length > 0 ? event.gallery_images[0] : null),
+        price: event.price ?? event.ticketPrice ?? 0,
+        organizer: hostName,
+        type: event.event_type || event.type || "Event",
         category: categoryId,
-        attendees_count: event.attendees_count || 0,
-        reviews_count: event.reviews_count || 0,
-        comments_count: event.comments_count || 0,
-        host: event.Host || event.host || null,
+        attendees_count: event.attendees_count || event.attendeesCount || 0,
+        reviews_count: event.reviews_count || event.reviewsCount || 0,
+        comments_count: event.comments_count || event.commentsCount || 0,
+        host: hostObj ? {
+          full_name: hostName,
+          selfie_photo: hostPhoto,
+          profile_image: hostPhoto,
+          phone: hostObj.phone || hostObj.whatsapp,
+          email: hostObj.email,
+          status: hostObj.status
+        } : null,
         gallery_images: Array.isArray(event.gallery_images) ? event.gallery_images : [],
         included_items: Array.isArray(event.included_items) ? event.included_items : [],
-        schedule: Array.isArray(event.schedule) ? event.schedule : []
+        schedule: Array.isArray(event.schedule) ? event.schedule : [],
+        event_mode: event.event_mode || "offline",
+        event_url: event.event_url || "",
+        online_instructions: event.online_instructions || ""
       };
 
       if (grouped[categoryId]) {

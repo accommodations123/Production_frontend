@@ -308,7 +308,14 @@ export const hostApi = createApi({
             },
             providesTags: ["Event"],
             transformResponse: (response) => {
-                const items = response?.data?.events || response?.events || response?.data || response || [];
+                let items = response?.data?.events || response?.events || response?.data?.results || response?.results || response?.data?.items || response?.data || response || [];
+                if (!Array.isArray(items) && items && typeof items === 'object') {
+                    if (Array.isArray(items.events)) items = items.events;
+                    else if (Array.isArray(items.data)) items = items.data;
+                    else if (Array.isArray(items.results)) items = items.results;
+                    else if (Array.isArray(items.items)) items = items.items;
+                    else items = [];
+                }
                 if (Array.isArray(items)) {
                     const CLOUDFRONT = CLOUDFRONT_BASE;
                     const fixImage = (img) => {
@@ -318,6 +325,11 @@ export const hostApi = createApi({
                         return img;
                     };
                     items.forEach(e => {
+                        if (e.banner_image) e.banner_image = fixImage(e.banner_image);
+                        if (e.image) e.image = fixImage(e.image);
+                        if (Array.isArray(e.gallery_images)) {
+                            e.gallery_images = e.gallery_images.map(fixImage);
+                        }
                         const host = e.Host || e.host || {};
                         if (host.profile_image) host.profile_image = fixImage(host.profile_image);
                         if (host.selfie_photo) host.selfie_photo = fixImage(host.selfie_photo);
@@ -326,8 +338,9 @@ export const hostApi = createApi({
                         }
                         e.Host = host;
                     });
+                    return items;
                 }
-                return items;
+                return [];
             }
         }),
 
@@ -347,7 +360,10 @@ export const hostApi = createApi({
                 };
             },
             transformResponse: (response) => {
-                const event = response?.event || response?.data || response;
+                let event = response?.event || response?.data?.event || response?.data || response;
+                if (event && typeof event === 'object' && !event.title && event.event) {
+                    event = event.event;
+                }
                 const CLOUDFRONT = CLOUDFRONT_BASE;
                 const fixImage = (img) => {
                     if (img && typeof img === 'string' && !img.startsWith('http')) {
@@ -356,6 +372,11 @@ export const hostApi = createApi({
                     return img;
                 };
                 if (event && typeof event === 'object') {
+                    if (event.banner_image) event.banner_image = fixImage(event.banner_image);
+                    if (event.image) event.image = fixImage(event.image);
+                    if (Array.isArray(event.gallery_images)) {
+                        event.gallery_images = event.gallery_images.map(fixImage);
+                    }
                     const host = event.Host || event.host || {};
                     if (host.profile_image) host.profile_image = fixImage(host.profile_image);
                     if (host.selfie_photo) host.selfie_photo = fixImage(host.selfie_photo);
@@ -669,8 +690,30 @@ export const hostApi = createApi({
             },
             providesTags: ["Event"],
             transformResponse: (response) => {
-                const results = response?.data?.events || response?.events || response || [];
-                return Array.isArray(results) ? results : [];
+                let results = response?.data?.events || response?.events || response?.data?.results || response?.results || response?.data?.items || response?.data || response || [];
+                if (!Array.isArray(results) && results && typeof results === 'object') {
+                    if (Array.isArray(results.events)) results = results.events;
+                    else if (Array.isArray(results.data)) results = results.data;
+                    else results = [];
+                }
+                if (Array.isArray(results)) {
+                    const CLOUDFRONT = CLOUDFRONT_BASE;
+                    const fixImage = (img) => {
+                        if (img && typeof img === 'string' && !img.startsWith('http')) {
+                            return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
+                        }
+                        return img;
+                    };
+                    results.forEach(e => {
+                        if (e.banner_image) e.banner_image = fixImage(e.banner_image);
+                        if (e.image) e.image = fixImage(e.image);
+                        if (Array.isArray(e.gallery_images)) {
+                            e.gallery_images = e.gallery_images.map(fixImage);
+                        }
+                    });
+                    return results;
+                }
+                return [];
             },
         }),
         deleteEvent: builder.mutation({

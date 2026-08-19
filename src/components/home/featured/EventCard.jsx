@@ -99,11 +99,11 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
         } ${viewMode === "list" ? "flex" : "flex flex-col h-full"}`}>
             {/* Event Image */}
             {viewMode !== "list" && (
-                <div className={`relative h-48 overflow-hidden ${!(event.banner_image || event.image) ? 'bg-gradient-to-br from-slate-700 to-slate-900' : ''}`}>
-                    {(event.banner_image || event.image) ? (
+                <div className={`relative h-48 overflow-hidden ${!(event.banner_image || event.image || event.gallery_images?.[0]) ? 'bg-gradient-to-br from-slate-700 to-slate-900' : ''}`}>
+                    {(event.banner_image || event.image || event.gallery_images?.[0]) ? (
                         <img
-                            src={event.banner_image || event.image}
-                            alt={event.title}
+                            src={event.banner_image || event.image || event.gallery_images?.[0]}
+                            alt={event.title || "Event"}
                             className={`w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ${isExpired ? "brightness-75" : ""}`}
                         />
                     ) : (
@@ -146,10 +146,10 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
 
                     <div className="absolute bottom-3 left-3 right-3">
                         <span className="inline-block bg-[#CB2A25] text-white text-[10px] font-bold px-2 py-0.5 rounded-md mb-1.5 shadow-sm uppercase tracking-wide">
-                            {event.category || "Community"}
+                            {event.category || event.event_type || event.type || "Community"}
                         </span>
                         <h3 className="text-lg font-bold text-white leading-tight line-clamp-1 drop-shadow-md">
-                            {event.title}
+                            {event.title || event.eventName || event.name || "Untitled Event"}
                         </h3>
                     </div>
                 </div>
