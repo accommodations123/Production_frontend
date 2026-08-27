@@ -1,17 +1,17 @@
 import axios from 'axios';
+import { supabase } from './supabaseClient';
 
-const baseURL = import.meta.env.PROD 
-    ? (import.meta.env.VITE_API_URL || "https://api.nextkinlife.live") 
-    : "/api";
+const baseURL = import.meta.env.VITE_API_URL || import.meta.env.VITE_SUPABASE_URL || '';
 
 export const axiosClient = axios.create({
     baseURL,
     withCredentials: true,
 });
 
-// Interceptor to dynamically inject selectedCountry headers on every request
+// Interceptor to dynamically inject selectedCountry and Supabase Auth headers on every request
 axiosClient.interceptors.request.use(
-    (config) => {
+    async (config) => {
+        // 1. Country Header
         const countryData = localStorage.getItem("selectedCountry");
         if (countryData) {
             try {
@@ -28,6 +28,26 @@ axiosClient.interceptors.request.use(
                 console.error("Error parsing selectedCountry for axios headers:", e);
             }
         }
+
+        // 2. Supabase Anon Key
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        if (anonKey && !anonKey.includes("placeholder") && !config.headers["apikey"]) {
+            config.headers["apikey"] = anonKey;
+        }
+
+        // 3. Supabase Bearer Token
+        try {
+            if (supabase) {
+                const { data } = await supabase.auth.getSession();
+                const token = data?.session?.access_token;
+                if (token && !config.headers["Authorization"]) {
+                    config.headers["Authorization"] = `Bearer ${token}`;
+                }
+            }
+        } catch {
+            // Ignore
+        }
+
         return config;
     },
     (error) => {

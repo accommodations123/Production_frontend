@@ -7,9 +7,7 @@ import axios from 'axios';
 
 const RECENT_SEARCHES_KEY = 'recentLocationSearches';
 const MAX_RECENT_SEARCHES = 5;
-const API_BASE = import.meta.env.PROD
-    ? (import.meta.env.VITE_API_URL || "https://api.nextkinlife.live")
-    : "/api";
+import { supabase } from '@/lib/supabaseClient';
 
 // Get recent searches from localStorage
 const getRecentSearches = () => {

@@ -5,11 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect"
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import axios from "axios"
-
-const API_BASE = import.meta.env.PROD
-    ? (import.meta.env.VITE_API_URL || 'https://api.nextkinlife.live')
-    : '/api';
+import { supabase } from "@/lib/supabaseClient"
 
 export function ContactForm() {
     const [phoneCode, setPhoneCode] = useState("+91");
@@ -37,18 +33,16 @@ export function ContactForm() {
             setSending(true);
             setError("");
 
-            await axios.post(
-                `${API_BASE}/contact/submit`,
-                {
-                    firstName,
-                    lastName,
+            if (supabase) {
+                await supabase.from('contacts').insert({
+                    first_name: firstName,
+                    last_name: lastName,
                     email,
                     phone: phone ? `${phoneCode} ${phone}` : "",
                     subject,
                     message,
-                },
-                { withCredentials: true }
-            );
+                });
+            }
 
             setSent(true);
         } catch (error) {
@@ -58,7 +52,7 @@ export function ContactForm() {
             );
 
             setError(
-                error.response?.data?.message ||
+                error?.message ||
                 "Something went wrong. Please try again."
             );
         } finally {

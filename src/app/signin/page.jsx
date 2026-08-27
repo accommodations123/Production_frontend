@@ -69,12 +69,22 @@ const Signin = () => {
     }
   };
 
-  const loginWithGoogle = () => {
-    const googleAuthUrl = import.meta.env.PROD
-      ? `${import.meta.env.VITE_API_URL || "https://api.nextkinlife.live"}/auth/google`
-      : "/api/auth/google";
-
-    window.location.href = googleAuthUrl;
+  const loginWithGoogle = async () => {
+    try {
+      if (supabase) {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/`,
+          },
+        });
+        if (error) {
+          toast.error(error.message || "Failed to sign in with Google");
+        }
+      }
+    } catch (err) {
+      toast.error("Google authentication error");
+    }
   };
 
   return (
