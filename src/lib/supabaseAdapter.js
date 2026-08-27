@@ -58,6 +58,73 @@ async function parseFormDataWithUploads(formData, folder = 'uploads') {
     return result
 }
 
+const VALID_PROPERTY_COLUMNS = new Set([
+    'id', 'host_id', 'host_name', 'hostName', 'user_name', 'phone', 'email',
+    'title', 'description', 'category_id', 'property_type', 'privacy_type',
+    'guests', 'guest_capacity', 'bedrooms', 'bathrooms', 'pets_allowed',
+    'area', 'address', 'city', 'state', 'country', 'zip_code', 'photos',
+    'images', 'video', 'amenities', 'rules', 'legal_docs', 'price_per_night',
+    'price_per_month', 'price_per_hour', 'price', 'currency', 'status',
+    'is_approved', 'rejection_reason', 'created_at', 'updated_at'
+]);
+
+function sanitizePropertyData(data) {
+    if (!data || typeof data !== 'object') return {};
+    const sanitized = {};
+
+    // CamelCase to snake_case mappings
+    if (data.categoryId && !data.category_id) sanitized.category_id = data.categoryId;
+    if (data.category && !data.category_id) sanitized.category_id = data.category;
+    if (data.propertyType && !data.property_type) sanitized.property_type = data.propertyType;
+    if (data.privacyType && !data.privacy_type) sanitized.privacy_type = data.privacyType;
+    if (data.petsAllowed !== undefined && data.pets_allowed === undefined) sanitized.pets_allowed = Boolean(data.petsAllowed);
+    if (data.guestCapacity !== undefined && data.guest_capacity === undefined) sanitized.guest_capacity = Number(data.guestCapacity) || 1;
+    if (data.capacity !== undefined && data.guests === undefined) sanitized.guests = Number(data.capacity) || 1;
+    if (data.guests !== undefined) sanitized.guests = Number(data.guests) || 1;
+    if (data.bedrooms !== undefined) sanitized.bedrooms = Number(data.bedrooms) || 0;
+    if (data.bathrooms !== undefined) sanitized.bathrooms = Number(data.bathrooms) || 0;
+    if (data.area !== undefined) sanitized.area = Number(data.area) || 0;
+    if (data.sqft !== undefined && data.area === undefined) sanitized.area = Number(data.sqft) || 0;
+
+    // Address mappings
+    if (data.street_address && !data.address) sanitized.address = data.street_address;
+    if (data.streetAddress && !data.address) sanitized.address = data.streetAddress;
+    if (data.pincode && !data.zip_code) sanitized.zip_code = data.pincode;
+    if (data.zipCode && !data.zip_code) sanitized.zip_code = data.zipCode;
+
+    // Pricing mappings
+    if (data.pricePerHour !== undefined) sanitized.price_per_hour = Number(data.pricePerHour) || 0;
+    if (data.pricePerNight !== undefined) {
+        sanitized.price_per_night = Number(data.pricePerNight) || 0;
+        if (!sanitized.price) sanitized.price = Number(data.pricePerNight) || 0;
+    }
+    if (data.pricePerMonth !== undefined) {
+        sanitized.price_per_month = Number(data.pricePerMonth) || 0;
+        sanitized.price = Number(data.pricePerMonth) || sanitized.price || 0;
+    }
+    if (data.rent !== undefined && !sanitized.price) sanitized.price = Number(data.rent) || 0;
+    if (data.price !== undefined) sanitized.price = Number(data.price) || 0;
+
+    // Arrays & Media
+    if (Array.isArray(data.amenities)) sanitized.amenities = data.amenities;
+    if (Array.isArray(data.rules)) sanitized.rules = data.rules;
+    if (Array.isArray(data.images)) {
+        sanitized.images = data.images;
+        sanitized.photos = data.images;
+    }
+    if (Array.isArray(data.photos)) {
+        sanitized.photos = data.photos;
+        if (!sanitized.images || sanitized.images.length === 0) sanitized.images = data.photos;
+    }
+
+    for (const [key, val] of Object.entries(data)) {
+        if (VALID_PROPERTY_COLUMNS.has(key) && val !== undefined && sanitized[key] === undefined) {
+            sanitized[key] = val;
+        }
+    }
+    return sanitized;
+}
+
 const VALID_PROFILE_COLUMNS = new Set([
     'id', 'email', 'name', 'full_name', 'firstName', 'lastName',
     'role', 'status', 'is_approved', 'is_blocked', 'is_verified',
@@ -143,12 +210,18 @@ export async function executeSupabaseRequest(args) {
                 return { data: { properties: data || [] } }
             }
 
-            if (cleanUrl === 'property/create-draft' && method === 'POST') {
+            if ((cleanUrl === 'property/create-draft' || cleanUrl === 'property/create' || cleanUrl === 'property') && method === 'POST') {
                 const userId = await getCurrentUserId()
-                const payload = { ...(body || {}), host_id: userId, status: 'draft' }
+                const rawData = (body instanceof FormData) ? await parseFormDataWithUploads(body, 'properties') : (body || {})
+                const payload = sanitizePropertyData(rawData)
+                if (userId) payload.host_id = userId
+                payload.status = payload.status || 'draft'
                 const { data, error } = await supabase.from('properties').insert(payload).select().maybeSingle()
-                if (error) throw error
-                return { data: { property: data, message: 'Property draft created' } }
+                if (error) {
+                    console.error('Supabase property create error:', error)
+                    return { error: { status: 400, error: error.message } }
+                }
+                return { data: { property: data, propertyId: data?.id, data: data, id: data?.id, message: 'Property created' } }
             }
 
             // Upload Property Photos
@@ -165,10 +238,10 @@ export async function executeSupabaseRequest(args) {
                 }
 
                 if (propertyId && uploadedUrl) {
-                    const { data: prop } = await supabase.from('properties').select('images').eq('id', propertyId).maybeSingle()
-                    const existingImgs = Array.isArray(prop?.images) ? prop.images : []
+                    const { data: prop } = await supabase.from('properties').select('images, photos').eq('id', propertyId).maybeSingle()
+                    const existingImgs = Array.isArray(prop?.images) ? prop.images : (Array.isArray(prop?.photos) ? prop.photos : [])
                     const updatedImgs = [...existingImgs, uploadedUrl]
-                    await supabase.from('properties').update({ images: updatedImgs }).eq('id', propertyId)
+                    await supabase.from('properties').update({ images: updatedImgs, photos: updatedImgs }).eq('id', propertyId)
                 }
 
                 return { data: { success: true, url: uploadedUrl, message: 'Image uploaded successfully' } }
@@ -186,8 +259,17 @@ export async function executeSupabaseRequest(args) {
                 const parts = cleanUrl.split('/')
                 const id = parts[parts.length - 1]
                 if (id) {
-                    const { data, error } = await supabase.from('properties').update(body || {}).eq('id', id).select().maybeSingle()
-                    if (!error && data) return { data: { property: data } }
+                    const rawData = (body instanceof FormData) ? await parseFormDataWithUploads(body, 'properties') : (body || {})
+                    const payload = sanitizePropertyData(rawData)
+                    if (cleanUrl.startsWith('property/submit')) {
+                        payload.status = 'pending'
+                        payload.is_approved = false
+                    }
+                    const { data, error } = await supabase.from('properties').update(payload).eq('id', id).select().maybeSingle()
+                    if (error) {
+                        console.error('Supabase property update error:', error)
+                    }
+                    if (data) return { data: { property: data, propertyId: data.id, data: data, id: data.id, success: true } }
                 }
                 return { data: { success: true, message: 'Property updated' } }
             }
