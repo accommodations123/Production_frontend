@@ -6,6 +6,7 @@ import TextInput from '@/components/auth/TextInput';
 import Button from '@/components/auth/Button';
 import { useDispatch, useSelector } from 'react-redux';
 import { sendOtp, verifyOtp, fetchCurrentUser } from '@/store/slices/authSlice';
+import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 
 const Signup = () => {

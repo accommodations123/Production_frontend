@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import Button from "@/components/auth/Button";
 import { useDispatch, useSelector } from "react-redux";
 import { sendOtp, verifyOtp, fetchCurrentUser } from "@/store/slices/authSlice";
+import { supabase } from "@/lib/supabaseClient";
 
 /* Brand Colors:
   --color-background: #ffffff
