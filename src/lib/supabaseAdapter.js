@@ -128,8 +128,10 @@ function sanitizePropertyData(data) {
 const VALID_PROFILE_COLUMNS = new Set([
     'id', 'email', 'name', 'full_name', 'firstName', 'lastName',
     'role', 'status', 'is_approved', 'is_blocked', 'is_verified',
-    'is_featured', 'phone', 'city', 'country', 'occupation',
-    'headline', 'profession', 'rejection_reason', 'block_reason'
+    'is_featured', 'phone', 'city', 'state', 'country', 'zip_code',
+    'address', 'street_address', 'whatsapp', 'facebook', 'instagram',
+    'id_proof_type', 'id_photo', 'selfie_photo', 'avatar_url', 'profile_image',
+    'occupation', 'headline', 'profession', 'rejection_reason', 'block_reason'
 ]);
 
 function sanitizeProfileData(data) {
@@ -139,9 +141,15 @@ function sanitizeProfileData(data) {
     if (data.host_phone && !data.phone) sanitized.phone = data.host_phone;
     if (data.host_city && !data.city) sanitized.city = data.host_city;
     if (data.host_country && !data.country) sanitized.country = data.host_country;
+    if (data.host_state && !data.state) sanitized.state = data.host_state;
+    if (data.host_address && !data.address) sanitized.address = data.host_address;
+    if (data.street_address && !data.address) sanitized.address = data.street_address;
+    if (data.address && !data.street_address) sanitized.street_address = data.address;
+    if (data.pincode && !data.zip_code) sanitized.zip_code = data.pincode;
+    if (data.zipCode && !data.zip_code) sanitized.zip_code = data.zipCode;
 
     for (const [key, val] of Object.entries(data)) {
-        if (VALID_PROFILE_COLUMNS.has(key) && val !== undefined) {
+        if (VALID_PROFILE_COLUMNS.has(key) && val !== undefined && sanitized[key] === undefined) {
             sanitized[key] = val;
         }
     }
