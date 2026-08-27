@@ -296,12 +296,14 @@ export default function HostOnboardingForm() {
 
       // Handle different error types
       if (err.status === 'PARSING_ERROR' && err.originalStatus === 500) {
-        // Server returned HTML instead of JSON (500 error)
         setSubmitError("Server error occurred. Please try again later or contact support if the problem persists.");
       } else if (err.status === 401) {
         setSubmitError("Your session has expired. Please sign in again to submit your host application.");
-        // Optional: clear local user data
         localStorage.removeItem("user");
+      } else if (err.status === 409) {
+        setSubmitError(err.data?.error || err.data?.message || "A conflict occurred with existing account details (e.g. duplicate phone or email). Please check your details and try again.");
+      } else if (err.data?.error) {
+        setSubmitError(err.data.error);
       } else if (err.data?.message) {
         setSubmitError(err.data.message);
       } else if (err.error) {

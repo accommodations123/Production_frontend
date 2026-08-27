@@ -383,10 +383,21 @@ export async function executeSupabaseRequest(args) {
                 sanitized.role = 'host'
                 sanitized.status = 'pending'
                 sanitized.is_approved = false
-                const { data, error } = await supabase.from('profiles').upsert({ id: userId, ...sanitized }, { onConflict: 'id' }).select().maybeSingle()
+
+                // Try direct update first to avoid PostgREST 409 upsert conflicts on existing rows
+                let { data, error } = await supabase.from('profiles').update(sanitized).eq('id', userId).select().maybeSingle()
+                
+                // If row didn't exist yet, insert/upsert it
+                if (!data && (!error || error.code === 'PGRST116')) {
+                    const upsertRes = await supabase.from('profiles').upsert({ id: userId, ...sanitized }, { onConflict: 'id' }).select().maybeSingle()
+                    data = upsertRes.data
+                    error = upsertRes.error
+                }
+
                 if (error) {
                     console.error('Supabase host save error:', error)
-                    return { error: { status: 400, error: error.message } }
+                    const errorMsg = error.details || error.hint || error.message || 'Database conflict occurred while saving host details'
+                    return { error: { status: error.code === '23505' ? 409 : 400, error: errorMsg, message: errorMsg } }
                 }
                 return { data: { host: data || { id: userId, ...sanitized, ...parsedBody } } }
             }
