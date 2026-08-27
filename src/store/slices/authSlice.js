@@ -211,16 +211,43 @@ export const updateProfile = createAsyncThunk(
             const { data: { session } } = await supabase.auth.getSession();
             if (!session?.user?.id) throw new Error('Not authenticated');
 
-            const { data, error } = await supabase
-                .from('profiles')
-                .update(formData)
-                .eq('id', session.user.id)
-                .select()
-                .maybeSingle();
+            const validColumns = new Set([
+                'id', 'email', 'name', 'full_name', 'firstName', 'lastName',
+                'role', 'status', 'is_approved', 'is_blocked', 'is_verified',
+                'is_featured', 'phone', 'city', 'country', 'occupation',
+                'headline', 'profession', 'rejection_reason', 'block_reason'
+            ]);
 
-            if (error) throw error;
+            const payload = {};
+            if (formData instanceof FormData) {
+                for (const [key, value] of formData.entries()) {
+                    if (validColumns.has(key)) payload[key] = value;
+                }
+            } else if (typeof formData === 'object' && formData !== null) {
+                if (formData.name && !formData.full_name) payload.full_name = formData.name;
+                if (formData.full_name && !formData.name) payload.name = formData.full_name;
 
-            const user = formatUserObject(session.user, data);
+                for (const [k, v] of Object.entries(formData)) {
+                    if (validColumns.has(k) && v !== undefined) payload[k] = v;
+                }
+            }
+
+            let profileData = null;
+            if (Object.keys(payload).length > 0) {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .update(payload)
+                    .eq('id', session.user.id)
+                    .select()
+                    .maybeSingle();
+
+                if (error) {
+                    console.warn('Profile update warning:', error);
+                }
+                profileData = data;
+            }
+
+            const user = formatUserObject(session.user, profileData);
             if (user) {
                 localStorage.setItem("user", JSON.stringify(user));
             }

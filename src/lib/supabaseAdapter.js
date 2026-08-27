@@ -58,6 +58,29 @@ async function parseFormDataWithUploads(formData, folder = 'uploads') {
     return result
 }
 
+const VALID_PROFILE_COLUMNS = new Set([
+    'id', 'email', 'name', 'full_name', 'firstName', 'lastName',
+    'role', 'status', 'is_approved', 'is_blocked', 'is_verified',
+    'is_featured', 'phone', 'city', 'country', 'occupation',
+    'headline', 'profession', 'rejection_reason', 'block_reason'
+]);
+
+function sanitizeProfileData(data) {
+    if (!data || typeof data !== 'object') return {};
+    const sanitized = {};
+    if (data.host_full_name && !data.full_name) sanitized.full_name = data.host_full_name;
+    if (data.host_phone && !data.phone) sanitized.phone = data.host_phone;
+    if (data.host_city && !data.city) sanitized.city = data.host_city;
+    if (data.host_country && !data.country) sanitized.country = data.host_country;
+
+    for (const [key, val] of Object.entries(data)) {
+        if (VALID_PROFILE_COLUMNS.has(key) && val !== undefined) {
+            sanitized[key] = val;
+        }
+    }
+    return sanitized;
+}
+
 /**
  * Route request to Supabase table queries
  * @param {string|object} args - query url or object { url, method, body, params, headers }
@@ -205,8 +228,13 @@ export async function executeSupabaseRequest(args) {
             if (cleanUrl === 'host/save' || cleanUrl.startsWith('host/update')) {
                 const userId = await getCurrentUserId()
                 if (userId && body) {
-                    const { data } = await supabase.from('profiles').update(body).eq('id', userId).select().maybeSingle()
-                    return { data: { host: data || body } }
+                    const parsedBody = (body instanceof FormData) ? await parseFormDataWithUploads(body, 'hosts') : body
+                    const sanitized = sanitizeProfileData(parsedBody)
+                    if (Object.keys(sanitized).length > 0) {
+                        const { data } = await supabase.from('profiles').update(sanitized).eq('id', userId).select().maybeSingle()
+                        return { data: { host: data || parsedBody } }
+                    }
+                    return { data: { host: parsedBody } }
                 }
                 return { data: { host: body } }
             }
