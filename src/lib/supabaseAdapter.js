@@ -301,9 +301,12 @@ export async function executeSupabaseRequest(args) {
                 const userId = await getCurrentUserId()
                 if (!userId) return { data: { host: null } }
                 const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
-                if (data) return { data: { host: data } }
+                if (data) {
+                    const isHost = data.role === 'host' || !!(data.id_proof_type || data.id_photo || data.selfie_photo)
+                    return { data: { host: isHost ? data : null } }
+                }
 
-                // Fallback from auth session
+                // Fallback from auth session for normal user
                 const { data: { session } } = await supabase.auth.getSession()
                 if (session?.user?.id === userId) {
                     const fallbackUser = {
@@ -312,11 +315,11 @@ export async function executeSupabaseRequest(args) {
                         name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
                         full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
                         role: 'user',
-                        status: 'pending',
+                        status: null,
                         is_approved: false
                     }
                     await supabase.from('profiles').upsert(fallbackUser, { onConflict: 'id' })
-                    return { data: { host: fallbackUser } }
+                    return { data: { host: null } }
                 }
                 return { data: { host: null } }
             }
