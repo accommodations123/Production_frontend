@@ -274,28 +274,14 @@ export default function HostOnboardingForm() {
       };
 
       // Submit to host/save
-      const result = await saveHost(hostPayload).unwrap();
+      await saveHost(hostPayload).unwrap();
       setShowSuccess(true);
 
-      // Navigate to host create page after successful submission
-      navigate("/host/create");
-
-      // Reset form after success
+      // Navigate to host create page after showing success animation
       setTimeout(() => {
         setShowSuccess(false);
-        setFormData({
-          full_name: "",
-          email: "",
-          phone: "",
-          country: "",
-          state: "",
-          city: "",
-          street_address: "",
-          whatsapp: "",
-          facebook: "",
-          instagram: ""
-        });
-      }, 3000);
+        navigate("/host/create");
+      }, 1800);
     } catch (err) {
       console.error("Error submitting form:", err);
 

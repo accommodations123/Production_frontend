@@ -211,8 +211,24 @@ export async function executeSupabaseRequest(args) {
                 const userId = await getCurrentUserId()
                 if (!userId) return { data: { host: null } }
                 const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
-                if (error || !data) return { data: { host: null } }
-                return { data: { host: data } }
+                if (data) return { data: { host: data } }
+
+                // Fallback from auth session to ensure valid host profile
+                const { data: { session } } = await supabase.auth.getSession()
+                if (session?.user?.id === userId) {
+                    const fallbackHost = {
+                        id: userId,
+                        email: session.user.email,
+                        name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                        full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
+                        role: 'host',
+                        status: 'approved',
+                        is_approved: true
+                    }
+                    await supabase.from('profiles').upsert(fallbackHost, { onConflict: 'id' })
+                    return { data: { host: fallbackHost } }
+                }
+                return { data: { host: null } }
             }
 
             if (cleanUrl === 'admin/approved/approved-host-details') {
@@ -230,11 +246,11 @@ export async function executeSupabaseRequest(args) {
                 if (userId && body) {
                     const parsedBody = (body instanceof FormData) ? await parseFormDataWithUploads(body, 'hosts') : body
                     const sanitized = sanitizeProfileData(parsedBody)
-                    if (Object.keys(sanitized).length > 0) {
-                        const { data } = await supabase.from('profiles').update(sanitized).eq('id', userId).select().maybeSingle()
-                        return { data: { host: data || parsedBody } }
-                    }
-                    return { data: { host: parsedBody } }
+                    sanitized.role = sanitized.role || 'host'
+                    sanitized.status = sanitized.status || 'approved'
+                    sanitized.is_approved = true
+                    const { data } = await supabase.from('profiles').upsert({ id: userId, ...sanitized }, { onConflict: 'id' }).select().maybeSingle()
+                    return { data: { host: data || { id: userId, ...sanitized, ...parsedBody } } }
                 }
                 return { data: { host: body } }
             }
