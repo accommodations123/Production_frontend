@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Menu, Globe, User, ChevronDown, X, Search, Users, Briefcase, Home, Calendar, Building, Plane, BookOpen, ShoppingBag, HomeIcon, Check, Sparkles, Settings as SettingsIcon, Grid3X3, LogOut, Heart } from "lucide-react"
+import { Menu, Globe, User, ChevronDown, X, Search, Users, Briefcase, Home, Calendar, Building, Plane, BookOpen, ShoppingBag, HomeIcon, Check, Sparkles, Settings as SettingsIcon, Grid3X3, LogOut, Heart, UserCheck, Repeat, MessageSquare } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -17,6 +17,8 @@ import { logoutUser, fetchCurrentUser } from "@/store/slices/authSlice"
 import { useGetHostProfileQuery, hostApi } from "@/store/api/hostApi"
 import { authApi } from "@/store/api/authApi"
 import { NotificationDropdown } from "@/components/common/NotificationDropdown"
+import { clearAuthCookie } from "@/shared/utils/cookieUtils"
+import { MobileSidebar } from './MobileSidebar'
 
 export function Navbar({ minimal = false, onMenuClick }) {
     const navigate = useNavigate()
@@ -32,12 +34,13 @@ export function Navbar({ minimal = false, onMenuClick }) {
     const [isCountryOpen, setIsCountryOpen] = React.useState(false)
     const [isProfileOpen, setIsProfileOpen] = React.useState(false)
     const [isHostDropdownOpen, setIsHostDropdownOpen] = React.useState(false)
+    const [isPeopleDropdownOpen, setIsPeopleDropdownOpen] = React.useState(false)
 
     // ================= AUTH STATE (BACKEND VERIFIED) =================
     const { user: userData, loading: isAuthLoading, error: isAuthError } = useSelector((state) => state.auth)
     const isAuthenticated = !!userData && !isAuthError
 
-    // Automatically fetch current user session on mount to validate session state and avoid stale cache
+    // Automatically fetch current user session on mount
     React.useEffect(() => {
         dispatch(fetchCurrentUser())
     }, [dispatch])
@@ -52,16 +55,13 @@ export function Navbar({ minimal = false, onMenuClick }) {
         return {
             ...(hostProfile || {}),
             ...userDetails,
-            // Prefer the source that already has a full CloudFront URL
             profile_image: (() => {
                 const candidates = [
                     hostProfile?.profile_image,
                     userDetails?.profile_image,
                 ];
-                // First, try to find one that's already a full URL
                 const fullUrl = candidates.find(img => img && img.startsWith('http'));
                 if (fullUrl) return fullUrl;
-                // Fallback: use resolveImageUrl on whichever is available
                 const rawKey = candidates.find(img => img);
                 return resolveImageUrl(rawKey);
             })()
@@ -88,16 +88,10 @@ export function Navbar({ minimal = false, onMenuClick }) {
             console.warn("Backend logout failed, proceeding with local cleanup", e);
         }
         disconnectSocket();
-
-        // Force expire the access_token cookie
-        document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.nextkinlife.live;";
-
-        localStorage.removeItem("user");
+        clearAuthCookie();
 
         dispatch(authApi.util.resetApiState());
         dispatch(hostApi.util.resetApiState());
-        dispatch(authApi.util.resetApiState());
         setIsMobileMenuOpen(false);
         navigate("/signin");
     };
@@ -111,30 +105,16 @@ export function Navbar({ minimal = false, onMenuClick }) {
         return () => window.removeEventListener("scroll", handleScroll)
     }, [])
 
-    // ================= WEBSOCKET LOGIC =================
+    // WebSocket Initialization
     React.useEffect(() => {
         if (!isAuthenticated) return;
 
         const socket = getSocket();
         socketRef.current = socket;
-
-        const onConnect = () => {
-            // Socket connected successfully
-        };
-
-        const onConnectError = (err) => {
-            console.error("❌ Socket Connection Error:", err.message);
-        };
-
-        socket.on("connect", onConnect);
-        socket.on("connect_error", onConnectError);
-
         isSocketInitialized.current = true;
 
         return () => {
             if (socketRef.current) {
-                socketRef.current.off("connect", onConnect);
-                socketRef.current.off("connect_error", onConnectError);
                 socketRef.current = null;
             }
         };
@@ -159,17 +139,13 @@ export function Navbar({ minimal = false, onMenuClick }) {
         }
     }, [isCountryOpen, isMobileCountryOpen]);
 
-    // Define Explore section paths
-    const explorePaths = ["/", "/events", "/search"]
-    const isExploreActive = explorePaths.includes(location.pathname) || location.pathname.startsWith("/rooms")
-
-    // Close dropdowns on route change but keep the main menu open
+    // Close dropdowns on route change
     React.useEffect(() => {
         setIsMobileCountryOpen(false)
         setIsHostDropdownOpen(false)
+        setIsPeopleDropdownOpen(false)
         setIsCountryOpen(false)
         setIsProfileOpen(false)
-        // Note: We're NOT closing setIsMobileMenuOpen here
     }, [location.pathname])
 
     // Click Outside Refs
@@ -177,8 +153,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
     const profileRef = useClickOutside(() => setIsProfileOpen(false))
     const mobileCountryRef = useClickOutside(() => setIsMobileCountryOpen(false))
     const hostDropdownRef = useClickOutside(() => setIsHostDropdownOpen(false))
-    // NOTE: No useClickOutside for mobile menu — backdrop onClick handles it
-    const mobileMenuRef = React.useRef(null)
+    const peopleDropdownRef = useClickOutside(() => setIsPeopleDropdownOpen(false))
 
     // Host options for dropdown
     const hostOptions = [
@@ -213,28 +188,37 @@ export function Navbar({ minimal = false, onMenuClick }) {
         {
             id: 'marketplace',
             title: 'Sell an Item',
-            description: 'List products in Buy/Sell marketplace.',
+            description: 'List products in Marketplace.',
             icon: <ShoppingBag className="h-5 w-5" />,
             path: getHostPath('marketplace', isAuthenticated)
         },
     ]
 
-    // Navigation items - ensuring consistent paths for desktop and mobile
+    // Navigation items
     const navItems = [
         { name: "Home", path: "/" },
-        { name: "Accommodations", path: "/search" },
-        { name: "Buy/Sell", path: "/marketplace" },
-        { name: "Community", path: "/groups" },
+        { name: "Accommodations", path: "/accommodations" },
+        { name: "Marketplace", path: "/marketplace" },
+        { name: "People", path: "/people" },
         { name: "Events", path: "/events" },
         { name: "Travel Partners", path: "/travel" },
     ]
 
-    // Safely get country code with fallback
     const getCountryCode = () => {
         if (!activeCountry) return "";
         if (activeCountry.code) return activeCountry.code;
         if (activeCountry.country) return activeCountry.country;
         return "";
+    };
+
+    const handleMyProfessionalProfileClick = () => {
+        setIsPeopleDropdownOpen(false);
+        setIsProfileOpen(false);
+        if (isAuthenticated) {
+            navigate("/people/become");
+        } else {
+            navigate("/signin?redirect=/people/become");
+        }
     };
 
     return (
@@ -248,9 +232,9 @@ export function Navbar({ minimal = false, onMenuClick }) {
                         : "bg-gradient-to-b from-[#0A1A2F]/90 to-transparent py-5"
                 )}
             >
-                <div className="container mx-auto px-4 lg:px-6 flex items-center justify-between">
-                    {/* Logo - Glass Effect - INCREASED SIZE */}
-                    <Link to="/" className="flex items-center gap-3 group relative items-center">
+                <div className="max-w-[1600px] mx-auto px-4 lg:px-6 flex items-center justify-between">
+                    {/* Logo */}
+                    <Link to="/" className="flex items-center gap-3 group relative">
                         <div className="relative w-10 h-10 lg:w-12 lg:h-12 xl:w-16 xl:h-16 rounded-xl xl:rounded-2xl overflow-hidden ring-1 ring-white/10 group-hover:ring-accent/50 transition-all shadow-2xl shadow-black/20">
                             <div className="absolute inset-0 bg-gradient-to-tr from-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                             <img
@@ -259,7 +243,6 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                 className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-700 ease-out"
                             />
                         </div>
-                        {/* Only show brand text on large wide screens to prevent crowding */}
                         <div className="hidden 2xl:flex items-center transition-all duration-300">
                             <span className="text-white font-bold text-xl">Next</span>
                             <span className="text-white font-bold text-xl">Kin</span>
@@ -267,11 +250,68 @@ export function Navbar({ minimal = false, onMenuClick }) {
                         </div>
                     </Link>
 
-                    {/* Desktop Navigation - Pill Design - IMPROVED RESPONSIVENESS */}
+                    {/* Desktop Navigation */}
                     {!minimal && (
                         <nav className="hidden lg:flex items-center gap-0.5 p-1 rounded-full bg-white/5 border border-white/5 backdrop-blur-md shadow-inner shadow-black/20">
                             {navItems.map((item) => {
-                                const isActive = location.pathname === item.path;
+                                const isActive = location.pathname.startsWith(item.path) && (item.path !== "/" || location.pathname === "/");
+                                
+                                if (item.hasDropdown) {
+                                    return (
+                                        <div key={item.name} className="relative" ref={peopleDropdownRef}>
+                                            <button
+                                                onClick={() => setIsPeopleDropdownOpen(!isPeopleDropdownOpen)}
+                                                className={cn(
+                                                    "relative px-2.5 lg:px-3 xl:px-4 2xl:px-5 py-2 rounded-full text-xs lg:text-sm font-medium transition-all duration-300 whitespace-nowrap flex items-center gap-1 cursor-pointer",
+                                                    isActive || isPeopleDropdownOpen
+                                                        ? "text-white"
+                                                        : "text-white/60 hover:text-white hover:bg-white/5"
+                                                )}
+                                            >
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="navbar-pill"
+                                                        className="absolute inset-0 bg-accent rounded-full shadow-[0_0_20px_rgba(203,42,37,0.3)]"
+                                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                                    />
+                                                )}
+                                                <span className="relative z-10">{item.name}</span>
+                                                <ChevronDown className={cn("relative z-10 w-3.5 h-3.5 transition-transform duration-200", isPeopleDropdownOpen && "rotate-180")} />
+                                            </button>
+
+                                            {/* Image 2 Rule: Dropdown has ONLY 2 options: Browse People & My Professional Profile */}
+                                            <AnimatePresence>
+                                                {isPeopleDropdownOpen && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                                                        transition={{ duration: 0.15 }}
+                                                        className="absolute top-full left-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50 p-1.5"
+                                                    >
+                                                        <Link
+                                                            to="/people"
+                                                            onClick={() => setIsPeopleDropdownOpen(false)}
+                                                            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-800 hover:bg-slate-100 transition-colors"
+                                                        >
+                                                            <Users className="w-4 h-4 text-[#E1392A]" />
+                                                            <span>Browse People</span>
+                                                        </Link>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleMyProfessionalProfileClick}
+                                                            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-800 hover:bg-slate-100 transition-colors text-left cursor-pointer"
+                                                        >
+                                                            <User className="w-4 h-4 text-blue-600" />
+                                                            <span>My Professional Profile</span>
+                                                        </button>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    );
+                                }
+
                                 return (
                                     <Link
                                         key={item.name}
@@ -296,8 +336,6 @@ export function Navbar({ minimal = false, onMenuClick }) {
                             })}
                         </nav>
                     )}
-
-                    {/* Tablet hamburger no longer needed — mobile layout handles < lg */}
 
                     {/* Desktop Right Actions */}
                     <div className="flex items-center gap-1.5 lg:gap-2 xl:gap-3">
@@ -399,7 +437,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                             </AnimatePresence>
                         </div>
 
-                        {/* Become Host Button - Glowing Effect */}
+                        {/* Become Host Button */}
                         <div className="relative hidden sm:block" ref={hostDropdownRef}>
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
@@ -452,22 +490,21 @@ export function Navbar({ minimal = false, onMenuClick }) {
                             </AnimatePresence>
                         </div>
 
-                        {/* Profile / Sign In */}
+                        {/* Profile / Sign In (Image 3: Logged-in Avatar Dropdown Menu) */}
                         {!isAuthenticated ? (
                             <Button
                                 onClick={() => navigate("/signin")}
-                                className="rounded-xl bg-white/10 border border-white/10 text-white hover:bg-white hover:text-[#0A1A2F] px-3 lg:px-4 xl:px-6 font-bold tracking-wide transition-all shadow-lg hover:shadow-white/20 whitespace-nowrap"
+                                className="rounded-xl bg-white/10 border border-white/10 text-white hover:bg-white hover:text-[#0A1A2F] px-3 lg:px-4 xl:px-6 font-bold tracking-wide transition-all shadow-lg hover:shadow-white/20 whitespace-nowrap cursor-pointer"
                             >
-                                <span className="hidden sm:inline">Sign In</span>
-                                <span className="sm:hidden">Sign</span>
+                                Sign In
                             </Button>
                         ) : (
                             <div className="relative" ref={profileRef}>
                                 <button
-                                    className="flex items-center gap-3 p-1.5 pr-4 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all cursor-pointer group"
+                                    className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all cursor-pointer group"
                                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                                 >
-                                    <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-accent transition-all shadow-lg">
+                                    <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-accent transition-all shadow-lg">
                                         {resolvedUser?.profile_image ? (
                                             <img
                                                 src={`${resolvedUser.profile_image}?v=${renderTimestamp}`}
@@ -480,98 +517,76 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                             </div>
                                         )}
                                     </div>
-                                    <ChevronDown className={cn("h-4 w-4 text-white/50 transition-transform group-hover:text-white", isProfileOpen && "rotate-180")} />
+                                    <span className="text-xs font-bold text-white max-w-[90px] truncate">{displayName}</span>
+                                    <ChevronDown className={cn("h-3.5 w-3.5 text-white/60 transition-transform group-hover:text-white", isProfileOpen && "rotate-180")} />
                                 </button>
 
+                                {/* Image 3 Rule: Avatar menu options */}
                                 <AnimatePresence>
                                     {isProfileOpen && (
                                         <motion.div
                                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            className="absolute top-full right-0 mt-3 w-64 bg-[#0F2238] rounded-2xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden z-50 py-2"
+                                            className="absolute top-full right-0 mt-3 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50 py-2 text-slate-800"
                                         >
-                                            <div className="px-4 py-3 border-b border-white/5 mb-2">
-                                                <p className="text-white font-bold truncate">{displayName}</p>
-                                                <Link to="/account-v2?tab=personal" className="text-xs text-white/50 hover:text-accent transition-colors flex items-center gap-1 mt-0.5" onClick={() => setIsProfileOpen(false)}>
-                                                    View Profile
-                                                </Link>
+                                            <div className="px-4 py-2.5 border-b border-slate-100">
+                                                <p className="font-extrabold text-sm text-slate-900 truncate">{displayName}</p>
+                                                <p className="text-[11px] text-slate-500 truncate">{resolvedUser?.email || ""}</p>
                                             </div>
 
-                                            <div className="space-y-1 px-2">
+                                            <div className="space-y-1 p-1.5">
+                                                {/* Switch to Hosting (Image 3 rule) */}
                                                 <Link
-                                                    to="/account-v2?tab=overview"
-                                                    className="flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                                                    to={getHostPath('property', isAuthenticated)}
+                                                    className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
                                                     onClick={() => setIsProfileOpen(false)}
                                                 >
-                                                    <Home className="h-4 w-4 opacity-70" />
-                                                    Overview
+                                                    <HomeIcon className="h-4 w-4 text-emerald-600" />
+                                                    <span>Switch to Hosting</span>
                                                 </Link>
+
+                                                {/* My Professional Profile (Image 3 rule) */}
+                                                <button
+                                                    type="button"
+                                                    onClick={handleMyProfessionalProfileClick}
+                                                    className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all text-left cursor-pointer"
+                                                >
+                                                    <User className="h-4 w-4 text-blue-600" />
+                                                    <span>My Professional Profile</span>
+                                                </button>
+                                            </div>
+
+                                            <div className="my-1 border-t border-slate-100" />
+
+                                            <div className="space-y-1 p-1.5">
+                                                {/* Connection Requests */}
+                                                <Link
+                                                    to="/account-v2?tab=requests"
+                                                    className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
+                                                    onClick={() => setIsProfileOpen(false)}
+                                                >
+                                                    <MessageSquare className="h-4 w-4 text-orange-500" />
+                                                    <span>Connection Requests</span>
+                                                </Link>
+
+                                                {/* Account settings */}
                                                 <Link
                                                     to="/account-v2?tab=personal"
-                                                    className="flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                                                    className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
                                                     onClick={() => setIsProfileOpen(false)}
                                                 >
-                                                    <User className="h-4 w-4 opacity-70" />
-                                                    Personal Info
+                                                    <SettingsIcon className="h-4 w-4 text-slate-500" />
+                                                    <span>Account settings</span>
                                                 </Link>
-                                                <Link
-                                                    to="/account-v2?tab=applications"
-                                                    className="flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                                                    onClick={() => setIsProfileOpen(false)}
-                                                >
-                                                    <Briefcase className="h-4 w-4 opacity-70" />
-                                                    My Applications
-                                                </Link>
-                                                <Link
-                                                    to="/account-v2?tab=listings"
-                                                    className="flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                                                    onClick={() => setIsProfileOpen(false)}
-                                                >
-                                                    <Building className="h-4 w-4 opacity-70" />
-                                                    My Listings
-                                                </Link>
-                                                <Link
-                                                    to="/account-v2?tab=buy-sell"
-                                                    className="flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                                                    onClick={() => setIsProfileOpen(false)}
-                                                 >
-                                                    <ShoppingBag className="h-4 w-4 opacity-70" />
-                                                    My Buy/Sell
-                                                </Link>
-                                                <Link
-                                                    to="/account-v2?tab=communities"
-                                                    className="flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                                                    onClick={() => setIsProfileOpen(false)}
-                                                >
-                                                    <Users className="h-4 w-4 opacity-70" />
-                                                    My Communities
-                                                </Link>
-                                                <Link
-                                                    to="/account-v2?tab=wishlist"
-                                                    className="flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                                                    onClick={() => setIsProfileOpen(false)}
-                                                >
-                                                    <Heart className="h-4 w-4 opacity-70" />
-                                                    My Wishlist
-                                                </Link>
-                                                <Link
-                                                    to="/account-v2?tab=trips"
-                                                    className="flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                                                    onClick={() => setIsProfileOpen(false)}
-                                                >
-                                                    <Plane className="h-4 w-4 opacity-70" />
-                                                    My Trips
-                                                </Link>
-                                            </div>
 
-                                            <div className="mt-2 pt-2 border-t border-white/5 px-2">
+                                                {/* Log out */}
                                                 <button
                                                     onClick={handleLogout}
-                                                    className="w-full text-left px-4 py-3 text-sm text-[#FF6B6B] hover:bg-[#FF6B6B]/10 font-bold cursor-pointer transition-colors rounded-xl flex items-center gap-3"
+                                                    className="w-full text-left px-3 py-2 text-xs text-[#E1392A] hover:bg-red-50 font-bold cursor-pointer transition-colors rounded-xl flex items-center gap-3"
                                                 >
-                                                    <X className="w-4 h-4" />
-                                                    Logout
+                                                    <LogOut className="w-4 h-4" />
+                                                    <span>Log out</span>
                                                 </button>
                                             </div>
                                         </motion.div>
@@ -579,19 +594,17 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                 </AnimatePresence>
                             </div>
                         )}
-                    </div >
-                </div >
-            </header >
+                    </div>
+                </div>
+            </header>
 
             {/* ================= MOBILE NAVBAR ================= */}
             <div className="lg:hidden">
-                {/* Mobile Top Bar */}
                 <div className={cn(
                     "fixed top-0 left-0 right-0 z-50 px-4 py-3 transition-all duration-300",
                     isScrolled || isMobileMenuOpen ? "bg-[#0A1A2F]/95 backdrop-blur-xl border-b border-white/10 shadow-lg" : "bg-[#0A1A2F]"
                 )}>
                     <div className="flex items-center justify-between">
-                        {/* Left: Hamburger Menu */}
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -602,7 +615,6 @@ export function Navbar({ minimal = false, onMenuClick }) {
                             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
 
-                        {/* Center: Logo/Brand */}
                         <Link to="/" className="flex items-center gap-2">
                             <div className="relative w-8 h-8 rounded-lg overflow-hidden ring-1 ring-white/10">
                                 <img
@@ -618,96 +630,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                             </div>
                         </Link>
 
-                        {/* Right: Country Selector and Sign Out */}
                         <div className="flex items-center gap-2">
-                            {/* Country Selector */}
-                            <div className="relative" ref={mobileCountryRef}>
-                                <button
-                                    className={cn(
-                                        "flex items-center gap-1 px-2 py-1.5 rounded-lg text-sm font-medium transition-all",
-                                        isMobileCountryOpen
-                                            ? "bg-white/10 text-white"
-                                            : "bg-white/5 text-white/80 hover:bg-white/10"
-                                    )}
-                                    onClick={() => setIsMobileCountryOpen(!isMobileCountryOpen)}
-                                >
-                                    {!isSelected ? (
-                                        <>
-                                            <span className="text-sm md:hidden">IN</span>
-                                            <span className="text-sm hidden md:inline">India</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="text-sm md:hidden">{activeCountry?.code || "IN"}</span>
-                                            <span className="text-sm hidden md:inline">{activeCountry?.name || "India"}</span>
-                                        </>
-                                    )}
-                                    <ChevronDown className={cn("h-3 w-3 transition-transform", isMobileCountryOpen && "rotate-180")} />
-                                </button>
-
-                                <AnimatePresence>
-                                    {isMobileCountryOpen && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                            className="absolute top-full right-0 mt-2 w-64 bg-[#0F2238]/95 backdrop-blur-xl rounded-xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] z-50 border border-white/10 overflow-hidden"
-                                        >
-                                            <div className="px-4 py-2 border-b border-white/5 bg-white/5">
-                                                <p className="text-[10px] font-black text-accent uppercase tracking-widest">Select Region</p>
-                                                <p className="text-[10px] text-white/50 mt-1">💡 Currency set automatically</p>
-                                            </div>
-                                            <div className="px-3 py-2 border-b border-white/5">
-                                                <div className="relative">
-                                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Search country..."
-                                                        value={countrySearchQuery}
-                                                        onChange={(e) => setCountrySearchQuery(e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-accent/50 focus:bg-white/10 transition-colors"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="max-h-64 overflow-y-auto py-2 px-2 scrollbar-hide">
-                                                {filteredCountries.length > 0 ? (
-                                                    filteredCountries.map((country) => (
-                                                        <button
-                                                            key={country.code}
-                                                            className={cn(
-                                                                "w-full text-left px-3 py-2 text-sm rounded-lg flex items-center justify-between transition-all",
-                                                                getCountryCode() === country.code
-                                                                    ? "bg-accent text-white"
-                                                                    : "text-white/70 hover:bg-white/5 hover:text-white"
-                                                            )}
-                                                            onClick={() => {
-                                                                setCountry(country)
-                                                                setIsMobileCountryOpen(false)
-                                                            }}
-                                                        >
-                                                            <span className="flex items-center gap-3">
-                                                                {(country.flag.startsWith('/') || country.flag.startsWith('http')) ? (
-                                                                    <img src={country.flag} alt={country.name} className="w-5 h-3 object-cover rounded" />
-                                                                ) : (
-                                                                    <span className="text-base">{country.flag}</span>
-                                                                )}
-                                                                <span className="font-medium">{country.name}</span>
-                                                            </span>
-                                                            {getCountryCode() === country.code && <Check className="w-3 h-3" />}
-                                                        </button>
-                                                    ))
-                                                ) : (
-                                                    <div className="px-4 py-6 text-center text-white/50 text-sm">
-                                                        No countries found
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-
-                            {/* Sign Out Button - Only show when authenticated */}
                             {isAuthenticated && (
                                 <button
                                     onClick={handleLogout}
@@ -720,206 +643,11 @@ export function Navbar({ minimal = false, onMenuClick }) {
                         </div>
                     </div>
                 </div>
-
-                {/* Mobile Menu Overlay */}
-                <AnimatePresence>
-                    {isMobileMenuOpen && (
-                        <>
-                            {/* Backdrop */}
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                            />
-
-                            {/* Drawer */}
-                            <motion.div
-                                initial={{ x: "-100%" }}
-                                animate={{ x: 0 }}
-                                exit={{ x: "-100%" }}
-                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                className="fixed inset-y-0 left-0 w-[85%] max-w-sm bg-[#0F2238] z-40 overflow-y-auto border-r border-white/10 shadow-2xl"
-                                ref={mobileMenuRef}
-                            >
-                                <div className="min-h-full flex flex-col pt-16 pb-8 px-6">
-                                    {/* User Profile Section */}
-                                    <div className="mb-8 p-4 rounded-2xl bg-white/5 border border-white/5">
-                                        {isAuthenticated ? (
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-accent/50">
-                                                    {resolvedUser?.profile_image ? (
-                                                        <img src={resolvedUser.profile_image} alt="Profile" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <div className="w-full h-full bg-accent flex items-center justify-center text-white font-bold">
-                                                            {displayName.slice(0, 2).toUpperCase()}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-white font-bold truncate">{displayName}</p>
-                                                    <Link to="/account-v2" className="text-xs text-accent hover:underline" onClick={() => setIsMobileMenuOpen(false)}>View Profile</Link>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-col gap-3">
-                                                <p className="text-white font-bold text-center mb-1">Welcome to NextKin</p>
-                                                <Button onClick={() => { navigate("/signin"); setIsMobileMenuOpen(false); }} className="w-full bg-accent hover:bg-accent/90 text-white font-bold rounded-xl">
-                                                    Sign In / Sign Up
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Navigation Links */}
-                                    <nav className="space-y-2 mb-8">
-                                        {navItems.map((item) => (
-                                            <Link
-                                                key={item.name}
-                                                to={item.path}
-                                                className={cn(
-                                                    "flex items-center justify-between px-4 py-3.5 rounded-xl transition-all",
-                                                    location.pathname === item.path
-                                                        ? "bg-accent text-white font-bold shadow-lg shadow-accent/20"
-                                                        : "text-white/70 hover:bg-white/5 hover:text-white"
-                                                )}
-                                                onClick={() => setIsMobileMenuOpen(false)}
-                                            >
-                                                {item.name}
-                                                {location.pathname === item.path && <div className="w-2 h-2 rounded-full bg-white" />}
-                                            </Link>
-                                        ))}
-                                    </nav>
-
-                                    <div className="h-px bg-white/10 my-4" />
-
-                                    {/* Host Section */}
-                                    <div className="mb-8">
-                                        <p className="px-4 text-xs font-bold text-white/40 uppercase tracking-widest mb-3">Hosting</p>
-                                        <div className="space-y-2">
-                                            {hostOptions.map((option) => (
-                                                <button
-                                                    key={option.id}
-                                                    onClick={() => {
-                                                        navigate(option.path)
-                                                        setIsMobileMenuOpen(false)
-                                                    }}
-                                                    className="w-full text-left px-4 py-3 rounded-xl hover:bg-white/5 flex items-center gap-3 group transition-colors"
-                                                >
-                                                    <div className="p-2 rounded-lg bg-white/5 text-white/70 group-hover:text-accent group-hover:bg-white/10 transition-colors">
-                                                        {React.cloneElement(option.icon, { className: "w-5 h-5" })}
-                                                    </div>
-                                                    <span className="text-white/80 font-medium group-hover:text-white">{option.title}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Become Host Button */}
-                                    <div className="mb-8">
-                                        <motion.button
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                            onClick={() => {
-                                                navigate(getHostPath('property', isAuthenticated))
-                                                setIsMobileMenuOpen(false)
-                                            }}
-                                            className="w-full relative overflow-hidden rounded-xl px-5 py-3 font-bold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-accent to-[#E04642] text-white shadow-lg shadow-accent/25"
-                                        >
-                                            <Sparkles className="w-4 h-4 fill-white/20" />
-                                            Become Host
-                                        </motion.button>
-                                    </div>
-
-                                    {/* Additional Account Options */}
-                                    {isAuthenticated && (
-                                        <div className="mb-8">
-                                            <p className="px-4 text-xs font-bold text-white/40 uppercase tracking-widest mb-3">Account</p>
-                                            <div className="space-y-2">
-                                                <Link
-                                                    to="/account-v2?tab=overview"
-                                                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
-                                                    onClick={() => setIsMobileMenuOpen(false)}
-                                                >
-                                                    <Home className="w-5 h-5" />
-                                                    <span>Overview</span>
-                                                </Link>
-                                                <Link
-                                                    to="/account-v2?tab=personal"
-                                                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
-                                                    onClick={() => setIsMobileMenuOpen(false)}
-                                                >
-                                                    <User className="w-5 h-5" />
-                                                    <span>Personal Info</span>
-                                                </Link>
-                                                <Link
-                                                    to="/account-v2?tab=listings"
-                                                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
-                                                    onClick={() => setIsMobileMenuOpen(false)}
-                                                >
-                                                    <Building className="w-5 h-5" />
-                                                    <span>My Listings</span>
-                                                </Link>
-                                                <Link
-                                                    to="/account-v2?tab=buy-sell"
-                                                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
-                                                    onClick={() => setIsMobileMenuOpen(false)}
-                                                >
-                                                    <ShoppingBag className="w-5 h-5" />
-                                                    <span>My Buy/Sell</span>
-                                                </Link>
-                                                <Link
-                                                    to="/account-v2?tab=communities"
-                                                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
-                                                    onClick={() => setIsMobileMenuOpen(false)}
-                                                >
-                                                    <Users className="w-5 h-5" />
-                                                    <span>My Communities</span>
-                                                </Link>
-                                                <Link
-                                                    to="/account-v2?tab=applications"
-                                                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
-                                                    onClick={() => setIsMobileMenuOpen(false)}
-                                                >
-                                                    <Briefcase className="w-5 h-5" />
-                                                    <span>My Applications</span>
-                                                </Link>
-                                                <Link
-                                                    to="/account-v2?tab=wishlist"
-                                                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
-                                                    onClick={() => setIsMobileMenuOpen(false)}
-                                                >
-                                                    <Heart className="w-5 h-5" />
-                                                    <span>My Wishlist</span>
-                                                </Link>
-                                                <Link
-                                                    to="/account-v2?tab=trips"
-                                                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
-                                                    onClick={() => setIsMobileMenuOpen(false)}
-                                                >
-                                                    <Plane className="w-5 h-5" />
-                                                    <span>My Trips</span>
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Logout if authenticated */}
-                                    {isAuthenticated && (
-                                        <button
-                                            onClick={handleLogout}
-                                            className="mt-auto w-full py-4 text-[#FF6B6B] font-bold hover:bg-[#FF6B6B]/10 rounded-xl transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <X className="w-5 h-5" /> Sign Out
-                                        </button>
-                                    )}
-                                </div>
-                            </motion.div>
-                        </>
-                    )}
-                </AnimatePresence>
             </div>
+            <MobileSidebar
+                isOpen={isMobileMenuOpen}
+                onClose={() => setIsMobileMenuOpen(false)}
+            />
         </>
     )
 }

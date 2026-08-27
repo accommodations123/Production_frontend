@@ -55,7 +55,7 @@ export const EventsFilters = memo(({
             className={`bg-white py-4 sm:py-6 px-4 sticky top-16 z-20 border-b transition-all duration-300 ${isScrolled ? "shadow-lg" : "shadow-sm"
                 }`}
         >
-            <div className="container mx-auto max-w-7xl overflow-visible">
+            <div className="max-w-[1600px] mx-auto px-4 overflow-visible">
 
                 <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
 

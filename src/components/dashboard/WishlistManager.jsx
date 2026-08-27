@@ -9,6 +9,7 @@ import TripCard from '@/components/travel/TripCard';
 import { Loader2, Heart, ShoppingBag, Calendar, Home, Plane, Users, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CommunityGroupCard } from '@/components/home/featured/CommunityGroupCard';
+import { PeopleCard } from '@/features/people/components/PeopleCard';
 import { cn } from "@/lib/utils";
 import { resolveImageUrl } from '@/lib/imageUtils';
 
@@ -27,7 +28,7 @@ export function WishlistManager() {
     { id: 'event', label: 'Events', icon: Calendar },
     { id: 'buy-sell', label: 'Marketplace', icon: ShoppingBag },
     { id: 'trip', label: 'Travel Plans', icon: Plane },
-    { id: 'community', label: 'Communities', icon: Users },
+    { id: 'expert', label: 'People', icon: Users },
   ];
 
   const renderContent = () => {
@@ -239,8 +240,10 @@ export function WishlistManager() {
                     };
                     return <TripCard plan={normalizedTrip} isSelected={false} />;
 
+                  case 'expert':
+                  case 'people':
                   case 'community':
-                    return <CommunityGroupCard group={{ ...details, id: details.id || details._id }} />;
+                    return <PeopleCard person={{ ...details, id: details.id || details._id }} />;
 
                   default:
                     return null;

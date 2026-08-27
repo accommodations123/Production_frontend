@@ -279,14 +279,11 @@ export function useHostSubmission({
 
                     await updatePropertyAddress({
                         id: propertyId, data: {
-                            country: formData.country?.name || (typeof formData.country === 'string' ? formData.country : 'India'),
-                            state: formData.state || '',
-                            city: formData.city || '',
-                            zip_code: formData.pincode || '',
-                            street_address: formData.address || '',
-                            latitude: formData.latitude !== undefined && formData.latitude !== null ? Number(formData.latitude) : null,
-                            longitude: formData.longitude !== undefined && formData.longitude !== null ? Number(formData.longitude) : null,
-                            location_privacy: formData.locationPrivacy || 'approximate'
+                            country: formData.country?.name || (typeof formData.country === 'string' ? formData.country : 'India') || 'India',
+                            state: formData.state || 'Telangana',
+                            city: formData.city || 'Hyderabad',
+                            zip_code: formData.pincode || formData.zipCode || formData.zip_code || '',
+                            street_address: formData.address || formData.street_address || ''
                         }
                     }).unwrap();
 

@@ -3,7 +3,8 @@ import { Navbar } from '@/components/layout/Navbar';
 import { CATEGORIES } from '@/lib/mock-data';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { Check, AlertCircle, FileText, MapPin, DollarSign, Image, Sparkles, ShieldCheck } from 'lucide-react';
+import { Check, AlertCircle, FileText, MapPin, Coins, Image, Sparkles, ShieldCheck } from 'lucide-react';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 
 // Import New Hook & Components
 import { useHostCreation } from '@/hooks/useHostCreation';
@@ -74,10 +75,17 @@ export default function HostCreatePage() {
     };
 
     const isLocationValid = () => {
-        const hasAddress = formData.address && formData.address.trim() !== "";
-        const hasCity = formData.city && formData.city.trim() !== "";
-        const hasState = formData.state && formData.state.trim() !== "";
-        const hasCountry = formData.country && (typeof formData.country === 'object' ? !!formData.country.name : !!formData.country);
+        const addrVal = (formData.address || formData.street_address || formData.streetAddress || "").toString().trim();
+        const countryVal = formData.country
+          ? (typeof formData.country === 'object' ? formData.country.name : formData.country)
+          : "India";
+        const stateVal = (formData.state || "Telangana").toString().trim();
+        const cityVal = (formData.city || "Hyderabad").toString().trim();
+        
+        const hasAddress = addrVal !== "";
+        const hasCity = cityVal !== "";
+        const hasState = stateVal !== "";
+        const hasCountry = !!countryVal;
         
         const isZipRequired = (country) => {
             if (!country) return false;
@@ -89,8 +97,9 @@ export default function HostCreatePage() {
             const requiredNames = ["united states", "united states of america", "india", "united kingdom", "great britain", "canada", "australia", "germany", "france"];
             return requiredCodes.includes(codeUpper) || requiredNames.includes(nameLower);
         };
-        const zipRequired = isZipRequired(formData.country);
-        const hasZip = !zipRequired || (formData.pincode && formData.pincode.trim() !== "");
+        const zipRequired = isZipRequired(countryVal);
+        const zipVal = (formData.pincode || formData.zipCode || formData.zip_code || "").toString().trim();
+        const hasZip = !zipRequired || zipVal !== "";
         return !!(hasAddress && hasCity && hasState && hasCountry && hasZip);
     };
 
@@ -151,16 +160,28 @@ export default function HostCreatePage() {
     };
 
     return (
-        <main className="min-h-screen bg-[#020b18] text-[#f7eed7] font-sans selection:bg-accent/30 pb-20">
+        <main className="min-h-screen bg-gray-50 text-slate-900 font-sans pb-20 pt-20 lg:pt-24">
             <Navbar />
 
-            <div className="container mx-auto px-4 pt-28 max-w-7xl">
+            <div className="w-full max-w-[1600px] mx-auto px-4 pt-6 sm:pt-8 sm:px-6 lg:px-8 space-y-6">
+                {/* Top Return Header & Breadcrumbs */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 pb-4">
+                    <Breadcrumb
+                        items={[
+                            { label: "Accommodations", path: "/accommodations" },
+                            { label: isEdit ? "Update Property Space" : "Host Your Space" }
+                        ]}
+                    />
+                    <span className="text-xs font-bold text-gray-400">Host Your Space</span>
+                </div>
+
                 {/* Premium Page Header */}
-                <div className="mb-10 text-center lg:text-left">
-                    <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent tracking-tight">
-                        {isEdit ? "Update Your Property Space" : "Host Your Space"}
+                <div className="mb-6 text-left">
+                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
+                        <FileText className="text-[#CB2A26] w-8 h-8 shrink-0" />
+                        <span>{isEdit ? "Update Your Property Space" : "Host Your Space"}</span>
                     </h1>
-                    <p className="text-gray-400 mt-2 text-lg">
+                    <p className="text-[#222222] mt-2 text-lg">
                         Provide your accommodation details below to list it on NextKinLife.
                     </p>
                 </div>
@@ -168,98 +189,98 @@ export default function HostCreatePage() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     
                     {/* Left Sticky Progress Navigation Sidebar */}
-                    <div className="lg:col-span-3 sticky top-28 hidden lg:block">
-                        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 space-y-4 shadow-xl">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest px-2 mb-3">Sections Status</h3>
+                    <div className="lg:col-span-3 sticky top-28 hidden lg:block text-left">
+                        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4 shadow-sm">
+                            <h3 className="text-xs font-bold text-[#484848] uppercase tracking-widest px-2 mb-3">Sections Status</h3>
                             
                             <nav className="flex flex-col gap-2">
                                 <button
                                     onClick={() => scrollToSection('basics')}
-                                    className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-white/5 transition-all text-left group"
+                                    className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-gray-50 transition-all text-left group cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <FileText className="h-5 w-5 text-gray-400 group-hover:text-accent transition-colors" />
-                                        <span className="text-sm font-semibold text-gray-300">Property Basics</span>
+                                        <FileText className="h-5 w-5 text-[#717171] group-hover:text-accent transition-colors" />
+                                        <span className="text-sm font-semibold text-gray-700">Property Basics</span>
                                     </div>
                                     {isBasicsValid() ? (
-                                        <Check className="h-4.5 w-4.5 text-green-500 bg-green-500/10 rounded-full p-0.5 border border-green-500/20" />
+                                        <Check className="h-4.5 w-4.5 text-emerald-500 bg-emerald-50 rounded-full p-0.5 border border-emerald-200" />
                                     ) : (
-                                        <AlertCircle className="h-4.5 w-4.5 text-gray-500" />
+                                        <AlertCircle className="h-4.5 w-4.5 text-[#484848]" />
                                     )}
                                 </button>
 
                                 <button
                                     onClick={() => scrollToSection('location')}
-                                    className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-white/5 transition-all text-left group"
+                                    className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-gray-50 transition-all text-left group cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <MapPin className="h-5 w-5 text-gray-400 group-hover:text-accent transition-colors" />
-                                        <span className="text-sm font-semibold text-gray-300">Location Details</span>
+                                        <MapPin className="h-5 w-5 text-[#717171] group-hover:text-accent transition-colors" />
+                                        <span className="text-sm font-semibold text-gray-700">Location Details</span>
                                     </div>
                                     {isLocationValid() ? (
-                                        <Check className="h-4.5 w-4.5 text-green-500 bg-green-500/10 rounded-full p-0.5 border border-green-500/20" />
+                                        <Check className="h-4.5 w-4.5 text-emerald-500 bg-emerald-50 rounded-full p-0.5 border border-emerald-200" />
                                     ) : (
-                                        <AlertCircle className="h-4.5 w-4.5 text-gray-500" />
+                                        <AlertCircle className="h-4.5 w-4.5 text-[#484848]" />
                                     )}
                                 </button>
 
                                 <button
                                     onClick={() => scrollToSection('pricing')}
-                                    className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-white/5 transition-all text-left group"
+                                    className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-gray-50 transition-all text-left group cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <DollarSign className="h-5 w-5 text-gray-400 group-hover:text-accent transition-colors" />
-                                        <span className="text-sm font-semibold text-gray-300">Pricing Options</span>
+                                        <Coins className="h-5 w-5 text-[#717171] group-hover:text-accent transition-colors" />
+                                        <span className="text-sm font-semibold text-gray-700">Pricing Options</span>
                                     </div>
                                     {isPricingValid() ? (
-                                        <Check className="h-4.5 w-4.5 text-green-500 bg-green-500/10 rounded-full p-0.5 border border-green-500/20" />
+                                        <Check className="h-4.5 w-4.5 text-emerald-500 bg-emerald-50 rounded-full p-0.5 border border-emerald-200" />
                                     ) : (
-                                        <AlertCircle className="h-4.5 w-4.5 text-gray-500" />
+                                        <AlertCircle className="h-4.5 w-4.5 text-[#484848]" />
                                     )}
                                 </button>
 
                                 <button
                                     onClick={() => scrollToSection('media')}
-                                    className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-white/5 transition-all text-left group"
+                                    className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-gray-50 transition-all text-left group cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <Image className="h-5 w-5 text-gray-400 group-hover:text-accent transition-colors" />
-                                        <span className="text-sm font-semibold text-gray-300">Photos & Media</span>
+                                        <Image className="h-5 w-5 text-[#717171] group-hover:text-accent transition-colors" />
+                                        <span className="text-sm font-semibold text-gray-700">Photos & Media</span>
                                     </div>
                                     {isMediaValid() ? (
-                                        <Check className="h-4.5 w-4.5 text-green-500 bg-green-500/10 rounded-full p-0.5 border border-green-500/20" />
+                                        <Check className="h-4.5 w-4.5 text-emerald-500 bg-emerald-50 rounded-full p-0.5 border border-emerald-200" />
                                     ) : (
-                                        <AlertCircle className="h-4.5 w-4.5 text-gray-500" />
+                                        <AlertCircle className="h-4.5 w-4.5 text-[#484848]" />
                                     )}
                                 </button>
 
                                 <button
                                     onClick={() => scrollToSection('amenities')}
-                                    className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-white/5 transition-all text-left group"
+                                    className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-gray-50 transition-all text-left group cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <Sparkles className="h-5 w-5 text-gray-400 group-hover:text-accent transition-colors" />
-                                        <span className="text-sm font-semibold text-gray-300">Amenities & Rules</span>
+                                        <Sparkles className="h-5 w-5 text-[#717171] group-hover:text-accent transition-colors" />
+                                        <span className="text-sm font-semibold text-gray-700">Amenities & Rules</span>
                                     </div>
                                     {isAmenitiesValid() ? (
-                                        <Check className="h-4.5 w-4.5 text-green-500 bg-green-500/10 rounded-full p-0.5 border border-green-500/20" />
+                                        <Check className="h-4.5 w-4.5 text-emerald-500 bg-emerald-50 rounded-full p-0.5 border border-emerald-200" />
                                     ) : (
-                                        <AlertCircle className="h-4.5 w-4.5 text-gray-500" />
+                                        <AlertCircle className="h-4.5 w-4.5 text-[#484848]" />
                                     )}
                                 </button>
 
                                 <button
                                     onClick={() => scrollToSection('review')}
-                                    className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-white/5 transition-all text-left group"
+                                    className="flex items-center justify-between w-full p-3.5 rounded-xl hover:bg-gray-50 transition-all text-left group cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <ShieldCheck className="h-5 w-5 text-gray-400 group-hover:text-accent transition-colors" />
-                                        <span className="text-sm font-semibold text-gray-300">Submit Review</span>
+                                        <ShieldCheck className="h-5 w-5 text-[#717171] group-hover:text-accent transition-colors" />
+                                        <span className="text-sm font-semibold text-gray-700">Submit Review</span>
                                     </div>
                                     {termsAccepted ? (
-                                        <Check className="h-4.5 w-4.5 text-green-500 bg-green-500/10 rounded-full p-0.5 border border-green-500/20" />
+                                        <Check className="h-4.5 w-4.5 text-emerald-500 bg-emerald-50 rounded-full p-0.5 border border-emerald-200" />
                                     ) : (
-                                        <AlertCircle className="h-4.5 w-4.5 text-gray-500" />
+                                        <AlertCircle className="h-4.5 w-4.5 text-[#484848]" />
                                     )}
                                 </button>
                             </nav>
@@ -267,12 +288,12 @@ export default function HostCreatePage() {
                     </div>
 
                     {/* Right Column: Unified Form Cards */}
-                    <div className="lg:col-span-9 space-y-10">
+                    <div className="lg:col-span-9 space-y-8">
                         
                         {/* Section 1: Property Basics */}
                         <div 
                             ref={sectionRefs.basics} 
-                            className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden transition-all hover:border-white/20 shadow-xl"
+                            className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm relative overflow-hidden transition-all hover:border-gray-300 text-left"
                         >
                             <StepBasics
                                 formData={formData}
@@ -285,7 +306,7 @@ export default function HostCreatePage() {
                         {/* Section 2: Location Details */}
                         <div 
                             ref={sectionRefs.location} 
-                            className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden transition-all hover:border-white/20 shadow-xl"
+                            className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm relative overflow-hidden transition-all hover:border-gray-300 text-left"
                         >
                             <StepLocation
                                 formData={formData}
@@ -296,7 +317,7 @@ export default function HostCreatePage() {
                         {/* Section 3: Pricing Options */}
                         <div 
                             ref={sectionRefs.pricing} 
-                            className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden transition-all hover:border-white/20 shadow-xl"
+                            className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm relative overflow-hidden transition-all hover:border-gray-300 text-left"
                         >
                             <StepPricing
                                 formData={formData}
@@ -308,7 +329,7 @@ export default function HostCreatePage() {
                         {/* Section 4: Photos & Media */}
                         <div 
                             ref={sectionRefs.media} 
-                            className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden transition-all hover:border-white/20 shadow-xl"
+                            className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm relative overflow-hidden transition-all hover:border-gray-300 text-left"
                         >
                             <StepMedia
                                 formData={formData}
@@ -321,7 +342,7 @@ export default function HostCreatePage() {
                         {/* Section 5: Amenities & Rules */}
                         <div 
                             ref={sectionRefs.amenities} 
-                            className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden transition-all hover:border-white/20 shadow-xl"
+                            className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm relative overflow-hidden transition-all hover:border-gray-300 text-left"
                         >
                             <StepAmenities
                                 formData={formData}
@@ -339,7 +360,7 @@ export default function HostCreatePage() {
                         {/* Section 6: Submit Review */}
                         <div 
                             ref={sectionRefs.review} 
-                            className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden transition-all hover:border-white/20 shadow-xl"
+                            className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm relative overflow-hidden transition-all hover:border-gray-300 text-left"
                         >
                             <StepReview
                                 formData={formData}

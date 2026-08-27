@@ -51,8 +51,8 @@ export function Footer() {
     ];
 
     return (
-        <footer className="bg-navy-dark text-white font-sans pt-10 sm:pt-12 md:pt-16 pb-24 lg:pb-8 border-t border-white/5">
-            <div className="container mx-auto px-4 sm:px-6">
+        <footer className="bg-navy-dark text-white font-sans pt-10 sm:pt-12 md:pt-16 pb-32 lg:pb-8 border-t border-white/5">
+            <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10 md:gap-12 mb-10 sm:mb-12 md:mb-16">
 
@@ -68,8 +68,8 @@ export function Footer() {
                             </div>
                             <span className="text-xl font-bold font-poppins tracking-tight">NextKinLife</span>
                         </Link>
-                        <p className="text-white/70 text-sm leading-relaxed">
-                            Connecting you with unique stays and vibrant communities. The world is yours to explore.
+                        <p className="text-white/70 text-sm leading-relaxed max-w-sm">
+                            Connecting you with unique stays, travel partners, and experts. The world is yours to explore.
                         </p>
                         <div className="flex items-center gap-4">
                             {socialLinks.map((social, i) => (
@@ -78,8 +78,8 @@ export function Footer() {
                                     href={social.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-white transition-all text-white/70"
-                                    aria-label={social.icon.name}
+                                    className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-white transition-all text-white/70 active:scale-95"
+                                    aria-label="Social Link"
                                 >
                                     <social.icon size={16} />
                                 </a>
@@ -89,37 +89,36 @@ export function Footer() {
 
                     {/* Column 2: Company */}
                     <div>
-                        <h4 className="font-bold font-poppins mb-6 text-white">Company</h4>
+                        <h4 className="font-bold font-poppins mb-4 sm:mb-6 text-white text-base">Company</h4>
                         <ul className="space-y-3 text-sm text-white/70">
-                            <li><Link to="/about" className="hover:text-accent transition-colors flex items-center gap-2">About Us</Link></li>
-                            <li><Link to="/career" className="hover:text-accent transition-colors flex items-center gap-2">Careers</Link></li>
-                            {/* <li><Link to="/media" className="hover:text-accent transition-colors flex items-center gap-2">Press & Media</Link></li> */}
-                            <li><Link to="/contact" className="hover:text-accent transition-colors flex items-center gap-2">Contact Us</Link></li>
+                            <li><Link to="/about" className="hover:text-accent transition-colors flex items-center gap-2 py-0.5">About Us</Link></li>
+                            <li><Link to="/career" className="hover:text-accent transition-colors flex items-center gap-2 py-0.5">Careers</Link></li>
+                            <li><Link to="/contact" className="hover:text-accent transition-colors flex items-center gap-2 py-0.5">Contact Us</Link></li>
                         </ul>
                     </div>
 
                     {/* Column 3: Resources */}
                     <div>
-                        <h4 className="font-bold font-poppins mb-6 text-white">Resources</h4>
+                        <h4 className="font-bold font-poppins mb-4 sm:mb-6 text-white text-base">Resources</h4>
                         <ul className="space-y-3 text-sm text-white/70">
-                            <li><Link to="/marketplace" className="hover:text-accent transition-colors flex items-center gap-2">Marketplace</Link></li>
-                            <li><Link to="/groups" className="hover:text-accent transition-colors flex items-center gap-2">Community Groups</Link></li>
-                            <li><Link to="/events" className="hover:text-accent transition-colors flex items-center gap-2">Events</Link></li>
-                            <li><Link to="/travel" className="hover:text-accent transition-colors flex items-center gap-2">Travel Partners</Link></li>
-                            <li><Link to="/trust" className="hover:text-accent transition-colors flex items-center gap-2">Trust & Safety</Link></li>
-                            <li><Link to="/help" className="hover:text-accent transition-colors flex items-center gap-2">Help Center</Link></li>
+                            <li><Link to="/accommodations" className="hover:text-accent transition-colors flex items-center gap-2 py-0.5">Accommodations</Link></li>
+                            <li><Link to="/marketplace" className="hover:text-accent transition-colors flex items-center gap-2 py-0.5">Marketplace</Link></li>
+                            <li><Link to="/people" className="hover:text-accent transition-colors flex items-center gap-2 py-0.5">People & Experts</Link></li>
+                            <li><Link to="/events" className="hover:text-accent transition-colors flex items-center gap-2 py-0.5">Events</Link></li>
+                            <li><Link to="/travel" className="hover:text-accent transition-colors flex items-center gap-2 py-0.5">Travel Partners</Link></li>
+                            <li><Link to="/trust" className="hover:text-accent transition-colors flex items-center gap-2 py-0.5">Trust & Safety</Link></li>
+                            <li><Link to="/help" className="hover:text-accent transition-colors flex items-center gap-2 py-0.5">Help Center</Link></li>
                         </ul>
                     </div>
 
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="border-t border-white/5 pt-6 sm:pt-8 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 text-xs text-white/40">
-                    <p>© {new Date().getFullYear()} NextKinLife LLC. All rights reserved.</p>
-                    <div className="flex gap-6">
-                        <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-                        <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
-                        {/* <Link to="/cookies" className="hover:text-white transition-colors">Cookies</Link> */}
+                <div className="border-t border-white/5 pt-6 sm:pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-white/40">
+                    <p className="text-center sm:text-left">© {new Date().getFullYear()} NextKinLife LLC. All rights reserved.</p>
+                    <div className="flex gap-6 items-center">
+                        <Link to="/privacy" className="hover:text-white transition-colors py-1">Privacy</Link>
+                        <Link to="/terms" className="hover:text-white transition-colors py-1">Terms</Link>
                     </div>
                 </div>
             </div>

@@ -135,6 +135,8 @@ export const TravelCommunity = ({ onConnect }) => {
             toCountry: toCountry,
             image: resolveImageUrl(trip.host?.profile_image) || null,
             tripTitle: toCity,
+            rawDate: tripDate,
+            rawStatus: trip.status,
             date: new Date(tripDate).toLocaleDateString(undefined, {
                 month: 'short', day: 'numeric', year: 'numeric'
             })
@@ -142,6 +144,15 @@ export const TravelCommunity = ({ onConnect }) => {
     }).filter(match => {
         // Exclude the user's own trips
         if (currentUserId && match.hostId === currentUserId) return false;
+
+        // Exclude completed or past trips
+        if (match.rawStatus === "completed" || match.rawStatus === "cancelled") return false;
+        if (match.rawDate) {
+            const tripDate = new Date(match.rawDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (!isNaN(tripDate.getTime()) && tripDate < today) return false;
+        }
 
         // Double check country matching if backend doesn't filter strictly enough
         if (!activeCountry?.name) return true;

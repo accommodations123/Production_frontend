@@ -22,6 +22,7 @@ import {
 import { logoutUser } from "@/store/slices/authSlice";
 import { disconnectSocket } from "@/lib/socket";
 import { useGetHostProfileQuery, hostApi } from "@/store/api/hostApi";
+import { clearAuthCookie } from "@/shared/utils/cookieUtils";
 
 import { cn } from "@/lib/utils";
 import { useCountry } from "@/context/CountryContext";
@@ -49,7 +50,7 @@ export function MobileSidebar({ isOpen, onClose }) {
 
   // Refetch user data when opening sidebar on accommodations page
   React.useEffect(() => {
-    if (isOpen && location.pathname === '/search' && !userData && !isAuthLoading) {
+    if (isOpen && (location.pathname === '/accommodations' || location.pathname === '/search') && !userData && !isAuthLoading) {
       refetch();
     }
   }, [isOpen, location.pathname, userData, isAuthLoading, refetch]);
@@ -93,12 +94,7 @@ export function MobileSidebar({ isOpen, onClose }) {
       console.warn("Backend logout failed, proceeding with local cleanup", err);
     }
     disconnectSocket();
-
-    // Force expire the access_token cookie
-    document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.nextkinlife.live;";
-
-    localStorage.removeItem("user");
+    clearAuthCookie();
 
     dispatch(authApi.util.resetApiState());
     dispatch(hostApi.util.resetApiState());
@@ -108,9 +104,9 @@ export function MobileSidebar({ isOpen, onClose }) {
 
   const navItems = [
     { name: "Home", path: "/", icon: Home },
-    { name: "Accommodations", path: "/search", icon: Search },
-    { name: "Buy/Sell", path: "/marketplace", icon: ShoppingBag },
-    { name: "Community", path: "/groups", icon: Users },
+    { name: "Accommodations", path: "/accommodations", icon: Search },
+    { name: "Marketplace", path: "/marketplace", icon: ShoppingBag },
+    { name: "People", path: "/people", icon: Users },
     { name: "Events", path: "/events", icon: Calendar },
     { name: "Travel Partners", path: "/travel", icon: Plane },
   ];

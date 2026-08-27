@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL = import.meta.env.PROD
-    ? "https://api.nextkinlife.live"
+    ? (import.meta.env.VITE_API_URL || "https://api.nextkinlife.live")
     : "/api";
 
 // Helper function for API calls

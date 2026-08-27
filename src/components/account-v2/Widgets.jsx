@@ -20,22 +20,4 @@ export const ContactsWidget = () => {
     );
 };
 
-export const CommunitiesWidget = () => {
-    // Mock communities
-    const communities = [
-        // { name: "Get busy", count: "1259 participants", img: "https://picsum.photos/id/1/200/200" },
-        // { name: "Healthy Nutrition", count: "522 participants", img: "https://picsum.photos/id/2/200/200" },
-    ];
 
-    if (communities.length === 0) return null;
-
-    return (
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-4">
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-gray-500 text-sm font-medium">Communities <span className="text-gray-400 ml-1">0</span></h3>
-            </div>
-            <div className="space-y-4">
-            </div>
-        </div>
-    );
-};

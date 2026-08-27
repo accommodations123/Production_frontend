@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, KeyRound, ArrowRight, Loader2, Globe, ShieldCheck, Users, Home } from "lucide-react";
 import { toast } from "sonner";
 import Button from "@/components/auth/Button";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { sendOtp, verifyOtp, fetchCurrentUser } from "@/store/slices/authSlice";
 
 /* Brand Colors:
@@ -20,12 +20,20 @@ import { sendOtp, verifyOtp, fetchCurrentUser } from "@/store/slices/authSlice";
 const Signin = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { user: authUser, error: authError } = useSelector((state) => state.auth || {});
+  const isAuthenticated = Boolean(authUser && !authError);
 
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   const [step, setStep] = useState("email");
   const [formData, setFormData] = useState({ email: "", otp: "" });
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,7 +59,7 @@ const Signin = () => {
     setVerifyingOtp(true);
     try {
       await dispatch(verifyOtp(formData)).unwrap();
-      dispatch(fetchCurrentUser());
+      await dispatch(fetchCurrentUser()).unwrap();
       toast.success("Signed in successfully");
       navigate("/");
     } catch (error) {
@@ -62,14 +70,11 @@ const Signin = () => {
   };
 
   const loginWithGoogle = () => {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "https://api.nextkinlife.live/api" : "/api");
-    const backendOrigin = apiBaseUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
+    const googleAuthUrl = import.meta.env.PROD
+      ? `${import.meta.env.VITE_API_URL || "https://api.nextkinlife.live"}/auth/google`
+      : "/api/auth/google";
 
-    if (!backendOrigin) {
-      window.location.href = "/api/auth/google";
-    } else {
-      window.location.href = `${backendOrigin}/auth/google`;
-    }
+    window.location.href = googleAuthUrl;
   };
 
   return (

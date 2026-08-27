@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+const API_URL = import.meta.env.PROD
+    ? (import.meta.env.VITE_API_URL || "https://api.nextkinlife.live")
+    : "/api";
 
 // API service functions for reviews
 export const reviewService = {
@@ -8,7 +10,8 @@ export const reviewService = {
         try {
             const response =
                 await axios.get(
-                    `${API_URL}/events/reviews/${eventId}/reviews`
+                    `${API_URL}/events/reviews/${eventId}/reviews`,
+                    { withCredentials: true }
                 )
 
             const data = response.data
@@ -58,7 +61,8 @@ export const reviewService = {
         try {
             const response =
                 await axios.get(
-                    `${API_URL}/events/reviews/${eventId}/rating`
+                    `${API_URL}/events/reviews/${eventId}/rating`,
+                    { withCredentials: true }
                 )
 
             return response.data

@@ -203,8 +203,8 @@ export default function MarketplacePage() {
                           <ProductCard
                             key={product._id || product.id}
                             product={product}
-                            onMessage={() => { }} // No-op or remove prop entirely
-                            onClick={() => setSearchParams({ product: product.id || product._id })}
+                            onMessage={() => { }}
+                            onClick={() => navigate(`/marketplace/${product.id || product._id}`)}
                           />
                         ))}
                       </div>

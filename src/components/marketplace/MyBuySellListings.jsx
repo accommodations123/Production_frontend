@@ -98,7 +98,7 @@ export function MyBuySellListings() {
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-amber-50/50 to-orange-50/50 rounded-full blur-3xl -z-10"></div>
         <div className="space-y-1.5">
           <span className="text-xs font-bold text-amber-600 tracking-wider uppercase block">Seller Console 🏷️</span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">My Buy/Sell Listings</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">My Marketplace Listings</h1>
           <p className="text-xs sm:text-sm text-gray-500 max-w-lg leading-relaxed">
             Manage your listings, track views and message inquiries, and update product details.
           </p>

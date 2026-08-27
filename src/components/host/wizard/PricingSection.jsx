@@ -126,24 +126,20 @@ const PricingSection = ({ formData, setFormData }) => {
   return (
     <section className="bg-black/20 rounded-2xl p-8 border border-white/10">
       <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-        <DollarSign className="h-6 w-6 text-accent" />
         Pricing Details
       </h2>
       <p className="text-sm text-gray-400 mb-6">You can offer discounts for longer stays.</p>
 
       <div className="space-y-4">
-        <div className="bg-black/20 rounded-xl p-4 border border-white/10 flex items-center gap-4">
-          <div className="bg-white/10 p-3 rounded-lg"><DollarSign className="h-6 w-6 text-yellow-400" /></div>
-          <div className="flex-1">
-            <label className="text-sm font-bold block">Price Per Month</label>
-            <input
-              type="number"
-              placeholder="1200"
-              className="w-full bg-transparent border-none text-xl font-bold focus:outline-none placeholder:text-gray-600"
-              value={formData.priceMonth}
-              onChange={e => setFormData({ ...formData, priceMonth: e.target.value })}
-            />
-          </div>
+        <div className="bg-black/20 rounded-xl p-4 border border-white/10">
+          <label className="text-sm font-bold block mb-1">Price Per Month</label>
+          <input
+            type="number"
+            placeholder="1200"
+            className="w-full bg-transparent border-none text-xl font-bold focus:outline-none placeholder:text-gray-600"
+            value={formData.priceMonth}
+            onChange={e => setFormData({ ...formData, priceMonth: e.target.value })}
+          />
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">

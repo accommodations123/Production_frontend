@@ -47,7 +47,7 @@ export default function TermsPage() {
                         </div>
 
                         {/* Title with Gradient */}
-                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 font-poppins">
+                        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 font-poppins">
                             <span className="text-white">Terms of </span>
                             <span className="bg-gradient-to-r from-accent via-red-400 to-orange-400 bg-clip-text text-transparent">Service</span>
                         </h1>

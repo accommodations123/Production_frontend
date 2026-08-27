@@ -160,7 +160,7 @@ export default function PrivacyPage() {
                         </div>
 
                         {/* Title with Gradient */}
-                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 font-poppins">
+                        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 font-poppins">
                             <span className="text-white">Privacy </span>
                             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent">Policy</span>
                         </h1>

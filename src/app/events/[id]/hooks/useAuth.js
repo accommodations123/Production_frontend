@@ -1,25 +1,15 @@
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchCurrentUser } from "@/store/slices/authSlice";
+import { useGetMeQuery } from "@/store/api/authApi";
+import { useSelector } from "react-redux";
 
 export const useAuth = () => {
-    const dispatch = useDispatch();
+    const { data: meData, isLoading, error } = useGetMeQuery();
+    const reduxUser = useSelector((state) => state.auth?.user);
 
-    const {
-        user,
-        loading,
-        error
-    } = useSelector((state) => state.auth);
-
-    useEffect(() => {
-        if (!user && !loading && !error) {
-            dispatch(fetchCurrentUser());
-        }
-    }, [dispatch, user, loading, error]);
+    const user = meData?.user || meData?.data || meData || reduxUser;
 
     return {
         user,
-        loading,
+        loading: isLoading,
         error,
         isAuthenticated: !!user && !error
     };

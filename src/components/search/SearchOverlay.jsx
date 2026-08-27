@@ -8,7 +8,7 @@ import axios from 'axios';
 const RECENT_SEARCHES_KEY = 'recentLocationSearches';
 const MAX_RECENT_SEARCHES = 5;
 const API_BASE = import.meta.env.PROD
-    ? "https://api.nextkinlife.live"
+    ? (import.meta.env.VITE_API_URL || "https://api.nextkinlife.live")
     : "/api";
 
 // Get recent searches from localStorage
@@ -127,7 +127,7 @@ export function SearchOverlay({ isOpen, onClose }) {
         if (!term?.trim()) return;
         saveRecentSearch(term.trim());
         onClose();
-        navigate(`/search?location=${encodeURIComponent(term.trim())}`);
+        navigate(`/accommodations?location=${encodeURIComponent(term.trim())}`);
     }, [navigate, onClose]);
 
     const handleUseCurrentLocation = useCallback(async () => {

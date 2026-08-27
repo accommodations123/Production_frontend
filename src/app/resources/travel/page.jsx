@@ -4,6 +4,7 @@ import { Plane } from "lucide-react";
 import { Navbar } from "../../../components/layout/Navbar";
 import { Footer } from "../../../components/layout/Footer";
 import { useAuth } from "../../../app/events/[id]/hooks/useAuth";
+import { useCountry } from "@/context/CountryContext";
 import {
   useGetMyTripsQuery,
   useGetPublicTripsQuery,
@@ -15,7 +16,6 @@ import { resolveImageUrl } from "@/lib/imageUtils";
 // Extracted Constants
 import {
   colorStyles,
-
 } from "./constants";
 
 // Child Components
@@ -27,18 +27,49 @@ const PostTripModal = lazy(() => import("../../../components/travel/PostTripModa
 
 import { toast, Toaster } from "sonner";
 
+const normalizeCountry = (c) => {
+  if (!c) return "";
+  const lower = String(c).toLowerCase().trim();
+  if (lower === "united states" || lower === "usa" || lower === "us" || lower === "united states of america") {
+    return "United States of America";
+  }
+  if (lower === "united kingdom" || lower === "uk" || lower === "gb" || lower === "great britain") {
+    return "United Kingdom";
+  }
+  if (lower === "india" || lower === "in") {
+    return "India";
+  }
+  if (lower === "united arab emirates" || lower === "uae" || lower === "ae") {
+    return "United Arab Emirates";
+  }
+  return c.trim();
+};
+
 export default function TravelPage() {
   const { user: currentUser } = useAuth();
+  const { activeCountry } = useCountry();
   const [plans, setPlans] = useState([]);
   const [myTrips, setMyTrips] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
-    country: "",
+    country: activeCountry?.name || "",
     state: "",
     city: "",
   });
+
+  // Sync with activeCountry when user changes country in Navbar
+  useEffect(() => {
+    if (activeCountry?.name) {
+      setFilters((prev) => ({
+        ...prev,
+        country: activeCountry.name,
+        state: "",
+        city: "",
+      }));
+    }
+  }, [activeCountry?.name]);
 
   // API Hooks
   const { data: myTripsData, refetch: refetchMyTrips } = useGetMyTripsQuery(undefined, {
@@ -49,14 +80,6 @@ export default function TravelPage() {
 
   // Mapping utility to transform backend trip to frontend structure
   const mapTripToPlan = (trip) => {
-    const normalizeCountry = (c) => {
-      if (!c) return "";
-      const lower = c.toLowerCase().trim();
-      if (lower === "united states" || lower === "usa" || lower === "us" || lower === "united states of america") {
-        return "United States of America";
-      }
-      return c;
-    };
 
     const extractSocials = (t) => {
       const getVal = (val) => {
@@ -129,8 +152,9 @@ export default function TravelPage() {
           from: trip.from_city || "",
           to: trip.to_city || "",
           from_country: normalizeCountry(trip.from_country || ""),
+          to_country: normalizeCountry(trip.to_country || ""),
         },
-        destination: trip.to_city ? `${trip.to_city}` : "",
+        destination: trip.to_city ? `${trip.to_city}${trip.to_country ? `, ${normalizeCountry(trip.to_country)}` : ''}` : "",
         date: trip.travel_date,
         status: trip.status || "active",
         socials: socials
@@ -139,16 +163,22 @@ export default function TravelPage() {
 
     // Handle revised pre-formatted response from backend (host + trip_meta structure)
     if (trip.flight && trip.host && trip.trip_meta) {
+      const resolvedUserId = trip.host.user_id || trip.user_id || trip.host_user_id || trip.host.id;
       return {
         ...trip,
         matches: trip.matches || [],
         host_id: trip.host?.id,
+        user_id: resolvedUserId,
         flight: {
           ...trip.flight,
-          from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.host.country)
+          from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.host.country),
+          to_country: normalizeCountry(trip.flight.to_country || trip.to_country || "")
         },
         user: {
+          id: resolvedUserId,
+          user_id: resolvedUserId,
           fullName: trip.host.full_name,
+          full_name: trip.host.full_name,
           age: trip.trip_meta.age || "",
           languages: trip.trip_meta.languages || [],
           gender: "", // Not provided in payload, default to empty
@@ -164,15 +194,21 @@ export default function TravelPage() {
 
     // Handle previous pre-formatted response (flight + user structure) - Keep for backward compatibility if needed
     if (trip.flight && trip.user) {
+      const resolvedUserId = trip.user.user_id || trip.user.id || trip.host_id || trip.user_id;
       return {
         ...trip,
         host_id: trip.host_id || (trip.host ? trip.host.id : undefined),
+        user_id: resolvedUserId,
         flight: {
           ...trip.flight,
-          from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.user.country)
+          from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.user.country),
+          to_country: normalizeCountry(trip.flight.to_country || trip.to_country || "")
         },
         user: {
           ...trip.user,
+          id: resolvedUserId,
+          user_id: resolvedUserId,
+          fullName: trip.user.full_name || trip.user.fullName,
           image: resolveImageUrl(trip.user.image || trip.user.profile_image || trip.user.User?.profile_image || trip.user.user?.profile_image || null)
         },
         socials: socials
@@ -194,12 +230,18 @@ export default function TravelPage() {
       fullName = `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim();
     }
 
+    const resolvedUserId = trip.host?.user_id || trip.user_id || trip.host_user_id || trip.host_id || trip.user?.user_id || trip.user?.id;
+
     return {
       id: trip.id,
       host_id: trip.host_id,
+      user_id: resolvedUserId,
       matches: trip.matches || [],
       user: {
+        id: resolvedUserId,
+        user_id: resolvedUserId,
         fullName: fullName,
+        full_name: fullName,
         age: trip.age || trip.user?.age || trip.host?.age || "",
         gender: trip.gender || trip.user?.gender || trip.host?.gender || "",
         country: normalizeCountry(trip.user?.country || trip.host?.country || trip.from_country),
@@ -213,7 +255,7 @@ export default function TravelPage() {
         image: resolveImageUrl(trip.image || trip.user?.image || trip.user?.profile_image || trip.user?.User?.profile_image || trip.user?.user?.profile_image || trip.host?.image || trip.host?.profile_image || trip.host?.User?.profile_image || trip.host?.user?.profile_image || null),
         verified: trip.host?.user?.verified || trip.user?.verified || false
       },
-      destination: `${trip.to_city}, ${normalizeCountry(trip.to_country)}`,
+      destination: trip.to_city ? `${trip.to_city}${trip.to_country ? `, ${normalizeCountry(trip.to_country)}` : ''}` : normalizeCountry(trip.to_country || ""),
       date: trip.travel_date,
       time: trip.departure_time,
       flight: {
@@ -223,6 +265,7 @@ export default function TravelPage() {
         to: trip.to_city,
         // Improved fallback: Check flat field -> flight object -> user/host country
         from_country: normalizeCountry(trip.from_country || trip.flight?.from_country || trip.user?.country || trip.host?.country),
+        to_country: normalizeCountry(trip.to_country || trip.flight?.to_country || ""),
         departureDate: trip.travel_date,
         departureTime: trip.departure_time,
         arrivalDate: trip.arrival_date,
@@ -232,15 +275,9 @@ export default function TravelPage() {
     };
   };
 
-  // const { activeCountry } = useCountry();
-
-  // Filter by ORIGIN country (from_country) - Shows travelers departing FROM the selected country
-  // This helps users find CO-TRAVELERS going on the same journey
-  // Example: User in India sees other travelers also flying FROM India → they can travel together!
-
   // Helper to ensure backend gets the full name it likely expects for USA
   const getBackendCountryName = (c) => {
-    if (!c) return c;
+    if (!c) return undefined;
     const lower = c.toLowerCase().trim();
     if (lower === "united states" || lower === "usa" || lower === "us") {
       return "United States of America";
@@ -251,7 +288,7 @@ export default function TravelPage() {
   const { data: publicTripsData } = useGetPublicTripsQuery({
     page: 1,
     limit: 50,
-    from_country: getBackendCountryName(filters.country),
+    country: getBackendCountryName(filters.country),
     // status: 'active' // Keep commented out for now to see cancelled/pending trips for debugging
   });
 
@@ -276,10 +313,22 @@ export default function TravelPage() {
       combined = publicTripsData.results.map(mapTripToPlan);
     }
 
-    // Deduplicate by ID
+    // Deduplicate by ID and filter out past / completed trips
     const uniqueCombined = Array.from(new Map(combined.map(item => [item.id, item])).values());
 
-    setPlans(uniqueCombined);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const activeUpcomingTrips = uniqueCombined.filter((item) => {
+      if (item.status === "completed" || item.status === "cancelled") return false;
+      const dateStr = item.date || item.flight?.departureDate || item.travel_date;
+      if (!dateStr) return true;
+      const tripDate = new Date(dateStr);
+      if (isNaN(tripDate.getTime())) return true;
+      return tripDate >= today;
+    });
+
+    setPlans(activeUpcomingTrips);
 
   }, [searchResults, publicTripsData, currentUser, hostProfile]);
 
@@ -297,7 +346,7 @@ export default function TravelPage() {
   };
 
 
-  // Filter Logic (Local for now, could be API-driven)
+  // Filter Logic
   const filteredPlans = useMemo(() => {
     return plans.filter((plan) => {
       const matchesSearch =
@@ -308,8 +357,25 @@ export default function TravelPage() {
         plan.flight.to?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         plan.flight.airline?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Filter by ORIGIN country (where traveler is flying FROM) - For CO-TRAVELER matching
-      const matchesCountry = !filters.country || plan.flight.from_country?.toLowerCase() === filters.country.toLowerCase();
+      // Filter by ORIGIN country (from_country) OR DESTINATION country (to_country)
+      const selectedCountryName = filters.country;
+      const matchesCountry = (() => {
+        if (!selectedCountryName) return true;
+        const normTarget = normalizeCountry(selectedCountryName).toLowerCase();
+        const normFrom = normalizeCountry(
+          plan.flight?.from_country || plan.from_country || plan.user?.country || ""
+        ).toLowerCase();
+        const normTo = normalizeCountry(
+          plan.flight?.to_country || plan.to_country || ""
+        ).toLowerCase();
+        const normDest = (plan.destination || "").toLowerCase();
+
+        return (
+          (normFrom && (normFrom === normTarget || normFrom.includes(normTarget) || normTarget.includes(normFrom))) ||
+          (normTo && (normTo === normTarget || normTo.includes(normTarget) || normTarget.includes(normTo))) ||
+          (normDest && normDest.includes(normTarget))
+        );
+      })();
 
       const matchesState =
         !filters.state ||
@@ -340,7 +406,7 @@ export default function TravelPage() {
 
         {/* Clean Header Bar (Marketplace-style) */}
         <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-[0_4px_30px_rgba(0,0,0,0.05)]">
-          <div className="container mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#CB2A25] to-[#E04642] flex items-center justify-center shadow-md shadow-[#CB2A25]/20">
                 <Plane className="w-4 h-4 text-white" />
@@ -369,7 +435,7 @@ export default function TravelPage() {
         </div>
 
         {/* Search & Filter Section */}
-        <div className="container mx-auto px-4 sm:px-6 pt-5">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-5">
           <TravelFilter
             searchQuery={searchTerm}
             setSearchQuery={setSearchTerm}
@@ -380,7 +446,7 @@ export default function TravelPage() {
         </div>
 
         {/* Trips Grid */}
-        <section className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <section className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {filteredPlans.length === 0 ? (
             <div className="text-center py-16 sm:py-20 bg-gray-50/80 rounded-2xl border-2 border-dashed border-gray-200">
               <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-5">

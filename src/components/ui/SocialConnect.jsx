@@ -1,12 +1,178 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { SiGmail } from "react-icons/si";
-import { FaWhatsapp, FaInstagram, FaFacebookF, FaXTwitter } from "react-icons/fa6";
+import { FaWhatsapp, FaInstagram, FaFacebookF, FaXTwitter, FaUserPlus, FaClock } from "react-icons/fa6";
 import { validateSocial, getSocialUrl } from "@/lib/socialUtils";
+import { useAuth } from "@/shared/hooks/useAuth";
+import {
+  useGetConnectionStatusQuery,
+  useSendConnectionRequestMutation
+} from "@/store/api/connectionApi";
+import { toast } from "sonner";
 
 /**
  * Renders quick-connect social circle buttons for card footers (PropertyCard / ProductCard).
  */
-export const SocialQuickConnect = ({ socials, className = "" }) => {
-  if (!socials) return null;
+export const SocialQuickConnect = ({ 
+  socials, 
+  className = "", 
+  ownerId = null, 
+  ownerName = "",
+  itemId = "",
+  itemTitle = "",
+  itemType = "accommodations"
+}) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const currentUserId = user?.id || user?.user_id || user?._id;
+  const cleanStr = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  const userIds = [
+    user?.id,
+    user?.user_id,
+    user?._id,
+    user?.host_id,
+    user?.Host?.id,
+    user?.host?.id
+  ].filter(Boolean).map(String);
+
+  const currentNames = [
+    user?.full_name,
+    user?.fullName,
+    user?.name,
+    user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : null,
+    user?.first_name,
+    user?.email ? user.email.split('@')[0] : null
+  ].filter(Boolean);
+
+  const cleanOwner = cleanStr(ownerName);
+
+  const isOwner = Boolean(
+    user && (
+      (ownerId && userIds.some(uid => uid === String(ownerId))) ||
+      (cleanOwner && currentNames.some(n => {
+        const cn = cleanStr(n);
+        return cn && (cn === cleanOwner || cleanOwner.startsWith(cn) || cn.startsWith(cleanOwner) || cleanOwner.includes(cn) || cn.includes(cleanOwner));
+      }))
+    )
+  );
+
+  const [isRequestedLocally, setIsRequestedLocally] = useState(false);
+
+  const { data: statusRes } = useGetConnectionStatusQuery(
+    itemId ? { targetUserId: ownerId, itemId, itemType } : ownerId,
+    {
+      skip: !ownerId || !currentUserId || isOwner,
+      refetchOnMountOrArgChange: true,
+      refetchOnFocus: true
+    }
+  );
+  const [sendReq, { isLoading: isSending }] = useSendConnectionRequestMutation();
+
+  const connStatus = isOwner ? "accepted" : (isRequestedLocally ? "pending" : (statusRes?.status || statusRes?.data?.status || "none"));
+  const isConnected = isOwner || connStatus === "accepted";
+
+  // Effective social channels from owner profile or accepted connection request data
+  const effectiveSocials = {
+    whatsapp:
+      (isOwner
+        ? (user?.whatsapp || user?.Host?.whatsapp || user?.host?.whatsapp || user?.phone || user?.Host?.phone || user?.host?.phone)
+        : null) ||
+      socials?.whatsapp ||
+      socials?.phone ||
+      statusRes?.data?.targetWhatsapp ||
+      statusRes?.data?.targetPhone ||
+      "",
+    email:
+      (isOwner
+        ? (user?.email || user?.Host?.email || user?.host?.email)
+        : null) ||
+      socials?.email ||
+      statusRes?.data?.targetEmail ||
+      "",
+    instagram:
+      (isOwner
+        ? (user?.instagram || user?.Host?.instagram || user?.host?.instagram)
+        : null) ||
+      socials?.instagram ||
+      statusRes?.data?.targetInstagram ||
+      "",
+    facebook:
+      (isOwner
+        ? (user?.facebook || user?.Host?.facebook || user?.host?.facebook)
+        : null) ||
+      socials?.facebook ||
+      statusRes?.data?.targetFacebook ||
+      "",
+    linkedin:
+      (isOwner
+        ? (user?.linkedin || user?.Host?.linkedin || user?.host?.linkedin)
+        : null) ||
+      socials?.linkedin ||
+      statusRes?.data?.targetLinkedin ||
+      "",
+    twitter:
+      (isOwner
+        ? (user?.twitter || user?.x || user?.Host?.twitter || user?.Host?.x || user?.host?.twitter || user?.host?.x)
+        : null) ||
+      socials?.twitter ||
+      statusRes?.data?.targetTwitter ||
+      ""
+  };
+
+  // If not connected and not the owner, hide social icons and show Connect button
+  if (!isConnected) {
+    const handleConnectClick = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!currentUserId) {
+        toast.error("Please sign in to send a connection request.");
+        navigate("/signin");
+        return;
+      }
+      try {
+        setIsRequestedLocally(true);
+        await sendReq({
+          targetUserId: ownerId,
+          targetName: ownerName || "Owner",
+          itemId,
+          itemTitle: itemTitle || "Listing",
+          itemType,
+          requesterPhone: user?.phone || "",
+          requesterEmail: user?.email || ""
+        }).unwrap();
+        toast.success(`Connection request sent to ${ownerName || "the owner"}!`);
+      } catch (err) {
+        setIsRequestedLocally(false);
+        toast.error(err?.data?.message || "Failed to send connection request.");
+      }
+    };
+
+    if (connStatus === "pending") {
+      return (
+        <button
+          type="button"
+          disabled
+          className={`px-3 py-1.5 bg-slate-100 border border-slate-200 text-slate-500 rounded-full text-[10px] font-bold flex items-center gap-1 cursor-not-allowed select-none ${className}`}
+        >
+          <FaClock className="w-2.5 h-2.5" />
+          Requested
+        </button>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        disabled={isSending}
+        onClick={handleConnectClick}
+        className={`px-3 py-1.5 bg-[#CB2A26] hover:bg-[#a82220] text-white rounded-full text-[10px] font-bold flex items-center gap-1 hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer ${className}`}
+      >
+        <FaUserPlus className="w-2.5 h-2.5" />
+        {currentUserId ? "Connect" : "Sign in to connect"}
+      </button>
+    );
+  }
 
   const handleSocialClick = (e, platform, value) => {
     e.preventDefault();
@@ -27,62 +193,77 @@ export const SocialQuickConnect = ({ socials, className = "" }) => {
 
   const activeSocials = [];
 
-  if (socials.whatsapp && validateSocial("whatsapp", socials.whatsapp)) {
+  if (effectiveSocials.whatsapp && validateSocial("whatsapp", effectiveSocials.whatsapp)) {
     activeSocials.push({
       platform: "whatsapp",
-      value: socials.whatsapp,
+      value: effectiveSocials.whatsapp,
       icon: FaWhatsapp,
       bgColor: "bg-[#25D366] text-white hover:bg-[#20ba5a] hover:scale-110",
       title: "WhatsApp"
     });
   }
 
-  if (socials.email && validateSocial("email", socials.email)) {
+  if (effectiveSocials.email && validateSocial("email", effectiveSocials.email)) {
     activeSocials.push({
       platform: "email",
-      value: socials.email,
+      value: effectiveSocials.email,
       icon: SiGmail,
       bgColor: "bg-[#EA4335] text-white hover:bg-[#d3362a] hover:scale-110",
       title: "Gmail"
     });
   }
 
-  if (socials.instagram && validateSocial("instagram", socials.instagram)) {
+  if (effectiveSocials.instagram && validateSocial("instagram", effectiveSocials.instagram)) {
     activeSocials.push({
       platform: "instagram",
-      value: socials.instagram,
+      value: effectiveSocials.instagram,
       icon: FaInstagram,
       bgColor: "bg-[#E4405F] text-white hover:bg-[#d03552] hover:scale-110",
       title: "Instagram"
     });
   }
 
-  if (socials.facebook && validateSocial("facebook", socials.facebook)) {
+  if (effectiveSocials.facebook && validateSocial("facebook", effectiveSocials.facebook)) {
     activeSocials.push({
       platform: "facebook",
-      value: socials.facebook,
+      value: effectiveSocials.facebook,
       icon: FaFacebookF,
       bgColor: "bg-[#1877F2] text-white hover:bg-[#1464cd] hover:scale-110",
       title: "Facebook"
     });
   }
 
-  if (socials.twitter && validateSocial("twitter", socials.twitter)) {
+  if (effectiveSocials.twitter && validateSocial("twitter", effectiveSocials.twitter)) {
     activeSocials.push({
       platform: "twitter",
-      value: socials.twitter,
+      value: effectiveSocials.twitter,
       icon: FaXTwitter,
       bgColor: "bg-black text-white hover:bg-gray-900 hover:scale-110",
       title: "X (Twitter)"
     });
   }
 
-  if (activeSocials.length === 0) return null;
+  if (activeSocials.length === 0) {
+    if (isOwner) {
+      return (
+        <span className={`px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-[10px] font-bold flex items-center gap-1 select-none shadow-xs ${className}`}>
+          ✓ You
+        </span>
+      );
+    }
+    if (connStatus === "accepted") {
+      return (
+        <span className={`px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-[10px] font-bold flex items-center gap-1 select-none shadow-xs ${className}`}>
+          ✓ Connected
+        </span>
+      );
+    }
+    return null;
+  }
 
   return (
     <div className={`flex flex-wrap gap-1.5 sm:gap-2 items-center justify-end ${className}`}>
       {activeSocials.map((item) => {
-        // eslint-disable-next-line no-unused-vars
         const Icon = item.icon;
         return (
           <button
@@ -108,7 +289,88 @@ export const SocialQuickConnect = ({ socials, className = "" }) => {
 /**
  * Renders contact buttons in detail seller profile sections (Marketplace page/details).
  */
-export const SellerContactButtons = ({ phone, email, instagram, facebook }) => {
+export const SellerContactButtons = ({
+  phone,
+  email,
+  instagram,
+  facebook,
+  ownerId = null,
+  ownerName = "",
+  itemId = "",
+  itemTitle = "",
+  itemType = "accommodations"
+}) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const currentUserId = user?.id || user?.user_id;
+  const [isRequestedLocally, setIsRequestedLocally] = useState(false);
+
+  const isOwner = Boolean(ownerId && currentUserId && String(ownerId) === String(currentUserId));
+
+  const { data: statusRes } = useGetConnectionStatusQuery(
+    itemId ? { targetUserId: ownerId, itemId } : ownerId,
+    {
+      skip: !ownerId || !currentUserId || isOwner
+    }
+  );
+  const [sendReq, { isLoading: isSending }] = useSendConnectionRequestMutation();
+
+  const connStatus = isOwner ? "accepted" : (isRequestedLocally ? "pending" : (statusRes?.status || "none"));
+  const isConnected = isOwner || connStatus === "accepted";
+
+  if (!isConnected) {
+    const handleConnectClick = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!currentUserId) {
+        toast.error("Please sign in to send a connection request.");
+        navigate("/signin");
+        return;
+      }
+      try {
+        setIsRequestedLocally(true);
+        await sendReq({
+          targetUserId: ownerId,
+          targetName: ownerName || "Seller",
+          itemId,
+          itemTitle: itemTitle || "Listing",
+          itemType,
+          requesterPhone: user?.phone || "",
+          requesterEmail: user?.email || ""
+        }).unwrap();
+        toast.success(`Connection request sent to ${ownerName || "the seller"}!`);
+      } catch (err) {
+        setIsRequestedLocally(false);
+        toast.error(err?.data?.message || "Failed to send connection request.");
+      }
+    };
+
+    if (connStatus === "pending") {
+      return (
+        <button
+          type="button"
+          disabled
+          className="w-full h-11 bg-slate-100 border border-slate-200 text-slate-500 rounded-xl font-bold flex items-center justify-center gap-2 cursor-not-allowed select-none text-xs"
+        >
+          <FaClock className="w-3.5 h-3.5" />
+          Connection Request Pending Approval
+        </button>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        disabled={isSending}
+        onClick={handleConnectClick}
+        className="w-full h-11 bg-[#CB2A26] hover:bg-[#a82220] text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-98 transition-all text-xs cursor-pointer shadow-xs"
+      >
+        <FaUserPlus className="w-3.5 h-3.5" />
+        {currentUserId ? "Send Connection Request to View Contacts" : "Sign in to connect"}
+      </button>
+    );
+  }
+
   const activeButtons = [];
 
   if (phone && validateSocial("whatsapp", phone)) {
@@ -204,8 +466,79 @@ export const SellerContactButtons = ({ phone, email, instagram, facebook }) => {
 /**
  * Renders stay-detail style round social connect buttons (Room stays details).
  */
-export const HostDetailSocials = ({ socials, className = "" }) => {
+export const HostDetailSocials = ({ socials, className = "", ownerId = null, ownerName = "", itemId = "" }) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const currentUserId = user?.id || user?.user_id;
+  const [isRequestedLocally, setIsRequestedLocally] = useState(false);
+
+  const isOwner = Boolean(ownerId && currentUserId && String(ownerId) === String(currentUserId));
+
+  const { data: statusRes } = useGetConnectionStatusQuery(
+    itemId ? { targetUserId: ownerId, itemId } : ownerId,
+    {
+      skip: !ownerId || !currentUserId || isOwner
+    }
+  );
+  const [sendReq, { isLoading: isSending }] = useSendConnectionRequestMutation();
+
+  const connStatus = isOwner ? "accepted" : (isRequestedLocally ? "pending" : (statusRes?.status || "none"));
+  const isConnected = isOwner || connStatus === "accepted";
+
   if (!socials) return null;
+
+  if (!isConnected) {
+    const handleConnectClick = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!currentUserId) {
+        toast.error("Please sign in to send a connection request.");
+        navigate("/signin");
+        return;
+      }
+      try {
+        setIsRequestedLocally(true);
+        await sendReq({
+          targetUserId: ownerId,
+          targetName: ownerName || "Host",
+          itemId: itemId || ownerId,
+          itemTitle: ownerName || "Host Profile",
+          itemType: "accommodations",
+          requesterPhone: user?.phone || "",
+          requesterEmail: user?.email || ""
+        }).unwrap();
+        toast.success(`Connection request sent to ${ownerName || "the host"}!`);
+      } catch (err) {
+        setIsRequestedLocally(false);
+        toast.error(err?.data?.message || "Failed to send connection request.");
+      }
+    };
+
+    if (connStatus === "pending") {
+      return (
+        <button
+          type="button"
+          disabled
+          className={`px-4 py-2 bg-slate-100 border border-slate-200 text-slate-500 rounded-full text-xs font-bold flex items-center gap-1.5 cursor-not-allowed select-none ${className}`}
+        >
+          <FaClock className="w-3.5 h-3.5" />
+          Pending Approval
+        </button>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        disabled={isSending}
+        onClick={handleConnectClick}
+        className={`px-4 py-2 bg-[#CB2A26] hover:bg-[#a82220] text-white rounded-full text-xs font-bold flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all shadow-xs cursor-pointer ${className}`}
+      >
+        <FaUserPlus className="w-3.5 h-3.5" />
+        {currentUserId ? "Connect with Host" : "Sign in to connect"}
+      </button>
+    );
+  }
 
   const activeSocials = [];
 
@@ -258,7 +591,6 @@ export const HostDetailSocials = ({ socials, className = "" }) => {
   return (
     <div className={`flex flex-wrap gap-2 ${className}`}>
       {activeSocials.map((item) => {
-        // eslint-disable-next-line no-unused-vars
         const Icon = item.icon;
         const handleSocialClick = () => {
           const url = getSocialUrl(item.platform, item.value);
@@ -285,3 +617,4 @@ export const HostDetailSocials = ({ socials, className = "" }) => {
     </div>
   );
 };
+

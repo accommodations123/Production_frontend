@@ -4,10 +4,11 @@ import { Send, Mail, User, MessageSquare, CheckCircle, Loader2, AlertCircle } fr
 import { motion, AnimatePresence } from "framer-motion"
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect"
 import { useState } from "react"
+import { Link } from "react-router-dom"
 import axios from "axios"
 
 const API_BASE = import.meta.env.PROD
-    ? 'https://api.nextkinlife.live'
+    ? (import.meta.env.VITE_API_URL || 'https://api.nextkinlife.live')
     : '/api';
 
 export function ContactForm() {
@@ -45,7 +46,8 @@ export function ContactForm() {
                     phone: phone ? `${phoneCode} ${phone}` : "",
                     subject,
                     message,
-                }
+                },
+                { withCredentials: true }
             );
 
             setSent(true);
@@ -79,22 +81,22 @@ export function ContactForm() {
     return (
         <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-[#CB2A25]/20 via-[#0A1C30]/20 to-[#D1CBB7]/20 rounded-3xl blur-3xl" />
-            <div className="relative bg-white/10 backdrop-blur-xl p-8 md:p-12 rounded-3xl shadow-2xl border border-white/20">
+            <div className="relative bg-white/10 backdrop-blur-xl p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl shadow-2xl border border-white/20">
                 {/* Header Section */}
-                <div className="mb-10">
+                <div className="mb-6 sm:mb-10">
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="inline-flex items-center gap-2 bg-[#CB2A25]/10 backdrop-blur-sm border border-[#CB2A25]/20 rounded-full px-4 py-2 mb-6"
+                        className="inline-flex items-center gap-2 bg-[#CB2A25]/10 backdrop-blur-sm border border-[#CB2A25]/20 rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6"
                     >
                         <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                        <span className="text-sm text-white/90 font-medium">We respond within 24 hours</span>
+                        <span className="text-xs sm:text-sm text-white/90 font-medium">We respond within 24 hours</span>
                     </motion.div>
 
-                    <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                    <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
                         Start a Conversation
                     </h2>
-                    <p className="text-lg text-[#D1CBB7]/60 max-w-2xl leading-relaxed">
+                    <p className="text-sm sm:text-base md:text-lg text-[#D1CBB7]/70 max-w-2xl leading-relaxed">
                         Whether you have a question about features, pricing, or anything else, our team is ready to answer all your questions.
                     </p>
                 </div>
@@ -278,14 +280,14 @@ export function ContactForm() {
                                         onChange={(e) => setAgreed(e.target.checked)}
                                         className="mt-1 w-4 h-4 rounded border-white/20 bg-white/10 text-[#CB2A25] focus:ring-[#CB2A25] focus:ring-offset-0"
                                     />
-                                    <span className="text-sm text-white/60">
-                                        I agree to the <a href="#" className="text-[#CB2A25] hover:text-[#CB2A25]/80 underline">Privacy Policy</a> and <a href="#" className="text-[#CB2A25] hover:text-[#CB2A25]/80 underline">Terms of Service</a>
+                                    <span className="text-xs sm:text-sm text-white/70">
+                                        I agree to the <Link to="/privacy" className="text-[#CB2A25] hover:text-[#CB2A25]/80 underline">Privacy Policy</Link> and <Link to="/terms" className="text-[#CB2A25] hover:text-[#CB2A25]/80 underline">Terms of Service</Link>
                                     </span>
                                 </label>
                                 <Button
                                     type="submit"
                                     disabled={!canSubmit}
-                                    className="group relative px-8 py-3 bg-[#CB2A25] hover:bg-[#a82220] text-white font-semibold rounded-xl shadow-lg shadow-[#CB2A25]/25 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                    className="w-full sm:w-auto group relative px-8 py-3 bg-[#CB2A25] hover:bg-[#a82220] text-white font-semibold rounded-xl shadow-lg shadow-[#CB2A25]/25 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
                                 >
                                     <span className="flex items-center gap-2">
                                         {sending ? (

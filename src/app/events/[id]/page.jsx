@@ -26,45 +26,54 @@ export default function EventDetailsPage() {
 
     const event = useMemo(() => {
         if (!apiEvent) return null
+        const raw = apiEvent.event || apiEvent.data || apiEvent
+        const hostObj = raw.Host || raw.host || raw.User || raw.user || null
+        const hostName = hostObj?.full_name || hostObj?.name || hostObj?.User?.full_name || raw.organizer || raw.hostName || "Host"
+        const hostPhoto = hostObj?.profile_image || hostObj?.selfie_photo || hostObj?.avatar || hostObj?.User?.profile_image || null
+
+        const locationStr = raw.location || 
+            (raw.city && raw.country ? `${raw.city}, ${raw.country}` : raw.city || raw.street_address || raw.venue_name || raw.address || "Location TBA")
+
         return {
-            id: apiEvent.id || apiEvent._id,
-            title: apiEvent.title,
-            description: apiEvent.description,
-            image: apiEvent.banner_image || (apiEvent.gallery_images?.[0]) || null,
-            date: apiEvent.start_date,
-            time: apiEvent.start_time,
-            end_date: apiEvent.end_date,
-            end_time: apiEvent.end_time,
-            location: `${apiEvent.city}, ${apiEvent.country}`,
-            city: apiEvent.city,
-            country: apiEvent.country,
-            address: apiEvent.address,
-            type: apiEvent.type,
-            price: apiEvent.price,
-            venueName: apiEvent.venue_name,
-            venueDescription: apiEvent.venue_description,
-            parkingInfo: apiEvent.parking_info,
-            accessibilityInfo: apiEvent.accessibility_info,
-            googleMapsUrl: apiEvent.google_maps_url,
-            attendeesCount: apiEvent.attendees_count || 0,
-            galleryImages: apiEvent.gallery_images || [],
-            includedItems: apiEvent.included_items || [],
-            schedule: apiEvent.schedule || [],
-            facilities: apiEvent.facilities || [],
-            accessibilityFeatures: apiEvent.accessibility_features || [],
-            host: apiEvent.Host
+            id: raw.id || raw._id || raw.eventId,
+            title: raw.title || raw.eventName || raw.name || "Untitled Event",
+            description: raw.description || raw.desc || "No description available",
+            image: raw.banner_image || raw.image || (raw.gallery_images?.[0]) || null,
+            date: raw.start_date || raw.date || raw.event_date,
+            time: raw.start_time || raw.time,
+            end_date: raw.end_date || raw.endDate,
+            end_time: raw.end_time || raw.endTime,
+            location: locationStr,
+            city: raw.city || "",
+            country: raw.country || "",
+            address: raw.address || raw.street_address || locationStr,
+            type: raw.event_type || raw.type || "Event",
+            price: raw.price ?? raw.ticketPrice ?? 0,
+            venueName: raw.venue_name || raw.venueName || raw.venue,
+            venueDescription: raw.venue_description || raw.venueDescription,
+            parkingInfo: raw.parking_info || raw.parkingInfo,
+            accessibilityInfo: raw.accessibility_info || raw.accessibilityInfo,
+            googleMapsUrl: raw.google_maps_url || raw.googleMapsUrl,
+            attendeesCount: raw.attendees_count || raw.attendeesCount || 0,
+            galleryImages: Array.isArray(raw.gallery_images) ? raw.gallery_images : [],
+            includedItems: Array.isArray(raw.included_items) ? raw.included_items : [],
+            schedule: Array.isArray(raw.schedule) ? raw.schedule : [],
+            facilities: Array.isArray(raw.facilities) ? raw.facilities : [],
+            accessibilityFeatures: Array.isArray(raw.accessibility_features) ? raw.accessibility_features : [],
+            host: hostObj
                 ? {
-                    full_name: apiEvent.Host.full_name,
-                    selfie_photo: apiEvent.Host.selfie_photo || apiEvent.Host.profile_image || apiEvent.Host.avatar,
-                    phone: apiEvent.Host.phone || apiEvent.Host.whatsapp,
-                    email: apiEvent.Host.email,
-                    status: apiEvent.Host.status
+                    full_name: hostName,
+                    selfie_photo: hostPhoto,
+                    profile_image: hostPhoto,
+                    phone: hostObj.phone || hostObj.whatsapp || hostObj.User?.phone,
+                    email: hostObj.email || hostObj.User?.email,
+                    status: hostObj.status
                 }
                 : null,
-            event_mode: apiEvent.event_mode || "offline",
-            event_url: apiEvent.event_url || "",
-            online_instructions: apiEvent.online_instructions || "",
-            is_registered: apiEvent.is_registered || false // Assuming backend returns this with event details
+            event_mode: raw.event_mode || "offline",
+            event_url: raw.event_url || "",
+            online_instructions: raw.online_instructions || "",
+            is_registered: raw.is_registered || apiEvent.is_registered || false
         }
     }, [apiEvent])
 
@@ -214,7 +223,45 @@ export default function EventDetailsPage() {
         )
     }
 
-    if (error || !event) return <EventNotFound />
+    const currentUserId = user?.id || user?.user_id || user?._id;
+    const currentUserEmail = (user?.email || "").trim().toLowerCase();
+    const currentUserName = (user?.full_name || user?.name || "").trim().toLowerCase();
+    const currentUserHostId = user?.host_id || user?.Host?.id || user?.host?.id;
+
+    const host = event?.Host || event?.host || {};
+    const hostUserId =
+        host?.user_id ||
+        event?.host_user_id ||
+        host?.id ||
+        event?.host_id ||
+        event?.user_id ||
+        host?.User?.id ||
+        host?.User?.user_id;
+
+    const hostEmail = (host?.email || host?.User?.email || "").trim().toLowerCase();
+    const rawHostName = host?.full_name || host?.name || "";
+    const hostNormalizedName = rawHostName.trim().toLowerCase();
+
+    const isOwner = Boolean(
+        user && (
+            (currentUserId && (
+                String(host?.user_id) === String(currentUserId) ||
+                String(event?.host_user_id) === String(currentUserId) ||
+                String(event?.user_id) === String(currentUserId) ||
+                String(host?.User?.id) === String(currentUserId) ||
+                (hostUserId && String(hostUserId) === String(currentUserId))
+            )) ||
+            (currentUserHostId && (
+                String(currentUserHostId) === String(host?.id) ||
+                String(currentUserHostId) === String(event?.host_id)
+            )) ||
+            (currentUserEmail && hostEmail && currentUserEmail === hostEmail) ||
+            (currentUserName && hostNormalizedName && (
+                currentUserName === hostNormalizedName ||
+                currentUserName.replace(/[\s.]+/g, '') === hostNormalizedName.replace(/[\s.]+/g, '')
+            ))
+        )
+    );
 
     return (
         <main className="min-h-screen bg-white">
@@ -234,6 +281,7 @@ export default function EventDetailsPage() {
                 isLoading={isProcessing || isJoining || isLeaving}
                 errorMessage={registrationError}
                 successMessage={registrationSuccess}
+                isOwner={isOwner}
             />
             <div className="container mx-auto max-w-7xl px-4 py-8 md:py-12">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">

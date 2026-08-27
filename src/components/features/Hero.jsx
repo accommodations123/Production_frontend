@@ -49,7 +49,7 @@ export function Hero() {
       <div className="absolute top-0 right-0 w-full md:w-2/3 h-full bg-gradient-to-bl from-[#FFF5F5] via-[#FFF0EE] to-transparent skew-y-12 md:skew-y-0 md:skew-x-12 translate-y-32 md:translate-y-0 md:translate-x-32 z-0 opacity-60 md:opacity-80" />
 
       {/* Content Container */}
-      <div className="container mx-auto px-4 sm:px-5 md:px-6 relative z-10 w-full">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-5 md:px-6 relative z-10 w-full">
         <div className="grid md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
 
           {/* LEFT: Content */}
@@ -152,18 +152,18 @@ export function Hero() {
                     <ShoppingBag className="w-5 h-5" />
                   </div>
                   <span className="text-xs sm:text-sm font-bold text-[#00142E] mt-3">Sell Item</span>
-                  <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-1">Buy/Sell</span>
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-1">Marketplace</span>
                 </button>
-                {/* Community */}
+                {/* People */}
                 <button
-                  onClick={() => navigate(getHostPath('group', !!userData?.user))}
+                  onClick={() => navigate('/people')}
                   className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-gray-200/60 hover:border-[#C93A30]/30 hover:shadow-xl hover:shadow-[#C93A30]/5 transition-all duration-300 group cursor-pointer text-center"
                 >
                   <div className="w-10 h-10 rounded-xl bg-[#FFF0EE] flex items-center justify-center text-[#C93A30] group-hover:scale-110 transition-transform duration-300">
                     <Users className="w-5 h-5" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#00142E] mt-3">Start Group</span>
-                  <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-1">Community</span>
+                  <span className="text-xs sm:text-sm font-bold text-[#00142E] mt-3">Find Expert</span>
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-1">People</span>
                 </button>
               </div>
             </div>

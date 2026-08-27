@@ -5,7 +5,7 @@ import { COUNTRIES } from "@/lib/mock-data"
 import { useCountry } from "@/context/CountryContext"
 import { isEventExpired } from "@/lib/eventUtils"
 
-export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave, event, isLoading, errorMessage, successMessage }) => {
+export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave, event, isLoading, errorMessage, successMessage, isOwner }) => {
     const expired = isEventExpired(event)
 
     const getCurrencySymbol = (countryName) => {
@@ -91,10 +91,16 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
                         <div className="text-white">
                             <div className="flex items-center gap-2 mb-1">
                                 <TrendingUp className="h-5 w-5 text-yellow-400" />
-                                <span className="font-bold">Limited Time Offer</span>
+                                <span className="font-bold">
+                                    {isOwner ? "Host Management Overview" : "Limited Time Offer"}
+                                </span>
                             </div>
                             <p className="text-sm">
-                                Early bird price: {currencySymbol}{event?.price || 'N/A'} (Regular price: {currencySymbol}{event?.price ? Math.round(event.price * 1.7) : 'N/A'})
+                                {isOwner ? (
+                                    <span>You are the organizer of this event. Listed price: {currencySymbol}{event?.price || '0 (Free)'}</span>
+                                ) : (
+                                    <>Early bird price: {currencySymbol}{event?.price || 'N/A'} (Regular price: {currencySymbol}{event?.price ? Math.round(event.price * 1.7) : 'N/A'})</>
+                                )}
                             </p>
                             {errorMessage && (
                                 <p className="text-sm text-red-200 mt-1">{errorMessage}</p>
@@ -103,31 +109,38 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
                                 <p className="text-sm text-green-200 mt-1">{successMessage}</p>
                             )}
                         </div>
-                        <Button
-                            onClick={isRegistered ? handleLeave : handleRegister}
-                            disabled={isLoading}
-                            className={`font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-xl ${isRegistered
-                                ? 'bg-red-500 hover:bg-red-600 text-white'
-                                : 'bg-white text-accent hover:bg-gray-100'
-                                } ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                        >
-                            {isLoading ? (
-                                <>
-                                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
-                                    Processing...
-                                </>
-                            ) : isRegistered ? (
-                                <>
-                                    <CheckCircle className="h-4 w-4 mr-2" />
-                                    Leave Event
-                                </>
-                            ) : (
-                                <>
-                                    <Ticket className="h-4 w-4 mr-2" />
-                                    Register Now
-                                </>
-                            )}
-                        </Button>
+                        {isOwner ? (
+                            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-full text-white font-bold text-sm shadow-md border border-white/30">
+                                <CheckCircle className="h-4 w-4 text-emerald-300" />
+                                <span>You are Hosting this Event</span>
+                            </div>
+                        ) : (
+                            <Button
+                                onClick={isRegistered ? handleLeave : handleRegister}
+                                disabled={isLoading}
+                                className={`font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-xl ${isRegistered
+                                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                                    : 'bg-white text-accent hover:bg-gray-100'
+                                    } ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
+                                        Processing...
+                                    </>
+                                ) : isRegistered ? (
+                                    <>
+                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                        Leave Event
+                                    </>
+                                ) : (
+                                    <>
+                                        <Ticket className="h-4 w-4 mr-2" />
+                                        Register Now
+                                    </>
+                                )}
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -138,38 +151,51 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
                     <div className="bg-accent px-4 py-3">
                         <div className="flex items-center gap-2 text-white">
                             <TrendingUp className="h-4 w-4 text-yellow-400 shrink-0" />
-                            <span className="font-bold text-sm">Limited Time Offer</span>
+                            <span className="font-bold text-sm">
+                                {isOwner ? "Host Management Overview" : "Limited Time Offer"}
+                            </span>
                         </div>
                         <p className="text-white/90 text-xs mt-1">
-                            Early bird: {currencySymbol}{event?.price || 'N/A'} (Regular: {currencySymbol}{event?.price ? Math.round(event.price * 1.7) : 'N/A'})
+                            {isOwner ? (
+                                <span>You are the organizer of this event.</span>
+                            ) : (
+                                <>Early bird: {currencySymbol}{event?.price || 'N/A'} (Regular: {currencySymbol}{event?.price ? Math.round(event.price * 1.7) : 'N/A'})</>
+                            )}
                         </p>
                     </div>
                     <div className="p-4 flex items-center justify-center">
-                        <Button
-                            onClick={isRegistered ? handleLeave : handleRegister}
-                            disabled={isLoading}
-                            className={`w-full font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-lg ${isRegistered
-                                ? 'bg-red-500 hover:bg-red-600 text-white'
-                                : 'bg-accent text-white hover:bg-accent/90'
-                                } ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                        >
-                            {isLoading ? (
-                                <>
-                                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
-                                    Processing...
-                                </>
-                            ) : isRegistered ? (
-                                <>
-                                    <CheckCircle className="h-4 w-4 mr-2" />
-                                    Leave Event
-                                </>
-                            ) : (
-                                <>
-                                    <Ticket className="h-4 w-4 mr-2" />
-                                    Register Now
-                                </>
-                            )}
-                        </Button>
+                        {isOwner ? (
+                            <div className="w-full font-bold py-3 px-6 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center gap-2 text-xs shadow-sm">
+                                <CheckCircle className="h-4 w-4 text-emerald-600" />
+                                <span>You are Hosting this Event</span>
+                            </div>
+                        ) : (
+                            <Button
+                                onClick={isRegistered ? handleLeave : handleRegister}
+                                disabled={isLoading}
+                                className={`w-full font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-lg ${isRegistered
+                                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                                    : 'bg-accent text-white hover:bg-accent/90'
+                                    } ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
+                                        Processing...
+                                    </>
+                                ) : isRegistered ? (
+                                    <>
+                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                        Leave Event
+                                    </>
+                                ) : (
+                                    <>
+                                        <Ticket className="h-4 w-4 mr-2" />
+                                        Register Now
+                                    </>
+                                )}
+                            </Button>
+                        )}
                     </div>
                     {errorMessage && (
                         <p className="text-sm text-red-500 px-4 pb-3">{errorMessage}</p>

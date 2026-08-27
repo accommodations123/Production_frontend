@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MapPin, Clock, ShieldCheck, Tag } from "lucide-react";
 import { useCountry } from "@/context/CountryContext";
 import WishlistButton from "@/components/ui/WishlistButton";
@@ -27,10 +28,22 @@ export const CardContainer = ({ children, onClick, className = "" }) => {
 };
 
 export const ProductCard = React.memo(function ProductCard({ product, onClick }) {
+  const navigate = useNavigate();
   const { formatPrice } = useCountry();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   if (!product || !product.title) return null;
+
+  const handleCardClick = () => {
+    if (typeof onClick === "function") {
+      onClick(product);
+    } else {
+      const targetId = product.id || product._id;
+      if (targetId) {
+        navigate(`/marketplace/${targetId}`);
+      }
+    }
+  };
 
   const socials = {
     whatsapp:
@@ -88,7 +101,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
   const isVerified = product.status === "active";
 
   return (
-    <CardContainer onClick={() => typeof onClick === "function" && onClick(product)}>
+    <CardContainer onClick={handleCardClick}>
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
         <img
           src={imageUrl}
@@ -174,7 +187,14 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
           </div>
 
           {/* Social Media Quick Connect */}
-          <SocialQuickConnect socials={socials} />
+          <SocialQuickConnect
+            socials={socials}
+            ownerId={product.sellerId || product.seller_id || product.user_id || product.userId || product.Host?.user_id || product.host?.user_id || product.Host?.id || product.host?.id || product.creator?.id}
+            ownerName={product.sellerName || product.seller_name || "Seller"}
+            itemId={product.id || product._id}
+            itemTitle={product.title}
+            itemType="buysell"
+          />
         </div>
       </div>
     </CardContainer>

@@ -15,9 +15,7 @@ const getSymbolForLocation = (location) => {
 };
 
 const API_BASE_URL = import.meta.env.PROD
-    ?
-    "https://api.nextkinlife.live"
-    // "http://localhost:5000/api"
+    ? (import.meta.env.VITE_API_URL || "https://api.nextkinlife.live")
     : "/api";
 
 const rawBase = fetchBaseQuery({
@@ -283,34 +281,53 @@ export const hostApi = createApi({
 
         getApprovedEvents: builder.query({
             query: (arg) => {
-                // Support both string (countryName) and object ({ name, code, limit })
-                let countryName = typeof arg === 'string' ? arg : (arg?.name || arg?.code);
-                const limit = typeof arg === 'object' ? arg?.limit : undefined;
+                let countryCode = typeof arg === 'string' ? (arg.length === 2 ? arg : undefined) : arg?.code;
+                let countryName = typeof arg === 'string' ? arg : arg?.name;
 
-                // Resolve from localStorage if not provided via argument
-                if (!countryName) {
+                if (!countryCode && !countryName) {
                     const countryData = localStorage.getItem("selectedCountry");
                     if (countryData) {
                         try {
                             const c = JSON.parse(countryData);
-                            countryName = c.name || c.code;
-                        } catch (e) { console.error(e); }
+                            countryCode = c.code;
+                            countryName = c.name;
+                        } catch (e) { }
                     }
                 }
 
+                if (!countryCode && countryName) {
+                    const found = COUNTRIES.find(c => c.name?.toLowerCase() === countryName?.toLowerCase() || c.code === countryName?.toUpperCase());
+                    if (found) {
+                        countryCode = found.code;
+                        countryName = found.name;
+                    }
+                }
+
+                const limit = typeof arg === 'object' ? arg?.limit : undefined;
+
                 const params = {};
                 if (limit) params.limit = limit;
-                if (countryName) params.country = countryName;
+                if (countryCode) params.country = countryCode;
+                else if (countryName) params.country = countryName;
+
+                const headerCountry = countryCode || countryName;
 
                 return {
                     url: "events/approved",
-                    headers: countryName ? { "X-Country": countryName } : undefined,
+                    headers: headerCountry ? { "X-Country": headerCountry, "X-Country-Code": countryCode || headerCountry } : undefined,
                     params
                 };
             },
             providesTags: ["Event"],
             transformResponse: (response) => {
-                const items = response?.data?.events || response?.events || response?.data || response || [];
+                let items = response?.data?.events || response?.events || response?.data?.results || response?.results || response?.data?.items || response?.data || response || [];
+                if (!Array.isArray(items) && items && typeof items === 'object') {
+                    if (Array.isArray(items.events)) items = items.events;
+                    else if (Array.isArray(items.data)) items = items.data;
+                    else if (Array.isArray(items.results)) items = items.results;
+                    else if (Array.isArray(items.items)) items = items.items;
+                    else items = [];
+                }
                 if (Array.isArray(items)) {
                     const CLOUDFRONT = CLOUDFRONT_BASE;
                     const fixImage = (img) => {
@@ -320,6 +337,11 @@ export const hostApi = createApi({
                         return img;
                     };
                     items.forEach(e => {
+                        if (e.banner_image) e.banner_image = fixImage(e.banner_image);
+                        if (e.image) e.image = fixImage(e.image);
+                        if (Array.isArray(e.gallery_images)) {
+                            e.gallery_images = e.gallery_images.map(fixImage);
+                        }
                         const host = e.Host || e.host || {};
                         if (host.profile_image) host.profile_image = fixImage(host.profile_image);
                         if (host.selfie_photo) host.selfie_photo = fixImage(host.selfie_photo);
@@ -328,8 +350,9 @@ export const hostApi = createApi({
                         }
                         e.Host = host;
                     });
+                    return items;
                 }
-                return items;
+                return [];
             }
         }),
 
@@ -349,7 +372,10 @@ export const hostApi = createApi({
                 };
             },
             transformResponse: (response) => {
-                const event = response?.event || response?.data || response;
+                let event = response?.event || response?.data?.event || response?.data || response;
+                if (event && typeof event === 'object' && !event.title && event.event) {
+                    event = event.event;
+                }
                 const CLOUDFRONT = CLOUDFRONT_BASE;
                 const fixImage = (img) => {
                     if (img && typeof img === 'string' && !img.startsWith('http')) {
@@ -358,6 +384,11 @@ export const hostApi = createApi({
                     return img;
                 };
                 if (event && typeof event === 'object') {
+                    if (event.banner_image) event.banner_image = fixImage(event.banner_image);
+                    if (event.image) event.image = fixImage(event.image);
+                    if (Array.isArray(event.gallery_images)) {
+                        event.gallery_images = event.gallery_images.map(fixImage);
+                    }
                     const host = event.Host || event.host || {};
                     if (host.profile_image) host.profile_image = fixImage(host.profile_image);
                     if (host.selfie_photo) host.selfie_photo = fixImage(host.selfie_photo);
@@ -671,8 +702,30 @@ export const hostApi = createApi({
             },
             providesTags: ["Event"],
             transformResponse: (response) => {
-                const results = response?.data?.events || response?.events || response || [];
-                return Array.isArray(results) ? results : [];
+                let results = response?.data?.events || response?.events || response?.data?.results || response?.results || response?.data?.items || response?.data || response || [];
+                if (!Array.isArray(results) && results && typeof results === 'object') {
+                    if (Array.isArray(results.events)) results = results.events;
+                    else if (Array.isArray(results.data)) results = results.data;
+                    else results = [];
+                }
+                if (Array.isArray(results)) {
+                    const CLOUDFRONT = CLOUDFRONT_BASE;
+                    const fixImage = (img) => {
+                        if (img && typeof img === 'string' && !img.startsWith('http')) {
+                            return `${CLOUDFRONT}${img.startsWith('/') ? img : `/${img}`}`;
+                        }
+                        return img;
+                    };
+                    results.forEach(e => {
+                        if (e.banner_image) e.banner_image = fixImage(e.banner_image);
+                        if (e.image) e.image = fixImage(e.image);
+                        if (Array.isArray(e.gallery_images)) {
+                            e.gallery_images = e.gallery_images.map(fixImage);
+                        }
+                    });
+                    return results;
+                }
+                return [];
             },
         }),
         deleteEvent: builder.mutation({

@@ -51,13 +51,10 @@ const getFormDataStructure = (type = 'property') => {
 
         // Step 3: Location
         address: "",
-        city: "",
+        city: "Hyderabad",
         pincode: "",
-        country: "",
-        state: "",
-        latitude: null,
-        longitude: null,
-        locationPrivacy: "approximate",
+        country: "India",
+        state: "Telangana",
 
         // Step 5: Media & Proofs
         images: [],
@@ -225,9 +222,7 @@ export function useHostCreation() {
                     address: "",
                     city: "",
                     state: "",
-                    pincode: "",
-                    latitude: null,
-                    longitude: null
+                    pincode: ""
                 } : {})
             }));
             lastCountryRef.current = currentCountryName;
@@ -502,13 +497,21 @@ export function useHostCreation() {
             }
 
             case 2: { // Location
-                const hasAddress = formData.address && formData.address.trim() !== "";
-                const hasCity = formData.city && formData.city.trim() !== "";
-                const hasState = formData.state && formData.state.trim() !== "";
-                const hasCountry = formData.country && (typeof formData.country === 'object' ? !!formData.country.name : !!formData.country);
+                const addrVal = (formData.address || formData.street_address || formData.streetAddress || "").toString().trim();
+                const countryVal = formData.country
+                  ? (typeof formData.country === 'object' ? formData.country.name : formData.country)
+                  : "India";
+                const stateVal = (formData.state || "Telangana").toString().trim();
+                const cityVal = (formData.city || "Hyderabad").toString().trim();
+
+                const hasAddress = addrVal !== "";
+                const hasCity = cityVal !== "";
+                const hasState = stateVal !== "";
+                const hasCountry = !!countryVal;
                 
-                const zipRequired = isZipCodeRequired(formData.country);
-                const hasZip = !zipRequired || (formData.pincode && formData.pincode.trim() !== "");
+                const zipRequired = isZipCodeRequired(countryVal);
+                const zipVal = (formData.pincode || formData.zipCode || formData.zip_code || "").toString().trim();
+                const hasZip = !zipRequired || zipVal !== "";
                 
                 return hasAddress && hasCity && hasState && hasCountry && hasZip;
             }

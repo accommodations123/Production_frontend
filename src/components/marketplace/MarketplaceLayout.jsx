@@ -8,7 +8,7 @@ export function MarketplaceLayout({ children, activeTab, onTabChange }) {
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 font-sans">
             {/* Premium Top Bar with Glass Effect */}
             <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-[0_4px_30px_rgba(0,0,0,0.05)]">
-                <div className="container mx-auto px-4 sm:px-6 py-3 md:py-0 md:h-18 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 md:py-0 md:h-18 flex flex-col md:flex-row items-center justify-between gap-4">
 
                     {/* Premium Tab Switcher */}
                     <div className="flex bg-gradient-to-br from-gray-100 to-gray-50 p-1.5 rounded-2xl shadow-inner border border-gray-200/50">
@@ -77,7 +77,7 @@ export function MarketplaceLayout({ children, activeTab, onTabChange }) {
             </div>
 
             {/* Main Content Area with Premium Background */}
-            <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+            <main className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
                 <motion.div
                     key={activeTab}
                     initial={{ opacity: 0, y: 20, scale: 0.98 }}

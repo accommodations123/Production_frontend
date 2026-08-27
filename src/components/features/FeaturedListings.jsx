@@ -1,5 +1,5 @@
+import { Link } from "react-router-dom"
 import { ListingCard } from "./ListingCard"
-
 import { useGetApprovedHostDetailsQuery } from '@/store/api/hostApi';
 
 export function FeaturedListings() {
@@ -23,7 +23,7 @@ export function FeaturedListings() {
                         <h2 className="text-3xl font-bold text-primary mb-2">Popular for Indians in New Jersey</h2>
                         <p className="text-gray-500">Curated accommodations with Indian roommates and amenities.</p>
                     </div>
-                    <a href="/search" className="text-accent font-medium hover:underline">View all</a>
+                    <Link to="/accommodations" className="text-accent font-medium hover:underline">View all</Link>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

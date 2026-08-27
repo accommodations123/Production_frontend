@@ -15,7 +15,7 @@ export default function ContactPage() {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#D1CBB7]/5 rounded-full blur-[100px]" />
             </div>
 
-            <div className="container mx-auto px-4 sm:px-6 py-20 sm:py-24 md:py-32 relative z-10">
+            <div className="container mx-auto px-4 sm:px-6 pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-20 relative z-10">
                 <ContactHeader />
 
                 <div className="grid md:grid-cols-2 gap-8 md:gap-12 lg:gap-20 max-w-7xl mx-auto">

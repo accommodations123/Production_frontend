@@ -24,7 +24,7 @@ export const EventsHero = memo(({ totalEvents, searchQuery, setSearchQuery, feat
                 {/* Removed extra gradients to reduce brightness/contrast jump */}
             </div>
 
-            <div className="container mx-auto max-w-7xl relative z-10">
+            <div className="max-w-[1600px] mx-auto relative z-10">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-10 lg:gap-12">
                     <div className="text-center md:text-left max-w-2xl animate-fade-in">
 

@@ -148,7 +148,8 @@ export default function RoomPage() {
                 avatar: hostAvatar,
                 initials: hostInitials,
                 isVerified: sourceHost.status === "approved",
-                socials: socials
+                socials: socials,
+                user_id: sourceHost.user_id || sourceUser.id || sourceHost.id || sourceUser.user_id || p.user_id || p.creator?.id || data?.host?.user_id || data?.host?.id
             },
             photos,
             amenities: [
@@ -327,7 +328,11 @@ export default function RoomPage() {
                                 <h3 className="font-bold text-lg text-slate-900">Hosted by {listing.host.name}</h3>
                                 <p className="text-slate-500 text-sm">Superhost · Very responsive</p>
                             </div>
-                            <HostDetailSocials socials={listing.host.socials} />
+                            <HostDetailSocials
+                                 socials={listing.host.socials}
+                                 ownerId={listing.host.user_id}
+                                 ownerName={listing.host.name}
+                             />
                         </div>
 
                         {/* Highlights Stats */}

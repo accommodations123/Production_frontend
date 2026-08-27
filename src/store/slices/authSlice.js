@@ -1,6 +1,47 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { axiosClient } from '../../lib/axiosClient';
 import { CLOUDFRONT_BASE } from '../../lib/imageUtils';
+import { authApi } from '@/store/api/authApi';
+import { peopleApi } from '@/store/api/peopleApi';
+import { connectionApi } from '@/store/api/connectionApi';
+import { propertyApi } from '@/store/api/propertyApi';
+import { marketplaceApi } from '@/store/api/marketplaceApi';
+import { eventApi } from '@/store/api/eventApi';
+import { travelApi } from '@/store/api/travelApi';
+import { wishlistApi } from '@/store/api/wishlistApi';
+import { hostApi } from '@/store/api/hostApi';
+import { notificationApi } from '@/store/api/notificationApi';
+import { stayRequestApi } from '@/store/api/stayRequestApi';
+
+// Helper to purge all user-specific RTK Query caches & sensitive storage on auth boundaries
+export const purgeAllUserCaches = (dispatch) => {
+    try {
+        localStorage.removeItem("user");
+        localStorage.removeItem("auth");
+        localStorage.removeItem("token");
+        localStorage.removeItem("session");
+        localStorage.removeItem("nxt_connection_requests_v1");
+        localStorage.removeItem("nextkin_social_access_v1");
+    } catch (e) {
+        // Ignore
+    }
+
+    try {
+        dispatch(authApi.util.resetApiState());
+        dispatch(peopleApi.util.resetApiState());
+        dispatch(connectionApi.util.resetApiState());
+        dispatch(propertyApi.util.resetApiState());
+        dispatch(marketplaceApi.util.resetApiState());
+        dispatch(eventApi.util.resetApiState());
+        dispatch(travelApi.util.resetApiState());
+        dispatch(wishlistApi.util.resetApiState());
+        dispatch(hostApi.util.resetApiState());
+        dispatch(notificationApi.util.resetApiState());
+        dispatch(stayRequestApi.util.resetApiState());
+    } catch (e) {
+        console.warn("⚠️ API state reset warning during logout:", e);
+    }
+};
 
 // Safe localStorage parsing helper
 const getInitialUser = () => {
@@ -58,9 +99,12 @@ export const fetchCurrentUser = createAsyncThunk(
 
 export const loginUser = createAsyncThunk(
     'auth/loginUser',
-    async (credentials, { rejectWithValue }) => {
+    async (credentials, { dispatch, rejectWithValue }) => {
         try {
+            purgeAllUserCaches(dispatch);
             const response = await axiosClient.post('login', credentials);
+            // Force RTK Query getMe subscribers to refetch with the new session
+            dispatch(authApi.util.invalidateTags(['User']));
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Login failed');
@@ -82,8 +126,9 @@ export const sendOtp = createAsyncThunk(
 
 export const verifyOtp = createAsyncThunk(
     'auth/verifyOtp',
-    async (payload, { rejectWithValue }) => {
+    async (payload, { dispatch, rejectWithValue }) => {
         try {
+            purgeAllUserCaches(dispatch);
             const response = await axiosClient.post('otp/verify-otp', payload);
             const data = response.data;
             const user = data?.user || data?.data?.user;
@@ -91,6 +136,8 @@ export const verifyOtp = createAsyncThunk(
             if (user) {
                 localStorage.setItem("user", JSON.stringify(user));
             }
+            // Force RTK Query getMe subscribers to refetch with the new session
+            dispatch(authApi.util.invalidateTags(['User']));
             return formatted;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Verification failed');
@@ -117,13 +164,13 @@ export const updateProfile = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk(
     'auth/logoutUser',
-    async (_, { rejectWithValue }) => {
+    async (_, { dispatch, rejectWithValue }) => {
         try {
             const response = await axiosClient.post('otp/logout');
-            localStorage.removeItem("user");
+            purgeAllUserCaches(dispatch);
             return response.data;
         } catch (error) {
-            localStorage.removeItem("user");
+            purgeAllUserCaches(dispatch);
             return rejectWithValue(error.response?.data?.message || 'Logout failed');
         }
     }
@@ -175,7 +222,7 @@ const authSlice = createSlice({
                 try {
                     localStorage.removeItem("user");
                 } catch (e) {
-                    // Ignore failures in localStorage under strict sandbox environments
+                    // Ignore
                 }
             })
             // loginUser

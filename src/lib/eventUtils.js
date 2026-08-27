@@ -23,17 +23,22 @@ const buildDateTime = (dateStr, timeStr) => {
     if (!dateStr) return null
 
     try {
+        if (dateStr instanceof Date) {
+            return isNaN(dateStr.getTime()) ? null : dateStr
+        }
+
         const date = new Date(dateStr)
         if (isNaN(date.getTime())) return null
 
         if (timeStr) {
-            const parts = timeStr.split(':').map(Number)
+            const cleanTime = typeof timeStr === 'string' ? timeStr.replace(/[^\d:]/g, '') : ''
+            const parts = cleanTime.split(':').map(Number)
             const [h = 23, m = 59, s = 59] = parts
             if (!isNaN(h) && !isNaN(m)) {
                 date.setHours(h, m, isNaN(s) ? 59 : s, 0)
             }
-        } else {
-            // No time → assume end of the day
+        } else if (typeof dateStr === 'string' && !dateStr.includes('T') && !dateStr.includes(':')) {
+            // Only a date string with no time component (e.g., "2026-08-20") → assume end of the day
             date.setHours(23, 59, 59, 999)
         }
 
@@ -66,7 +71,7 @@ export const getEventEndDate = (event) => {
     if (resolved) return resolved
 
     // Fall back to start date
-    const startDate = event.start_date ?? event.date
+    const startDate = event.start_date ?? event.date ?? event.event_date
     const startTime = event.start_time ?? event.time
 
     return buildDateTime(startDate, startTime)
@@ -91,6 +96,7 @@ export const isEventExpired = (event) => {
  * @returns {{ upcoming: object[], expired: object[] }}
  */
 export const partitionEvents = (events = []) => {
+    if (!Array.isArray(events)) return { upcoming: [], expired: [] }
     const upcoming = []
     const expired = []
 
@@ -111,8 +117,10 @@ export const partitionEvents = (events = []) => {
  * @param {object[]} events
  * @returns {object[]}
  */
-export const filterUpcomingEvents = (events = []) =>
-    events.filter((e) => !isEventExpired(e))
+export const filterUpcomingEvents = (events = []) => {
+    if (!Array.isArray(events)) return []
+    return events.filter((e) => !isEventExpired(e))
+}
 
 /**
  * Human-readable status label for an event.
@@ -124,7 +132,7 @@ export const getEventStatus = (event) => {
     if (isEventExpired(event)) return "expired"
 
     // Check if happening now: start_date/time ≤ now ≤ end
-    const startDate = event.start_date ?? event.date
+    const startDate = event.start_date ?? event.date ?? event.event_date
     const startTime = event.start_time ?? event.time
     const start = buildDateTime(startDate, startTime)
 

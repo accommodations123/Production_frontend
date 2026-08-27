@@ -37,9 +37,19 @@ export default function TravelFilter({
         searchQuery;
 
     // Selected Country
-    const selectedCountry = COUNTRIES.find(
-        (c) => c.name === filters.country
-    );
+    const selectedCountry = COUNTRIES.find((c) => {
+        if (!filters.country) return false;
+        const lowerFilter = filters.country.toLowerCase().trim();
+        const lowerName = c.name.toLowerCase().trim();
+        if (lowerName === lowerFilter) return true;
+        if (lowerFilter === "united states" || lowerFilter === "usa" || lowerFilter === "us" || lowerFilter === "united states of america") {
+            return c.code === "US" || c.name.toLowerCase().includes("united states");
+        }
+        if (lowerFilter === "united kingdom" || lowerFilter === "uk" || lowerFilter === "gb" || lowerFilter === "great britain") {
+            return c.code === "UK" || c.code === "GB" || c.name.toLowerCase().includes("united kingdom");
+        }
+        return lowerName.includes(lowerFilter) || lowerFilter.includes(lowerName);
+    });
 
     // Selected Country code for City list
     const countryIsoCode = selectedCountry?.code;

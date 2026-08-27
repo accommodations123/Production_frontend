@@ -10,8 +10,8 @@ export function MobileFooterNav() {
     // Define navigation items with consistent sizing
     const navItems = [
         { name: "Home", path: "/", icon: Home },
-        { name: "Stays", path: "/search", icon: Search },
-        { name: "Groups", path: "/groups", icon: Users },
+        { name: "Stays", path: "/accommodations", icon: Search },
+        { name: "People", path: "/people", icon: Users },
         { name: "Travel", path: "/travel", icon: Plane },
         { name: "Shop", path: "/marketplace", icon: ShoppingBag },
     ];
@@ -25,7 +25,9 @@ export function MobileFooterNav() {
                 <div className="grid grid-cols-5 items-end px-1 pt-2 pb-1">
                     {navItems.map((item) => {
                         const Icon = item.icon;
-                        const isActive = location.pathname === item.path;
+                        const isActive = item.path === "/" 
+                            ? location.pathname === "/"
+                            : location.pathname.startsWith(item.path) || (item.path === "/accommodations" && (location.pathname === "/search" || location.pathname.startsWith("/rooms")));
 
                         return (
                             <Link

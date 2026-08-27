@@ -18,14 +18,14 @@ import { Trips } from "@/components/dashboard/Trips";
 import { MyApplications } from "@/components/dashboard/MyApplications";
 import { MyBuySellListings } from "@/components/marketplace/MyBuySellListings";
 import { WishlistManager } from "@/components/dashboard/WishlistManager";
-import { MyCommunities } from "@/components/dashboard/MyCommunities";
+import { MyPeopleProfile } from "@/components/dashboard/MyPeopleProfile";
+import { MyConnectionRequests } from "@/components/dashboard/MyConnectionRequests";
 
 import {
   useGetHostProfileQuery,
   useGetMyListingsQuery,
   useGetMyEventsQuery,
-  useUpdateHostMutation,
-  useGetMyCommunitiesQuery
+  useUpdateHostMutation
 } from "@/store/api/hostApi";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -72,12 +72,10 @@ export default function NewDashboard() {
   const { data: listings = [] } = useGetMyListingsQuery(undefined, { skip: !hostProfile });
   const { data: events = [] } = useGetMyEventsQuery(undefined, { skip: !hostProfile });
   const { data: tripsData } = useGetMyTripsQuery();
-  const { data: myCommunities = [] } = useGetMyCommunitiesQuery();
 
   const propertiesCount = listings.length;
   const eventsCount = events.length;
   const tripsCount = tripsData?.trips?.length || 0;
-  const communitiesCount = myCommunities.length;
 
   /* -------------------------------
      FINAL merged user (SAFE)
@@ -148,10 +146,11 @@ export default function NewDashboard() {
     { id: 'personal', label: 'Profile', icon: User },
     { id: 'listings', label: 'Listings', icon: Home },
     { id: 'events', label: 'Events', icon: Calendar },
-    { id: 'buy-sell', label: 'Buy/Sell', icon: ShoppingBag },
+    { id: 'buy-sell', label: 'Marketplace', icon: ShoppingBag },
     { id: 'applications', label: 'Applications', icon: Briefcase },
     { id: 'trips', label: 'Trips', icon: MapPin },
-    { id: 'communities', label: 'Communities', icon: Users },
+    { id: 'people', label: 'People', icon: User },
+    { id: 'requests', label: 'Connection Requests', icon: MessageSquare },
     { id: 'wishlist', label: 'Wishlist', icon: Heart },
   ];
 
@@ -398,7 +397,8 @@ export default function NewDashboard() {
           {activeTab === "buy-sell" && <MyBuySellListings />}
           {activeTab === "trips" && <Trips />}
           {activeTab === "applications" && <MyApplications />}
-          {activeTab === "communities" && <MyCommunities />}
+          {activeTab === "people" && <MyPeopleProfile />}
+          {activeTab === "requests" && <MyConnectionRequests />}
           {activeTab === "wishlist" && <WishlistManager />}
 
         </div>

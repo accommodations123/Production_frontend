@@ -51,7 +51,7 @@ export default function TrustPage() {
                             <Shield className="h-4 w-4 text-[#CB2A25]" />
                             <span>Your Safety is Our Priority</span>
                         </div>
-                        <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tight">
+                        <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold text-white mb-6 sm:mb-8 tracking-tight">
                             Trust Built <br />
                             <span className="text-[#CB2A25]">For You.</span>
                         </h1>

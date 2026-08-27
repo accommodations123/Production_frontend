@@ -20,14 +20,14 @@ export const Sidebar = ({ activeTab, onTabChange }) => {
         {
             title: "Marketplace",
             items: [
-                { id: 'buy-sell', label: 'My Buy/Sell', icon: ShoppingBag },
+                { id: 'buy-sell', label: 'My Marketplace Items', icon: ShoppingBag },
                 { id: 'applications', label: 'My Applications', icon: Briefcase },
             ]
         },
         {
-            title: "Community",
+            title: "People & Network",
             items: [
-                { id: 'communities', label: 'My Communities', icon: Users },
+                { id: 'people', label: 'My Professional Profile', icon: User },
                 { id: 'wishlist', label: 'My Wishlist', icon: Heart },
             ]
         },

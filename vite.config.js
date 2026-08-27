@@ -12,6 +12,19 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: [
+      '@radix-ui/react-slider',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-label',
+      '@radix-ui/react-slot',
+      'framer-motion',
+      'lucide-react',
+      'react-router-dom',
+      'react-redux',
+      '@reduxjs/toolkit'
+    ]
+  },
   server: {
     port: 5173,
     strictPort: true,

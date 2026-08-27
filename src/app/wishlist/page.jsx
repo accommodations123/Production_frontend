@@ -28,7 +28,7 @@ export default function WishlistPage() {
         { id: 'event', label: 'Events', icon: Calendar },
         { id: 'buysell', label: 'Marketplace', icon: ShoppingBag },
         { id: 'trip', label: 'Travel Plans', icon: Plane },
-        { id: 'community', label: 'Communities', icon: Users },
+        { id: 'expert', label: 'People', icon: Users },
     ];
 
     const renderContent = () => {
