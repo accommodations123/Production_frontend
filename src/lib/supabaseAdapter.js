@@ -243,16 +243,20 @@ export async function executeSupabaseRequest(args) {
 
             if (cleanUrl === 'host/save' || cleanUrl.startsWith('host/update')) {
                 const userId = await getCurrentUserId()
-                if (userId && body) {
-                    const parsedBody = (body instanceof FormData) ? await parseFormDataWithUploads(body, 'hosts') : body
-                    const sanitized = sanitizeProfileData(parsedBody)
-                    sanitized.role = sanitized.role || 'host'
-                    sanitized.status = sanitized.status || 'approved'
-                    sanitized.is_approved = true
-                    const { data } = await supabase.from('profiles').upsert({ id: userId, ...sanitized }, { onConflict: 'id' }).select().maybeSingle()
-                    return { data: { host: data || { id: userId, ...sanitized, ...parsedBody } } }
+                if (!userId) {
+                    return { error: { status: 401, error: 'Unauthorized: Please sign in to submit your host application' } }
                 }
-                return { data: { host: body } }
+                const parsedBody = (body instanceof FormData) ? await parseFormDataWithUploads(body, 'hosts') : body
+                const sanitized = sanitizeProfileData(parsedBody)
+                sanitized.role = 'host'
+                sanitized.status = 'approved'
+                sanitized.is_approved = true
+                const { data, error } = await supabase.from('profiles').upsert({ id: userId, ...sanitized }, { onConflict: 'id' }).select().maybeSingle()
+                if (error) {
+                    console.error('Supabase host save error:', error)
+                    return { error: { status: 400, error: error.message } }
+                }
+                return { data: { host: data || { id: userId, ...sanitized, ...parsedBody } } }
             }
             return { data: { host: null } }
         }

@@ -9,6 +9,7 @@ import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
 import { extractUsername } from "@/lib/socialUtils";
+import { toast } from "sonner";
 
 // Helper to split phone number
 // Known country codes (most common first)
@@ -250,12 +251,20 @@ export default function HostOnboardingForm() {
       return;
     }
 
+    // Check authentication
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+    const userId = user?.id || user?._id;
+
+    if (!userId) {
+      toast.error("Please sign in first to submit your host application.");
+      setIsSubmitting(false);
+      navigate("/signin", { state: { from: "/hosts" } });
+      return;
+    }
+
     try {
       // 3. Construct JSON Payload
-      const userStr = localStorage.getItem("user");
-      const user = userStr ? JSON.parse(userStr) : {};
-      const userId = user.id || user._id;
-
       const hostPayload = {
         userId: userId,
         user_id: userId,
