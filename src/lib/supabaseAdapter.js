@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
+import { uploadToSupabaseStorage } from '@/lib/storageUtils'
 
 /**
  * Direct Supabase API Adapter
@@ -14,6 +15,47 @@ async function getCurrentUserId() {
     } catch {
         return null
     }
+}
+
+/**
+ * Helper to extract fields and upload files from FormData
+ */
+async function parseFormDataWithUploads(formData, folder = 'uploads') {
+    if (!formData || typeof formData.entries !== 'function') return formData || {}
+
+    const result = {}
+    const uploadedUrls = []
+
+    for (const [key, value] of formData.entries()) {
+        if (value instanceof File || (value && typeof value === 'object' && value.name && value.size)) {
+            try {
+                const publicUrl = await uploadToSupabaseStorage(value, folder)
+                if (publicUrl) {
+                    uploadedUrls.push(publicUrl)
+                }
+            } catch (uploadErr) {
+                console.error(`Failed to upload file field [${key}] to Supabase:`, uploadErr)
+            }
+        } else {
+            // Check for JSON string fields like existingImages
+            if (key === 'existingImages') {
+                try {
+                    result[key] = JSON.parse(value)
+                } catch {
+                    result[key] = value
+                }
+            } else {
+                result[key] = value
+            }
+        }
+    }
+
+    if (uploadedUrls.length > 0) {
+        const existing = Array.isArray(result.existingImages) ? result.existingImages : []
+        result.images = [...existing, ...uploadedUrls]
+    }
+
+    return result
 }
 
 /**
@@ -86,6 +128,29 @@ export async function executeSupabaseRequest(args) {
                 return { data: { property: data, message: 'Property draft created' } }
             }
 
+            // Upload Property Photos
+            if (cleanUrl.startsWith('property/media/upload') || cleanUrl.startsWith('property/media')) {
+                const parts = cleanUrl.split('/')
+                const propertyId = parts[parts.length - 1]
+                let uploadedUrl = null
+
+                if (body instanceof FormData) {
+                    const file = body.get('photo') || body.get('file') || body.get('image')
+                    if (file) {
+                        uploadedUrl = await uploadToSupabaseStorage(file, 'properties')
+                    }
+                }
+
+                if (propertyId && uploadedUrl) {
+                    const { data: prop } = await supabase.from('properties').select('images').eq('id', propertyId).maybeSingle()
+                    const existingImgs = Array.isArray(prop?.images) ? prop.images : []
+                    const updatedImgs = [...existingImgs, uploadedUrl]
+                    await supabase.from('properties').update({ images: updatedImgs }).eq('id', propertyId)
+                }
+
+                return { data: { success: true, url: uploadedUrl, message: 'Image uploaded successfully' } }
+            }
+
             const propertyMatch = cleanUrl.match(/^property\/([^/]+)$/)
             if (propertyMatch && method === 'GET') {
                 const id = propertyMatch[1]
@@ -94,7 +159,7 @@ export async function executeSupabaseRequest(args) {
                 return { data: { property: data, host: null } }
             }
 
-            if (cleanUrl.startsWith('property/basic-info') || cleanUrl.startsWith('property/address') || cleanUrl.startsWith('property/pricing') || cleanUrl.startsWith('property/amenities') || cleanUrl.startsWith('property/rules') || cleanUrl.startsWith('property/media') || cleanUrl.startsWith('property/submit')) {
+            if (cleanUrl.startsWith('property/basic-info') || cleanUrl.startsWith('property/address') || cleanUrl.startsWith('property/pricing') || cleanUrl.startsWith('property/amenities') || cleanUrl.startsWith('property/rules') || cleanUrl.startsWith('property/submit')) {
                 const parts = cleanUrl.split('/')
                 const id = parts[parts.length - 1]
                 if (id) {
@@ -173,7 +238,11 @@ export async function executeSupabaseRequest(args) {
 
             if (method === 'POST' && (cleanUrl === 'events' || cleanUrl === 'events/create')) {
                 const userId = await getCurrentUserId()
-                const { data, error } = await supabase.from('events').insert({ ...(body || {}), host_id: userId }).select().maybeSingle()
+                let payload = body
+                if (body instanceof FormData) {
+                    payload = await parseFormDataWithUploads(body, 'events')
+                }
+                const { data, error } = await supabase.from('events').insert({ ...(payload || {}), host_id: userId }).select().maybeSingle()
                 if (error) throw error
                 return { data: { event: data } }
             }
@@ -221,7 +290,11 @@ export async function executeSupabaseRequest(args) {
 
             if (cleanUrl === 'buy-sell/create' && method === 'POST') {
                 const userId = await getCurrentUserId()
-                const { data, error } = await supabase.from('buy_sell').insert({ ...(body || {}), user_id: userId }).select().maybeSingle()
+                let payload = body
+                if (body instanceof FormData) {
+                    payload = await parseFormDataWithUploads(body, 'marketplace')
+                }
+                const { data, error } = await supabase.from('buy_sell').insert({ ...(payload || {}), user_id: userId }).select().maybeSingle()
                 if (error) throw error
                 return { data: { listing: data } }
             }
@@ -327,6 +400,14 @@ export async function executeSupabaseRequest(args) {
 
         // ── 11. FILE UPLOAD ─────────────────────────────────────────
         if (cleanUrl === 'upload' && method === 'POST') {
+            let file = null
+            if (body instanceof FormData) {
+                file = body.get('file') || body.get('image') || body.get('photo')
+            }
+            if (file) {
+                const publicUrl = await uploadToSupabaseStorage(file, 'uploads')
+                return { data: { url: publicUrl, success: true, message: 'Upload successful' } }
+            }
             return { data: { url: '', message: 'Upload processed' } }
         }
 
