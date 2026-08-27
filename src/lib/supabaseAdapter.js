@@ -288,39 +288,78 @@ export async function executeSupabaseRequest(args) {
         }
 
         // ── 2. HOST PROFILE ─────────────────────────────────────────
-        if (cleanUrl.startsWith('host') || cleanUrl.startsWith('admin/approved/approved-host-details')) {
+        if (cleanUrl.startsWith('host') || cleanUrl.startsWith('admin/approved') || cleanUrl.startsWith('admin/pending') || cleanUrl.startsWith('admin/rejected') || cleanUrl.startsWith('admin/host')) {
             if (cleanUrl === 'host/get') {
                 const userId = await getCurrentUserId()
                 if (!userId) return { data: { host: null } }
                 const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
                 if (data) return { data: { host: data } }
 
-                // Fallback from auth session to ensure valid host profile
+                // Fallback from auth session
                 const { data: { session } } = await supabase.auth.getSession()
                 if (session?.user?.id === userId) {
-                    const fallbackHost = {
+                    const fallbackUser = {
                         id: userId,
                         email: session.user.email,
                         name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
                         full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || '',
-                        role: 'host',
-                        status: 'approved',
-                        is_approved: true
+                        role: 'user',
+                        status: 'pending',
+                        is_approved: false
                     }
-                    await supabase.from('profiles').upsert(fallbackHost, { onConflict: 'id' })
-                    return { data: { host: fallbackHost } }
+                    await supabase.from('profiles').upsert(fallbackUser, { onConflict: 'id' })
+                    return { data: { host: fallbackUser } }
                 }
                 return { data: { host: null } }
             }
 
-            if (cleanUrl === 'admin/approved/approved-host-details') {
-                let query = supabase.from('profiles').select('*')
+            if (cleanUrl === 'admin/approved/approved-host-details' || cleanUrl === 'admin/host/approved') {
+                let query = supabase.from('profiles').select('*').eq('is_approved', true)
                 if (queryParams.country) {
                     query = query.ilike('country', `%${queryParams.country}%`)
                 }
                 const { data, error } = await query
                 if (error) return { data: [] }
                 return { data: data || [] }
+            }
+
+            if (cleanUrl === 'admin/pending/pending-host-details' || cleanUrl === 'admin/host/pending') {
+                let query = supabase.from('profiles').select('*').or('is_approved.eq.false,status.eq.pending').eq('role', 'host')
+                if (queryParams.country) {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data, error } = await query
+                if (error) return { data: [] }
+                return { data: data || [] }
+            }
+
+            if (cleanUrl === 'admin/rejected/rejected-host-details' || cleanUrl === 'admin/host/rejected') {
+                let query = supabase.from('profiles').select('*').or('status.eq.rejected,is_blocked.eq.true').eq('role', 'host')
+                if (queryParams.country) {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data, error } = await query
+                if (error) return { data: [] }
+                return { data: data || [] }
+            }
+
+            // Admin approve/reject actions
+            if (cleanUrl.startsWith('admin/host/approve') || cleanUrl.startsWith('admin/approved/')) {
+                const parts = cleanUrl.split('/')
+                const hostId = parts[parts.length - 1]
+                if (hostId) {
+                    const { data } = await supabase.from('profiles').update({ status: 'approved', is_approved: true }).eq('id', hostId).select().maybeSingle()
+                    return { data: { success: true, host: data, message: 'Host approved' } }
+                }
+            }
+
+            if (cleanUrl.startsWith('admin/host/reject') || cleanUrl.startsWith('admin/rejected/')) {
+                const parts = cleanUrl.split('/')
+                const hostId = parts[parts.length - 1]
+                if (hostId) {
+                    const { data } = await supabase.from('profiles').update({ status: 'rejected', is_approved: false }).eq('id', hostId).select().maybeSingle()
+                    return { data: { success: true, host: data, message: 'Host rejected' } }
+                }
             }
 
             if (cleanUrl === 'host/save' || cleanUrl.startsWith('host/update')) {
@@ -331,8 +370,8 @@ export async function executeSupabaseRequest(args) {
                 const parsedBody = (body instanceof FormData) ? await parseFormDataWithUploads(body, 'hosts') : body
                 const sanitized = sanitizeProfileData(parsedBody)
                 sanitized.role = 'host'
-                sanitized.status = 'approved'
-                sanitized.is_approved = true
+                sanitized.status = 'pending'
+                sanitized.is_approved = false
                 const { data, error } = await supabase.from('profiles').upsert({ id: userId, ...sanitized }, { onConflict: 'id' }).select().maybeSingle()
                 if (error) {
                     console.error('Supabase host save error:', error)
