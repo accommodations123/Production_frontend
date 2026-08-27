@@ -83,7 +83,7 @@ const Signin = () => {
         }
       }
     } catch (err) {
-      toast.error("Google authentication error");
+      toast.error(err?.message || "Google authentication error");
     }
   };
 
