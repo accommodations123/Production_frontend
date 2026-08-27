@@ -268,18 +268,18 @@ export default function HostOnboardingForm() {
       const hostPayload = {
         userId: userId,
         user_id: userId,
-        full_name: formData.full_name,
-        email: formData.email,
-        phone: `${formData.phonePrefix} ${formData.phone}`,
-        country: formData.country,
-        state: formData.state,
-        city: formData.city,
-        zip_code: formData.zip_code, // Added zip_code
-        address: formData.street_address,
-        street_address: formData.street_address, // Sending explicit street_address too just in case
-        whatsapp: formData.whatsapp ? `${formData.whatsappPrefix} ${formData.whatsapp}` : "",
-        facebook: extractUsername('facebook', formData.facebook),
-        instagram: extractUsername('instagram', formData.instagram),
+        full_name: formData.full_name || "",
+        email: formData.email || "",
+        phone: `${formData.phonePrefix || "+91"} ${formData.phone || ""}`.trim(),
+        country: typeof formData.country === 'object' ? (formData.country?.name || '') : (formData.country || ''),
+        state: typeof formData.state === 'object' ? (formData.state?.name || '') : (formData.state || ''),
+        city: typeof formData.city === 'object' ? (formData.city?.name || '') : (formData.city || ''),
+        zip_code: formData.zip_code || "",
+        address: formData.street_address || "",
+        street_address: formData.street_address || "",
+        whatsapp: formData.whatsapp ? `${formData.whatsappPrefix || "+91"} ${formData.whatsapp}`.trim() : "",
+        facebook: extractUsername('facebook', formData.facebook) || "",
+        instagram: extractUsername('instagram', formData.instagram) || "",
       };
 
       // Submit to host/save
