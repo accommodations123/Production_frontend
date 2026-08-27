@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { axiosClient } from '../../lib/axiosClient';
+import { supabase } from '../../lib/supabaseClient';
 import { CLOUDFRONT_BASE } from '../../lib/imageUtils';
 import { authApi } from '@/store/api/authApi';
 import { peopleApi } from '@/store/api/peopleApi';
@@ -27,17 +27,19 @@ export const purgeAllUserCaches = (dispatch) => {
     }
 
     try {
-        dispatch(authApi.util.resetApiState());
-        dispatch(peopleApi.util.resetApiState());
-        dispatch(connectionApi.util.resetApiState());
-        dispatch(propertyApi.util.resetApiState());
-        dispatch(marketplaceApi.util.resetApiState());
-        dispatch(eventApi.util.resetApiState());
-        dispatch(travelApi.util.resetApiState());
-        dispatch(wishlistApi.util.resetApiState());
-        dispatch(hostApi.util.resetApiState());
-        dispatch(notificationApi.util.resetApiState());
-        dispatch(stayRequestApi.util.resetApiState());
+        if (dispatch) {
+            dispatch(authApi.util.resetApiState());
+            dispatch(peopleApi.util.resetApiState());
+            dispatch(connectionApi.util.resetApiState());
+            dispatch(propertyApi.util.resetApiState());
+            dispatch(marketplaceApi.util.resetApiState());
+            dispatch(eventApi.util.resetApiState());
+            dispatch(travelApi.util.resetApiState());
+            dispatch(wishlistApi.util.resetApiState());
+            dispatch(hostApi.util.resetApiState());
+            dispatch(notificationApi.util.resetApiState());
+            dispatch(stayRequestApi.util.resetApiState());
+        }
     } catch (e) {
         console.warn("⚠️ API state reset warning during logout:", e);
     }
@@ -53,38 +55,52 @@ const getInitialUser = () => {
     }
 };
 
+const formatUserObject = (sessionUser, profile = {}) => {
+    if (!sessionUser && !profile?.id) return null;
+    const user = {
+        id: sessionUser?.id || profile?.id,
+        email: sessionUser?.email || profile?.email,
+        name: sessionUser?.user_metadata?.full_name || sessionUser?.user_metadata?.name || profile?.name || profile?.full_name || sessionUser?.email?.split('@')[0],
+        profile_image: profile?.profile_image || profile?.avatar || sessionUser?.user_metadata?.avatar_url || sessionUser?.user_metadata?.picture || null,
+        ...(profile || {}),
+        ...(sessionUser?.user_metadata || {})
+    };
+
+    if (user?.profile_image && !user.profile_image.startsWith('http')) {
+        const key = user.profile_image.startsWith('/') ? user.profile_image : `/${user.profile_image}`;
+        user.profile_image = `${CLOUDFRONT_BASE}${key}`;
+    }
+
+    return user;
+};
+
 // --- Async Thunks ---
 
 export const fetchCurrentUser = createAsyncThunk(
     'auth/fetchCurrentUser',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axiosClient.get('auth/me');
-            const data = response.data;
-            
-            // CloudFront Image Transform matching original authApi logic
-            const CLOUDFRONT = CLOUDFRONT_BASE;
-            const fixImage = (obj) => {
-                if (obj?.profile_image && !obj.profile_image.startsWith('http')) {
-                    const key = obj.profile_image.startsWith('/') ? obj.profile_image : `/${obj.profile_image}`;
-                    obj.profile_image = `${CLOUDFRONT}${key}`;
-                }
-                return obj;
-            };
-
-            if (data?.user) {
-                fixImage(data.user);
-            } else if (data) {
-                fixImage(data);
+            if (!supabase) {
+                return { user: null };
+            }
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError || !session?.user) {
+                return { user: null };
             }
 
-            const userVal = data?.user || data;
-            if (userVal) {
-                localStorage.setItem("user", JSON.stringify(userVal));
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
+
+            const user = formatUserObject(session.user, profile);
+            if (user) {
+                localStorage.setItem("user", JSON.stringify(user));
             }
-            return data;
+            return { user };
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Failed to fetch user profile');
+            return rejectWithValue(error?.message || 'Failed to fetch user profile');
         }
     },
     {
@@ -101,13 +117,31 @@ export const loginUser = createAsyncThunk(
     'auth/loginUser',
     async (credentials, { dispatch, rejectWithValue }) => {
         try {
+            if (!supabase) throw new Error('Supabase client not initialized');
             purgeAllUserCaches(dispatch);
-            const response = await axiosClient.post('login', credentials);
-            // Force RTK Query getMe subscribers to refetch with the new session
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: credentials.email || credentials.identifier,
+                password: credentials.password,
+            });
+
+            if (error) throw error;
+
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', data.user.id)
+                .maybeSingle();
+
+            const user = formatUserObject(data.user, profile);
+            if (user) {
+                localStorage.setItem("user", JSON.stringify(user));
+            }
+
             dispatch(authApi.util.invalidateTags(['User']));
-            return response.data;
+            return { user, session: data.session };
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Login failed');
+            return rejectWithValue(error?.message || 'Login failed');
         }
     }
 );
@@ -116,10 +150,18 @@ export const sendOtp = createAsyncThunk(
     'auth/sendOtp',
     async (payload, { rejectWithValue }) => {
         try {
-            const response = await axiosClient.post('otp/send-otp', payload);
-            return response.data;
+            if (!supabase) throw new Error('Supabase client not initialized');
+            const email = payload.email || payload.identifier;
+            const { data, error } = await supabase.auth.signInWithOtp({
+                email,
+                options: {
+                    shouldCreateUser: true,
+                }
+            });
+            if (error) throw error;
+            return data;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Failed to send OTP');
+            return rejectWithValue(error?.message || 'Failed to send OTP');
         }
     }
 );
@@ -128,19 +170,35 @@ export const verifyOtp = createAsyncThunk(
     'auth/verifyOtp',
     async (payload, { dispatch, rejectWithValue }) => {
         try {
+            if (!supabase) throw new Error('Supabase client not initialized');
             purgeAllUserCaches(dispatch);
-            const response = await axiosClient.post('otp/verify-otp', payload);
-            const data = response.data;
-            const user = data?.user || data?.data?.user;
-            const formatted = { ...data, user };
+
+            const email = payload.email || payload.identifier;
+            const token = payload.otp || payload.token;
+
+            const { data, error } = await supabase.auth.verifyOtp({
+                email,
+                token,
+                type: 'email',
+            });
+
+            if (error) throw error;
+
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', data.user.id)
+                .maybeSingle();
+
+            const user = formatUserObject(data.user, profile);
             if (user) {
                 localStorage.setItem("user", JSON.stringify(user));
             }
-            // Force RTK Query getMe subscribers to refetch with the new session
+
             dispatch(authApi.util.invalidateTags(['User']));
-            return formatted;
+            return { user, session: data.session };
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Verification failed');
+            return rejectWithValue(error?.message || 'Verification failed');
         }
     }
 );
@@ -149,30 +207,43 @@ export const updateProfile = createAsyncThunk(
     'auth/updateProfile',
     async (formData, { rejectWithValue }) => {
         try {
-            const response = await axiosClient.put('otp/update-profile', formData);
-            const data = response.data;
-            const user = data?.user || data?.data?.user;
+            if (!supabase) throw new Error('Supabase client not initialized');
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user?.id) throw new Error('Not authenticated');
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .update(formData)
+                .eq('id', session.user.id)
+                .select()
+                .maybeSingle();
+
+            if (error) throw error;
+
+            const user = formatUserObject(session.user, data);
             if (user) {
                 localStorage.setItem("user", JSON.stringify(user));
             }
-            return data;
+            return { user };
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Profile update failed');
+            return rejectWithValue(error?.message || 'Profile update failed');
         }
     }
 );
 
 export const logoutUser = createAsyncThunk(
     'auth/logoutUser',
-    async (_, { dispatch, rejectWithValue }) => {
+    async (_, { dispatch }) => {
         try {
-            const response = await axiosClient.post('otp/logout');
-            purgeAllUserCaches(dispatch);
-            return response.data;
+            if (supabase) {
+                await supabase.auth.signOut();
+            }
         } catch (error) {
+            console.error('Supabase signOut error:', error);
+        } finally {
             purgeAllUserCaches(dispatch);
-            return rejectWithValue(error.response?.data?.message || 'Logout failed');
         }
+        return { success: true };
     }
 );
 
@@ -211,7 +282,7 @@ const authSlice = createSlice({
             })
             .addCase(fetchCurrentUser.fulfilled, (state, action) => {
                 state.loading = false;
-                state.user = action.payload?.user || action.payload;
+                state.user = action.payload?.user || null;
                 state.isAuthenticated = !!state.user;
             })
             .addCase(fetchCurrentUser.rejected, (state, action) => {
