@@ -80,16 +80,15 @@ export const fetchCurrentUser = createAsyncThunk(
                 return { user };
             }
 
-            const response = await axiosClient.get('auth/me');
-            const data = response.data;
-            const userVal = data?.user || data;
-            if (userVal) {
-                if (userVal.profile_image) {
-                    userVal.profile_image = resolveImageUrl(userVal.profile_image);
+            const stored = localStorage.getItem('user');
+            if (stored) {
+                try {
+                    return { user: JSON.parse(stored) };
+                } catch {
+                    // ignore
                 }
-                localStorage.setItem('user', JSON.stringify(userVal));
             }
-            return data;
+            return { user: null };
         } catch (error) {
             const stored = localStorage.getItem('user');
             if (stored) {
@@ -99,7 +98,7 @@ export const fetchCurrentUser = createAsyncThunk(
                     // ignore
                 }
             }
-            return rejectWithValue(error.response?.data?.message || 'Failed to fetch user profile');
+            return { user: null };
         }
     },
     {
