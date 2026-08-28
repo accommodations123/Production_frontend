@@ -410,8 +410,8 @@ function sanitizeStayRequestData(data, userId) {
         sanitized.user_phone = String(phoneVal).trim();
     }
 
-    sanitized.status = data.status || 'approved';
-    sanitized.is_approved = data.is_approved !== undefined ? Boolean(data.is_approved) : true;
+    sanitized.status = data.status || 'pending';
+    sanitized.is_approved = data.is_approved !== undefined ? Boolean(data.is_approved) : false;
 
     // Pack extra fields like whatsapp, linkedin, instagram, furnishing, state into notes so nothing is lost
     const extraNotes = {
