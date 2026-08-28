@@ -321,6 +321,56 @@ function sanitizeBuySellData(data, userId) {
     return sanitized;
 }
 
+const VALID_STAY_REQUEST_COLUMNS = new Set([
+    'id', 'user_id', 'userId', 'user_name', 'userName', 'username', 'seeker_name', 'seekerName',
+    'title', 'description', 'country', 'state', 'city', 'budget', 'currency',
+    'stay_type', 'stayType', 'furnishing', 'email', 'phone', 'whatsapp', 'whatsapp_number',
+    'whatsappNumber', 'linkedin', 'instagram', 'status', 'is_approved',
+    'created_at', 'updated_at'
+]);
+
+function sanitizeStayRequestData(data, userId) {
+    if (!data || typeof data !== 'object') return {};
+    const sanitized = {};
+
+    if (userId) {
+        sanitized.user_id = String(userId);
+    }
+
+    const name = data.seekerName || data.seeker_name || data.user_name || data.userName || data.username || data.name || 'Stay Seeker';
+    sanitized.user_name = String(name).trim();
+    sanitized.username = String(name).trim();
+
+    if (data.title) sanitized.title = String(data.title).trim();
+    if (data.description) sanitized.description = String(data.description).trim();
+    if (data.country) sanitized.country = typeof data.country === 'string' ? data.country : data.country?.name || '';
+    if (data.state) sanitized.state = String(data.state).trim();
+    if (data.city) sanitized.city = String(data.city).trim();
+
+    if (data.budget !== undefined && data.budget !== null && data.budget !== '') {
+        sanitized.budget = Number(data.budget) || 0;
+    }
+
+    if (data.currency) sanitized.currency = String(data.currency).trim();
+    if (data.stayType || data.stay_type) {
+        sanitized.stay_type = String(data.stayType || data.stay_type).trim();
+    }
+    if (data.furnishing) sanitized.furnishing = String(data.furnishing).trim();
+
+    if (data.email) sanitized.email = String(data.email).trim();
+    if (data.phone) sanitized.phone = String(data.phone).trim();
+    if (data.whatsappNumber || data.whatsapp_number || data.whatsapp) {
+        sanitized.whatsapp = String(data.whatsappNumber || data.whatsapp_number || data.whatsapp).trim();
+    }
+    if (data.linkedin) sanitized.linkedin = String(data.linkedin).trim();
+    if (data.instagram) sanitized.instagram = String(data.instagram).trim();
+
+    sanitized.status = data.status || 'approved';
+    sanitized.is_approved = true;
+
+    return sanitized;
+}
+
 /**
  * Route request to Supabase table queries
  * @param {string|object} args - query url or object { url, method, body, params, headers }
@@ -808,14 +858,136 @@ export async function executeSupabaseRequest(args) {
 
         // ── 6. STAY REQUESTS ────────────────────────────────────────
         if (cleanUrl.startsWith('stay-request')) {
-            let query = supabase.from('stay_requests').select('*')
-            if (queryParams.country) {
+            // 1. Create Stay Request: POST stay-request
+            if ((cleanUrl === 'stay-request' || cleanUrl === 'stay-request/create') && method === 'POST') {
+                const userId = await getCurrentUserId()
+                const sanitized = sanitizeStayRequestData(body, userId)
+
+                let currentPayload = { ...sanitized }
+                let insertRes = await supabase.from('stay_requests').insert(currentPayload).select().maybeSingle()
+
+                // Adaptive recovery loop for missing columns
+                let attempts = 0
+                while (insertRes.error && (insertRes.error.code === 'PGRST204' || insertRes.error.message?.includes('Could not find the')) && attempts < 10) {
+                    attempts++
+                    const match = insertRes.error.message?.match(/Could not find the '([^']+)' column/)
+                    if (match && match[1] && currentPayload[match[1]] !== undefined) {
+                        console.warn(`[Supabase stay_requests] table lacks column '${match[1]}', stripping and retrying...`)
+                        delete currentPayload[match[1]]
+                        insertRes = await supabase.from('stay_requests').insert(currentPayload).select().maybeSingle()
+                    } else {
+                        break
+                    }
+                }
+
+                if (insertRes.error) {
+                    console.error('Final stay_requests insert error:', insertRes.error)
+                    return { error: { status: 400, error: insertRes.error.message || 'Failed to create stay request', message: insertRes.error.message || 'Failed to create stay request' } }
+                }
+
+                return { data: insertRes.data, message: 'Stay request created successfully', success: true }
+            }
+
+            // 2. Get My Stay Requests: GET stay-request/me
+            if (cleanUrl === 'stay-request/me') {
+                const userId = await getCurrentUserId()
+                if (!userId) return { data: [] }
+                const { data, error } = await supabase.from('stay_requests').select('*').eq('user_id', userId).order('created_at', { ascending: false })
+                if (error) return { data: [] }
+                return { data: data || [] }
+            }
+
+            // 3. Single Stay Request: GET stay-request/request/:id or stay-request/:id
+            const singleMatch = cleanUrl.match(/^stay-request\/(?:request\/)?([^/]+)$/)
+            if (singleMatch && method === 'GET' && !['search', 'me', 'report', 'all'].includes(singleMatch[1])) {
+                const id = singleMatch[1]
+                const { data, error } = await supabase.from('stay_requests').select('*').eq('id', id).maybeSingle()
+                if (error || !data) return { data: null }
+                return { data }
+            }
+
+            // 4. Update Stay Request: PUT/PATCH stay-request/:id
+            if (singleMatch && (method === 'PUT' || method === 'PATCH' || method === 'POST') && !['search', 'me', 'report', 'all', 'create'].includes(singleMatch[1])) {
+                const id = singleMatch[1]
+                const userId = await getCurrentUserId()
+                const sanitized = sanitizeStayRequestData(body, userId)
+
+                let currentPayload = { ...sanitized }
+                let updateRes = await supabase.from('stay_requests').update(currentPayload).eq('id', id).select().maybeSingle()
+
+                let attempts = 0
+                while (updateRes.error && (updateRes.error.code === 'PGRST204' || updateRes.error.message?.includes('Could not find the')) && attempts < 10) {
+                    attempts++
+                    const match = updateRes.error.message?.match(/Could not find the '([^']+)' column/)
+                    if (match && match[1] && currentPayload[match[1]] !== undefined) {
+                        delete currentPayload[match[1]]
+                        updateRes = await supabase.from('stay_requests').update(currentPayload).eq('id', id).select().maybeSingle()
+                    } else {
+                        break
+                    }
+                }
+
+                if (updateRes.error) {
+                    return { error: { status: 400, error: updateRes.error.message || 'Failed to update stay request' } }
+                }
+                return { data: updateRes.data, success: true }
+            }
+
+            // 5. Delete Stay Request: DELETE stay-request/:id
+            if (singleMatch && method === 'DELETE') {
+                const id = singleMatch[1]
+                const { error } = await supabase.from('stay_requests').delete().eq('id', id)
+                if (error) {
+                    return { error: { status: 400, error: error.message || 'Failed to delete stay request' } }
+                }
+                return { data: { success: true, message: 'Deleted successfully' } }
+            }
+
+            // 6. Report Stay Request: POST stay-request/report
+            if (cleanUrl === 'stay-request/report' && method === 'POST') {
+                try {
+                    await supabase.from('stay_request_reports').insert(body || {})
+                } catch {}
+                return { data: { success: true, message: 'Report submitted successfully' } }
+            }
+
+            // 7. Public Stay Requests Search & Listing: GET stay-request, GET stay-request/search
+            let query = supabase.from('stay_requests').select('*').order('created_at', { ascending: false })
+            if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
                 query = query.ilike('country', `%${queryParams.country}%`)
             }
+            if (queryParams.state && queryParams.state !== 'All States' && queryParams.state !== 'All') {
+                query = query.ilike('state', `%${queryParams.state}%`)
+            }
+            if (queryParams.city && queryParams.city !== 'All Cities' && queryParams.city !== 'All') {
+                query = query.ilike('city', `%${queryParams.city}%`)
+            }
+            if (queryParams.budget || queryParams.minPrice) {
+                query = query.gte('budget', Number(queryParams.budget || queryParams.minPrice))
+            }
+            if (queryParams.maxPrice) {
+                query = query.lte('budget', Number(queryParams.maxPrice))
+            }
+            if (queryParams.stayType) {
+                query = query.eq('stay_type', queryParams.stayType)
+            }
+            if (queryParams.furnishing) {
+                query = query.eq('furnishing', queryParams.furnishing)
+            }
+            if (queryParams.search) {
+                const s = String(queryParams.search).trim()
+                if (s) {
+                    query = query.or(`title.ilike.%${s}%,description.ilike.%${s}%,city.ilike.%${s}%,country.ilike.%${s}%`)
+                }
+            }
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))
+            
             const { data, error } = await query
-            if (error) return { data: { requests: [] } }
-            return { data: { requests: data || [] } }
+            if (error) {
+                console.warn('stay_requests fetch query error:', error)
+                return { data: [] }
+            }
+            return { data: data || [] }
         }
 
         // ── 7. JOBS / CAREERS ───────────────────────────────────────
