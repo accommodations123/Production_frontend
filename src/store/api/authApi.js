@@ -7,7 +7,6 @@ const rawBase = fetchBaseQuery({
             ? 'https://api.nextkinlife.live'
             : '/api'
     ),
-    credentials: 'include',
     prepareHeaders: (headers) => {
         const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
         if (supabaseAnonKey) {

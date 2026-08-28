@@ -94,7 +94,6 @@ export const peopleApi = createApi({
                 url: 'people/upload',
                 method: 'POST',
                 body: formData,
-                credentials: 'include',
             }),
         }),
 

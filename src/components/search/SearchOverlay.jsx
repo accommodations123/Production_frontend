@@ -84,7 +84,6 @@ export function SearchOverlay({ isOpen, onClose }) {
                     await axios.get(
                         `${API_BASE}/listings?location=${encodeURIComponent(searchTerm)}`,
                         {
-                            withCredentials: true,
                             signal: controller.signal
                         }
                     );

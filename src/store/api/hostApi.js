@@ -22,7 +22,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || (
 
 const rawBase = fetchBaseQuery({
     baseUrl: API_BASE_URL,
-    credentials: 'include',
     prepareHeaders: (headers) => {
         const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
         if (supabaseAnonKey) {
@@ -137,7 +136,6 @@ export const hostApi = createApi({
                 url: "host/save",
                 method: "POST",
                 body: hostData,
-                credentials: "include"
             }),
             invalidatesTags: ["Host"],
         }),
@@ -150,7 +148,6 @@ export const hostApi = createApi({
                     url: `host/update/${hostId}`,
                     method: "PUT",
                     body: data,
-                    credentials: "include"
                 };
             },
             // Force refetch after successful update
@@ -425,7 +422,6 @@ export const hostApi = createApi({
                 url: "upload",
                 method: "POST",
                 body: formData,
-                credentials: "include"
             }),
         }),
 
@@ -434,7 +430,6 @@ export const hostApi = createApi({
                 url: "property/create-draft",
                 method: "POST",
                 body: data,
-                credentials: "include"
             }),
         }),
 
@@ -443,7 +438,6 @@ export const hostApi = createApi({
                 url: `property/basic-info/${id}`,
                 method: "PUT",
                 body: data,
-                credentials: "include"
             }),
         }),
 
@@ -452,7 +446,6 @@ export const hostApi = createApi({
                 url: `property/address/${id}`,
                 method: "PUT",
                 body: data,
-                credentials: "include"
             }),
         }),
 
@@ -461,7 +454,6 @@ export const hostApi = createApi({
                 url: `property/pricing/${id}`,
                 method: "PUT",
                 body: data,
-                credentials: "include"
             }),
         }),
 
@@ -470,7 +462,6 @@ export const hostApi = createApi({
                 url: `property/amenities/${id}`,
                 method: "PUT",
                 body: { amenities },
-                credentials: "include"
             }),
         }),
 
@@ -479,7 +470,6 @@ export const hostApi = createApi({
                 url: `property/rules/${id}`,
                 method: "PUT",
                 body: { rules },
-                credentials: "include"
             }),
         }),
 
@@ -488,7 +478,6 @@ export const hostApi = createApi({
                 url: `property/media/${id}`,
                 method: "PUT",
                 body: formData,
-                credentials: "include"
             }),
         }),
 
@@ -497,7 +486,6 @@ export const hostApi = createApi({
                 url: `property/media/video/${id}`,
                 method: "PUT",
                 body: formData,
-                credentials: "include"
             }),
         }),
 
@@ -507,7 +495,6 @@ export const hostApi = createApi({
             query: (id) => ({
                 url: `property/submit/${id}`,
                 method: "PUT",
-                credentials: "include"
             }),
             invalidatesTags: (result, error, id) => [{ type: "Property", id: "LIST" }, { type: "Property", id: id }, "Property"],
         }),
