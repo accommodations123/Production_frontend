@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { HostDetailSocials } from '@/components/ui/SocialConnect';
+import { useAuth } from '@/shared/hooks/useAuth';
 
 
 
@@ -31,6 +32,7 @@ export default function RoomPage() {
     const navigate = useNavigate();
     const { formatPrice, activeCountry } = useCountry();
     const location = useLocation();
+    const { user } = useAuth();
 
     // State
     const [isContactOpen, setIsContactOpen] = useState(false);
