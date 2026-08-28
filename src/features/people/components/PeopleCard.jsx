@@ -91,8 +91,8 @@ export function PeopleCard({ person }) {
 
     try {
       const res = await toggleWishlist({ type: "expert", id: person.id }).unwrap();
-      const nextSaved = res?.isSaved ?? res?.saved ?? !isSavedState;
-      setIsSavedState(nextSaved);
+      const nextSaved = res?.isWishlisted ?? res?.isSaved ?? res?.saved ?? res?.data?.isWishlisted ?? !isSavedState;
+      setIsSavedState(Boolean(nextSaved));
       toast.success(nextSaved ? "Saved to your wishlist!" : "Removed from saved experts.");
     } catch (err) {
       toast.error("Failed to update wishlist.");

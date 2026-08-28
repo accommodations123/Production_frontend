@@ -11,9 +11,84 @@ async function getCurrentUserId() {
     try {
         if (!supabase) return null
         const { data } = await supabase.auth.getSession()
-        return data?.session?.user?.id || null
+        if (data?.session?.user?.id) return data.session.user.id
+        
+        // Check localStorage fallback
+        const stored = localStorage.getItem('user')
+        if (stored) {
+            const parsed = JSON.parse(stored)
+            return parsed?.id || parsed?.user_id || parsed?.user?.id || null
+        }
+        return null
     } catch {
         return null
+    }
+}
+
+// Wishlist helper utilities for storage and normalization
+function mapItemTypeToAliases(type) {
+    if (!type) return ['property', 'accommodations', 'stay', 'event', 'events', 'buysell', 'buy-sell', 'marketplace', 'product', 'trip', 'travel', 'travel_trip', 'expert', 'people', 'person']
+    const t = String(type).toLowerCase()
+    if (['property', 'accommodations', 'stay'].includes(t)) return ['property', 'accommodations', 'stay']
+    if (['event', 'events'].includes(t)) return ['event', 'events']
+    if (['buysell', 'buy-sell', 'marketplace', 'product'].includes(t)) return ['buysell', 'buy-sell', 'marketplace', 'product']
+    if (['trip', 'travel', 'travel_trip'].includes(t)) return ['trip', 'travel', 'travel_trip']
+    if (['expert', 'people', 'person'].includes(t)) return ['expert', 'people', 'person']
+    return [t]
+}
+
+function getLocalWishlistRows(userId, filterType) {
+    try {
+        const key = `user_wishlist_${userId || 'guest'}`
+        const raw = localStorage.getItem(key)
+        const list = raw ? JSON.parse(raw) : []
+        if (!filterType) return list
+        const aliases = mapItemTypeToAliases(filterType)
+        return list.filter(item => aliases.includes(String(item.item_type || item.type).toLowerCase()))
+    } catch {
+        return []
+    }
+}
+
+function toggleLocalWishlist(userId, itemId, forceState, itemType = 'property') {
+    try {
+        const key = `user_wishlist_${userId || 'guest'}`
+        const raw = localStorage.getItem(key)
+        let list = raw ? JSON.parse(raw) : []
+        const existsIndex = list.findIndex(i => String(i.item_id || i.id) === String(itemId))
+        
+        let newState = false
+        if (typeof forceState === 'boolean') {
+            newState = forceState
+            if (forceState && existsIndex === -1) {
+                list.push({ id: `local_${Date.now()}`, item_id: itemId, item_type: itemType, created_at: new Date().toISOString() })
+            } else if (!forceState && existsIndex !== -1) {
+                list.splice(existsIndex, 1)
+            }
+        } else {
+            if (existsIndex !== -1) {
+                list.splice(existsIndex, 1)
+                newState = false
+            } else {
+                list.push({ id: `local_${Date.now()}`, item_id: itemId, item_type: itemType, created_at: new Date().toISOString() })
+                newState = true
+            }
+        }
+        localStorage.setItem(key, JSON.stringify(list))
+        return newState
+    } catch {
+        return false
+    }
+}
+
+function isLocalWishlisted(userId, itemId) {
+    try {
+        const key = `user_wishlist_${userId || 'guest'}`
+        const raw = localStorage.getItem(key)
+        const list = raw ? JSON.parse(raw) : []
+        return list.some(i => String(i.item_id || i.id) === String(itemId))
+    } catch {
+        return false
     }
 }
 
@@ -600,6 +675,253 @@ export async function executeSupabaseRequest(args) {
                 return { data: { url: publicUrl, success: true, message: 'Upload successful' } }
             }
             return { data: { url: '', message: 'Upload processed' } }
+        }
+
+        // ── 12. WISHLIST / FAVORITES ─────────────────────────────────
+        if (cleanUrl.startsWith('wishlist')) {
+            const userId = await getCurrentUserId()
+
+            // 1. Check wishlist status: wishlist/check/:type/:id
+            const checkMatch = cleanUrl.match(/^wishlist\/check\/([^/]+)\/([^/]+)$/)
+            if (checkMatch && method === 'GET') {
+                const rawType = checkMatch[1]
+                const itemId = String(checkMatch[2])
+
+                if (!userId) {
+                    return { data: { isWishlisted: false, isSaved: false } }
+                }
+
+                try {
+                    let { data, error } = await supabase
+                        .from('wishlists')
+                        .select('id, item_id')
+                        .eq('user_id', userId)
+                        .eq('item_id', itemId)
+                        .maybeSingle()
+
+                    if (error && error.code === '42P01') {
+                        const fallback = await supabase
+                            .from('wishlist')
+                            .select('id, item_id')
+                            .eq('user_id', userId)
+                            .eq('item_id', itemId)
+                            .maybeSingle()
+                        data = fallback.data
+                        error = fallback.error
+                    }
+
+                    const isWishlisted = Boolean(data && !error) || isLocalWishlisted(userId, itemId)
+                    return {
+                        data: {
+                            isWishlisted,
+                            isSaved: isWishlisted,
+                            status: isWishlisted ? 'saved' : 'none'
+                        }
+                    }
+                } catch (e) {
+                    const localSaved = isLocalWishlisted(userId, itemId)
+                    return { data: { isWishlisted: localSaved, isSaved: localSaved } }
+                }
+            }
+
+            // 2. Toggle wishlist: wishlist/toggle
+            if (cleanUrl === 'wishlist/toggle' && method === 'POST') {
+                if (!userId) {
+                    return { error: { status: 401, error: 'Please sign in to save items to your wishlist' } }
+                }
+
+                const rawType = body?.item_type || body?.type || 'property'
+                const itemId = String(body?.item_id || body?.id || '')
+
+                if (!itemId) {
+                    return { error: { status: 400, error: 'Missing item ID for wishlist' } }
+                }
+
+                try {
+                    let tableName = 'wishlists'
+                    let { data: existing, error: findErr } = await supabase
+                        .from('wishlists')
+                        .select('id')
+                        .eq('user_id', userId)
+                        .eq('item_id', itemId)
+                        .maybeSingle()
+
+                    if (findErr && findErr.code === '42P01') {
+                        tableName = 'wishlist'
+                        const fallback = await supabase
+                            .from('wishlist')
+                            .select('id')
+                            .eq('user_id', userId)
+                            .eq('item_id', itemId)
+                            .maybeSingle()
+                        existing = fallback.data
+                    }
+
+                    if (existing?.id) {
+                        // Remove from database
+                        await supabase
+                            .from(tableName)
+                            .delete()
+                            .eq('id', existing.id)
+
+                        toggleLocalWishlist(userId, itemId, false, rawType)
+
+                        return {
+                            data: {
+                                isWishlisted: false,
+                                isSaved: false,
+                                success: true,
+                                message: 'Removed from wishlist'
+                            }
+                        }
+                    } else {
+                        // Insert into database
+                        const { data: inserted, error: insertErr } = await supabase
+                            .from(tableName)
+                            .insert({
+                                user_id: userId,
+                                item_id: itemId,
+                                item_type: rawType
+                            })
+                            .select()
+                            .maybeSingle()
+
+                        toggleLocalWishlist(userId, itemId, true, rawType)
+
+                        return {
+                            data: {
+                                isWishlisted: true,
+                                isSaved: true,
+                                success: true,
+                                message: 'Added to wishlist',
+                                wishlist: inserted
+                            }
+                        }
+                    }
+                } catch (e) {
+                    const nextState = toggleLocalWishlist(userId, itemId, undefined, rawType)
+                    return {
+                        data: {
+                            isWishlisted: nextState,
+                            isSaved: nextState,
+                            success: true,
+                            message: nextState ? 'Added to wishlist' : 'Removed from wishlist'
+                        }
+                    }
+                }
+            }
+
+            // 3. Add to wishlist: wishlist/add
+            if (cleanUrl === 'wishlist/add' && method === 'POST') {
+                if (!userId) {
+                    return { error: { status: 401, error: 'Please sign in to save items' } }
+                }
+                const rawType = body?.item_type || body?.type || 'property'
+                const itemId = String(body?.item_id || body?.id || '')
+                
+                try {
+                    let tableName = 'wishlists'
+                    const { error } = await supabase.from('wishlists').upsert(
+                        { user_id: userId, item_id: itemId, item_type: rawType },
+                        { onConflict: 'user_id,item_id' }
+                    )
+                    if (error && error.code === '42P01') {
+                        tableName = 'wishlist'
+                        await supabase.from('wishlist').upsert(
+                            { user_id: userId, item_id: itemId, item_type: rawType },
+                            { onConflict: 'user_id,item_id' }
+                        )
+                    }
+                } catch (e) {}
+
+                toggleLocalWishlist(userId, itemId, true, rawType)
+                return { data: { isWishlisted: true, isSaved: true, success: true } }
+            }
+
+            // 4. Remove from wishlist: wishlist/:type/:id
+            const removeMatch = cleanUrl.match(/^wishlist\/([^/]+)\/([^/]+)$/)
+            if (removeMatch && method === 'DELETE') {
+                const itemId = String(removeMatch[2])
+                if (userId) {
+                    try {
+                        await supabase.from('wishlists').delete().eq('user_id', userId).eq('item_id', itemId)
+                    } catch {}
+                    try {
+                        await supabase.from('wishlist').delete().eq('user_id', userId).eq('item_id', itemId)
+                    } catch {}
+                    toggleLocalWishlist(userId, itemId, false)
+                }
+                return { data: { isWishlisted: false, isSaved: false, success: true } }
+            }
+
+            // 5. Get full wishlist list: wishlist
+            if (cleanUrl === 'wishlist' && method === 'GET') {
+                if (!userId) {
+                    return { data: { wishlist: [], total: 0 } }
+                }
+
+                const filterType = queryParams.type || ''
+                let rows = []
+
+                try {
+                    let query = supabase.from('wishlists').select('*').eq('user_id', userId)
+                    if (filterType) {
+                        const types = mapItemTypeToAliases(filterType)
+                        query = query.in('item_type', types)
+                    }
+                    const { data, error } = await query
+                    if (!error && data && data.length > 0) {
+                        rows = data
+                    } else if (error && error.code === '42P01') {
+                        let query2 = supabase.from('wishlist').select('*').eq('user_id', userId)
+                        if (filterType) {
+                            const types = mapItemTypeToAliases(filterType)
+                            query2 = query2.in('item_type', types)
+                        }
+                        const fallback = await query2
+                        if (fallback.data && fallback.data.length > 0) rows = fallback.data
+                    }
+                } catch (e) {}
+
+                if (rows.length === 0) {
+                    rows = getLocalWishlistRows(userId, filterType)
+                }
+
+                // Fetch item details for each wishlist entry
+                const enrichedList = await Promise.all(
+                    rows.map(async (row) => {
+                        const type = (row.item_type || '').toLowerCase()
+                        const itemId = row.item_id
+                        let details = null
+
+                        try {
+                            if (['property', 'accommodations', 'stay'].includes(type)) {
+                                const { data } = await supabase.from('properties').select('*').eq('id', itemId).maybeSingle()
+                                details = data
+                            } else if (['event', 'events'].includes(type)) {
+                                const { data } = await supabase.from('events').select('*').eq('id', itemId).maybeSingle()
+                                details = data
+                            } else if (['buysell', 'buy-sell', 'marketplace', 'product'].includes(type)) {
+                                const { data } = await supabase.from('buy_sell').select('*').eq('id', itemId).maybeSingle()
+                                details = data
+                            } else if (['trip', 'travel', 'travel_trip'].includes(type)) {
+                                const { data } = await supabase.from('travel_trips').select('*').eq('id', itemId).maybeSingle()
+                                details = data
+                            } else if (['expert', 'people', 'person'].includes(type)) {
+                                const { data } = await supabase.from('profiles').select('*').eq('id', itemId).maybeSingle()
+                                details = data
+                            }
+                        } catch (err) {}
+
+                        return {
+                            ...row,
+                            details: details || { id: itemId, name: 'Item', title: 'Saved Item' }
+                        }
+                    })
+                )
+
+                return { data: { wishlist: enrichedList.filter(Boolean), total: enrichedList.length } }
+            }
         }
 
         // Fallback default

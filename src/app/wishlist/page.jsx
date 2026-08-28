@@ -6,6 +6,7 @@ import { PropertyCard } from '@/components/home/featured/PropertyCard';
 import { EventCard } from '@/app/events/components/EventCard';
 import { ProductCard } from '@/components/marketplace/ProductCard';
 import TripCard from '@/components/travel/TripCard';
+import PeopleCard from '@/features/people/components/PeopleCard';
 import { Loader2, Heart, ShoppingBag, Calendar, Home, Plane, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
@@ -215,6 +216,10 @@ export default function WishlistPage() {
                                 socials: socials
                             };
                             return <TripCard key={item.id} plan={normalizedTrip} isSelected={false} />;
+
+                        case 'expert':
+                        case 'people':
+                            return <PeopleCard key={item.id} person={details} />;
 
                         case 'community':
                             return <CommunityGroupCard key={item.id} group={{ ...details, id: details.id || details._id }} />;
