@@ -314,7 +314,6 @@ function sanitizeBuySellData(data, userId) {
 
     if (finalImages.length > 0) {
         sanitized.images = finalImages;
-        sanitized.image = finalImages[0];
     }
 
     return sanitized;
@@ -651,28 +650,38 @@ export async function executeSupabaseRequest(args) {
                 }
                 const sanitized = sanitizeBuySellData(rawPayload, userId)
 
-                // Try insert with sanitized data
-                let { data, error } = await supabase.from('buy_sell').insert(sanitized).select().maybeSingle()
+                let currentPayload = { ...sanitized }
+                let insertRes = await supabase.from('buy_sell').insert(currentPayload).select().maybeSingle()
                 
-                // If column error or foreign key error, attempt retry
-                if (error) {
-                    console.warn('Supabase buy_sell insert initial error:', error)
-                    if (error.message?.includes('user_id') || error.details?.includes('user_id')) {
-                        const { user_id, ...withoutUserId } = sanitized
-                        const retry = await supabase.from('buy_sell').insert({ ...withoutUserId, host_id: userId }).select().maybeSingle()
-                        if (!retry.error) {
-                            data = retry.data
-                            error = null
-                        }
+                // Adaptive recovery loop: dynamically strip non-existent columns reported by Supabase PostgREST PGRST204
+                let attempts = 0
+                while (insertRes.error && (insertRes.error.code === 'PGRST204' || insertRes.error.message?.includes('Could not find the')) && attempts < 10) {
+                    attempts++
+                    const match = insertRes.error.message?.match(/Could not find the '([^']+)' column/)
+                    if (match && match[1] && currentPayload[match[1]] !== undefined) {
+                        console.warn(`[Supabase buy_sell] table lacks column '${match[1]}', stripping and retrying...`)
+                        delete currentPayload[match[1]]
+                        insertRes = await supabase.from('buy_sell').insert(currentPayload).select().maybeSingle()
+                    } else {
+                        break
                     }
                 }
 
-                if (error) {
-                    console.error('Final buy_sell insert error:', error)
-                    return { error: { status: 400, error: error.message || 'Failed to create listing', message: error.message || 'Failed to create listing' } }
+                // If error involves host_id vs user_id
+                if (insertRes.error && (insertRes.error.message?.includes('user_id') || insertRes.error.details?.includes('user_id'))) {
+                    const { user_id, ...withoutUserId } = currentPayload
+                    const retry = await supabase.from('buy_sell').insert({ ...withoutUserId, host_id: userId }).select().maybeSingle()
+                    if (!retry.error) {
+                        insertRes = retry
+                    }
                 }
 
-                return { data: { success: true, listing: data, listings: [data], message: 'Listing created successfully' } }
+                if (insertRes.error) {
+                    console.error('Final buy_sell insert error:', insertRes.error)
+                    return { error: { status: 400, error: insertRes.error.message || 'Failed to create listing', message: insertRes.error.message || 'Failed to create listing' } }
+                }
+
+                return { data: { success: true, listing: insertRes.data, listings: [insertRes.data], message: 'Listing created successfully' } }
             }
 
             const updateMatch = cleanUrl.match(/^(?:buy-sell\/update|marketplace\/update|buy-sell)\/([^/]+)$/)
@@ -685,12 +694,28 @@ export async function executeSupabaseRequest(args) {
                 }
                 const sanitized = sanitizeBuySellData(rawPayload, userId)
 
-                const { data, error } = await supabase.from('buy_sell').update(sanitized).eq('id', id).select().maybeSingle()
-                if (error) {
-                    console.error('Supabase buy_sell update error:', error)
-                    return { error: { status: 400, error: error.message || 'Failed to update listing' } }
+                let currentPayload = { ...sanitized }
+                let updateRes = await supabase.from('buy_sell').update(currentPayload).eq('id', id).select().maybeSingle()
+                
+                // Adaptive recovery loop for update
+                let attempts = 0
+                while (updateRes.error && (updateRes.error.code === 'PGRST204' || updateRes.error.message?.includes('Could not find the')) && attempts < 10) {
+                    attempts++
+                    const match = updateRes.error.message?.match(/Could not find the '([^']+)' column/)
+                    if (match && match[1] && currentPayload[match[1]] !== undefined) {
+                        console.warn(`[Supabase buy_sell update] table lacks column '${match[1]}', stripping and retrying...`)
+                        delete currentPayload[match[1]]
+                        updateRes = await supabase.from('buy_sell').update(currentPayload).eq('id', id).select().maybeSingle()
+                    } else {
+                        break
+                    }
                 }
-                return { data: { success: true, listing: data, message: 'Listing updated successfully' } }
+
+                if (updateRes.error) {
+                    console.error('Supabase buy_sell update error:', updateRes.error)
+                    return { error: { status: 400, error: updateRes.error.message || 'Failed to update listing' } }
+                }
+                return { data: { success: true, listing: updateRes.data, message: 'Listing updated successfully' } }
             }
 
             const deleteMatch = cleanUrl.match(/^(?:buy-sell\/delete|marketplace\/delete|buy-sell)\/([^/]+)$/)
