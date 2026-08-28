@@ -78,9 +78,11 @@ export const PropertyCard = React.memo(({ property }) => {
             whatsapp:
                 property.Host?.whatsapp ||
                 property.host?.whatsapp ||
+                property.whatsapp ||
                 property.Host?.phone ||
                 property.host?.phone ||
                 property.phone ||
+                property.contact_number ||
                 "",
 
             instagram:
