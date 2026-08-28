@@ -322,11 +322,37 @@ function sanitizeBuySellData(data, userId) {
 }
 
 const VALID_STAY_REQUEST_COLUMNS = new Set([
-    'id', 'user_id', 'userId', 'user_name', 'userName', 'username', 'seeker_name', 'seekerName',
-    'title', 'description', 'country', 'state', 'city', 'budget', 'currency',
-    'stay_type', 'stayType', 'furnishing', 'email', 'phone', 'whatsapp', 'whatsapp_number',
-    'whatsappNumber', 'linkedin', 'instagram', 'status', 'is_approved',
-    'created_at', 'updated_at'
+    'id',
+    'user_id',
+    'user_name',
+    'username',
+    'title',
+    'description',
+    'stay_description',
+    'city',
+    'country',
+    'destination_city',
+    'destination_country',
+    'stay_type',
+    'accommodation_type',
+    'room_type',
+    'budget',
+    'check_in',
+    'check_out',
+    'guests',
+    'status',
+    'is_approved',
+    'rejection_reason',
+    'created_at',
+    'updated_at',
+    'currency',
+    'user_email',
+    'email',
+    'phone',
+    'user_phone',
+    'photos',
+    'images',
+    'notes'
 ]);
 
 function sanitizeStayRequestData(data, userId) {
@@ -342,33 +368,70 @@ function sanitizeStayRequestData(data, userId) {
     sanitized.username = String(name).trim();
 
     if (data.title) sanitized.title = String(data.title).trim();
-    if (data.description) sanitized.description = String(data.description).trim();
-    if (data.country) sanitized.country = typeof data.country === 'string' ? data.country : data.country?.name || '';
-    if (data.state) sanitized.state = String(data.state).trim();
-    if (data.city) sanitized.city = String(data.city).trim();
+    
+    const desc = data.description || data.stay_description || '';
+    if (desc) {
+        sanitized.description = String(desc).trim();
+        sanitized.stay_description = String(desc).trim();
+    }
+
+    const countryVal = typeof data.country === 'string' ? data.country : data.country?.name || '';
+    if (countryVal) {
+        sanitized.country = countryVal;
+        sanitized.destination_country = countryVal;
+    }
+
+    const cityVal = data.city || data.destination_city || '';
+    if (cityVal) {
+        sanitized.city = String(cityVal).trim();
+        sanitized.destination_city = String(cityVal).trim();
+    }
 
     if (data.budget !== undefined && data.budget !== null && data.budget !== '') {
         sanitized.budget = Number(data.budget) || 0;
     }
 
-    if (data.currency) sanitized.currency = String(data.currency).trim();
-    if (data.stayType || data.stay_type) {
-        sanitized.stay_type = String(data.stayType || data.stay_type).trim();
-    }
-    if (data.furnishing) sanitized.furnishing = String(data.furnishing).trim();
+    sanitized.currency = data.currency || 'INR';
 
-    if (data.email) sanitized.email = String(data.email).trim();
-    if (data.phone) sanitized.phone = String(data.phone).trim();
-    if (data.whatsappNumber || data.whatsapp_number || data.whatsapp) {
-        sanitized.whatsapp = String(data.whatsappNumber || data.whatsapp_number || data.whatsapp).trim();
+    const stayTypeVal = data.stayType || data.stay_type || 'Long Term';
+    sanitized.stay_type = String(stayTypeVal).trim();
+    sanitized.accommodation_type = String(data.accommodation_type || data.accommodationType || stayTypeVal).trim();
+    sanitized.room_type = String(data.room_type || data.roomType || 'Entire Place').trim();
+
+    const emailVal = data.email || data.user_email || '';
+    if (emailVal) {
+        sanitized.email = String(emailVal).trim();
+        sanitized.user_email = String(emailVal).trim();
     }
-    if (data.linkedin) sanitized.linkedin = String(data.linkedin).trim();
-    if (data.instagram) sanitized.instagram = String(data.instagram).trim();
+
+    const phoneVal = data.phone || data.user_phone || data.whatsappNumber || data.whatsapp || '';
+    if (phoneVal) {
+        sanitized.phone = String(phoneVal).trim();
+        sanitized.user_phone = String(phoneVal).trim();
+    }
 
     sanitized.status = data.status || 'approved';
-    sanitized.is_approved = true;
+    sanitized.is_approved = data.is_approved !== undefined ? Boolean(data.is_approved) : true;
 
-    return sanitized;
+    // Pack extra fields like whatsapp, linkedin, instagram, furnishing, state into notes so nothing is lost
+    const extraNotes = {
+        state: data.state || '',
+        furnishing: data.furnishing || '',
+        whatsapp: data.whatsappNumber || data.whatsapp || '',
+        linkedin: data.linkedin || '',
+        instagram: data.instagram || '',
+        seekerName: name
+    };
+    sanitized.notes = JSON.stringify(extraNotes);
+
+    // Keep ONLY valid table columns
+    const cleaned = {};
+    for (const key of Object.keys(sanitized)) {
+        if (VALID_STAY_REQUEST_COLUMNS.has(key)) {
+            cleaned[key] = sanitized[key];
+        }
+    }
+    return cleaned;
 }
 
 /**

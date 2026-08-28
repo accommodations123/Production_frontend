@@ -9,32 +9,42 @@ export function StayRequestCard({ request }) {
 
   if (!request) return null;
 
-  const seekerName = request.seekerName || request.name || request.Host?.full_name || request.host?.full_name || "Stay Seeker";
+  let extra = {};
+  if (request.notes) {
+    try {
+      extra = typeof request.notes === 'string' ? JSON.parse(request.notes) : request.notes;
+    } catch {}
+  }
+
+  const seekerName = request.seekerName || request.user_name || request.username || request.name || extra.seekerName || request.Host?.full_name || request.host?.full_name || "Stay Seeker";
   const userImage = request.profile_image || request.avatar || request.Host?.User?.profile_image || request.host?.User?.profile_image || "";
-  const city = request.city || request.location || "";
-  const country = request.country || "";
+  const city = request.city || request.destination_city || request.location || "";
+  const country = request.country || request.destination_country || "";
   const locationString = city && country ? `${city}, ${country}` : city || country || "Any location";
   const stayType = request.stayType || request.stay_type || "Long Term";
-  const furnishing = request.furnishing || "Furnished";
+  const furnishing = request.furnishing || extra.furnishing || "Furnished";
   const title = request.title || "Looking for Accommodation";
-  const description = request.description || "Looking for a comfortable stay with essential amenities.";
+  const description = request.description || request.stay_description || "Looking for a comfortable stay with essential amenities.";
   const budget = Number(request.budget || request.price || request.price_per_month || 0);
   const currency = request.currency || "INR";
 
-  const isVerified = Boolean(request.isVerified || request.verified || request.Host?.verified || request.host?.verified);
+  const isVerified = Boolean(request.isVerified || request.is_approved || request.status === 'approved' || request.verified || request.Host?.verified || request.host?.verified);
 
   const socials = {
     whatsapp:
       request.whatsappNumber ||
       request.whatsapp ||
+      extra.whatsapp ||
       request.Host?.whatsapp ||
       request.host?.whatsapp ||
       request.phone ||
+      request.user_phone ||
       request.Host?.phone ||
       request.host?.phone ||
       "",
     email:
       request.email ||
+      request.user_email ||
       request.Host?.email ||
       request.host?.email ||
       request.Host?.User?.email ||
@@ -42,11 +52,13 @@ export function StayRequestCard({ request }) {
       "",
     linkedin:
       request.linkedin ||
+      extra.linkedin ||
       request.Host?.linkedin ||
       request.host?.linkedin ||
       "",
     instagram:
       request.instagram ||
+      extra.instagram ||
       request.Host?.instagram ||
       request.host?.instagram ||
       "",

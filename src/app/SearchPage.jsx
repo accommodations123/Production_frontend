@@ -97,13 +97,29 @@ export default function SearchPage() {
                         : (stayRequestsData?.items || []);
 
                     baseItems = rawRequests.map((req) => {
+                        let extra = {};
+                        if (req.notes) {
+                            try {
+                                extra = typeof req.notes === 'string' ? JSON.parse(req.notes) : req.notes;
+                            } catch {}
+                        }
+
+                        const seekerName = req.seekerName || req.user_name || req.username || extra.seekerName || "Stay Seeker";
+                        const whatsappNum = req.whatsappNumber || req.whatsapp || extra.whatsapp || req.phone || req.user_phone || "";
+                        const emailVal = req.email || req.user_email || "";
+                        const phoneVal = req.phone || req.user_phone || "";
+                        const linkedinVal = req.linkedin || extra.linkedin || "";
+                        const instagramVal = req.instagram || extra.instagram || "";
+                        const furnishingVal = req.furnishing || extra.furnishing || "Furnished";
+                        const stateVal = req.state || extra.state || "";
+
                         const mergedHost = {
-                            full_name: req.seekerName || "Stay Seeker",
-                            email: req.email || "",
-                            phone: req.phone || "",
-                            whatsapp: req.whatsappNumber || req.phone || "",
-                            linkedin: req.linkedin || "",
-                            instagram: req.instagram || "",
+                            full_name: seekerName,
+                            email: emailVal,
+                            phone: phoneVal,
+                            whatsapp: whatsappNum,
+                            linkedin: linkedinVal,
+                            instagram: instagramVal,
                             User: {
                                 profile_image: req.profile_image || ""
                             }
@@ -115,17 +131,17 @@ export default function SearchPage() {
                             id: req.id,
                             title: req.title || "Stay Request",
                             location: req.city ? `${req.city}, ${req.country || ''}` : req.country || "Location Info",
-                            fullAddress: `${req.city || ''} ${req.state || ''} ${req.country || ''}`,
+                            fullAddress: `${req.city || ''} ${stateVal} ${req.country || ''}`,
                             price: req.budget || req.price_per_month || 0,
                             currency: req.currency || 'EUR',
-                            type: req.stayType || "Seeker Request",
+                            type: req.stayType || req.stay_type || "Seeker Request",
                             category: "seeker_request",
                             property_type: "seeker_request",
                             isVerified: req.status === 'approved' || req.is_approved !== false,
                             status: req.status || 'approved',
-                            furnishing: req.furnishing || "Furnished",
+                            furnishing: furnishingVal,
                             stayType: req.stayType || req.stay_type || "Long Term",
-                            description: req.description || "",
+                            description: req.description || req.stay_description || "",
                             Host: mergedHost,
                             host: mergedHost
                         };
