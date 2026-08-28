@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { toast } from "sonner";
 import {
   Upload,
   X,
@@ -627,11 +628,13 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
         res = await createBuySell(formData).unwrap();
       }
 
-      if (res?.success && onPost) {
-        onPost(res.listing || res.listings?.[0]);
+      toast.success(isEditing ? "Listing updated successfully!" : "Product listed successfully!");
+      if (onPost) {
+        onPost(res?.listing || res?.listings?.[0] || res?.data || res);
       }
     } catch (err) {
       console.error("Listing operation failed:", err);
+      toast.error(err?.data?.message || err?.message || "Failed to save listing. Please try again.");
     }
   };
 

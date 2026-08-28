@@ -2,6 +2,7 @@ import { useSaveHostMutation, useGetHostProfileQuery } from "@/store/api/hostApi
 import { useGetMeQuery } from "@/store/api/authApi";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { FaWhatsapp, FaInstagram, FaFacebook } from "react-icons/fa";
 import { fetchAddressByPincode } from "@/lib/pincodeUtils";
 import { Navbar } from "@/components/layout/Navbar";
@@ -276,9 +277,10 @@ export default function HostOnboardingForm() {
       // Submit to host/save
       const result = await saveHost(hostPayload).unwrap();
       setShowSuccess(true);
+      toast.success("Host application submitted successfully! Your application is under review.");
 
-      // Navigate to host create page after successful submission
-      navigate("/host/create");
+      // Close page and return to home
+      navigate("/");
 
       // Reset form after success
       setTimeout(() => {
@@ -368,16 +370,34 @@ export default function HostOnboardingForm() {
 
           {/* Pending Status Overlay */}
           {hostProfile?.status === "pending" && (
-            <div className="bg-blue-50 border-l-4 border-blue-400 p-6 m-6 rounded-lg animate-pulse">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-6 m-6 rounded-lg shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-7 w-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-bold text-blue-900">Application Under Review</h3>
+                    <p className="text-blue-700 text-sm mt-0.5">We've received your application and our team is reviewing it. You'll be notified via email once approved.</p>
+                  </div>
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-bold text-blue-800">Application Under Review</h3>
-                  <p className="text-blue-700">We've received your application and our team is reviewing it. You'll be notified via email once approved.</p>
+                <div className="flex items-center gap-3 self-end sm:self-center">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/")}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+                  >
+                    Return to Home
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/dashboard")}
+                    className="px-4 py-2 bg-white hover:bg-gray-100 text-blue-700 border border-blue-300 text-sm font-medium rounded-lg transition-colors shadow-sm"
+                  >
+                    Go to Dashboard
+                  </button>
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plane, User, MapPin, Clock, Phone } from "lucide-react";
+import { toast } from "sonner";
 // import { GEOGRAPHIC_DATA, MORE_DESTINATIONS } from "../../app/resources/travel/constants";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
 import { loadLocationData } from '@/lib/lazyLocationData';
@@ -143,6 +144,7 @@ export default function PostTripModal({ onClose, onAdd }) {
                 arrivalTime: form.arrivalTime,
             },
         });
+        toast.success("Trip posted successfully!");
         onClose();
     };
 

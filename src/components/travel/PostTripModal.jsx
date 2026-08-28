@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import { X, Plane, User, MapPin, Clock, Loader2 } from "lucide-react";
 import { useCreateTripMutation, useGetHostProfileQuery } from "../../store/api/hostApi";
 import { useAuth } from "../../app/events/[id]/hooks/useAuth";
@@ -210,10 +211,11 @@ export default function PostTripModal({ onClose, onAdd }) {
                 },
                 travelers_count: form.travelers_count,
             });
+            toast.success("Trip posted successfully!");
             onClose();
         } catch (error) {
             console.error("Failed to post trip:", error);
-            alert("Failed to post trip. Please try again.");
+            toast.error(error?.data?.message || "Failed to post trip. Please try again.");
         }
     };
 

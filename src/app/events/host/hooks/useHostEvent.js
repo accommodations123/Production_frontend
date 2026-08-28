@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react"
 import { useSearchParams } from "react-router-dom"
+import { toast } from "sonner"
 import { hostEventService, compressImage } from "../services/hostEventService"
 import { useGetMyEventsQuery, useGetEventByIdQuery } from "@/store/api/hostApi"
 
@@ -387,8 +388,10 @@ export const useHostEvent = () => {
             await hostEventService.updatePricing(currentId, Number(formData.price) || 0)
             await hostEventService.submitEvent(currentId)
             setIsSuccess(true)
+            toast.success(isEdit ? "Event updated successfully!" : "Event created successfully! Your event is under review.")
         } catch (err) {
             setError(err.message)
+            toast.error(err?.message || "Failed to submit event. Please try again.")
         } finally {
             setIsSubmitting(false)
             setUploadProgress(0)

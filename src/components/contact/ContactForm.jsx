@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect"
 import { useState } from "react"
 import { Link } from "react-router-dom"
+import { toast } from "sonner"
 import { axiosClient } from "@/lib/axiosClient"
 
 export function ContactForm() {
@@ -46,16 +47,17 @@ export function ContactForm() {
             );
 
             setSent(true);
+            toast.success("Thank you! Your message has been sent successfully.");
         } catch (error) {
             console.error(
                 "Error sending contact message:",
                 error
             );
 
-            setError(
-                error.response?.data?.message ||
-                "Something went wrong. Please try again."
-            );
+            const errMsg = error.response?.data?.message ||
+                "Something went wrong. Please try again.";
+            setError(errMsg);
+            toast.error(errMsg);
         } finally {
             setSending(false);
         }

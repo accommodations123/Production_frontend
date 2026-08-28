@@ -51,6 +51,9 @@ ${message}`
 
       setIsSent(true);
       toast.success(`Message request sent successfully to ${expertName}!`);
+      setTimeout(() => {
+        handleResetAndClose();
+      }, 1500);
     } catch (err) {
       console.error("Message send error:", err);
       if (person.whatsapp) {
