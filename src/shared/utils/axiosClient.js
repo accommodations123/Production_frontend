@@ -3,7 +3,6 @@ import { API_BASE_URL } from '@/shared/utils/apiConfig';
 
 export const axiosClient = axios.create({
     baseURL: API_BASE_URL,
-    withCredentials: true,
 });
 
 // Interceptor to dynamically inject Supabase & selectedCountry headers on every request

@@ -40,7 +40,6 @@ function prepareHeadersWithAuth(headers) {
 
 const rawBase = fetchBaseQuery({
     baseUrl: API_BASE_URL,
-    credentials: 'include',
     prepareHeaders: prepareHeadersWithAuth,
 })
 

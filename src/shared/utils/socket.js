@@ -2,35 +2,50 @@ import { io } from "socket.io-client";
 
 let socket = null;
 
+const noopSocket = {
+    on: () => noopSocket,
+    off: () => noopSocket,
+    emit: () => noopSocket,
+    connect: () => noopSocket,
+    disconnect: () => noopSocket,
+    connected: false,
+};
+
 export const getSocket = () => {
     if (!socket) {
-        // In Development, force use of '/' so Vite proxy handles headers (Host/Origin)
-        // In Production, connect through FRONTEND domain (nginx has WebSocket config there)
-        const socketUrl = import.meta.env.VITE_SOCKET_URL || (
+        const socketUrl = import.meta.env.VITE_SOCKET_URL;
+        
+        // Supabase manages realtime via supabase-js channel, not socket.io
+        if (socketUrl && socketUrl.includes('supabase.co')) {
+            return noopSocket;
+        }
+
+        const url = socketUrl || (
             import.meta.env.DEV
                 ? '/'
                 : 'https://api.nextkinlife.live'
         );
 
+        try {
+            socket = io(url, {
+                transports: ["websocket", "polling"],
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 2000,
+                reconnectionDelayMax: 30000,
+                randomizationFactor: 0.5,
+            });
 
-        socket = io(socketUrl, {
-            withCredentials: true,  // Browser will send cookies automatically
-            transports: ["websocket", "polling"],
-            reconnection: true,
-            reconnectionAttempts: 15,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 30000,   // Exponential backoff caps at 30s
-            randomizationFactor: 0.5,      // Jitter to avoid thundering herd
-        });
-
-        // Explicitly connect
-        socket.connect();
+            socket.connect();
+        } catch (e) {
+            return noopSocket;
+        }
     }
     return socket;
 };
 
 export const disconnectSocket = () => {
-    if (socket) {
+    if (socket && typeof socket.disconnect === 'function') {
         socket.disconnect();
         socket = null;
     }

@@ -8,7 +8,6 @@ const baseURL = import.meta.env.VITE_API_URL || (
 
 export const axiosClient = axios.create({
     baseURL,
-    withCredentials: true,
 });
 
 // Interceptor to dynamically inject Supabase & selectedCountry headers on every request
