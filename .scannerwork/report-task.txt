@@ -1,6 +1,0 @@
-projectKey=nextkinlife-frontend
-serverUrl=http://localhost:9000
-serverVersion=26.5.0.122743
-dashboardUrl=http://localhost:9000/dashboard?id=nextkinlife-frontend
-ceTaskId=78c8c951-8b28-44ff-9b39-735d4ab2e41a
-ceTaskUrl=http://localhost:9000/api/ce/task?id=78c8c951-8b28-44ff-9b39-735d4ab2e41a

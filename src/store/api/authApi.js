@@ -1,12 +1,113 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { CLOUDFRONT_BASE } from '../../lib/imageUtils';
-import { supabase } from '../../lib/supabaseClient';
-import { baseQueryWithAuth } from '@/store/baseQuery';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { resolveImageUrl } from '@/lib/imageUtils';
+
+const rawBase = fetchBaseQuery({
+    baseUrl: import.meta.env.VITE_API_URL || (
+        import.meta.env.PROD
+            ? 'https://api.nextkinlife.live'
+            : '/api'
+    ),
+    credentials: 'include',
+    prepareHeaders: (headers) => {
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        if (supabaseAnonKey) {
+            if (!headers.has('apikey')) {
+                headers.set('apikey', supabaseAnonKey);
+            }
+            if (!headers.has('Authorization')) {
+                const token = localStorage.getItem('token');
+                headers.set('Authorization', `Bearer ${token || supabaseAnonKey}`);
+            }
+        }
+
+        const countryData = localStorage.getItem('selectedCountry');
+        if (countryData && !headers.has('X-Country')) {
+            try {
+                const country = JSON.parse(countryData);
+                if (country?.name) {
+                    // Backend expects full name for primary filtering (e.g. "India")
+                    headers.set('X-Country', country.name);
+
+                    // Send code for future use
+                    if (country.code) {
+                        headers.set('X-Country-Code', country.code);
+                    }
+                } else if (country?.code) {
+                    headers.set('X-Country', country.code);
+                }
+            } catch (e) {
+                console.error('Error parsing selectedCountry for header', e);
+            }
+        }
+        return headers;
+    },
+})
+
+
+const isNetworkError = (result) => {
+    if (!result?.error) return false;
+    const { status, error } = result.error;
+    return (
+        status === 'FETCH_ERROR' ||
+        status === 'TIMEOUT_ERROR' ||
+        (typeof error === 'string' && /load failed|network|fetch/i.test(error))
+    );
+};
+
+const baseQueryWithLogger = async (args, api, extraOptions) => {
+    try {
+        let result = await rawBase(args, api, extraOptions);
+
+        // Retry once on network-level errors (iOS Safari throws TypeError: Load failed)
+        if (isNetworkError(result)) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            result = await rawBase(args, api, extraOptions);
+        }
+
+        if (result.error) {
+            const status = result.error.status;
+            const url = String(args.url || args);
+
+            // Silently ignore expected errors
+            const isExpected =
+                status === 401 ||                                     // Not logged in yet
+                (status === 404 && url.includes('host/get')) ||       // No host profile
+                (status === 400 && url.includes('my-events'));        // No events
+
+            if (!isExpected && status !== 403) {
+                console.error(`⬅️ RTK Request Error [${status}] on ${url}:`, result.error);
+            }
+
+            // Replace raw network error messages with user-friendly text
+            if (isNetworkError(result)) {
+                return {
+                    error: {
+                        status: 'FETCH_ERROR',
+                        error: 'Unable to connect. Please check your internet connection and try again.'
+                    }
+                };
+            }
+        }
+        return result
+    } catch (err) {
+        // Suppress abort errors from navigation race conditions
+        if (err.name === 'AbortError') {
+            return { error: { status: 'CUSTOM_ERROR', error: 'Request was cancelled.' } };
+        }
+        console.error("❌ RTK baseQuery fatal error", err)
+        return {
+            error: {
+                status: 'CUSTOM_ERROR',
+                error: 'Something went wrong. Please try again.'
+            }
+        }
+    }
+}
 
 export const authApi = createApi({
     reducerPath: 'authApi',
     tagTypes: ['User', 'Trips'],
-    baseQuery: baseQueryWithAuth,
+    baseQuery: baseQueryWithLogger,
     endpoints: (builder) => ({
         login: builder.mutation({
             query: (credentials) => ({
@@ -19,15 +120,10 @@ export const authApi = createApi({
             query: () => "auth/me",
             providesTags: ["User"],
             transformResponse: (response) => {
-                // The backend getMe returns profile_image as just the S3 key
-                // (e.g. "properties/abc.jpeg"). We need the full CloudFront URL.
-                const CLOUDFRONT = CLOUDFRONT_BASE;
+                // Ensure full Supabase Storage image URL for profile images
                 const fixImage = (obj) => {
                     if (obj?.profile_image && !obj.profile_image.startsWith('http')) {
-                        const key = obj.profile_image.startsWith('/')
-                            ? obj.profile_image
-                            : `/${obj.profile_image}`;
-                        obj.profile_image = `${CLOUDFRONT}${key}`;
+                        obj.profile_image = resolveImageUrl(obj.profile_image);
                     }
                     return obj;
                 };

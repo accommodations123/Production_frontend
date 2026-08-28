@@ -1,27 +1,48 @@
-import { supabase } from "@/lib/supabaseClient";
+import { axiosClient } from "@/lib/axiosClient";
 
-// API service functions for reviews via Supabase
+
+// API service functions for reviews
 export const reviewService = {
     getEventReviews: async (eventId) => {
         try {
-            if (!supabase) return [];
-            const { data, error } = await supabase
-                .from('event_reviews')
-                .select('*')
-                .eq('event_id', eventId);
+            const response = await axiosClient.get(`events/reviews/${eventId}/reviews`);
+            const data = response.data;
 
-            if (error || !data) return [];
+            // Process each review to ensure user data is properly extracted
+            let reviews = [];
+            if (Array.isArray(data)) {
+                reviews = data;
+            } else if (data && Array.isArray(data.reviews)) {
+                reviews = data.reviews;
+            } else if (data && Array.isArray(data.data)) {
+                reviews = data.data;
+            } else if (data && typeof data === 'object') {
+                const possibleArrays = ['reviews', 'data', 'items', 'results'];
+                for (const prop of possibleArrays) {
+                    if (Array.isArray(data[prop])) {
+                        reviews = data[prop];
+                        break;
+                    }
+                }
+            }
 
-            return data.map(review => ({
-                ...review,
-                user_name: review.user_name || review.userName || review.reviewer_name || 'Anonymous User',
-                user_avatar: review.user_avatar || review.userAvatar || null,
-                user_role: review.user_role || 'Attendee',
-                user_id: review.user_id || review.id || null,
-                rating: review.rating || 0,
-                comment: review.comment || review.review_text || '',
-                created_at: review.created_at || new Date().toISOString()
-            }));
+            return reviews.map(review => {
+                const user = review.user || review.User || review.user_data || review.UserData || {};
+                return {
+                    ...review,
+                    user_name: review.user_name || review.userName || review.reviewer_name ||
+                        user?.name || user?.full_name || user?.first_name || 'Anonymous User',
+                    user_avatar: review.user_avatar || review.userAvatar || review.avatar ||
+                        user?.avatar || user?.profile_image || user?.photo,
+                    user_role: review.user_role || review.userRole || review.role ||
+                        user?.role || 'Attendee',
+                    user_id: review.user_id || review.userId || review.user ||
+                        user?.id || review?.id || null,
+                    rating: review.rating || 0,
+                    comment: review.comment || review.review_text || review.text || '',
+                    created_at: review.created_at || review.createdAt || review.date || new Date().toISOString()
+                };
+            });
         } catch (error) {
             console.error('Error fetching reviews:', error);
             return [];
@@ -30,15 +51,8 @@ export const reviewService = {
 
     getEventRating: async (eventId) => {
         try {
-            if (!supabase) return { rating: 0, count: 0 };
-            const { data, error } = await supabase
-                .from('event_reviews')
-                .select('rating')
-                .eq('event_id', eventId);
-
-            if (error || !data || data.length === 0) return { rating: 0, count: 0 };
-            const sum = data.reduce((acc, curr) => acc + (curr.rating || 0), 0);
-            return { rating: sum / data.length, count: data.length };
+            const response = await axiosClient.get(`events/reviews/${eventId}/rating`);
+            return response.data;
         } catch (error) {
             console.error('Error fetching rating:', error);
             return { rating: 0, count: 0 };
@@ -47,21 +61,8 @@ export const reviewService = {
 
     submitReview: async (eventId, reviewData) => {
         try {
-            if (!supabase) throw new Error('Supabase client not initialized');
-            const { data: { session } } = await supabase.auth.getSession();
-            const { data, error } = await supabase
-                .from('event_reviews')
-                .insert({
-                    event_id: eventId,
-                    user_id: session?.user?.id,
-                    user_name: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0],
-                    ...reviewData
-                })
-                .select()
-                .maybeSingle();
-
-            if (error) throw error;
-            return data;
+            const response = await axiosClient.post(`events/reviews/${eventId}/reviews`, reviewData);
+            return response.data;
         } catch (error) {
             console.error('Error submitting review:', error);
             throw error;
@@ -70,16 +71,8 @@ export const reviewService = {
 
     hideReview: async (reviewId) => {
         try {
-            if (!supabase) throw new Error('Supabase client not initialized');
-            const { data, error } = await supabase
-                .from('event_reviews')
-                .update({ is_hidden: true })
-                .eq('id', reviewId)
-                .select()
-                .maybeSingle();
-
-            if (error) throw error;
-            return data;
+            const response = await axiosClient.patch(`events/reviews/reviews/${reviewId}/hide`, {});
+            return response.data;
         } catch (error) {
             console.error('Error hiding review:', error);
             throw error;
@@ -87,25 +80,32 @@ export const reviewService = {
     }
 };
 
-// API service functions for event participation via Supabase
+// API service functions for event participation
 export const eventService = {
     joinEvent: async (eventId) => {
         try {
-            if (!supabase) return { success: true };
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session?.user?.id) {
-                return { success: true };
-            }
-            return { success: true, message: 'Joined event successfully' };
+            const response = await axiosClient.post(`events/${eventId}/join`, {});
+            return { success: true, ...response.data };
         } catch (error) {
             console.error('Error joining event:', error);
-            return { success: true };
+
+            const message = error.response?.data?.message || '';
+            if (error.response?.status === 400 && message.includes('already joined')) {
+                return {
+                    success: true,
+                    alreadyRegistered: true,
+                    message
+                };
+            }
+
+            throw error;
         }
     },
 
     leaveEvent: async (eventId) => {
         try {
-            return { success: true, message: 'Left event' };
+            const response = await axiosClient.post(`events/${eventId}/leave`, {});
+            return { success: true, ...response.data };
         } catch (error) {
             console.error('Error leaving event:', error);
             throw error;
@@ -114,6 +114,13 @@ export const eventService = {
 
     checkRegistrationStatus: async (eventId) => {
         try {
+            const response = await axiosClient.get(`events/${eventId}`);
+            const data = response.data;
+
+            if (data.is_registered !== undefined) {
+                return { registered: data.is_registered };
+            }
+
             return { registered: false };
         } catch (error) {
             console.error('Error checking registration status:', error);

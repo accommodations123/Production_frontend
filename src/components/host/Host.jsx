@@ -9,7 +9,6 @@ import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
 import { extractUsername } from "@/lib/socialUtils";
-import { toast } from "sonner";
 
 // Helper to split phone number
 // Known country codes (most common first)
@@ -251,59 +250,63 @@ export default function HostOnboardingForm() {
       return;
     }
 
-    // Check authentication
-    const userStr = localStorage.getItem("user");
-    const user = userStr ? JSON.parse(userStr) : null;
-    const userId = user?.id || user?._id;
-
-    if (!userId) {
-      toast.error("Please sign in first to submit your host application.");
-      setIsSubmitting(false);
-      navigate("/signin", { state: { from: "/hosts" } });
-      return;
-    }
-
     try {
       // 3. Construct JSON Payload
+      const userStr = localStorage.getItem("user");
+      const user = userStr ? JSON.parse(userStr) : {};
+      const userId = user.id || user._id;
+
       const hostPayload = {
         userId: userId,
         user_id: userId,
-        full_name: formData.full_name || "",
-        email: formData.email || "",
-        phone: `${formData.phonePrefix || "+91"} ${formData.phone || ""}`.trim(),
-        country: typeof formData.country === 'object' ? (formData.country?.name || '') : (formData.country || ''),
-        state: typeof formData.state === 'object' ? (formData.state?.name || '') : (formData.state || ''),
-        city: typeof formData.city === 'object' ? (formData.city?.name || '') : (formData.city || ''),
-        zip_code: formData.zip_code || "",
-        address: formData.street_address || "",
-        street_address: formData.street_address || "",
-        whatsapp: formData.whatsapp ? `${formData.whatsappPrefix || "+91"} ${formData.whatsapp}`.trim() : "",
-        facebook: extractUsername('facebook', formData.facebook) || "",
-        instagram: extractUsername('instagram', formData.instagram) || "",
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: `${formData.phonePrefix} ${formData.phone}`,
+        country: formData.country,
+        state: formData.state,
+        city: formData.city,
+        zip_code: formData.zip_code, // Added zip_code
+        address: formData.street_address,
+        street_address: formData.street_address, // Sending explicit street_address too just in case
+        whatsapp: formData.whatsapp ? `${formData.whatsappPrefix} ${formData.whatsapp}` : "",
+        facebook: extractUsername('facebook', formData.facebook),
+        instagram: extractUsername('instagram', formData.instagram),
       };
 
       // Submit to host/save
-      await saveHost(hostPayload).unwrap();
+      const result = await saveHost(hostPayload).unwrap();
       setShowSuccess(true);
 
-      // Navigate to host create page after showing success animation
+      // Navigate to host create page after successful submission
+      navigate("/host/create");
+
+      // Reset form after success
       setTimeout(() => {
         setShowSuccess(false);
-        navigate("/host/create");
-      }, 1800);
+        setFormData({
+          full_name: "",
+          email: "",
+          phone: "",
+          country: "",
+          state: "",
+          city: "",
+          street_address: "",
+          whatsapp: "",
+          facebook: "",
+          instagram: ""
+        });
+      }, 3000);
     } catch (err) {
       console.error("Error submitting form:", err);
 
       // Handle different error types
       if (err.status === 'PARSING_ERROR' && err.originalStatus === 500) {
+        // Server returned HTML instead of JSON (500 error)
         setSubmitError("Server error occurred. Please try again later or contact support if the problem persists.");
       } else if (err.status === 401) {
         setSubmitError("Your session has expired. Please sign in again to submit your host application.");
+        // Optional: clear local user data
         localStorage.removeItem("user");
-      } else if (err.status === 409) {
-        setSubmitError(err.data?.error || err.data?.message || "A conflict occurred with existing account details (e.g. duplicate phone or email). Please check your details and try again.");
-      } else if (err.data?.error) {
-        setSubmitError(err.data.error);
       } else if (err.data?.message) {
         setSubmitError(err.data.message);
       } else if (err.error) {

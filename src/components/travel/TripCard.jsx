@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Plane, MapPin, Calendar, Globe, Shield } from "lucide-react";
 import WishlistButton from "@/components/ui/WishlistButton";
 import { SocialQuickConnect } from "@/components/ui/SocialConnect";
-import { resolveImageUrl, CLOUDFRONT_BASE } from "@/lib/imageUtils";
+import { resolveImageUrl } from "@/lib/imageUtils";
 import { formatUTCDate } from "../../utils/timezone";
 
 const TripCard = React.memo(({ plan }) => {
@@ -19,20 +19,11 @@ const TripCard = React.memo(({ plan }) => {
             plan.user?.user?.profile_image,
             plan.user?.image,
         ];
-        // First, try to find one that's already a full URL starting with http
-        // But since plan.user.image is processed by resolveImageUrl, it might already be the broken cloudfront URL.
-        // So we should try to find a full URL that is NOT a cloudfront URL first!
-        const rawUrl = candidates.find(img => img && typeof img === 'string' && img.startsWith('http') && !img.startsWith(CLOUDFRONT_BASE));
-        if (rawUrl) return rawUrl;
 
-        // Otherwise, any full URL (including cloudfront)
-        const fullUrl = candidates.find(img => img && typeof img === 'string' && img.startsWith('http'));
-        if (fullUrl) return fullUrl;
-
-        // Fallback: use resolveImageUrl on whichever key is available
-        const rawKey = candidates.find(img => img && typeof img === 'string' && !img.startsWith('http'));
-        if (rawKey) {
-            return resolveImageUrl(rawKey);
+        // Find first valid image candidate
+        const rawCandidate = candidates.find(img => img && typeof img === 'string' && img.trim() !== '');
+        if (rawCandidate) {
+            return resolveImageUrl(rawCandidate);
         }
 
         return plan.user?.image || null;
@@ -214,9 +205,8 @@ const TripCard = React.memo(({ plan }) => {
                     )}
                     <SocialQuickConnect
                         socials={plan.socials}
-                        ownerId={plan.user?.user_id || plan.user?.id || plan.user_id || plan.userId || plan.host?.user_id || plan.host_user_id || plan.host_id || plan.host?.id || plan.user?.User?.id || plan.creator?.id}
-                        ownerEmail={plan.user?.email || plan.email || plan.host?.email || plan.user?.User?.email || plan.creator?.email}
-                        ownerName={plan.user?.full_name || plan.user?.fullName || plan.host?.full_name || plan.user?.name || "Travel Partner"}
+                        ownerId={plan.user?.user_id || plan.user?.id || plan.user_id || plan.host?.user_id || plan.host_user_id || plan.host_id || plan.host?.id || plan.user?.User?.id}
+                        ownerName={plan.user?.full_name || plan.user?.fullName || plan.host?.full_name || "Travel Partner"}
                         itemId={plan.id || plan._id}
                         itemTitle={plan.title || `${plan.destination || plan.flight?.to || 'Travel'} Trip`}
                         itemType="travel"

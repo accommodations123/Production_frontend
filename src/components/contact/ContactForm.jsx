@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect"
 import { useState } from "react"
 import { Link } from "react-router-dom"
-import { supabase } from "@/lib/supabaseClient"
+import { axiosClient } from "@/lib/axiosClient"
 
 export function ContactForm() {
     const [phoneCode, setPhoneCode] = useState("+91");
@@ -33,16 +33,17 @@ export function ContactForm() {
             setSending(true);
             setError("");
 
-            if (supabase) {
-                await supabase.from('contacts').insert({
-                    first_name: firstName,
-                    last_name: lastName,
+            await axiosClient.post(
+                'contact/submit',
+                {
+                    firstName,
+                    lastName,
                     email,
                     phone: phone ? `${phoneCode} ${phone}` : "",
                     subject,
                     message,
-                });
-            }
+                }
+            );
 
             setSent(true);
         } catch (error) {
@@ -52,7 +53,7 @@ export function ContactForm() {
             );
 
             setError(
-                error?.message ||
+                error.response?.data?.message ||
                 "Something went wrong. Please try again."
             );
         } finally {

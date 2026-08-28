@@ -27,6 +27,7 @@ dist-ssr
 !.vscode/settings.json
 .idea
 .DS_Store
+.scannerwork
 *.suo
 *.ntvs*
 *.njsproj

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { PropertyCard } from "@/components/home/featured/PropertyCard"
+import { ListingCard } from "./ListingCard"
 import { useGetApprovedHostDetailsQuery } from '@/store/api/hostApi';
 
 export function FeaturedListings() {

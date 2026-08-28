@@ -11,7 +11,7 @@ export function ContactModal({ isOpen, onClose, listing }) {
         image: listing.host_avatar || "https://images.unsplash.com/photo-1494790108755-2616b612b786?auto=format&fit=crop&q=80&w=150&h=150",
         phone: listing.phone || listing.host_phone || "+1 (555) 019-2831",
         whatsapp: listing.whatsapp || listing.phone || "+1 (555) 019-2831",
-        email: listing.email || listing.host_email || "",
+        email: listing.email || listing.host_email || "host@nextkinlife.live",
         verified: true
     };
 

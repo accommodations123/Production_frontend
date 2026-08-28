@@ -1,4 +1,6 @@
-export { PropertyCard } from '@/components/home/featured/PropertyCard';
-export { EventCard } from '@/components/home/featured/EventCard';
-export { ProductCard } from '@/components/marketplace/ProductCard';
-export { default as TripCard } from '@/components/travel/TripCard';
+export { PropertyCard } from '@/features/home/components/featured/PropertyCard';
+export { EventCard } from '@/features/events/components/EventCard';
+export { ProductCard } from '@/features/marketplace/components/ProductCard';
+export { default as TripCard } from '@/features/travel/components/TripCard';
+export { MarketplaceCard } from '@/features/marketplace/components/MarketplaceCard';
+export { default as TravelPartnerCard } from '@/features/travel/components/TravelPartnerCard';

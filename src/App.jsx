@@ -5,7 +5,6 @@ import ScrollToTop from "@/components/layout/ScrollToTop";
 import RootLayout from "@/app/layout";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import HostGuard from "@/components/auth/HostGuard";
-import AuthGuard from "@/components/auth/AuthGuard";
 import { AppErrorBoundary } from "@/shared/components/AppErrorBoundary";
 
 // Safe Lazy loader with automatic retry loop & storage safety for mobile / Safari
@@ -107,9 +106,9 @@ export default function App() {
                                 <Route path="/accommodations/post-request" element={<PostStayRequestPage />} />
 
                                 <Route path="/host/create" element={
-                                    <AuthGuard>
+                                    <HostGuard>
                                         <HostCreatePage />
-                                    </AuthGuard>
+                                    </HostGuard>
                                 } />
                                 <Route path="/travel" element={<TravelPage />} />
                                 <Route path="/resources/legal" element={<LegalPage />} />
@@ -121,9 +120,9 @@ export default function App() {
                                 <Route path="/privacy" element={<PrivacyPage />} />
                                 <Route path="/terms" element={<TermsPage />} />
                                 <Route path="/wishlist" element={
-                                    <AuthGuard>
+                                    <HostGuard>
                                         <WishlistPage />
-                                    </AuthGuard>
+                                    </HostGuard>
                                 } />
                                 <Route path="/people" element={<PeopleHome />} />
                                 <Route path="/people/become" element={<BecomeExpert />} />

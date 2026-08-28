@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import Button from "@/components/auth/Button";
 import { useDispatch, useSelector } from "react-redux";
 import { sendOtp, verifyOtp, fetchCurrentUser } from "@/store/slices/authSlice";
-import { supabase } from "@/lib/supabaseClient";
 
 /* Brand Colors:
   --color-background: #ffffff
@@ -70,22 +69,13 @@ const Signin = () => {
     }
   };
 
-  const loginWithGoogle = async () => {
-    try {
-      if (supabase) {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: `${window.location.origin}/`,
-          },
-        });
-        if (error) {
-          toast.error(error.message || "Failed to sign in with Google");
-        }
-      }
-    } catch (err) {
-      toast.error(err?.message || "Google authentication error");
-    }
+  const loginWithGoogle = () => {
+    const apiBase = import.meta.env.VITE_API_URL || (
+      import.meta.env.PROD
+        ? 'https://api.nextkinlife.live'
+        : '/api'
+    );
+    window.location.href = `${apiBase}/auth/google`;
   };
 
   return (

@@ -7,7 +7,6 @@ import { COUNTRIES } from "@/lib/mock-data"
 import WishlistButton from "@/components/ui/WishlistButton"
 import { useCountry } from "@/context/CountryContext"
 import { getEventStatus } from "@/lib/eventUtils"
-import { SocialQuickConnect } from "@/components/ui/SocialConnect"
 
 export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
     const status = getEventStatus(event)
@@ -161,30 +160,13 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                             </div>
                         </div>
 
-                        {/* Organizer & Connect */}
-                        <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
-                            <div className="flex items-center gap-3 min-w-0">
-                                <HostPhoto host={event.host} />
-                                <div className="min-w-0">
-                                    <p className="text-xs text-gray-500">Organized by</p>
-                                    <p className="text-sm font-medium text-gray-900 truncate">{getOrganizerName()}</p>
-                                </div>
+                        {/* Organizer */}
+                        <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                            <HostPhoto host={event.host} />
+                            <div>
+                                <p className="text-xs text-gray-500">Organized by</p>
+                                <p className="text-sm font-medium text-gray-900">{getOrganizerName()}</p>
                             </div>
-                            <SocialQuickConnect
-                                socials={{
-                                    whatsapp: event.Host?.whatsapp || event.host?.whatsapp || event.Host?.phone || event.host?.phone || event.phone || "",
-                                    instagram: event.Host?.instagram || event.host?.instagram || "",
-                                    facebook: event.Host?.facebook || event.host?.facebook || "",
-                                    twitter: event.Host?.twitter || event.host?.twitter || "",
-                                    email: event.Host?.email || event.host?.email || event.email || ""
-                                }}
-                                ownerId={event.Host?.user_id || event.host?.user_id || event.host_user_id || event.Host?.User?.id || event.host?.User?.id || event.host_id || event.Host?.id || event.host?.id || event.user_id || event.userId || event.creator?.id}
-                                ownerEmail={event.Host?.email || event.host?.email || event.Host?.User?.email || event.host?.User?.email || event.email || event.creator?.email}
-                                ownerName={getOrganizerName()}
-                                itemId={event.id || event._id}
-                                itemTitle={event.title}
-                                itemType="events"
-                            />
                         </div>
                     </div>
 

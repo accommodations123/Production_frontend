@@ -6,7 +6,7 @@ import { SocialQuickConnect } from '@/components/ui/SocialConnect';
 import { useCountry } from '@/context/CountryContext';
 import { toast } from 'sonner';
 import WishlistButton from '@/components/ui/WishlistButton';
-import { CLOUDFRONT_BASE } from '@/lib/imageUtils';
+import { resolveImageUrl } from '@/lib/imageUtils';
 
 export const CardContainer = ({ children, linkTo, className = "" }) => {
     const navigate = (e) => {
@@ -36,10 +36,7 @@ export const PropertyCard = React.memo(({ property }) => {
 
     // Helper to normalize image URLs
     const getValidImageUrl = (imagePath) => {
-        if (!imagePath) return null;
-        if (imagePath.startsWith('http')) return imagePath;
-        const CLOUDFRONT = CLOUDFRONT_BASE;
-        return `${CLOUDFRONT}/${imagePath.startsWith('/') ? imagePath.slice(1) : imagePath}`;
+        return resolveImageUrl(imagePath);
     };
 
     // Safely get property data
@@ -78,11 +75,9 @@ export const PropertyCard = React.memo(({ property }) => {
             whatsapp:
                 property.Host?.whatsapp ||
                 property.host?.whatsapp ||
-                property.whatsapp ||
                 property.Host?.phone ||
                 property.host?.phone ||
                 property.phone ||
-                property.contact_number ||
                 "",
 
             instagram:
@@ -220,9 +215,8 @@ export const PropertyCard = React.memo(({ property }) => {
                     {/* Social Media Quick Connect (Price Section) */}
                     <SocialQuickConnect
                         socials={propertyData.socials}
-                        ownerId={property.Host?.user_id || property.host?.user_id || property.Host?.User?.id || property.host?.User?.id || property.host?.id || property.Host?.id || property.host_id || property.HostId || property.user_id || property.userId || property.creator?.id}
-                        ownerEmail={property.Host?.email || property.host?.email || property.Host?.User?.email || property.host?.User?.email || property.email || property.creator?.email}
-                        ownerName={propertyData.host?.full_name || propertyData.host?.name || property.Host?.name || property.host?.name || "Host"}
+                        ownerId={property.Host?.user_id || property.host?.user_id || property.Host?.User?.id || property.host?.User?.id || property.host?.id || property.Host?.id || property.creator?.id || property.user_id}
+                        ownerName={propertyData.host?.full_name || propertyData.host?.name || "Host"}
                         itemId={propertyData.id}
                         itemTitle={propertyData.title}
                         itemType="accommodations"

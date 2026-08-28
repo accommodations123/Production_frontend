@@ -23,7 +23,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { HostDetailSocials } from '@/components/ui/SocialConnect';
-import { useAuth } from '@/shared/hooks/useAuth';
 
 
 
@@ -32,7 +31,6 @@ export default function RoomPage() {
     const navigate = useNavigate();
     const { formatPrice, activeCountry } = useCountry();
     const location = useLocation();
-    const { user } = useAuth();
 
     // State
     const [isContactOpen, setIsContactOpen] = useState(false);
@@ -60,22 +58,6 @@ export default function RoomPage() {
         if (id) refetch();
     }, [id, refetch]);
 
-    // Determine if viewing own property
-    const isOwnListing = useMemo(() => {
-        if (!id) return false;
-        const currentPropId = String(id);
-        if (myListings && Array.isArray(myListings) && myListings.some(item => String(item.id || item._id) === currentPropId)) {
-            return true;
-        }
-        const p = apiData?.property || location.state?.property;
-        if (p) {
-            if (hostProfile?.id && (String(p.host_id) === String(hostProfile.id) || String(p.HostId) === String(hostProfile.id))) return true;
-            if (user?.id && (String(p.user_id) === String(user.id) || String(p.userId) === String(user.id) || String(p.host_id) === String(user.host_id || user.Host?.id))) return true;
-            if (user?.email && (String(p.email).toLowerCase() === String(user.email).toLowerCase() || String(p.Host?.email).toLowerCase() === String(user.email).toLowerCase())) return true;
-        }
-        return false;
-    }, [id, myListings, apiData, location.state, hostProfile, user]);
-
     // Data Resolution Logic
     const resolvedData = useMemo(() => {
         if (apiData?.property) return apiData;
@@ -97,20 +79,20 @@ export default function RoomPage() {
 
         // Host Data Resolution:
         // 1. Try p.Host (from API property details)
-        // 2. Try data.host or hostProfile / user when viewing own listing
-        const sourceHost = p.Host || (isOwnListing ? (hostProfile || user) : (data.host || {}));
-        const sourceUser = sourceHost?.User || sourceHost || {};
+        // 2. Try data.host (from HostProfile when viewing own listing)
+        const sourceHost = p.Host || data.host || {};
+        const sourceUser = sourceHost.User || sourceHost || {}; // Some endpoints nest user in .User, others flatten it
 
-        const hostName = (isOwnListing ? (hostProfile?.full_name || hostProfile?.name || user?.full_name || user?.name) : null) || sourceHost?.full_name || sourceHost?.name || sourceUser?.full_name || sourceUser?.name || "Host";
-        const hostAvatar = (isOwnListing ? (hostProfile?.selfie_photo || hostProfile?.profile_image || user?.profile_image) : null) || sourceUser?.profile_image || sourceHost?.profile_image || sourceHost?.selfie_photo || null;
+        const hostName = sourceHost.full_name || sourceUser.full_name || "Host";
+        const hostAvatar = sourceUser.profile_image || sourceHost.profile_image || sourceHost.selfie_photo || null;
         const hostInitials = (hostName || "PH").slice(0, 2).toUpperCase();
 
-        // Socials extraction (prioritizing hostProfile & user for own listing)
+        // Socials extraction
         const socials = {
-            whatsapp: (isOwnListing ? (hostProfile?.whatsapp || hostProfile?.phone || user?.whatsapp || user?.phone) : null) || sourceHost?.whatsapp || sourceHost?.phone || sourceUser?.whatsapp || sourceUser?.phone || p.whatsapp || p.phone || "",
-            instagram: (isOwnListing ? (hostProfile?.instagram || user?.instagram) : null) || sourceHost?.instagram || sourceUser?.instagram || "",
-            facebook: (isOwnListing ? (hostProfile?.facebook || user?.facebook) : null) || sourceHost?.facebook || sourceUser?.facebook || "",
-            email: (isOwnListing ? (hostProfile?.email || user?.email) : null) || sourceHost?.email || sourceUser?.email || p.email || "",
+            whatsapp: sourceHost.whatsapp || sourceHost.phone || sourceUser.phone,
+            instagram: sourceHost.instagram,
+            facebook: sourceHost.facebook,
+            email: sourceHost.email || sourceUser.email || "",
         };
 
         const amenities = Array.isArray(p.amenities) ? p.amenities : [];
@@ -165,10 +147,9 @@ export default function RoomPage() {
                 name: hostName,
                 avatar: hostAvatar,
                 initials: hostInitials,
-                isVerified: sourceHost?.status === "approved" || isOwnListing,
+                isVerified: sourceHost.status === "approved",
                 socials: socials,
-                email: socials.email,
-                user_id: (isOwnListing ? (user?.id || hostProfile?.user_id || hostProfile?.id) : null) || sourceHost?.user_id || sourceUser?.id || sourceHost?.id || sourceUser?.user_id || p.user_id || p.creator?.id || data?.host?.user_id || data?.host?.id
+                user_id: sourceHost.user_id || sourceUser.id || sourceHost.id || sourceUser.user_id || p.user_id || p.creator?.id || data?.host?.user_id || data?.host?.id
             },
             photos,
             amenities: [
@@ -350,9 +331,7 @@ export default function RoomPage() {
                             <HostDetailSocials
                                  socials={listing.host.socials}
                                  ownerId={listing.host.user_id}
-                                 ownerEmail={listing.host.socials?.email || listing.host.email}
                                  ownerName={listing.host.name}
-                                 itemId={listing.id}
                              />
                         </div>
 

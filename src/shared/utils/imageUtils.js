@@ -1,35 +1,42 @@
-// Resolves an image path (S3 key, S3 URL, or CloudFront URL) to a full CloudFront URL.
-export const CLOUDFRONT_BASE = import.meta.env.VITE_CLOUDFRONT_URL || 'https://d3dqp3l6ug81j3.cloudfront.net';
+// Resolves an image path to a full Supabase Storage URL.
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://dmhxnuxlodsshdkunngb.supabase.co';
+export const MEDIA_STORAGE_BASE = `${SUPABASE_URL}/storage/v1/object/public`;
+export const CLOUDFRONT_BASE = MEDIA_STORAGE_BASE; // Kept for backward compatibility
 
 export function resolveImageUrl(imagePath, fallback = null) {
     if (!imagePath) return fallback;
 
     const trimmed = String(imagePath).trim();
-    if (trimmed === "" || trimmed === "null" || trimmed === "undefined" || trimmed.endsWith("/null") || trimmed.endsWith("/undefined")) {
+    if (
+        trimmed === '' ||
+        trimmed === 'null' ||
+        trimmed === 'undefined' ||
+        trimmed.endsWith('/null') ||
+        trimmed.endsWith('/undefined')
+    ) {
         return fallback;
     }
 
-    // Already a CloudFront URL — use as-is
-    if (trimmed.startsWith(CLOUDFRONT_BASE)) return trimmed;
-
-    // Data URI — use as-is
-    if (trimmed.startsWith('data:')) return trimmed;
-
-    // S3 URL — rewrite to CloudFront
-    if (trimmed.includes('.amazonaws.com/')) {
-        const s3Key = trimmed.replace(/^https?:\/\/[^/]+\//, '');
-        return `${CLOUDFRONT_BASE}/${s3Key}`;
-    }
-
-    // Other external URL (non-S3) — use as-is
+    // Already a full URL (Supabase Storage, Google, Unsplash, etc.) — use as-is
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        // Rewrite legacy S3 URLs if encountered
+        if (trimmed.includes('.amazonaws.com/')) {
+            const s3Key = trimmed.replace(/^https?:\/\/[^/]+\//, '');
+            return `${MEDIA_STORAGE_BASE}/${s3Key.replace(/^\/+/, '')}`;
+        }
         return trimmed;
     }
 
-    // S3 key (e.g. "properties/177167584211-BhargavReddy.jpeg")
-    const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
-    return `${CLOUDFRONT_BASE}${cleanPath}`;
+    // Data URI or Blob URI — use as-is
+    if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+        return trimmed;
+    }
+
+    // Relative Supabase storage path (e.g. "properties/photo.jpg" or "/avatars/user.png")
+    const cleanPath = trimmed.replace(/^\/+/, '');
+    return `${MEDIA_STORAGE_BASE}/${cleanPath}`;
 }
+
 
 // Compresses an image file on the client side using Canvas, with max dimensions and quality settings.
 export function compressImage(file, { maxWidth = 1200, maxHeight = 1200, quality = 0.7 } = {}) {

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plane, User, MapPin, Clock, Phone } from "lucide-react";
+// import { GEOGRAPHIC_DATA, MORE_DESTINATIONS } from "../../app/resources/travel/constants";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
 import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";

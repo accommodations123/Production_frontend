@@ -4,17 +4,27 @@ let socket = null;
 
 export const getSocket = () => {
     if (!socket) {
-        const socketUrl = import.meta.env.VITE_SOCKET_URL || "";
-        if (!socketUrl) return null;
+        // In Development, force use of '/' so Vite proxy handles headers (Host/Origin)
+        // In Production, connect through FRONTEND domain (nginx has WebSocket config there)
+        const socketUrl = import.meta.env.VITE_SOCKET_URL || (
+            import.meta.env.DEV
+                ? '/'
+                : 'https://api.nextkinlife.live'
+        );
+
 
         socket = io(socketUrl, {
-            withCredentials: true,
+            withCredentials: true,  // Browser will send cookies automatically
             transports: ["websocket", "polling"],
             reconnection: true,
-            reconnectionAttempts: 5,
+            reconnectionAttempts: 15,
             reconnectionDelay: 1000,
-            autoConnect: false,
+            reconnectionDelayMax: 30000,   // Exponential backoff caps at 30s
+            randomizationFactor: 0.5,      // Jitter to avoid thundering herd
         });
+
+        // Explicitly connect
+        socket.connect();
     }
     return socket;
 };

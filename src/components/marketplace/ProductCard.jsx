@@ -190,7 +190,6 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
           <SocialQuickConnect
             socials={socials}
             ownerId={product.sellerId || product.seller_id || product.user_id || product.userId || product.Host?.user_id || product.host?.user_id || product.Host?.id || product.host?.id || product.creator?.id}
-            ownerEmail={product.sellerEmail || product.email || product.seller_email || product.Host?.email || product.host?.email}
             ownerName={product.sellerName || product.seller_name || "Seller"}
             itemId={product.id || product._id}
             itemTitle={product.title}

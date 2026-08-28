@@ -1,13 +1,13 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { CLOUDFRONT_BASE } from '@/shared/utils/imageUtils'
-import { baseQueryWithAuth } from '@/store/baseQuery'
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { resolveImageUrl } from '@/shared/utils/imageUtils';
+import { baseQueryWithAuth } from '@/store/baseQuery';
 
-/** Resolve a bare S3 key to its full CloudFront URL. */
+/** Resolve a bare key or path to its full Supabase Storage URL. */
 function fixImage(img) {
     if (img && typeof img === 'string' && !img.startsWith('http')) {
-        return `${CLOUDFRONT_BASE}${img.startsWith('/') ? img : `/${img}`}`
+        return resolveImageUrl(img);
     }
-    return img
+    return img;
 }
 
 /** Patch image fields on a single event object (mutates in place). */

@@ -5,7 +5,6 @@ import { useCountry } from '@/context/CountryContext';
 import { getEventStatus } from '@/lib/eventUtils';
 import { formatUTCDate } from '../../../utils/timezone';
 import WishlistButton from '@/components/ui/WishlistButton';
-import { SocialQuickConnect } from '@/components/ui/SocialConnect';
 
 const HostPhoto = ({ host, name }) => {
     const photoUrl =
@@ -179,8 +178,8 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
                     </p>
 
                     {/* Organizer & Stats */}
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100 bg-gray-50/50 -mx-4 px-4 pb-2">
-                        <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100 bg-gray-50/50 -mx-4 px-4 pb-1">
+                        <div className="flex items-center gap-2 mb-2">
                             <HostPhoto host={event.Host || event.host || event.creator} name={getOrganizerName()} />
                             <div>
                                 <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Hosted by</p>
@@ -190,26 +189,9 @@ export const EventCard = ({ event, viewMode = "grid", onViewDetails }) => {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <SocialQuickConnect
-                                socials={{
-                                    whatsapp: event.Host?.whatsapp || event.host?.whatsapp || event.Host?.phone || event.host?.phone || event.phone || "",
-                                    instagram: event.Host?.instagram || event.host?.instagram || "",
-                                    facebook: event.Host?.facebook || event.host?.facebook || "",
-                                    twitter: event.Host?.twitter || event.host?.twitter || "",
-                                    email: event.Host?.email || event.host?.email || event.email || ""
-                                }}
-                                ownerId={event.Host?.user_id || event.host?.user_id || event.host_user_id || event.Host?.User?.id || event.host?.User?.id || event.host_id || event.Host?.id || event.host?.id || event.user_id || event.userId || event.creator?.id}
-                                ownerEmail={event.Host?.email || event.host?.email || event.Host?.User?.email || event.host?.User?.email || event.email || event.creator?.email}
-                                ownerName={getOrganizerName()}
-                                itemId={event.id || event._id}
-                                itemTitle={event.title}
-                                itemType="events"
-                            />
-                            <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-full border border-gray-200 shadow-xs">
-                                <Users className="h-3 w-3 text-[#CB2A25]" />
-                                <span className="text-[10px] font-bold text-[#00142E]">{event.attendees_count || 0}</span>
-                            </div>
+                        <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-full border border-gray-200 shadow-sm mb-2">
+                            <Users className="h-3 w-3 text-[#CB2A25]" />
+                            <span className="text-[10px] font-bold text-[#00142E]">{event.attendees_count || 0}</span>
                         </div>
                     </div>
                 </div>
