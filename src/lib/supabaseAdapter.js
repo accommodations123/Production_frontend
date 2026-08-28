@@ -26,6 +26,8 @@ async function getCurrentUserId() {
 }
 
 // Wishlist helper utilities for storage and normalization
+let hasWishlistTableInDb = null
+
 function mapItemTypeToAliases(type) {
     if (!type) return ['property', 'accommodations', 'stay', 'event', 'events', 'buysell', 'buy-sell', 'marketplace', 'product', 'trip', 'travel', 'travel_trip', 'expert', 'people', 'person']
     const t = String(type).toLowerCase()
@@ -608,24 +610,53 @@ export async function executeSupabaseRequest(args) {
         // ── 4. MARKETPLACE / BUY-SELL ──────────────────────────────
         if (cleanUrl.startsWith('buy-sell') || cleanUrl.startsWith('marketplace')) {
             if (cleanUrl === 'buy-sell/get' || cleanUrl === 'buy-sell/all' || cleanUrl === 'buy-sell' || cleanUrl === 'marketplace') {
-                let query = supabase.from('buy_sell').select('*')
-                if (queryParams.country) {
+                let query = supabase.from('buy_sell').select('*').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
                     query = query.ilike('country', `%${queryParams.country}%`)
                 }
-                if (queryParams.category) {
+                if (queryParams.state && queryParams.state !== 'All States' && queryParams.state !== 'All') {
+                    query = query.ilike('state', `%${queryParams.state}%`)
+                }
+                if (queryParams.city && queryParams.city !== 'All Cities' && queryParams.city !== 'All') {
+                    query = query.ilike('city', `%${queryParams.city}%`)
+                }
+                if (queryParams.category && queryParams.category !== 'All' && queryParams.category !== 'all') {
                     query = query.eq('category', queryParams.category)
+                }
+                if (queryParams.subcategory && queryParams.subcategory !== 'All') {
+                    query = query.eq('subcategory', queryParams.subcategory)
+                }
+                if (queryParams.condition && queryParams.condition !== 'All') {
+                    query = query.eq('condition', queryParams.condition)
+                }
+                const minP = queryParams.minPrice ?? queryParams.priceMin
+                if (minP !== undefined && minP !== '' && !isNaN(Number(minP))) {
+                    query = query.gte('price', Number(minP))
+                }
+                const maxP = queryParams.maxPrice ?? queryParams.priceMax
+                if (maxP !== undefined && maxP !== '' && !isNaN(Number(maxP))) {
+                    query = query.lte('price', Number(maxP))
+                }
+                if (queryParams.search) {
+                    const s = String(queryParams.search).trim()
+                    if (s) {
+                        query = query.or(`title.ilike.%${s}%,description.ilike.%${s}%,category.ilike.%${s}%,city.ilike.%${s}%`)
+                    }
                 }
                 if (queryParams.limit) {
                     query = query.limit(Number(queryParams.limit))
                 }
                 const { data, error } = await query
-                if (error) return { data: { listings: [] } }
+                if (error) {
+                    console.warn('buy_sell fetch query error:', error)
+                    return { data: { listings: [] } }
+                }
                 return { data: { listings: data || [], total: data?.length || 0 } }
             }
 
             if (cleanUrl === 'buy-sell/my-buy-sell' || cleanUrl === 'marketplace/my-listings') {
                 const userId = await getCurrentUserId()
-                let query = supabase.from('buy_sell').select('*')
+                let query = supabase.from('buy_sell').select('*').order('created_at', { ascending: false })
                 if (userId) {
                     query = query.or(`user_id.eq.${userId},host_id.eq.${userId}`)
                 }
@@ -854,6 +885,13 @@ export async function executeSupabaseRequest(args) {
                     return { data: { isWishlisted: false, isSaved: false } }
                 }
 
+                // Check local synchronized storage first
+                const isSavedLocal = isLocalWishlisted(userId, itemId)
+
+                if (hasWishlistTableInDb === false) {
+                    return { data: { isWishlisted: isSavedLocal, isSaved: isSavedLocal, status: isSavedLocal ? 'saved' : 'none' } }
+                }
+
                 try {
                     let { data, error } = await supabase
                         .from('wishlists')
@@ -862,18 +900,16 @@ export async function executeSupabaseRequest(args) {
                         .eq('item_id', itemId)
                         .maybeSingle()
 
-                    if (error && error.code === '42P01') {
-                        const fallback = await supabase
-                            .from('wishlist')
-                            .select('id, item_id')
-                            .eq('user_id', userId)
-                            .eq('item_id', itemId)
-                            .maybeSingle()
-                        data = fallback.data
-                        error = fallback.error
+                    if (error) {
+                        // Mark table as missing if 404 / 42P01 / PGRST205
+                        if (error.code === '42P01' || error.code === 'PGRST205' || String(error.message).includes('not found')) {
+                            hasWishlistTableInDb = false
+                        }
+                    } else {
+                        hasWishlistTableInDb = true
                     }
 
-                    const isWishlisted = Boolean(data && !error) || isLocalWishlisted(userId, itemId)
+                    const isWishlisted = Boolean(data && !error) || isSavedLocal
                     return {
                         data: {
                             isWishlisted,
@@ -882,8 +918,8 @@ export async function executeSupabaseRequest(args) {
                         }
                     }
                 } catch (e) {
-                    const localSaved = isLocalWishlisted(userId, itemId)
-                    return { data: { isWishlisted: localSaved, isSaved: localSaved } }
+                    hasWishlistTableInDb = false
+                    return { data: { isWishlisted: isSavedLocal, isSaved: isSavedLocal } }
                 }
             }
 
@@ -900,76 +936,44 @@ export async function executeSupabaseRequest(args) {
                     return { error: { status: 400, error: 'Missing item ID for wishlist' } }
                 }
 
-                try {
-                    let tableName = 'wishlists'
-                    let { data: existing, error: findErr } = await supabase
-                        .from('wishlists')
-                        .select('id')
-                        .eq('user_id', userId)
-                        .eq('item_id', itemId)
-                        .maybeSingle()
+                const nextLocalState = toggleLocalWishlist(userId, itemId, undefined, rawType)
 
-                    if (findErr && findErr.code === '42P01') {
-                        tableName = 'wishlist'
-                        const fallback = await supabase
-                            .from('wishlist')
+                if (hasWishlistTableInDb !== false) {
+                    try {
+                        let { data: existing, error: findErr } = await supabase
+                            .from('wishlists')
                             .select('id')
                             .eq('user_id', userId)
                             .eq('item_id', itemId)
                             .maybeSingle()
-                        existing = fallback.data
-                    }
 
-                    if (existing?.id) {
-                        // Remove from database
-                        await supabase
-                            .from(tableName)
-                            .delete()
-                            .eq('id', existing.id)
-
-                        toggleLocalWishlist(userId, itemId, false, rawType)
-
-                        return {
-                            data: {
-                                isWishlisted: false,
-                                isSaved: false,
-                                success: true,
-                                message: 'Removed from wishlist'
+                        if (findErr) {
+                            if (findErr.code === '42P01' || findErr.code === 'PGRST205' || String(findErr.message).includes('not found')) {
+                                hasWishlistTableInDb = false
+                            }
+                        } else {
+                            hasWishlistTableInDb = true
+                            if (existing?.id) {
+                                await supabase.from('wishlists').delete().eq('id', existing.id)
+                            } else {
+                                await supabase.from('wishlists').insert({
+                                    user_id: userId,
+                                    item_id: itemId,
+                                    item_type: rawType
+                                })
                             }
                         }
-                    } else {
-                        // Insert into database
-                        const { data: inserted, error: insertErr } = await supabase
-                            .from(tableName)
-                            .insert({
-                                user_id: userId,
-                                item_id: itemId,
-                                item_type: rawType
-                            })
-                            .select()
-                            .maybeSingle()
-
-                        toggleLocalWishlist(userId, itemId, true, rawType)
-
-                        return {
-                            data: {
-                                isWishlisted: true,
-                                isSaved: true,
-                                success: true,
-                                message: 'Added to wishlist',
-                                wishlist: inserted
-                            }
-                        }
+                    } catch (e) {
+                        hasWishlistTableInDb = false
                     }
-                } catch (e) {
-                    const nextState = toggleLocalWishlist(userId, itemId, undefined, rawType)
-                    return {
-                        data: {
-                            isWishlisted: nextState,
-                            isSaved: nextState,
-                            success: true,
-                            message: nextState ? 'Added to wishlist' : 'Removed from wishlist'
-                        }
+                }
+
+                return {
+                    data: {
+                        isWishlisted: nextLocalState,
+                        isSaved: nextLocalState,
+                        success: true,
+                        message: nextLocalState ? 'Added to wishlist' : 'Removed from wishlist'
                     }
                 }
             }

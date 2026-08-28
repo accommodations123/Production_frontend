@@ -131,10 +131,39 @@ export default function MarketplacePage() {
   const products = productsData || [];
 
   /* ================= FILTER LOGIC ================= */
-
-  /* ================= FILTER LOGIC ================= */
-  // Filtering is now handled by the backend API
-  const filteredProducts = products;
+  const filteredProducts = useMemo(() => {
+    let result = Array.isArray(productsData) ? [...productsData] : (productsData?.listings || []);
+    
+    if (filters.search) {
+      const q = filters.search.toLowerCase().trim();
+      result = result.filter(p => 
+        p.title?.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q) ||
+        p.category?.toLowerCase().includes(q) ||
+        p.subcategory?.toLowerCase().includes(q) ||
+        p.city?.toLowerCase().includes(q)
+      );
+    }
+    if (filters.category && filters.category !== "All") {
+      result = result.filter(p => p.category?.toLowerCase() === filters.category.toLowerCase());
+    }
+    if (filters.country && filters.country !== "Global" && filters.country !== "All") {
+      result = result.filter(p => p.country?.toLowerCase()?.includes(filters.country.toLowerCase()));
+    }
+    if (filters.state && filters.state !== "All States" && filters.state !== "All") {
+      result = result.filter(p => p.state?.toLowerCase()?.includes(filters.state.toLowerCase()));
+    }
+    if (filters.city && filters.city !== "All Cities" && filters.city !== "All") {
+      result = result.filter(p => p.city?.toLowerCase()?.includes(filters.city.toLowerCase()));
+    }
+    if (filters.priceMin !== "" && !isNaN(Number(filters.priceMin))) {
+      result = result.filter(p => Number(p.price) >= Number(filters.priceMin));
+    }
+    if (filters.priceMax !== "" && !isNaN(Number(filters.priceMax))) {
+      result = result.filter(p => Number(p.price) <= Number(filters.priceMax));
+    }
+    return result;
+  }, [productsData, filters]);
 
   // ✅ Pagination
   const {
