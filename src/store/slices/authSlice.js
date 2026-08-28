@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { axiosClient } from '../../lib/axiosClient';
 import { resolveImageUrl } from '../../lib/imageUtils';
+import { supabase } from '@/lib/supabase';
 import { authApi } from '@/store/api/authApi';
 import { peopleApi } from '@/store/api/peopleApi';
 import { connectionApi } from '@/store/api/connectionApi';
@@ -59,29 +60,45 @@ export const fetchCurrentUser = createAsyncThunk(
     'auth/fetchCurrentUser',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axiosClient.get('auth/me');
-            const data = response.data;
-            
-            // Image Transform using Supabase Storage resolver
-            const fixImage = (obj) => {
-                if (obj?.profile_image && !obj.profile_image.startsWith('http')) {
-                    obj.profile_image = resolveImageUrl(obj.profile_image);
-                }
-                return obj;
-            };
+            // Check Supabase session first
+            const { data: sessionData } = await supabase.auth.getSession();
+            const sbUser = sessionData?.session?.user;
+            if (sbUser) {
+                const token = sessionData.session.access_token;
+                if (token) localStorage.setItem('token', token);
 
-            if (data?.user) {
-                fixImage(data.user);
-            } else if (data) {
-                fixImage(data);
+                const user = {
+                    id: sbUser.id,
+                    email: sbUser.email,
+                    name: sbUser.user_metadata?.full_name || sbUser.user_metadata?.name || sbUser.email?.split('@')[0],
+                    first_name: sbUser.user_metadata?.first_name || sbUser.user_metadata?.full_name?.split(' ')[0] || '',
+                    last_name: sbUser.user_metadata?.last_name || sbUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
+                    profile_image: resolveImageUrl(sbUser.user_metadata?.avatar_url || sbUser.user_metadata?.picture || null),
+                    ...sbUser.user_metadata,
+                };
+                localStorage.setItem('user', JSON.stringify(user));
+                return { user };
             }
 
+            const response = await axiosClient.get('auth/me');
+            const data = response.data;
             const userVal = data?.user || data;
             if (userVal) {
-                localStorage.setItem("user", JSON.stringify(userVal));
+                if (userVal.profile_image) {
+                    userVal.profile_image = resolveImageUrl(userVal.profile_image);
+                }
+                localStorage.setItem('user', JSON.stringify(userVal));
             }
             return data;
         } catch (error) {
+            const stored = localStorage.getItem('user');
+            if (stored) {
+                try {
+                    return { user: JSON.parse(stored) };
+                } catch {
+                    // ignore
+                }
+            }
             return rejectWithValue(error.response?.data?.message || 'Failed to fetch user profile');
         }
     },
@@ -114,10 +131,32 @@ export const sendOtp = createAsyncThunk(
     'auth/sendOtp',
     async (payload, { rejectWithValue }) => {
         try {
-            const response = await axiosClient.post('otp/send-otp', payload);
-            return response.data;
+            const email = payload.email;
+            if (!email) {
+                return rejectWithValue('Email is required');
+            }
+
+            // Send OTP via Supabase Auth
+            const { data, error } = await supabase.auth.signInWithOtp({
+                email,
+                options: {
+                    shouldCreateUser: true,
+                },
+            });
+
+            if (error) {
+                // Fallback to axiosClient endpoint if Supabase client threw an error
+                try {
+                    const res = await axiosClient.post('otp/send-otp', payload);
+                    return res.data;
+                } catch {
+                    return rejectWithValue(error.message || 'Failed to send OTP');
+                }
+            }
+
+            return { success: true, message: 'OTP sent to your email', data };
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Failed to send OTP');
+            return rejectWithValue(error.message || 'Failed to send OTP');
         }
     }
 );
@@ -127,18 +166,49 @@ export const verifyOtp = createAsyncThunk(
     async (payload, { dispatch, rejectWithValue }) => {
         try {
             purgeAllUserCaches(dispatch);
-            const response = await axiosClient.post('otp/verify-otp', payload);
-            const data = response.data;
-            const user = data?.user || data?.data?.user;
-            const formatted = { ...data, user };
-            if (user) {
-                localStorage.setItem("user", JSON.stringify(user));
+            const email = payload.email;
+            const otp = payload.otp;
+
+            // Try Supabase Auth verifyOtp
+            const { data, error } = await supabase.auth.verifyOtp({
+                email,
+                token: otp,
+                type: 'email',
+            });
+
+            if (!error && data?.session) {
+                const token = data.session.access_token;
+                const rawUser = data.user;
+
+                const user = {
+                    id: rawUser.id,
+                    email: rawUser.email,
+                    name: rawUser.user_metadata?.full_name || rawUser.user_metadata?.name || (payload.firstName ? `${payload.firstName} ${payload.lastName || ''}`.trim() : rawUser.email?.split('@')[0]),
+                    first_name: payload.firstName || rawUser.user_metadata?.first_name || rawUser.user_metadata?.full_name?.split(' ')[0] || '',
+                    last_name: payload.lastName || rawUser.user_metadata?.last_name || rawUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
+                    profile_image: resolveImageUrl(rawUser.user_metadata?.avatar_url || rawUser.user_metadata?.picture || null),
+                    ...rawUser.user_metadata,
+                };
+
+                if (token) localStorage.setItem('token', token);
+                if (user) localStorage.setItem('user', JSON.stringify(user));
+
+                dispatch(authApi.util.invalidateTags(['User']));
+                return { user, session: data.session, token };
             }
-            // Force RTK Query getMe subscribers to refetch with the new session
+
+            // Fallback to custom backend verify-otp endpoint if needed
+            const response = await axiosClient.post('otp/verify-otp', payload);
+            const resData = response.data;
+            const user = resData?.user || resData?.data?.user;
+            const formatted = { ...resData, user };
+            if (user) {
+                localStorage.setItem('user', JSON.stringify(user));
+            }
             dispatch(authApi.util.invalidateTags(['User']));
             return formatted;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Verification failed');
+            return rejectWithValue(error.response?.data?.message || error.message || 'Verification failed');
         }
     }
 );
@@ -164,13 +234,17 @@ export const logoutUser = createAsyncThunk(
     'auth/logoutUser',
     async (_, { dispatch, rejectWithValue }) => {
         try {
-            const response = await axiosClient.post('otp/logout');
-            purgeAllUserCaches(dispatch);
-            return response.data;
-        } catch (error) {
-            purgeAllUserCaches(dispatch);
-            return rejectWithValue(error.response?.data?.message || 'Logout failed');
+            await supabase.auth.signOut();
+        } catch {
+            // ignore
         }
+        try {
+            await axiosClient.post('otp/logout');
+        } catch {
+            // ignore
+        }
+        purgeAllUserCaches(dispatch);
+        return { success: true };
     }
 );
 

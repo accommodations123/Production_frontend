@@ -54,6 +54,7 @@ const TravelPage = safeLazy(() => import("@/app/resources/travel/page"));
 const LegalPage = safeLazy(() => import("@/app/resources/legal/page"));
 const Signup = safeLazy(() => import("@/app/signup/page"));
 const Signin = safeLazy(() => import("@/app/signin/page"));
+const AuthCallback = safeLazy(() => import("@/app/auth/AuthCallback"));
 const SupportPage = safeLazy(() => import("./components/mentorship/page"));
 const MarketplacePage = safeLazy(() => import("@/app/marketplace/page"));
 const ProductDetailsPage = safeLazy(() => import("@/app/marketplace/[id]/page"));
@@ -116,6 +117,10 @@ export default function App() {
                                 <Route path="/marketplace/:id" element={<ProductDetailsPage />} />
                                 <Route path="/signup" element={<Signup />} />
                                 <Route path="/signin" element={<Signin />} />
+                                <Route path="/login" element={<Navigate to="/signin" replace />} />
+                                <Route path="/register" element={<Navigate to="/signup" replace />} />
+                                <Route path="/dashboard" element={<Navigate to="/account-v2" replace />} />
+                                <Route path="/auth/callback" element={<AuthCallback />} />
                                 <Route path="/resources/travel" element={<TravelCommunity />} />
                                 <Route path="/privacy" element={<PrivacyPage />} />
                                 <Route path="/terms" element={<TermsPage />} />
