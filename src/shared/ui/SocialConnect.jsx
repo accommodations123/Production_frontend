@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SiGmail } from 'react-icons/si';
 import { FaWhatsapp, FaInstagram, FaFacebookF, FaXTwitter, FaLinkedinIn, FaUserPlus, FaClock } from 'react-icons/fa6';
@@ -11,12 +11,77 @@ import {
 import { toast } from 'sonner';
 
 /**
- * Quick-connect social buttons for card footers (PropertyCard / ProductCard / TravelCard / EventCard).
+ * Helper to determine whether the logged-in user is the owner/host of a given item.
+ */
+export function checkIsOwner({ user, ownerId, ownerEmail, ownerName, socials }) {
+  if (!user) return false;
+
+  const userIds = [
+    user.id,
+    user.user_id,
+    user._id,
+    user.userId,
+    user.host_id,
+    user.Host?.id,
+    user.host?.id,
+    user.Host?.user_id,
+    user.host?.user_id,
+    user.user?.id,
+    user.user?._id
+  ].filter(Boolean).map(String);
+
+  const userEmails = [
+    user.email,
+    user.user?.email,
+    user.Host?.email,
+    user.host?.email
+  ].filter(Boolean).map((e) => String(e).trim().toLowerCase());
+
+  const currentNames = [
+    user.full_name,
+    user.fullName,
+    user.name,
+    user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : null,
+    user.first_name,
+    user.user?.full_name,
+    user.user?.name,
+    user.email ? user.email.split('@')[0] : null
+  ].filter(Boolean);
+
+  const cleanStr = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  // 1. Direct ID match
+  if (ownerId && userIds.some((uid) => uid === String(ownerId))) {
+    return true;
+  }
+
+  // 2. Email match
+  const targetEmail = (ownerEmail || socials?.email || '').trim().toLowerCase();
+  if (targetEmail && userEmails.some((em) => em === targetEmail)) {
+    return true;
+  }
+
+  // 3. Name match (ignore generic placeholders)
+  const cleanOwner = cleanStr(ownerName);
+  const isGeneric = !cleanOwner || ['host', 'seller', 'user', 'owner', 'travelpartner', 'professional', 'traveler', 'organizer'].includes(cleanOwner);
+  if (!isGeneric && currentNames.some((n) => {
+    const cn = cleanStr(n);
+    return cn && (cn === cleanOwner || cleanOwner.startsWith(cn) || cn.startsWith(cleanOwner) || cleanOwner.includes(cn) || cn.includes(cleanOwner));
+  })) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Quick-connect social buttons for card footers (PropertyCard / ProductCard / TravelCard / EventCard / PeopleCard).
  */
 export function SocialQuickConnect({
   socials,
   className = '',
   ownerId = null,
+  ownerEmail = null,
   ownerName = '',
   itemId = '',
   itemTitle = '',
@@ -25,38 +90,8 @@ export function SocialQuickConnect({
   const navigate = useNavigate();
   const { user } = useAuth();
   const currentUserId = user?.id || user?.user_id || user?._id;
-  const cleanStr = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
-  const userIds = [
-    user?.id,
-    user?.user_id,
-    user?._id,
-    user?.host_id,
-    user?.Host?.id,
-    user?.host?.id
-  ].filter(Boolean).map(String);
-
-  const currentNames = [
-    user?.full_name,
-    user?.fullName,
-    user?.name,
-    user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : null,
-    user?.first_name,
-    user?.email ? user.email.split('@')[0] : null
-  ].filter(Boolean);
-
-  const cleanOwner = cleanStr(ownerName);
-
-  const isOwner = Boolean(
-    user && (
-      (ownerId && userIds.some(uid => uid === String(ownerId))) ||
-      (cleanOwner && currentNames.some(n => {
-        const cn = cleanStr(n);
-        return cn && (cn === cleanOwner || cleanOwner.startsWith(cn) || cn.startsWith(cleanOwner) || cleanOwner.includes(cn) || cn.includes(cleanOwner));
-      }))
-    )
-  );
-
+  const isOwner = checkIsOwner({ user, ownerId, ownerEmail, ownerName, socials });
   const [isRequestedLocally, setIsRequestedLocally] = useState(false);
 
   const { data: statusRes } = useGetConnectionStatusQuery(
@@ -155,7 +190,7 @@ export function SocialQuickConnect({
           disabled
           className={`px-3 py-1.5 bg-slate-100 border border-slate-200 text-slate-500 rounded-full text-[10px] font-bold flex items-center gap-1 cursor-not-allowed select-none ${className}`}
         >
-          <FaClock className="w-2.5 h-2.5" />
+          <FaClock className="w-2.5 h-2.5 text-amber-600" />
           Requested
         </button>
       );
@@ -298,28 +333,30 @@ export function SellerContactButtons({
   phone,
   email,
   instagram,
+  facebook,
   linkedin,
   ownerId = null,
+  ownerEmail = null,
   ownerName = "",
   itemId = "",
   itemTitle = "",
-  itemType = "accommodations"
+  itemType = "buysell"
 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const currentUserId = user?.id || user?.user_id;
 
-  const isOwner = Boolean(ownerId && currentUserId && String(ownerId) === String(currentUserId));
+  const isOwner = checkIsOwner({ user, ownerId, ownerEmail: ownerEmail || email, ownerName, socials: { email, phone, instagram, facebook, linkedin } });
 
   const { data: statusRes } = useGetConnectionStatusQuery(
-    itemId ? { targetUserId: ownerId, itemId } : ownerId,
+    itemId ? { targetUserId: ownerId, itemId, itemType } : ownerId,
     {
       skip: !ownerId || !currentUserId || isOwner
     }
   );
   const [sendReq, { isLoading: isSending }] = useSendConnectionRequestMutation();
 
-  const connStatus = isOwner ? "accepted" : (statusRes?.status || "none");
+  const connStatus = isOwner ? "accepted" : (statusRes?.status || statusRes?.data?.status || "none");
   const isConnected = isOwner || connStatus === "accepted";
 
   if (!isConnected) {
@@ -354,7 +391,7 @@ export function SellerContactButtons({
           disabled
           className="w-full h-11 bg-slate-100 border border-slate-200 text-slate-500 rounded-xl font-bold flex items-center justify-center gap-2 cursor-not-allowed select-none text-xs"
         >
-          <FaClock className="w-3.5 h-3.5" />
+          <FaClock className="w-3.5 h-3.5 text-amber-600" />
           Connection Request Pending Approval
         </button>
       );
@@ -373,35 +410,61 @@ export function SellerContactButtons({
     );
   }
 
+  const effectivePhone = (isOwner ? (user?.phone || user?.Host?.phone || user?.host?.phone) : null) || phone;
+  const effectiveEmail = (isOwner ? (user?.email || user?.Host?.email || user?.host?.email) : null) || email;
+  const effectiveInstagram = (isOwner ? (user?.instagram || user?.Host?.instagram || user?.host?.instagram) : null) || instagram;
+  const effectiveFacebook = (isOwner ? (user?.facebook || user?.Host?.facebook || user?.host?.facebook) : null) || facebook;
+  const effectiveLinkedin = (isOwner ? (user?.linkedin || user?.Host?.linkedin || user?.host?.linkedin) : null) || linkedin;
+
   const activeButtons = [];
 
-  if (phone) {
+  if (effectivePhone) {
     activeButtons.push({
       platform: 'whatsapp',
       label: 'WhatsApp',
-      onClick: () => window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}`, '_blank'),
+      onClick: () => window.open(`https://wa.me/${effectivePhone.replace(/[^0-9]/g, '')}`, '_blank'),
       bgClass: 'bg-[#25D366] hover:bg-[#20BD5A] text-white',
       icon: <FaWhatsapp className="w-4 h-4" />
     });
   }
 
-  if (linkedin) {
+  if (effectiveLinkedin) {
     activeButtons.push({
       platform: 'linkedin',
       label: 'LinkedIn',
-      onClick: () => window.open(getSocialUrl('linkedin', linkedin), '_blank'),
+      onClick: () => window.open(getSocialUrl('linkedin', effectiveLinkedin), '_blank'),
       bgClass: 'bg-[#0A66C2] hover:bg-[#08529C] text-white',
       icon: <FaLinkedinIn className="w-4 h-4" />
     });
   }
 
-  if (email) {
+  if (effectiveEmail) {
     activeButtons.push({
       platform: 'email',
       label: 'Email',
-      onClick: () => window.open(`mailto:${email}`, '_self'),
+      onClick: () => window.open(`mailto:${effectiveEmail}`, '_self'),
       bgClass: 'bg-[#00162D] hover:bg-[#0A1C30] text-white',
       icon: <SiGmail className="w-4 h-4" />
+    });
+  }
+
+  if (effectiveInstagram) {
+    activeButtons.push({
+      platform: 'instagram',
+      label: 'Instagram',
+      onClick: () => window.open(getSocialUrl('instagram', effectiveInstagram), '_blank'),
+      bgClass: 'bg-[#E4405F] hover:bg-[#D03552] text-white',
+      icon: <FaInstagram className="w-4 h-4" />
+    });
+  }
+
+  if (effectiveFacebook) {
+    activeButtons.push({
+      platform: 'facebook',
+      label: 'Facebook',
+      onClick: () => window.open(getSocialUrl('facebook', effectiveFacebook), '_blank'),
+      bgClass: 'bg-[#1877F2] hover:bg-[#166FE5] text-white',
+      icon: <FaFacebookF className="w-4 h-4" />
     });
   }
 
@@ -428,4 +491,3 @@ export function SellerContactButtons({
  * Host detail socials alias.
  */
 export const HostDetailSocials = SocialQuickConnect;
-

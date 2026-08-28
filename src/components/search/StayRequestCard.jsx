@@ -171,6 +171,7 @@ export function StayRequestCard({ request }) {
           <SocialQuickConnect
             socials={socials}
             ownerId={ownerId}
+            ownerEmail={request.email || request.user?.email || request.Host?.email || request.host?.email}
             ownerName={seekerName}
             itemId={itemId}
             itemTitle={title}

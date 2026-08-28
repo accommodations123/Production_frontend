@@ -214,8 +214,9 @@ const TripCard = React.memo(({ plan }) => {
                     )}
                     <SocialQuickConnect
                         socials={plan.socials}
-                        ownerId={plan.user?.user_id || plan.user?.id || plan.user_id || plan.host?.user_id || plan.host_user_id || plan.host_id || plan.host?.id || plan.user?.User?.id}
-                        ownerName={plan.user?.full_name || plan.user?.fullName || plan.host?.full_name || "Travel Partner"}
+                        ownerId={plan.user?.user_id || plan.user?.id || plan.user_id || plan.userId || plan.host?.user_id || plan.host_user_id || plan.host_id || plan.host?.id || plan.user?.User?.id || plan.creator?.id}
+                        ownerEmail={plan.user?.email || plan.email || plan.host?.email || plan.user?.User?.email || plan.creator?.email}
+                        ownerName={plan.user?.full_name || plan.user?.fullName || plan.host?.full_name || plan.user?.name || "Travel Partner"}
                         itemId={plan.id || plan._id}
                         itemTitle={plan.title || `${plan.destination || plan.flight?.to || 'Travel'} Trip`}
                         itemType="travel"

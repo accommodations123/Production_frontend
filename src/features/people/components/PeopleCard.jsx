@@ -8,6 +8,7 @@ import { useToggleFollowMutation, useGetMyFollowingQuery, useGetExpertReviewsQue
 import { getCanonicalUserId, isSelfUser } from "@/shared/utils/userUtils";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
+import { SocialQuickConnect } from "@/components/ui/SocialConnect";
 
 export function PeopleCard({ person }) {
   const authState = useSelector((state) => state.auth || {});
@@ -317,15 +318,34 @@ export function PeopleCard({ person }) {
 
       </div>
 
-      {/* Footer view CTA and hourly rate estimates */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-100/80 mt-auto">
-        <div>
-          <span className="text-[9px] font-bold text-[#717171] uppercase tracking-wider block">Consultation Rate</span>
-          <span className="text-slate-900 font-black text-base sm:text-lg">
-            {getCurrencySymbol(currency)}{hourlyRate} <span className="text-[#717171] text-[10px] font-bold">/ hr</span>
-          </span>
+      {/* Footer view CTA, Social connect and hourly rate estimates */}
+      <div className="flex items-center justify-between pt-4 border-t border-slate-100/80 mt-auto gap-2">
+        <div className="min-w-0 flex-1 flex flex-col gap-1">
+          <div>
+            <span className="text-[9px] font-bold text-[#717171] uppercase tracking-wider block">Consultation Rate</span>
+            <span className="text-slate-900 font-black text-base sm:text-lg">
+              {getCurrencySymbol(currency)}{hourlyRate} <span className="text-[#717171] text-[10px] font-bold">/ hr</span>
+            </span>
+          </div>
+          <SocialQuickConnect
+            socials={{
+              whatsapp: person.whatsapp || person.phone || person.user?.phone || "",
+              instagram: person.instagram || "",
+              facebook: person.facebook || "",
+              linkedin: person.linkedin || "",
+              twitter: person.twitter || "",
+              email: person.email || person.user?.email || ""
+            }}
+            ownerId={person.user_id || person.id || person.user?.id}
+            ownerEmail={person.email || person.user?.email}
+            ownerName={person.name}
+            itemId={person.id}
+            itemTitle={person.name}
+            itemType="people"
+            className="justify-start"
+          />
         </div>
-        <Link to={`/people/${person.id}`}>
+        <Link to={`/people/${person.id}`} className="shrink-0">
           <Button
             size="sm"
             className="bg-[#00142E] hover:bg-slate-800 text-white font-bold rounded-xl text-xs px-4 py-2 cursor-pointer transition-all active:scale-95 shadow-sm"
