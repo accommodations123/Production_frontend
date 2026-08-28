@@ -231,6 +231,95 @@ function sanitizeProfileData(data) {
     return sanitized;
 }
 
+const VALID_BUY_SELL_COLUMNS = new Set([
+    'id', 'user_id', 'host_id', 'title', 'description', 'price', 'category', 'subcategory',
+    'condition', 'images', 'image', 'photos', 'country', 'state', 'city', 'zip_code',
+    'street_address', 'address', 'name', 'phone', 'email', 'status', 'is_approved',
+    'make', 'model', 'year', 'mileage', 'fuel_type', 'transmission',
+    'created_at', 'updated_at'
+]);
+
+function sanitizeBuySellData(data, userId) {
+    if (!data || typeof data !== 'object') return {};
+    const sanitized = {};
+
+    if (userId) {
+        sanitized.user_id = userId;
+    }
+
+    if (data.title) sanitized.title = String(data.title).trim();
+    if (data.description) sanitized.description = String(data.description).trim();
+    if (data.price !== undefined && data.price !== null && data.price !== '') {
+        sanitized.price = Number(data.price) || 0;
+    } else {
+        sanitized.price = 0;
+    }
+
+    if (data.category) sanitized.category = String(data.category).trim();
+    if (data.subcategory) sanitized.subcategory = String(data.subcategory).trim();
+    if (data.condition) sanitized.condition = String(data.condition).trim();
+
+    // Location fields
+    if (data.country) sanitized.country = typeof data.country === 'string' ? data.country : data.country?.name || '';
+    if (data.state) sanitized.state = String(data.state).trim();
+    if (data.city) sanitized.city = String(data.city).trim();
+    if (data.zip_code || data.zipCode || data.pincode) {
+        sanitized.zip_code = String(data.zip_code || data.zipCode || data.pincode).trim();
+    }
+    if (data.street_address || data.streetAddress || data.address) {
+        sanitized.street_address = String(data.street_address || data.streetAddress || data.address).trim();
+    }
+
+    // Contact info
+    if (data.name || data.seller_name) sanitized.name = String(data.name || data.seller_name).trim();
+    if (data.phone || data.seller_phone || data.whatsapp) {
+        sanitized.phone = String(data.phone || data.seller_phone || data.whatsapp).trim();
+    }
+    if (data.email || data.seller_email) sanitized.email = String(data.email || data.seller_email).trim();
+
+    // Vehicles / dynamic fields
+    if (data.make) sanitized.make = String(data.make).trim();
+    if (data.model) sanitized.model = String(data.model).trim();
+    if (data.year !== undefined && data.year !== null && String(data.year).trim() !== '') {
+        const parsedYear = parseInt(data.year, 10);
+        if (!isNaN(parsedYear)) sanitized.year = parsedYear;
+    }
+    if (data.mileage !== undefined && data.mileage !== null && String(data.mileage).trim() !== '') {
+        const parsedMileage = Number(data.mileage);
+        if (!isNaN(parsedMileage)) sanitized.mileage = parsedMileage;
+    }
+    if (data.fuel_type || data.fuelType) sanitized.fuel_type = String(data.fuel_type || data.fuelType).trim();
+    if (data.transmission) sanitized.transmission = String(data.transmission).trim();
+
+    // Status
+    sanitized.status = data.status || 'active';
+
+    // Images resolution
+    let finalImages = [];
+    if (Array.isArray(data.images)) {
+        finalImages = data.images.filter(Boolean);
+    } else if (Array.isArray(data.photos)) {
+        finalImages = data.photos.filter(Boolean);
+    } else if (Array.isArray(data.galleryImages)) {
+        finalImages = data.galleryImages.filter(Boolean);
+    } else if (Array.isArray(data.existingImages)) {
+        finalImages = data.existingImages.filter(Boolean);
+    } else if (typeof data.images === 'string' && data.images.startsWith('[')) {
+        try { finalImages = JSON.parse(data.images); } catch {}
+    } else if (typeof data.existingImages === 'string' && data.existingImages.startsWith('[')) {
+        try { finalImages = JSON.parse(data.existingImages); } catch {}
+    } else if (data.image) {
+        finalImages = [data.image];
+    }
+
+    if (finalImages.length > 0) {
+        sanitized.images = finalImages;
+        sanitized.image = finalImages[0];
+    }
+
+    return sanitized;
+}
+
 /**
  * Route request to Supabase table queries
  * @param {string|object} args - query url or object { url, method, body, params, headers }
@@ -519,7 +608,7 @@ export async function executeSupabaseRequest(args) {
 
         // ── 4. MARKETPLACE / BUY-SELL ──────────────────────────────
         if (cleanUrl.startsWith('buy-sell') || cleanUrl.startsWith('marketplace')) {
-            if (cleanUrl === 'buy-sell/get' || cleanUrl === 'buy-sell/all' || cleanUrl === 'buy-sell') {
+            if (cleanUrl === 'buy-sell/get' || cleanUrl === 'buy-sell/all' || cleanUrl === 'buy-sell' || cleanUrl === 'marketplace') {
                 let query = supabase.from('buy_sell').select('*')
                 if (queryParams.country) {
                     query = query.ilike('country', `%${queryParams.country}%`)
@@ -531,22 +620,22 @@ export async function executeSupabaseRequest(args) {
                     query = query.limit(Number(queryParams.limit))
                 }
                 const { data, error } = await query
-                if (error) throw error
+                if (error) return { data: { listings: [] } }
                 return { data: { listings: data || [], total: data?.length || 0 } }
             }
 
-            if (cleanUrl === 'buy-sell/my-buy-sell') {
+            if (cleanUrl === 'buy-sell/my-buy-sell' || cleanUrl === 'marketplace/my-listings') {
                 const userId = await getCurrentUserId()
                 let query = supabase.from('buy_sell').select('*')
                 if (userId) {
-                    query = query.eq('user_id', userId)
+                    query = query.or(`user_id.eq.${userId},host_id.eq.${userId}`)
                 }
                 const { data, error } = await query
                 if (error) return { data: { listings: [] } }
                 return { data: { listings: data || [] } }
             }
 
-            const buySellMatch = cleanUrl.match(/^buy-sell\/get\/([^/]+)$/)
+            const buySellMatch = cleanUrl.match(/^(?:buy-sell\/get|marketplace|buy-sell)\/([^/]+)$/)
             if (buySellMatch && method === 'GET') {
                 const id = buySellMatch[1]
                 const { data, error } = await supabase.from('buy_sell').select('*').eq('id', id).maybeSingle()
@@ -554,15 +643,64 @@ export async function executeSupabaseRequest(args) {
                 return { data: { listing: data } }
             }
 
-            if (cleanUrl === 'buy-sell/create' && method === 'POST') {
+            if ((cleanUrl === 'buy-sell/create' || cleanUrl === 'marketplace/create' || cleanUrl === 'buy-sell') && method === 'POST') {
                 const userId = await getCurrentUserId()
-                let payload = body
+                let rawPayload = body
                 if (body instanceof FormData) {
-                    payload = await parseFormDataWithUploads(body, 'marketplace')
+                    rawPayload = await parseFormDataWithUploads(body, 'marketplace')
                 }
-                const { data, error } = await supabase.from('buy_sell').insert({ ...(payload || {}), user_id: userId }).select().maybeSingle()
-                if (error) throw error
-                return { data: { listing: data } }
+                const sanitized = sanitizeBuySellData(rawPayload, userId)
+
+                // Try insert with sanitized data
+                let { data, error } = await supabase.from('buy_sell').insert(sanitized).select().maybeSingle()
+                
+                // If column error or foreign key error, attempt retry
+                if (error) {
+                    console.warn('Supabase buy_sell insert initial error:', error)
+                    if (error.message?.includes('user_id') || error.details?.includes('user_id')) {
+                        const { user_id, ...withoutUserId } = sanitized
+                        const retry = await supabase.from('buy_sell').insert({ ...withoutUserId, host_id: userId }).select().maybeSingle()
+                        if (!retry.error) {
+                            data = retry.data
+                            error = null
+                        }
+                    }
+                }
+
+                if (error) {
+                    console.error('Final buy_sell insert error:', error)
+                    return { error: { status: 400, error: error.message || 'Failed to create listing', message: error.message || 'Failed to create listing' } }
+                }
+
+                return { data: { success: true, listing: data, listings: [data], message: 'Listing created successfully' } }
+            }
+
+            const updateMatch = cleanUrl.match(/^(?:buy-sell\/update|marketplace\/update|buy-sell)\/([^/]+)$/)
+            if (updateMatch && (method === 'PUT' || method === 'POST' || method === 'PATCH')) {
+                const id = updateMatch[1]
+                const userId = await getCurrentUserId()
+                let rawPayload = body
+                if (body instanceof FormData) {
+                    rawPayload = await parseFormDataWithUploads(body, 'marketplace')
+                }
+                const sanitized = sanitizeBuySellData(rawPayload, userId)
+
+                const { data, error } = await supabase.from('buy_sell').update(sanitized).eq('id', id).select().maybeSingle()
+                if (error) {
+                    console.error('Supabase buy_sell update error:', error)
+                    return { error: { status: 400, error: error.message || 'Failed to update listing' } }
+                }
+                return { data: { success: true, listing: data, message: 'Listing updated successfully' } }
+            }
+
+            const deleteMatch = cleanUrl.match(/^(?:buy-sell\/delete|marketplace\/delete|buy-sell)\/([^/]+)$/)
+            if (deleteMatch && method === 'DELETE') {
+                const id = deleteMatch[1]
+                const { error } = await supabase.from('buy_sell').delete().eq('id', id)
+                if (error) {
+                    return { error: { status: 400, error: error.message || 'Failed to delete listing' } }
+                }
+                return { data: { success: true, message: 'Listing deleted successfully' } }
             }
 
             const { data } = await supabase.from('buy_sell').select('*').limit(20)
