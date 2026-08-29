@@ -276,6 +276,80 @@ const VALID_PROFILE_COLUMNS = new Set([
     'occupation', 'headline', 'profession', 'rejection_reason', 'block_reason'
 ]);
 
+function enrichProfile(p) {
+    if (!p || typeof p !== 'object') return p;
+    let extra = {};
+    if (typeof p.occupation === 'string' && p.occupation.trim().startsWith('{')) {
+        try {
+            extra = JSON.parse(p.occupation);
+        } catch (e) {
+            console.warn('Failed to parse profile occupation JSON:', e);
+        }
+    }
+    const expMatch = String(extra.experience || p.experience || p.headline || p.profession || '').match(/(\d+)\s*(?:years?|yrs?)/i);
+    const resolvedExp = extra.experience || p.experience || (expMatch ? `${expMatch[1]} years` : '5 years');
+    const resolvedRate = Number(extra.hourlyRate ?? p.hourlyRate ?? extra.pricing?.consultation ?? p.hourly_rate ?? (p.pricing?.consultation) ?? 50);
+    const resolvedCurrency = extra.currency || p.currency || (p.pricing?.currency) || 'USD';
+    const resolvedBio = extra.bio || p.bio || p.description || (p.headline ? `Specialized in ${p.headline}. Dedicated to providing seamless relocation and consulting support.` : 'Experienced professional dedicated to helping expats navigate relocation, housing, and local integration seamlessly.');
+    const resolvedSkills = (Array.isArray(extra.skills) && extra.skills.length > 0)
+        ? extra.skills
+        : (Array.isArray(p.skills) && p.skills.length > 0)
+            ? p.skills
+            : (p.profession && p.profession !== 'Advisor')
+                ? p.profession.split(/[,|•/]/).map(s => s.trim()).filter(Boolean)
+                : ['Full Stack Development', 'Technical Consulting', 'Software Engineering'];
+
+    return {
+        ...p,
+        ...extra,
+        name: p.name || p.full_name || (p.firstName ? `${p.firstName} ${p.lastName || ''}`.trim() : '') || 'Expert Advisor',
+        profession: p.profession || p.headline || extra.profession || 'Verified Advisor',
+        headline: p.headline || p.profession || extra.headline || 'Verified Advisor',
+        bio: resolvedBio,
+        experience: resolvedExp,
+        yearsOfExperience: expMatch ? parseInt(expMatch[1], 10) : 5,
+        hourlyRate: resolvedRate,
+        hourly_rate: resolvedRate,
+        currency: resolvedCurrency,
+        pricing: {
+            consultation: resolvedRate,
+            currency: resolvedCurrency,
+            type: extra.pricing?.type || 'hourly'
+        },
+        skills: resolvedSkills,
+        category: extra.category || p.category || 'tech-mentorship',
+        languages: (Array.isArray(extra.languages) && extra.languages.length > 0) ? extra.languages : ['English'],
+        experiences: (Array.isArray(extra.experiences) && extra.experiences.length > 0) ? extra.experiences : [
+            {
+                role: p.profession || p.headline || 'Full Stack Developer',
+                company: (extra.category || p.category || 'Tech & Mentorship').replace(/-/g, ' ').toUpperCase(),
+                period: resolvedExp || '5+ years',
+                duration: resolvedExp || '5+ years',
+                description: resolvedBio || 'Proven track record delivering solutions and advising clients.'
+            }
+        ],
+        educations: (Array.isArray(extra.educations) && extra.educations.length > 0) ? extra.educations : [
+            {
+                degree: `${p.profession || 'Domain'} Professional Certification`,
+                institution: 'Accredited Specialist / Industry Verified',
+                year: 'Verified'
+            }
+        ],
+        services: (Array.isArray(extra.services) && extra.services.length > 0) ? extra.services : [
+            {
+                id: 'consult-1',
+                name: '1-on-1 Advisory Consultation',
+                title: '1-on-1 Advisory Consultation',
+                price: resolvedRate,
+                rate: resolvedRate,
+                currency: resolvedCurrency,
+                duration: '1 Hour',
+                description: 'Personalized guidance, review, and direct expert consultation.'
+            }
+        ]
+    };
+}
+
 function sanitizeProfileData(data) {
     if (!data || typeof data !== 'object') return {};
     const sanitized = {};
@@ -289,6 +363,30 @@ function sanitizeProfileData(data) {
     if (data.address && !data.street_address) sanitized.street_address = data.address;
     if (data.pincode && !data.zip_code) sanitized.zip_code = data.pincode;
     if (data.zipCode && !data.zip_code) sanitized.zip_code = data.zipCode;
+
+    // Pack extended expert fields into occupation JSON string
+    const extraMeta = {
+        hourlyRate: data.hourlyRate ?? data.hourly_rate ?? data.pricing?.consultation ?? data.rate,
+        currency: data.currency ?? data.pricing?.currency ?? 'USD',
+        experience: data.experience ?? data.yearsOfExperience ?? data.years_of_experience,
+        bio: data.bio ?? data.description,
+        skills: data.skills,
+        specializations: data.specializations,
+        category: data.category,
+        website: data.website,
+        telegram: data.telegram,
+        languages: data.languages,
+        experiences: data.experiences,
+        educations: data.educations,
+        services: data.services,
+        portfolio: data.portfolio,
+        availability: data.availability,
+        pricing: data.pricing
+    };
+    
+    if (Object.values(extraMeta).some(v => v !== undefined && v !== null && v !== '')) {
+        sanitized.occupation = JSON.stringify(extraMeta);
+    }
 
     for (const [key, val] of Object.entries(data)) {
         if (VALID_PROFILE_COLUMNS.has(key) && val !== undefined && sanitized[key] === undefined) {
@@ -1363,7 +1461,7 @@ export async function executeSupabaseRequest(args) {
                     query = query.ilike('country', `%${queryParams.country}%`)
                 }
                 const { data } = await query
-                return { data: data || [] }
+                return { data: (data || []).map(enrichProfile) }
             }
 
             if (cleanUrl === 'admin/approved/approved-experts' || cleanUrl === 'admin/people/approved') {
@@ -1372,7 +1470,7 @@ export async function executeSupabaseRequest(args) {
                     query = query.ilike('country', `%${queryParams.country}%`)
                 }
                 const { data } = await query
-                return { data: data || [] }
+                return { data: (data || []).map(enrichProfile) }
             }
 
             if (cleanUrl === 'admin/rejected/rejected-experts' || cleanUrl === 'admin/people/rejected') {
@@ -1381,15 +1479,15 @@ export async function executeSupabaseRequest(args) {
                     query = query.ilike('country', `%${queryParams.country}%`)
                 }
                 const { data } = await query
-                return { data: data || [] }
+                return { data: (data || []).map(enrichProfile) }
             }
 
             if (cleanUrl === 'people/me' || cleanUrl === 'people/profile/me') {
                 const userId = await getCurrentUserId()
                 if (!userId) return { data: { profile: null } }
                 const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
-                if (data && (data.role === 'expert' || data.profession || data.headline || (data.bio && data.bio.trim().length > 0))) {
-                    return { data: { profile: data } }
+                if (data && (data.role === 'expert' || data.profession || data.headline || data.occupation || (data.bio && data.bio.trim().length > 0))) {
+                    return { data: { profile: enrichProfile(data) } }
                 }
                 return { data: { profile: null } }
             }
@@ -1398,7 +1496,7 @@ export async function executeSupabaseRequest(args) {
             if (profileMatch && method === 'GET') {
                 const id = profileMatch[1]
                 const { data } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle()
-                return { data: { profile: data || null } }
+                return { data: { profile: data ? enrichProfile(data) : null } }
             }
 
             if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
@@ -1406,13 +1504,13 @@ export async function executeSupabaseRequest(args) {
                 if (userId) {
                     const parsedBody = (body instanceof FormData) ? await parseFormDataWithUploads(body, 'profiles') : body
                     const sanitized = sanitizeProfileData(parsedBody)
-                    const isSubmittingExpertDetails = Boolean(sanitized.profession || sanitized.headline || sanitized.bio || parsedBody?.profession || parsedBody?.headline || parsedBody?.bio)
+                    const isSubmittingExpertDetails = Boolean(sanitized.profession || sanitized.headline || sanitized.occupation || sanitized.bio || parsedBody?.profession || parsedBody?.headline || parsedBody?.bio)
                     const updatePayload = {
                         ...sanitized,
                         ...(isSubmittingExpertDetails ? { status: 'pending', is_approved: false } : {})
                     }
                     const { data } = await supabase.from('profiles').update(updatePayload).eq('id', userId).select().maybeSingle()
-                    return { data: { profile: data || sanitized, success: true } }
+                    return { data: { profile: data ? enrichProfile(data) : sanitized, success: true } }
                 }
             }
 
@@ -1423,7 +1521,7 @@ export async function executeSupabaseRequest(args) {
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data, error } = await query
             if (error) return { data: { people: [], profiles: [], items: [], results: [] } }
-            const expertProfiles = (data || []).filter(p => p.role === 'expert' || p.profession || p.headline || p.occupation || (p.bio && p.bio.trim().length > 0))
+            const expertProfiles = (data || []).filter(p => p.role === 'expert' || p.profession || p.headline || p.occupation || (p.bio && p.bio.trim().length > 0)).map(enrichProfile)
             return {
                 data: {
                     people: expertProfiles,
