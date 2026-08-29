@@ -30,11 +30,12 @@ const splitPhone = (fullPhone) => {
 export const useHostEvent = () => {
     const [searchParams] = useSearchParams()
     const editId = searchParams.get('edit')
+    const [eventId, setEventId] = useState(editId || null)
+    const isEdit = !!editId || !!eventId
 
     const [step, setStep] = useState(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isSuccess, setIsSuccess] = useState(false)
-    const [eventId, setEventId] = useState(editId || null)
     const [isReadOnly, setIsReadOnly] = useState(false)
     const [error, setError] = useState(null)
     const [uploadProgress, setUploadProgress] = useState(0)
