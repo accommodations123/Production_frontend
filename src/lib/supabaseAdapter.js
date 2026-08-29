@@ -328,13 +328,7 @@ function enrichProfile(p) {
                 description: resolvedBio || 'Proven track record delivering solutions and advising clients.'
             }
         ],
-        educations: (Array.isArray(extra.educations) && extra.educations.length > 0) ? extra.educations : [
-            {
-                degree: `${p.profession || 'Domain'} Professional Certification`,
-                institution: 'Accredited Specialist / Industry Verified',
-                year: 'Verified'
-            }
-        ],
+        educations: (Array.isArray(extra.educations) && extra.educations.length > 0) ? extra.educations : (Array.isArray(p.educations) ? p.educations : []),
         services: (Array.isArray(extra.services) && extra.services.length > 0) ? extra.services : [
             {
                 id: 'consult-1',

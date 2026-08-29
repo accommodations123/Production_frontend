@@ -83,8 +83,10 @@ const expertOnboardingSchema = z.object({
   currency: z.string().default("USD"),
   pricingType: z.string().default("hourly"),
   availability: z.string().optional(),
-  accepting_clients: z.boolean().default(true),
-  response_time: z.string().optional(),
+  // Optional Education & Qualifications
+  education_degree: z.string().optional(),
+  education_school: z.string().optional(),
+  education_year: z.string().optional(),
 
   // Step 3: Social & Contact Links (Instagram, Facebook, Website, WhatsApp, Telegram)
   website: z.string().optional(),
@@ -219,6 +221,9 @@ export default function BecomeExpert() {
       availability: "Available",
       accepting_clients: true,
       response_time: "Within 24 hours",
+      education_degree: "",
+      education_school: "",
+      education_year: "",
       website: "",
       facebook: "",
       instagram: "",
@@ -517,6 +522,13 @@ export default function BecomeExpert() {
         instagram: data.instagram?.trim() || undefined,
         whatsapp: data.whatsapp?.trim() || undefined,
         telegram: data.telegram?.trim() || undefined,
+        educations: data.education_degree?.trim() ? [
+          {
+            degree: data.education_degree.trim(),
+            institution: data.education_school?.trim() || "University / Institute",
+            year: data.education_year?.trim() || ""
+          }
+        ] : [],
         hourlyRate: Number(data.hourlyRate),
         currency: data.currency || "USD",
         pricing: {
@@ -987,11 +999,41 @@ export default function BecomeExpert() {
                         />
                         <TextField
                           label="Core Skills (comma separated) *"
-                          placeholder="e.g. Visa Filings, Tax Audit"
+                          placeholder="e.g. Visa Filings, Tax Audit, Full Stack"
                           error={errors.skills}
                           variant="light"
                           {...register("skills")}
                         />
+                      </div>
+
+                      {/* Optional Education Section */}
+                      <div className="pt-2 border-t border-slate-100 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-extrabold text-slate-700 block">
+                            Education & Qualifications (Optional)
+                          </label>
+                          <span className="text-[11px] text-slate-400 font-medium">Optional</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <TextField
+                            label="Degree / Qualification"
+                            placeholder="e.g. B.Tech / M.S. in Computer Science"
+                            variant="light"
+                            {...register("education_degree")}
+                          />
+                          <TextField
+                            label="School / University"
+                            placeholder="e.g. Stanford University"
+                            variant="light"
+                            {...register("education_school")}
+                          />
+                          <TextField
+                            label="Graduation Year"
+                            placeholder="e.g. 2021"
+                            variant="light"
+                            {...register("education_year")}
+                          />
+                        </div>
                       </div>
 
                       <div className="pt-4 flex items-center justify-between gap-4 border-t border-slate-100">

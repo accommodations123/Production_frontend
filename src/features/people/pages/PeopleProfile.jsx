@@ -367,15 +367,7 @@ export default function PeopleProfile() {
           description: bio || "Proven track record delivering technical and advisory solutions."
         }
       ];
-  const educations = (Array.isArray(person.educations) && person.educations.length > 0)
-    ? person.educations
-    : [
-        {
-          degree: `${profession} Professional Certification`,
-          institution: "Accredited Specialist / Industry Verified",
-          year: "Verified"
-        }
-      ];
+  const educations = (Array.isArray(person.educations) && person.educations.length > 0) ? person.educations : [];
   const services = (Array.isArray(person.services) && person.services.length > 0)
     ? person.services
     : [
