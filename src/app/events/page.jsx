@@ -43,7 +43,13 @@ const EventsPage = () => {
   const { data: apiEvents = [], isLoading, isError, refetch } = useGetApprovedEventsQuery({
     name: activeCountry?.name,
     code: activeCountry?.code
+  }, {
+    refetchOnMountOrArgChange: true,
   })
+
+  useEffect(() => {
+    refetch();
+  }, [activeCountry, refetch]);
 
   // (Removed handleScroll and visibleSections logic)
   const [activeFilter, setActiveFilter] = useState("all")
