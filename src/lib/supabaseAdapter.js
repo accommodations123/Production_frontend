@@ -219,21 +219,22 @@ export async function executeSupabaseRequest(args) {
     try {
         // ── 1. PROPERTIES / ACCOMMODATIONS ─────────────────────────
         if (cleanUrl.startsWith('propert') || cleanUrl.startsWith('accommodation') || cleanUrl.startsWith('admin/properties') || cleanUrl.startsWith('admin/pending/pending-properties') || cleanUrl.startsWith('admin/approved/approved-properties') || cleanUrl.startsWith('admin/rejected/rejected-properties')) {
-            if (cleanUrl.includes('approve')) {
+            // Admin Actions (Mutations only)
+            if ((cleanUrl.includes('/approve/') || cleanUrl.endsWith('/approve')) && method !== 'GET') {
                 const id = cleanUrl.split('/').pop()
                 const { data } = await supabase.from('properties').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
                 return { data: { success: true, property: data, message: 'Property approved' } }
             }
-            if (cleanUrl.includes('reject')) {
+            if ((cleanUrl.includes('/reject/') || cleanUrl.endsWith('/reject')) && method !== 'GET') {
                 const id = cleanUrl.split('/').pop()
                 const { data } = await supabase.from('properties').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
                 return { data: { success: true, property: data, message: 'Property rejected' } }
             }
-            if (cleanUrl.includes('pending')) {
+            if (cleanUrl.includes('pending') && method === 'GET') {
                 const { data } = await supabase.from('properties').select('*').eq('status', 'pending').order('created_at', { ascending: false })
                 return { data: await enrichPropertiesWithHostDetails(data || []) }
             }
-            if (cleanUrl.includes('rejected')) {
+            if (cleanUrl.includes('rejected') && method === 'GET') {
                 const { data } = await supabase.from('properties').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
                 return { data: await enrichPropertiesWithHostDetails(data || []) }
             }
@@ -265,6 +266,8 @@ export async function executeSupabaseRequest(args) {
                 await supabase.from('properties').delete().eq('id', id)
                 return { data: { success: true } }
             }
+
+            // Single Item: matches /property/get/:id or /property/:id or /accommodations/:id
             const singleMatch = cleanUrl.match(/^(?:property\/get|property|properties|accommodations)\/([^/]+)$/)
             if (singleMatch && method === 'GET' && !['get', 'all', 'approved', 'pending', 'rejected', 'my-listings', 'my-properties', 'search'].includes(singleMatch[1])) {
                 const { data } = await supabase.from('properties').select('*').eq('id', singleMatch[1]).maybeSingle()
@@ -282,21 +285,22 @@ export async function executeSupabaseRequest(args) {
 
         // ── 2. EVENTS ───────────────────────────────────────────────
         if (cleanUrl.startsWith('events') || cleanUrl.startsWith('event') || cleanUrl.startsWith('admin/events') || cleanUrl.startsWith('admin/pending/pending-events') || cleanUrl.startsWith('admin/approved/approved-events') || cleanUrl.startsWith('admin/rejected/rejected-events')) {
-            if (cleanUrl.includes('approve')) {
+            // Admin Actions (Mutations only)
+            if ((cleanUrl.includes('/approve/') || cleanUrl.endsWith('/approve')) && method !== 'GET') {
                 const id = cleanUrl.split('/').pop()
                 const { data } = await supabase.from('events').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
                 return { data: { success: true, event: data, message: 'Event approved' } }
             }
-            if (cleanUrl.includes('reject')) {
+            if ((cleanUrl.includes('/reject/') || cleanUrl.endsWith('/reject')) && method !== 'GET') {
                 const id = cleanUrl.split('/').pop()
                 const { data } = await supabase.from('events').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
                 return { data: { success: true, event: data, message: 'Event rejected' } }
             }
-            if (cleanUrl.includes('pending')) {
+            if (cleanUrl.includes('pending') && method === 'GET') {
                 const { data } = await supabase.from('events').select('*').eq('status', 'pending').order('created_at', { ascending: false })
                 return { data: await enrichEventsWithHostDetails(data || []) }
             }
-            if (cleanUrl.includes('rejected')) {
+            if (cleanUrl.includes('rejected') && method === 'GET') {
                 const { data } = await supabase.from('events').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
                 return { data: await enrichEventsWithHostDetails(data || []) }
             }
@@ -394,12 +398,13 @@ export async function executeSupabaseRequest(args) {
 
         // ── 3. BUY & SELL / MARKETPLACE ─────────────────────────────
         if (cleanUrl.startsWith('buy-sell') || cleanUrl.startsWith('marketplace') || cleanUrl.startsWith('admin/buysell') || cleanUrl.startsWith('admin/buy-sell')) {
-            if (cleanUrl.includes('approve')) {
+            // Admin Actions (Mutations only)
+            if ((cleanUrl.includes('/approve/') || cleanUrl.endsWith('/approve')) && method !== 'GET') {
                 const id = cleanUrl.split('/').pop()
                 const { data } = await supabase.from('buy_sell').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
                 return { data: { success: true, listing: data } }
             }
-            if (cleanUrl.includes('reject')) {
+            if ((cleanUrl.includes('/reject/') || cleanUrl.endsWith('/reject')) && method !== 'GET') {
                 const id = cleanUrl.split('/').pop()
                 const { data } = await supabase.from('buy_sell').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
                 return { data: { success: true, listing: data } }
@@ -410,7 +415,7 @@ export async function executeSupabaseRequest(args) {
                 const { data } = await supabase.from('buy_sell').update({ is_sold: true, status: 'sold' }).eq('id', id).select().maybeSingle()
                 return { data: { success: true, listing: data } }
             }
-            if (cleanUrl.includes('pending')) {
+            if (cleanUrl.includes('pending') && method === 'GET') {
                 const { data } = await supabase.from('buy_sell').select('*').eq('status', 'pending').order('created_at', { ascending: false })
                 return { data: await enrichBuySellWithHostDetails(data || []) }
             }
@@ -521,7 +526,7 @@ export async function executeSupabaseRequest(args) {
                 return { data: { host: data, success: true } }
             }
             const hostIdMatch = cleanUrl.match(/^(?:host|profiles)\/([^/]+)$/)
-            if (hostIdMatch && method === 'GET' && !['profile', 'me', 'save', 'update'].includes(hostIdMatch[1])) {
+            if (hostIdMatch && method === 'GET' && !['profile', 'me', 'save', 'update', 'get', 'search', 'all'].includes(hostIdMatch[1])) {
                 const { data } = await supabase.from('profiles').select('*').eq('id', hostIdMatch[1]).maybeSingle()
                 return { data: { host: data, profile: data } }
             }
