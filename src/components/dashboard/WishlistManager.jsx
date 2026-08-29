@@ -84,6 +84,7 @@ export function WishlistManager() {
                     const normalizedProperty = {
                       ...details,
                       id: details.id || details._id,
+                      host_id: details.host_id || details.hostId || details.user_id || details.host?.user_id || details.host?.id || details.Host?.user_id || details.Host?.id,
                       photos: details.photos || details.images || [],
                       status: (details.isVerified || details.verified || details.status === 'approved') ? 'approved' : 'pending',
                       price_per_month: details.price_per_month || details.price || 0,
@@ -94,8 +95,10 @@ export function WishlistManager() {
                       city: details.city || details.location?.city || details.location,
                       host: {
                         ...(details.host || details.Host || details.creator || {}),
-                        whatsapp: details.whatsapp || details.phone || details.contact || details.host?.whatsapp,
-                        phone: details.phone || details.contact || details.host?.phone
+                        user_id: details.host_id || details.hostId || details.user_id || details.host?.user_id || details.Host?.user_id,
+                        full_name: details.host_name || details.hostName || details.user_name || details.host?.full_name || details.Host?.full_name,
+                        whatsapp: details.whatsapp || details.phone || details.contact || details.host?.whatsapp || details.Host?.whatsapp,
+                        phone: details.phone || details.contact || details.host?.phone || details.Host?.phone
                       }
                     };
                     return <PropertyCard property={normalizedProperty} />;

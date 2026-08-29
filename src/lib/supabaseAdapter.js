@@ -1429,7 +1429,10 @@ export async function executeSupabaseRequest(args) {
                         try {
                             if (['property', 'accommodations', 'stay'].includes(type)) {
                                 const { data } = await supabase.from('properties').select('*').eq('id', itemId).maybeSingle()
-                                details = data
+                                if (data) {
+                                    const enriched = await enrichPropertiesWithHostDetails([data])
+                                    details = enriched?.[0] || data
+                                }
                             } else if (['stay-request', 'stay_request', 'stay-requests', 'stay_requests', 'seeker', 'seekers'].includes(type)) {
                                 const { data } = await supabase.from('stay_requests').select('*').eq('id', itemId).maybeSingle()
                                 details = data

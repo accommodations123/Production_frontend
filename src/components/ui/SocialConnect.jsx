@@ -27,28 +27,55 @@ export const SocialQuickConnect = ({
   const currentUserId = user?.id || user?.user_id || user?._id;
   const cleanStr = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
+  let localUser = null;
+  try {
+    const raw = localStorage.getItem("user") || localStorage.getItem("authUser");
+    if (raw) localUser = JSON.parse(raw);
+  } catch {}
+
   const userIds = [
     user?.id,
     user?.user_id,
     user?._id,
     user?.host_id,
     user?.Host?.id,
-    user?.host?.id
+    user?.Host?.user_id,
+    user?.host?.id,
+    user?.host?.user_id,
+    user?.profile?.id,
+    user?.profile?.user_id,
+    user?.sub,
+    localUser?.id,
+    localUser?.user_id,
+    localUser?._id,
+    localUser?.host_id,
+    localUser?.profile?.id,
+    localUser?.profile?.user_id,
+    localUser?.sub
   ].filter(Boolean).map(String);
 
   const currentNames = [
     user?.full_name,
     user?.fullName,
     user?.name,
+    user?.username,
+    user?.user_name,
     user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : null,
     user?.first_name,
-    user?.email ? user.email.split('@')[0] : null
+    user?.email ? user.email.split('@')[0] : null,
+    localUser?.full_name,
+    localUser?.fullName,
+    localUser?.name,
+    localUser?.username,
+    localUser?.user_name,
+    localUser?.first_name ? `${localUser.first_name} ${localUser.last_name || ''}`.trim() : null,
+    localUser?.email ? localUser.email.split('@')[0] : null
   ].filter(Boolean);
 
   const cleanOwner = cleanStr(ownerName);
 
   const isOwner = Boolean(
-    user && (
+    (user || localUser) && (
       (ownerId && userIds.some(uid => uid === String(ownerId))) ||
       (cleanOwner && currentNames.some(n => {
         const cn = cleanStr(n);

@@ -215,8 +215,8 @@ export const PropertyCard = React.memo(({ property }) => {
                     {/* Social Media Quick Connect (Price Section) */}
                     <SocialQuickConnect
                         socials={propertyData.socials}
-                        ownerId={property.Host?.user_id || property.host?.user_id || property.Host?.User?.id || property.host?.User?.id || property.host?.id || property.Host?.id || property.creator?.id || property.user_id}
-                        ownerName={propertyData.host?.full_name || propertyData.host?.name || "Host"}
+                        ownerId={property.host_id || property.hostId || property.user_id || property.Host?.user_id || property.host?.user_id || property.Host?.User?.id || property.host?.User?.id || property.host?.id || property.Host?.id || property.creator?.id || property.owner_id || property.ownerId || propertyData.host?.user_id || propertyData.host?.id}
+                        ownerName={propertyData.host?.full_name || propertyData.host?.name || property.host_name || property.hostName || property.user_name || property.Host?.full_name || property.host?.full_name || "Host"}
                         itemId={propertyData.id}
                         itemTitle={propertyData.title}
                         itemType="accommodations"
