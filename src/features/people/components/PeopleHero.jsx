@@ -8,7 +8,10 @@ export default function PeopleHero({ searchQuery, setSearchQuery, totalCount = 0
   const { isAuthenticated } = useSelector((state) => state.auth || {});
   const { data: myProfileRes } = useGetMyProfileQuery(undefined, { skip: !isAuthenticated });
   const existingProfile = myProfileRes?.profile || myProfileRes?.data || (myProfileRes?.id ? myProfileRes : null);
-  const hasProfile = Boolean(existingProfile?.id || existingProfile?._id || existingProfile?.user_id);
+  const hasProfile = Boolean(
+    existingProfile &&
+    (existingProfile.role === 'expert' || existingProfile.profession || existingProfile.headline || (existingProfile.bio && existingProfile.bio.trim().length > 0))
+  );
 
   return (
     <div className="bg-[#00142E] text-white px-4 py-12 sm:py-16 relative overflow-hidden border-b border-slate-800/60">

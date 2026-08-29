@@ -1388,7 +1388,10 @@ export async function executeSupabaseRequest(args) {
                 const userId = await getCurrentUserId()
                 if (!userId) return { data: { profile: null } }
                 const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
-                return { data: { profile: data || null } }
+                if (data && (data.role === 'expert' || data.profession || data.headline || (data.bio && data.bio.trim().length > 0))) {
+                    return { data: { profile: data } }
+                }
+                return { data: { profile: null } }
             }
 
             const profileMatch = cleanUrl.match(/^people\/profile\/([^/]+)$/)

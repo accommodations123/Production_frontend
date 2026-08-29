@@ -183,7 +183,10 @@ export default function BecomeExpert() {
 
   const { data: myProfileRes } = useGetMyProfileQuery();
   const existingProfile = myProfileRes?.profile || myProfileRes?.data || (myProfileRes?.id ? myProfileRes : null);
-  const isExisting = Boolean(existingProfile?.id || existingProfile?._id || existingProfile?.user_id);
+  const isExisting = Boolean(
+    existingProfile &&
+    (existingProfile.role === 'expert' || existingProfile.profession || existingProfile.headline || (existingProfile.bio && existingProfile.bio.trim().length > 0))
+  );
 
   const {
     register,
@@ -486,7 +489,10 @@ export default function BecomeExpert() {
         else if (res?.url) finalCoverUrl = res.url;
       }
 
-      const isExisting = Boolean(existingProfile?.id || existingProfile?._id || existingProfile?.user_id);
+      const isExisting = Boolean(
+        existingProfile &&
+        (existingProfile.role === 'expert' || existingProfile.profession || existingProfile.headline || (existingProfile.bio && existingProfile.bio.trim().length > 0))
+      );
 
       setUploadProgressText(isExisting ? "Updating and publishing profile..." : "Creating professional profile...");
 
