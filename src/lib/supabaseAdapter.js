@@ -767,10 +767,56 @@ export async function executeSupabaseRequest(args) {
         }
 
         // ── 3. EVENTS ───────────────────────────────────────────────
-        if (cleanUrl.startsWith('events') || cleanUrl.startsWith('event')) {
+        if (cleanUrl.startsWith('events') || cleanUrl.startsWith('event') || cleanUrl.startsWith('admin/events') || cleanUrl.startsWith('admin/pending/pending-events') || cleanUrl.startsWith('admin/approved/approved-events') || cleanUrl.startsWith('admin/rejected/rejected-events')) {
+            // Admin actions
+            if (cleanUrl.startsWith('admin/events/approve') || cleanUrl.startsWith('admin/event/approve') || cleanUrl.startsWith('events/approve')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    const { data } = await supabase.from('events').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
+                    return { data: { success: true, event: data, message: 'Event approved' } }
+                }
+            }
+
+            if (cleanUrl.startsWith('admin/events/reject') || cleanUrl.startsWith('admin/event/reject') || cleanUrl.startsWith('events/reject')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    const { data } = await supabase.from('events').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
+                    return { data: { success: true, event: data, message: 'Event rejected' } }
+                }
+            }
+
+            if (cleanUrl === 'admin/pending/pending-events' || cleanUrl === 'admin/events/pending' || cleanUrl === 'events/admin/pending') {
+                let query = supabase.from('events').select('*').or('is_approved.eq.false,status.eq.pending').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
+            if (cleanUrl === 'admin/approved/approved-events' || cleanUrl === 'admin/events/approved' || cleanUrl === 'events/admin/approved') {
+                let query = supabase.from('events').select('*').or('is_approved.eq.true,status.eq.approved').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
+            if (cleanUrl === 'admin/rejected/rejected-events' || cleanUrl === 'admin/events/rejected' || cleanUrl === 'events/admin/rejected') {
+                let query = supabase.from('events').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
             if (cleanUrl === 'events/approved' || cleanUrl === 'events/all' || cleanUrl === 'events') {
-                let query = supabase.from('events').select('*')
-                if (queryParams.country) {
+                let query = supabase.from('events').select('*').or('is_approved.eq.true,status.eq.approved')
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
                     query = query.ilike('country', `%${queryParams.country}%`)
                 }
                 if (queryParams.limit) {
@@ -795,12 +841,12 @@ export async function executeSupabaseRequest(args) {
                 if (body instanceof FormData) {
                     payload = await parseFormDataWithUploads(body, 'events')
                 }
-                const { data, error } = await supabase.from('events').insert({ ...(payload || {}), host_id: userId }).select().maybeSingle()
+                const { data, error } = await supabase.from('events').insert({ ...(payload || {}), host_id: userId, status: 'pending', is_approved: false }).select().maybeSingle()
                 if (error) throw error
                 return { data: { event: data } }
             }
 
-            const { data } = await supabase.from('events').select('*').limit(20)
+            const { data } = await supabase.from('events').select('*').or('is_approved.eq.true,status.eq.approved').limit(20)
             return { data: { events: data || [] } }
         }
 
@@ -1007,11 +1053,57 @@ export async function executeSupabaseRequest(args) {
         }
 
         // ── 5. TRAVEL / TRIPS ───────────────────────────────────────
-        if (cleanUrl.startsWith('travel')) {
+        if (cleanUrl.startsWith('travel') || cleanUrl.startsWith('admin/travel') || cleanUrl.startsWith('admin/pending/pending-travel') || cleanUrl.startsWith('admin/approved/approved-travel') || cleanUrl.startsWith('admin/rejected/rejected-travel') || cleanUrl.startsWith('admin/pending/pending-trips') || cleanUrl.startsWith('admin/approved/approved-trips') || cleanUrl.startsWith('admin/rejected/rejected-trips')) {
+            // Admin actions
+            if (cleanUrl.startsWith('admin/travel/approve') || cleanUrl.startsWith('admin/trips/approve') || cleanUrl.startsWith('travel/approve') || cleanUrl.startsWith('travel/trips/approve')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    const { data } = await supabase.from('travel_trips').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
+                    return { data: { success: true, trip: data, message: 'Trip approved' } }
+                }
+            }
+
+            if (cleanUrl.startsWith('admin/travel/reject') || cleanUrl.startsWith('admin/trips/reject') || cleanUrl.startsWith('travel/reject') || cleanUrl.startsWith('travel/trips/reject')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    const { data } = await supabase.from('travel_trips').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
+                    return { data: { success: true, trip: data, message: 'Trip rejected' } }
+                }
+            }
+
+            if (cleanUrl === 'admin/pending/pending-travel' || cleanUrl === 'admin/pending/pending-trips' || cleanUrl === 'admin/travel/pending' || cleanUrl === 'travel/admin/pending') {
+                let query = supabase.from('travel_trips').select('*').or('is_approved.eq.false,status.eq.pending').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.or(`to_country.ilike.%${queryParams.country}%,from_country.ilike.%${queryParams.country}%,destination.ilike.%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
+            if (cleanUrl === 'admin/approved/approved-travel' || cleanUrl === 'admin/approved/approved-trips' || cleanUrl === 'admin/travel/approved' || cleanUrl === 'travel/admin/approved') {
+                let query = supabase.from('travel_trips').select('*').or('is_approved.eq.true,status.eq.approved').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.or(`to_country.ilike.%${queryParams.country}%,from_country.ilike.%${queryParams.country}%,destination.ilike.%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
+            if (cleanUrl === 'admin/rejected/rejected-travel' || cleanUrl === 'admin/rejected/rejected-trips' || cleanUrl === 'admin/travel/rejected' || cleanUrl === 'travel/admin/rejected') {
+                let query = supabase.from('travel_trips').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.or(`to_country.ilike.%${queryParams.country}%,from_country.ilike.%${queryParams.country}%,destination.ilike.%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
             if (cleanUrl === 'travel/trips' || cleanUrl === 'travel/trips/search') {
-                let query = supabase.from('travel_trips').select('*')
-                if (queryParams.country) {
-                    query = query.or(`destination.ilike.%${queryParams.country}%,origin.ilike.%${queryParams.country}%`)
+                let query = supabase.from('travel_trips').select('*').or('is_approved.eq.true,status.eq.approved').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.or(`destination.ilike.%${queryParams.country}%,origin.ilike.%${queryParams.country}%,to_country.ilike.%${queryParams.country}%,from_country.ilike.%${queryParams.country}%`)
                 }
                 if (queryParams.limit) {
                     query = query.limit(Number(queryParams.limit))
@@ -1023,7 +1115,7 @@ export async function executeSupabaseRequest(args) {
 
             if (cleanUrl === 'travel/trips/me') {
                 const userId = await getCurrentUserId()
-                let query = supabase.from('travel_trips').select('*')
+                let query = supabase.from('travel_trips').select('*').order('created_at', { ascending: false })
                 if (userId) query = query.eq('host_id', userId)
                 const { data, error } = await query
                 if (error) return { data: { trips: [] } }
@@ -1032,7 +1124,7 @@ export async function executeSupabaseRequest(args) {
 
             if (cleanUrl === 'travel/trips' && method === 'POST') {
                 const userId = await getCurrentUserId()
-                const { data, error } = await supabase.from('travel_trips').insert({ ...(body || {}), host_id: userId }).select().maybeSingle()
+                const { data, error } = await supabase.from('travel_trips').insert({ ...(body || {}), host_id: userId, status: 'pending', is_approved: false }).select().maybeSingle()
                 if (error) throw error
                 return { data: { trip: data } }
             }
@@ -1045,7 +1137,7 @@ export async function executeSupabaseRequest(args) {
                 return { data: { trip: data } }
             }
 
-            const { data } = await supabase.from('travel_trips').select('*').limit(20)
+            const { data } = await supabase.from('travel_trips').select('*').or('is_approved.eq.true,status.eq.approved').limit(20)
             return { data: { trips: data || [] } }
         }
 
@@ -1245,9 +1337,81 @@ export async function executeSupabaseRequest(args) {
         }
 
         // ── 9. PEOPLE / CONNECTIONS ─────────────────────────────────
-        if (cleanUrl.startsWith('people') || cleanUrl.startsWith('connections') || cleanUrl.startsWith('connection')) {
-            let query = supabase.from('profiles').select('*')
-            if (queryParams.country) query = query.ilike('country', `%${queryParams.country}%`)
+        if (cleanUrl.startsWith('people') || cleanUrl.startsWith('connections') || cleanUrl.startsWith('connection') || cleanUrl.startsWith('admin/people') || cleanUrl.startsWith('admin/pending/pending-experts') || cleanUrl.startsWith('admin/approved/approved-experts') || cleanUrl.startsWith('admin/rejected/rejected-experts')) {
+            // Admin actions for Experts/People
+            if (cleanUrl.startsWith('admin/people/approve') || cleanUrl.startsWith('admin/experts/approve') || cleanUrl.startsWith('people/approve')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    const { data } = await supabase.from('profiles').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
+                    return { data: { success: true, profile: data, message: 'Profile approved' } }
+                }
+            }
+
+            if (cleanUrl.startsWith('admin/people/reject') || cleanUrl.startsWith('admin/experts/reject') || cleanUrl.startsWith('people/reject')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    const { data } = await supabase.from('profiles').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
+                    return { data: { success: true, profile: data, message: 'Profile rejected' } }
+                }
+            }
+
+            if (cleanUrl === 'admin/pending/pending-experts' || cleanUrl === 'admin/people/pending') {
+                let query = supabase.from('profiles').select('*').or('is_approved.eq.false,status.eq.pending').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
+            if (cleanUrl === 'admin/approved/approved-experts' || cleanUrl === 'admin/people/approved') {
+                let query = supabase.from('profiles').select('*').or('is_approved.eq.true,status.eq.approved').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
+            if (cleanUrl === 'admin/rejected/rejected-experts' || cleanUrl === 'admin/people/rejected') {
+                let query = supabase.from('profiles').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
+            if (cleanUrl === 'people/me' || cleanUrl === 'people/profile/me') {
+                const userId = await getCurrentUserId()
+                if (!userId) return { data: { profile: null } }
+                const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+                return { data: { profile: data || null } }
+            }
+
+            const profileMatch = cleanUrl.match(/^people\/profile\/([^/]+)$/)
+            if (profileMatch && method === 'GET') {
+                const id = profileMatch[1]
+                const { data } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle()
+                return { data: { profile: data || null } }
+            }
+
+            if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
+                const userId = await getCurrentUserId()
+                if (userId) {
+                    const parsedBody = (body instanceof FormData) ? await parseFormDataWithUploads(body, 'profiles') : body
+                    const sanitized = sanitizeProfileData(parsedBody)
+                    const { data } = await supabase.from('profiles').update(sanitized).eq('id', userId).select().maybeSingle()
+                    return { data: { profile: data || sanitized, success: true } }
+                }
+            }
+
+            let query = supabase.from('profiles').select('*').or('is_approved.eq.true,status.eq.approved')
+            if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                query = query.ilike('country', `%${queryParams.country}%`)
+            }
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data, error } = await query
             if (error) return { data: { people: [] } }

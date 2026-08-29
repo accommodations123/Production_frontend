@@ -177,41 +177,44 @@ export default function PostTripModal({ onClose, onAdd }) {
                 age: Number(form.age),
                 languages: form.languages.split(",").map(lang => lang.trim()).filter(Boolean),
                 status: "pending",
+                is_approved: false,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
             };
 
             const response = await createTrip(payload).unwrap();
 
-            onAdd({
-                ...response,
-                id: response.id || Date.now(),
-                user: {
-                    fullName: currentUser?.firstName ? `${currentUser.firstName} ${currentUser.lastName || ''}` : "Guest User",
-                    age: Number(form.age),
-                    languages: form.languages.split(",").map((l) => l.trim()),
-                    phone: currentUser?.phone || "",
-                    email: currentUser?.email || "",
-                    whatsapp: currentUser?.whatsapp || "",
-                    image: currentUser?.image || currentUser?.profile_image || "https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=200&q=80",
-                },
-                destination: `${form.to_city}, ${form.to_country}`,
-                date: form.travel_date,
-                time: form.departure_time,
-                flight: {
-                    airline: form.airline,
-                    flightName: form.flightName,
-                    flightNumber: form.flight_number,
-                    from: form.from_city,
-                    to: form.to_city,
-                    departureDate: form.travel_date,
-                    departureTime: form.departure_time,
-                    arrivalDate: form.arrival_date,
-                    arrivalTime: form.arrival_time,
-                },
-                travelers_count: form.travelers_count,
-            });
-            toast.success("Trip posted successfully!");
+            if (onAdd) {
+                onAdd({
+                    ...response,
+                    id: response.id || Date.now(),
+                    user: {
+                        fullName: currentUser?.firstName ? `${currentUser.firstName} ${currentUser.lastName || ''}` : "Guest User",
+                        age: Number(form.age),
+                        languages: form.languages.split(",").map((l) => l.trim()),
+                        phone: currentUser?.phone || "",
+                        email: currentUser?.email || "",
+                        whatsapp: currentUser?.whatsapp || "",
+                        image: currentUser?.image || currentUser?.profile_image || "https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=200&q=80",
+                    },
+                    destination: `${form.to_city}, ${form.to_country}`,
+                    date: form.travel_date,
+                    time: form.departure_time,
+                    flight: {
+                        airline: form.airline,
+                        flightName: form.flightName,
+                        flightNumber: form.flight_number,
+                        from: form.from_city,
+                        to: form.to_city,
+                        departureDate: form.travel_date,
+                        departureTime: form.departure_time,
+                        arrivalDate: form.arrival_date,
+                        arrivalTime: form.arrival_time,
+                    },
+                    travelers_count: form.travelers_count,
+                });
+            }
+            toast.success("Trip submitted for review! It will appear once approved by admin.");
             onClose();
         } catch (error) {
             console.error("Failed to post trip:", error);

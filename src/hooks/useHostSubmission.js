@@ -127,6 +127,8 @@ export function useHostSubmission({
             priceAmount: formData.priceAmount || 0,
             requirements: formData.requirements,
             images: formData.images.map(img => img.url),
+            status: 'pending',
+            is_approved: false,
             hostId: userData?.id || userData?._id || userData?.user?.id || null
         };
 

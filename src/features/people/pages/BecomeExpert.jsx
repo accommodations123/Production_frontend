@@ -521,8 +521,11 @@ export default function BecomeExpert() {
         availability: data.availability || "Available",
         accepting_clients: Boolean(data.accepting_clients),
         response_time: data.response_time?.trim() || undefined,
-        isPublished: true,
-        is_published: true,
+        status: isExisting ? (existingProfile?.status || "pending") : "pending",
+        is_approved: isExisting ? Boolean(existingProfile?.is_approved) : false,
+        isApproved: isExisting ? Boolean(existingProfile?.is_approved) : false,
+        isPublished: isExisting ? Boolean(existingProfile?.is_published) : false,
+        is_published: isExisting ? Boolean(existingProfile?.is_published) : false,
         contact_preferences: {
           allow_website: Boolean(data.allow_website),
           allow_whatsapp: Boolean(data.allow_whatsapp),
