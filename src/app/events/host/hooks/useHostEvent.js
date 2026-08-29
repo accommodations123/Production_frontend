@@ -259,12 +259,19 @@ export const useHostEvent = () => {
             let currentId = eventId
 
             if (!currentId) {
-                // Backend createEventDraftSchema expects: title, type, start_date, start_time, end_date, end_time
                 const draftPayload = {
                     title: formData.title,
+                    description: formData.description,
                     type: formData.event_type,
+                    category: formData.event_type,
                     start_date: formData.date,
-                    start_time: formData.time
+                    start_time: formData.time,
+                    time: formData.time,
+                    location: formData.location || formData.venue_name || '',
+                    city: formData.city,
+                    state: formData.state,
+                    country: formData.country,
+                    price: Number(formData.price) || 0
                 }
                 if (formData.end_date) draftPayload.end_date = formData.end_date
                 if (formData.end_time) draftPayload.end_time = formData.end_time

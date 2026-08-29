@@ -690,8 +690,12 @@ export async function executeSupabaseRequest(args) {
     }
 
     const url = typeof args === 'string' ? args : args.url || ''
-    const method = (typeof args === 'object' && args.method ? args.method.toUpperCase() : 'GET')
-    const body = typeof args === 'object' ? args.body : undefined
+    let body = typeof args === 'object' ? args.body : undefined
+    if (typeof body === 'string') {
+        try {
+            body = JSON.parse(body)
+        } catch {}
+    }
     const params = typeof args === 'object' && args.params ? args.params : {}
 
     // Extract query string parameters from URL if present

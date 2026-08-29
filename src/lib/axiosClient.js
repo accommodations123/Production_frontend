@@ -19,10 +19,19 @@ export const axiosClient = axios.create({
                 } catch {}
             }
 
+            let body = config.data;
+            if (typeof body === 'string') {
+                try {
+                    body = JSON.parse(body);
+                } catch {
+                    // keep raw if not JSON
+                }
+            }
+
             const result = await executeSupabaseRequest({
                 url,
                 method: config.method ? config.method.toUpperCase() : 'GET',
-                body: config.data,
+                body,
                 params: config.params,
                 headers: config.headers
             });
