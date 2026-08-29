@@ -124,6 +124,8 @@ export default function PostStayRequestModal({ onClose, onAdd }) {
       if (locationMod && targetCountry?.isoCode) {
         const states = locationMod.State.getStatesOfCountry(targetCountry.isoCode);
         setStatesList(states || []);
+        const countryCities = locationMod.City.getCitiesOfCountry(targetCountry.isoCode) || [];
+        setCitiesList(countryCities);
       }
     }
   }, [activeCountry, countriesList, locationMod, selectedCountry]);
@@ -134,14 +136,21 @@ export default function PostStayRequestModal({ onClose, onAdd }) {
   };
 
   const handleCountryChange = (country) => {
-    if (!locationMod) return;
-    const countryName = country?.name || country;
+    const countryName = typeof country === "object" ? (country?.name || country?.label || "") : String(country || "");
+    const selectedCountryObj = (typeof country === "object" && country?.isoCode)
+      ? country
+      : countriesList.find(
+          (c) =>
+            c.name?.toLowerCase() === countryName.toLowerCase() ||
+            c.isoCode?.toLowerCase() === countryName.toLowerCase()
+        );
+
     const derivedCurrency =
       country?.currency ||
-      getCurrencyForCountry(countryName || country?.isoCode) ||
+      getCurrencyForCountry(countryName || selectedCountryObj?.isoCode) ||
       "INR";
 
-    setSelectedCountry(country);
+    setSelectedCountry(selectedCountryObj || { name: countryName, isoCode: countryName });
     setForm((prev) => ({
       ...prev,
       country: countryName,
@@ -149,24 +158,45 @@ export default function PostStayRequestModal({ onClose, onAdd }) {
       state: "",
       city: ""
     }));
-    setStatesList(locationMod.State.getStatesOfCountry(country.isoCode) || []);
-    setCitiesList([]);
-    setCitiesFetched(false);
     setSelectedState(null);
+
+    const countryIso = selectedCountryObj?.isoCode;
+    if (locationMod && countryIso) {
+      setStatesList(locationMod.State.getStatesOfCountry(countryIso) || []);
+      setCitiesList(locationMod.City.getCitiesOfCountry(countryIso) || []);
+    } else {
+      setStatesList([]);
+      setCitiesList([]);
+    }
+    setCitiesFetched(false);
   };
 
   const handleStateChange = (state) => {
-    if (!locationMod) return;
-    setSelectedState(state);
-    setForm((prev) => ({ ...prev, state: state.name, city: "" }));
-    if (selectedCountry) {
-      setCitiesList(locationMod.City.getCitiesOfState(selectedCountry.isoCode, state.isoCode));
+    const stateName = typeof state === "object" ? (state?.name || state?.label || "") : String(state || "");
+    const selectedStateObj = (typeof state === "object" && state?.isoCode)
+      ? state
+      : statesList.find(
+          (s) =>
+            s.name?.toLowerCase() === stateName.toLowerCase() ||
+            s.isoCode?.toLowerCase() === stateName.toLowerCase()
+        );
+
+    setSelectedState(selectedStateObj || { name: stateName, isoCode: stateName });
+    setForm((prev) => ({ ...prev, state: stateName, city: "" }));
+
+    const countryIso = selectedCountry?.isoCode || (countriesList.find(c => c.name?.toLowerCase() === form.country?.toLowerCase())?.isoCode);
+    const stateIso = selectedStateObj?.isoCode;
+
+    if (locationMod && countryIso && stateIso) {
+      const stateCities = locationMod.City.getCitiesOfState(countryIso, stateIso);
+      setCitiesList(stateCities || []);
       setCitiesFetched(true);
     }
   };
 
   const handleCityChange = (city) => {
-    setForm((prev) => ({ ...prev, city: city.name }));
+    const cityName = typeof city === "object" ? (city?.name || city?.label || city?.value || "") : String(city || "");
+    setForm((prev) => ({ ...prev, city: cityName }));
   };
 
   const validateForm = () => {

@@ -196,17 +196,27 @@ export default function PostStayRequestPage() {
       }));
 
       const activeStateObj = locationMod?.State || locationMod?.default?.State;
+      let states = [];
       if (activeStateObj && targetCountry?.isoCode) {
-        const states = activeStateObj.getStatesOfCountry(targetCountry.isoCode);
-        setStatesList(states || []);
-      } else {
-        const fallbackStates = FALLBACK_LOCATION_DATA[targetCountry.name]
+        states = activeStateObj.getStatesOfCountry(targetCountry.isoCode) || [];
+      }
+      if (!states || states.length === 0) {
+        states = FALLBACK_LOCATION_DATA[targetCountry.name]
           ? Object.keys(FALLBACK_LOCATION_DATA[targetCountry.name]).map((s) => ({
               name: s,
+              label: s,
               isoCode: s,
             }))
           : [];
-        setStatesList(fallbackStates);
+      } else {
+        states = states.map((s) => ({ name: s.name, label: s.name, isoCode: s.isoCode, ...s }));
+      }
+      setStatesList(states);
+
+      const activeCityObj = locationMod?.City || locationMod?.default?.City;
+      if (activeCityObj && targetCountry?.isoCode) {
+        const countryCities = activeCityObj.getCitiesOfCountry(targetCountry.isoCode) || [];
+        setCitiesList(countryCities.map((c) => ({ name: c.name, label: c.name, value: c.name, ...c })));
       }
     }
   }, [activeCountry, countriesList, locationMod, selectedCountry]);
@@ -231,13 +241,21 @@ export default function PostStayRequestPage() {
   };
 
   const handleCountryChange = (country) => {
-    const countryName = country?.name || country;
+    const countryName = typeof country === "object" ? (country?.name || country?.label || "") : String(country || "");
+    const selectedCountryObj = (typeof country === "object" && country?.isoCode)
+      ? country
+      : countriesList.find(
+          (c) =>
+            c.name?.toLowerCase() === countryName.toLowerCase() ||
+            c.isoCode?.toLowerCase() === countryName.toLowerCase()
+        );
+
     const derivedCurrency =
       country?.currency ||
-      getCurrencyForCountry(countryName || country?.isoCode) ||
+      getCurrencyForCountry(countryName || selectedCountryObj?.isoCode) ||
       "INR";
 
-    setSelectedCountry(country);
+    setSelectedCountry(selectedCountryObj || { name: countryName, isoCode: countryName });
     setForm((prev) => ({
       ...prev,
       country: countryName,
@@ -248,38 +266,68 @@ export default function PostStayRequestPage() {
     setSelectedState(null);
 
     const activeStateObj = locationMod?.State || locationMod?.default?.State;
-    if (activeStateObj && country?.isoCode) {
-      const states = activeStateObj.getStatesOfCountry(country.isoCode);
-      setStatesList(states || []);
-    } else {
-      const fallbackStates = FALLBACK_LOCATION_DATA[countryName]
-        ? Object.keys(FALLBACK_LOCATION_DATA[countryName]).map((s) => ({ name: s, isoCode: s }))
-        : [];
-      setStatesList(fallbackStates);
+    const countryIso = selectedCountryObj?.isoCode;
+
+    let states = [];
+    if (activeStateObj && countryIso) {
+      states = activeStateObj.getStatesOfCountry(countryIso) || [];
     }
-    setCitiesList([]);
+
+    if (!states || states.length === 0) {
+      const fallbackStates = FALLBACK_LOCATION_DATA[countryName]
+        ? Object.keys(FALLBACK_LOCATION_DATA[countryName]).map((s) => ({ name: s, label: s, isoCode: s }))
+        : [];
+      states = fallbackStates;
+    } else {
+      states = states.map((s) => ({ name: s.name, label: s.name, isoCode: s.isoCode, ...s }));
+    }
+    setStatesList(states);
+
+    // Preload cities of country
+    const activeCityObj = locationMod?.City || locationMod?.default?.City;
+    if (activeCityObj && countryIso) {
+      const countryCities = activeCityObj.getCitiesOfCountry(countryIso) || [];
+      setCitiesList(countryCities.map((c) => ({ name: c.name, label: c.name, value: c.name, ...c })));
+    } else {
+      setCitiesList([]);
+    }
   };
 
   const handleStateChange = (state) => {
-    const stateName = state?.name || state;
-    setSelectedState(state);
+    const stateName = typeof state === "object" ? (state?.name || state?.label || "") : String(state || "");
+    const selectedStateObj = (typeof state === "object" && state?.isoCode)
+      ? state
+      : statesList.find(
+          (s) =>
+            s.name?.toLowerCase() === stateName.toLowerCase() ||
+            s.isoCode?.toLowerCase() === stateName.toLowerCase()
+        );
+
+    setSelectedState(selectedStateObj || { name: stateName, isoCode: stateName });
     setForm((prev) => ({ ...prev, state: stateName, city: "" }));
 
     const activeCityObj = locationMod?.City || locationMod?.default?.City;
-    if (activeCityObj && selectedCountry?.isoCode && state?.isoCode) {
-      const cities = activeCityObj.getCitiesOfState(selectedCountry.isoCode, state.isoCode);
-      setCitiesList(cities);
-    } else {
-      const countryName = selectedCountry?.name || selectedCountry;
-      const fallbackCities = (FALLBACK_LOCATION_DATA[countryName] && FALLBACK_LOCATION_DATA[countryName][stateName])
-        ? FALLBACK_LOCATION_DATA[countryName][stateName].map((c) => ({ name: c }))
-        : [];
-      setCitiesList(fallbackCities);
+    const countryIso = selectedCountry?.isoCode || (countriesList.find(c => c.name?.toLowerCase() === form.country?.toLowerCase())?.isoCode) || "IN";
+    const stateIso = selectedStateObj?.isoCode;
+
+    let cities = [];
+    if (activeCityObj && countryIso && stateIso) {
+      cities = activeCityObj.getCitiesOfState(countryIso, stateIso) || [];
     }
+
+    if (!cities || cities.length === 0) {
+      const countryName = selectedCountry?.name || form.country || "India";
+      const fallback = (FALLBACK_LOCATION_DATA[countryName] && FALLBACK_LOCATION_DATA[countryName][stateName]) || [];
+      cities = fallback.map((c) => ({ name: c, label: c, value: c }));
+    } else {
+      cities = cities.map((c) => ({ name: c.name, label: c.name, value: c.name, ...c }));
+    }
+
+    setCitiesList(cities);
   };
 
   const handleCityChange = (city) => {
-    const cityName = city?.name || city;
+    const cityName = typeof city === "object" ? (city?.name || city?.label || city?.value || "") : String(city || "");
     setForm((prev) => ({ ...prev, city: cityName }));
   };
 

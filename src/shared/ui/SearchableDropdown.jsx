@@ -20,9 +20,24 @@ const SearchableDropdown = ({
     required = false,
 }) => {
     const activeOptions = useMemo(() => {
-        if (Array.isArray(options) && options.length > 0) return options;
-        if (Array.isArray(items) && items.length > 0) return items;
-        return Array.isArray(options) ? options : Array.isArray(items) ? items : [];
+        const raw = (Array.isArray(options) && options.length > 0)
+            ? options
+            : ((Array.isArray(items) && items.length > 0)
+                ? items
+                : (Array.isArray(options) ? options : (Array.isArray(items) ? items : [])));
+        return raw.map((opt) => {
+            if (typeof opt === "string" || typeof opt === "number") {
+                return { name: String(opt), label: String(opt), value: String(opt) };
+            }
+            if (opt && typeof opt === "object") {
+                return {
+                    ...opt,
+                    name: opt.name || opt.label || opt.title || opt.value || "",
+                    label: opt.label || opt.name || opt.title || opt.value || "",
+                };
+            }
+            return opt;
+        });
     }, [options, items]);
 
     const activeValue = value !== undefined && value !== null ? value : selectedItem;
