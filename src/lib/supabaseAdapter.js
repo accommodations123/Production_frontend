@@ -596,7 +596,10 @@ const VALID_EVENT_COLUMNS = new Set([
     'id', 'title', 'description', 'organizer_name', 'organizer_email',
     'category', 'location', 'city', 'country', 'start_date', 'end_date',
     'time', 'price', 'capacity', 'banner_image', 'images', 'status',
-    'is_approved', 'rejection_reason', 'created_at', 'updated_at'
+    'is_approved', 'rejection_reason', 'created_at', 'updated_at',
+    'event_mode', 'end_time', 'event_url', 'phone', 'state', 'zip_code',
+    'landmark', 'venue_name', 'venue_description', 'what_is_included',
+    'what_is_not_included', 'parking_info', 'accessibility_info'
 ]);
 
 function sanitizeEventData(data, isCreate = false) {
@@ -656,6 +659,46 @@ function sanitizeEventData(data, isCreate = false) {
     const timeVal = data.time || data.start_time || data.startTime;
     if (timeVal !== undefined && timeVal !== null && String(timeVal).trim() !== '') {
         sanitized.time = String(timeVal).trim();
+    }
+
+    if (data.event_mode !== undefined && data.event_mode !== null) {
+        sanitized.event_mode = String(data.event_mode).trim();
+    }
+    if (data.end_time !== undefined && data.end_time !== null) {
+        sanitized.end_time = String(data.end_time).trim();
+    }
+    if (data.event_url !== undefined && data.event_url !== null) {
+        sanitized.event_url = String(data.event_url).trim();
+    }
+    if (data.phone !== undefined && data.phone !== null) {
+        sanitized.phone = String(data.phone).trim();
+    }
+    if (data.state !== undefined && data.state !== null) {
+        sanitized.state = String(data.state).trim();
+    }
+    if (data.zip_code || data.zip) {
+        sanitized.zip_code = String(data.zip_code || data.zip).trim();
+    }
+    if (data.landmark !== undefined && data.landmark !== null) {
+        sanitized.landmark = String(data.landmark).trim();
+    }
+    if (data.venue_name !== undefined && data.venue_name !== null) {
+        sanitized.venue_name = String(data.venue_name).trim();
+    }
+    if (data.venue_description !== undefined && data.venue_description !== null) {
+        sanitized.venue_description = String(data.venue_description).trim();
+    }
+    if (data.what_is_included !== undefined && data.what_is_included !== null) {
+        sanitized.what_is_included = Array.isArray(data.what_is_included) ? data.what_is_included.join(', ') : String(data.what_is_included);
+    }
+    if (data.what_is_not_included !== undefined && data.what_is_not_included !== null) {
+        sanitized.what_is_not_included = Array.isArray(data.what_is_not_included) ? data.what_is_not_included.join(', ') : String(data.what_is_not_included);
+    }
+    if (data.parking_info !== undefined && data.parking_info !== null) {
+        sanitized.parking_info = String(data.parking_info).trim();
+    }
+    if (data.accessibility_info !== undefined && data.accessibility_info !== null) {
+        sanitized.accessibility_info = String(data.accessibility_info).trim();
     }
 
     if (data.price !== undefined && data.price !== null && data.price !== '') {
