@@ -22,7 +22,9 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
     const getOrganizerName = () => {
         if (event.host?.full_name) return event.host.full_name;
         if (event.organizer) return event.organizer;
-        return "Unknown Organizer";
+        if (event.organizer_name) return event.organizer_name;
+        if (event.hostName) return event.hostName;
+        return "Host";
     };
 
     // Get event image with fallback

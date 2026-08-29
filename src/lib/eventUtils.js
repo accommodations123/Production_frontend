@@ -80,7 +80,13 @@ export const getEventEndDate = (event) => {
 
     if (endDate) {
         const resolved = buildDateTime(endDate, endTime)
-        if (resolved) return resolved
+        if (resolved) {
+            // Keep events active through the end of the day or at least 6 hours buffer
+            const endOfDay = new Date(resolved)
+            endOfDay.setHours(23, 59, 59, 999)
+            const withBuffer = new Date(resolved.getTime() + 6 * 60 * 60 * 1000)
+            return withBuffer > endOfDay ? withBuffer : endOfDay
+        }
     }
 
     // Fall back to start date + start time
@@ -90,15 +96,13 @@ export const getEventEndDate = (event) => {
     if (startDate) {
         const date = buildDateTime(startDate, startTime)
         if (date) {
+            const endOfDay = new Date(date)
+            endOfDay.setHours(23, 59, 59, 999)
             if (startTime) {
-                // Buffer by 4 hours after start time or end of the day, whichever is later
-                const withBuffer = new Date(date.getTime() + 4 * 60 * 60 * 1000)
-                const endOfDay = new Date(date)
-                endOfDay.setHours(23, 59, 59, 999)
+                const withBuffer = new Date(date.getTime() + 6 * 60 * 60 * 1000)
                 return withBuffer > endOfDay ? withBuffer : endOfDay
             }
-            date.setHours(23, 59, 59, 999)
-            return date
+            return endOfDay
         }
     }
 

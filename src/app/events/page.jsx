@@ -81,7 +81,11 @@ const EventsPage = () => {
 
   // Process events from API
   const eventsByCategory = useMemo(() => {
-    if (!apiEvents || apiEvents.length === 0) return {};
+    const rawEventsList = Array.isArray(apiEvents)
+      ? apiEvents
+      : (Array.isArray(apiEvents?.events) ? apiEvents.events : (Array.isArray(apiEvents?.data) ? apiEvents.data : []));
+
+    if (!rawEventsList || rawEventsList.length === 0) return {};
 
     const grouped = {};
     EVENT_CATEGORIES.forEach(cat => {
@@ -106,7 +110,7 @@ const EventsPage = () => {
     };
 
     // 1. Remove expired events first
-    const activeApiEvents = filterUpcomingEvents(apiEvents);
+    const activeApiEvents = filterUpcomingEvents(rawEventsList);
 
     // 2. Then filter by country
     const filteredApiEvents = activeApiEvents.filter(event => {
@@ -135,7 +139,7 @@ const EventsPage = () => {
     filteredApiEvents.forEach(event => {
       const categoryId = classifyEventCategory(event);
       const hostObj = event.Host || event.host || event.User || event.user || null;
-      const hostName = hostObj?.full_name || hostObj?.name || hostObj?.User?.full_name || event.organizer || event.hostName || "Host";
+      const hostName = hostObj?.full_name || hostObj?.name || hostObj?.User?.full_name || event.organizer_name || event.organizer || event.hostName || "Host";
       const hostPhoto = hostObj?.profile_image || hostObj?.selfie_photo || hostObj?.avatar || hostObj?.User?.profile_image || null;
 
       const locationStr = event.location || 
