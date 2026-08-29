@@ -25,13 +25,14 @@ export const authApi = createApi({
                     }
                     return obj;
                 };
-                // Handle both { user: {...} } and flat user object shapes
-                if (response?.user) {
+                if (response?.user && (response.user.id || response.user.email)) {
                     fixImage(response.user);
-                } else if (response) {
+                    return response.user;
+                } else if (response && (response.id || response.email)) {
                     fixImage(response);
+                    return response;
                 }
-                return response;
+                return null;
             },
         }),
         getMyTrips: builder.query({

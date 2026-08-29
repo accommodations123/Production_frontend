@@ -37,8 +37,9 @@ export function Navbar({ minimal = false, onMenuClick }) {
     const [isPeopleDropdownOpen, setIsPeopleDropdownOpen] = React.useState(false)
 
     // ================= AUTH STATE (BACKEND VERIFIED) =================
-    const { user: userData, loading: isAuthLoading, error: isAuthError } = useSelector((state) => state.auth)
-    const isAuthenticated = !!userData && !isAuthError
+    const { user: authUser, loading: isAuthLoading, error: isAuthError } = useSelector((state) => state.auth)
+    const userDetails = authUser?.user !== undefined ? authUser.user : authUser
+    const isAuthenticated = Boolean(userDetails && (userDetails.id || userDetails.email)) && !isAuthError
 
     // Automatically fetch current user session on mount
     React.useEffect(() => {
@@ -50,7 +51,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
         skip: !isAuthenticated,
     })
     const resolvedUser = React.useMemo(() => {
-        const userDetails = userData?.user || userData || {};
+        if (!isAuthenticated || !userDetails) return null;
 
         return {
             ...(hostProfile || {}),
@@ -66,9 +67,10 @@ export function Navbar({ minimal = false, onMenuClick }) {
                 return resolveImageUrl(rawKey);
             })()
         };
-    }, [userData, hostProfile]);
+    }, [isAuthenticated, userDetails, hostProfile]);
 
     const displayName = React.useMemo(() => {
+        if (!resolvedUser) return "User";
         const name = resolvedUser?.name;
         const fullName = resolvedUser?.full_name;
         const emailName = resolvedUser?.email?.split("@")[0];

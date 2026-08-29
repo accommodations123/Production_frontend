@@ -48,7 +48,12 @@ export const purgeAllUserCaches = (dispatch) => {
 const getInitialUser = () => {
     try {
         const stored = localStorage.getItem("user");
-        return stored ? JSON.parse(stored) : null;
+        if (!stored) return null;
+        const parsed = JSON.parse(stored);
+        if (parsed && (parsed.id || parsed.email)) {
+            return parsed;
+        }
+        return null;
     } catch {
         return null;
     }
@@ -64,7 +69,7 @@ export const fetchCurrentUser = createAsyncThunk(
             const { data: sessionData } = await supabase.auth.getSession();
             const sbUser = sessionData?.session?.user;
             if (sbUser) {
-                const token = sessionData.session.access_token;
+                const token = sessionData.session?.access_token;
                 if (token) localStorage.setItem('token', token);
 
                 const user = {
@@ -80,24 +85,18 @@ export const fetchCurrentUser = createAsyncThunk(
                 return { user };
             }
 
-            const stored = localStorage.getItem('user');
-            if (stored) {
-                try {
-                    return { user: JSON.parse(stored) };
-                } catch {
-                    // ignore
-                }
-            }
+            // No active session in Supabase - purge any legacy or stale data
+            try {
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+            } catch {}
+
             return { user: null };
         } catch (error) {
-            const stored = localStorage.getItem('user');
-            if (stored) {
-                try {
-                    return { user: JSON.parse(stored) };
-                } catch {
-                    // ignore
-                }
-            }
+            try {
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+            } catch {}
             return { user: null };
         }
     },
@@ -282,8 +281,14 @@ const authSlice = createSlice({
             })
             .addCase(fetchCurrentUser.fulfilled, (state, action) => {
                 state.loading = false;
-                state.user = action.payload?.user || action.payload;
-                state.isAuthenticated = !!state.user;
+                const raw = action.payload?.user !== undefined ? action.payload.user : action.payload;
+                if (raw && (raw.id || raw.email)) {
+                    state.user = raw;
+                    state.isAuthenticated = true;
+                } else {
+                    state.user = null;
+                    state.isAuthenticated = false;
+                }
             })
             .addCase(fetchCurrentUser.rejected, (state, action) => {
                 state.loading = false;
