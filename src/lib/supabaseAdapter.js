@@ -358,8 +358,9 @@ function sanitizeBuySellData(data, userId) {
     if (data.fuel_type || data.fuelType) sanitized.fuel_type = String(data.fuel_type || data.fuelType).trim();
     if (data.transmission) sanitized.transmission = String(data.transmission).trim();
 
-    // Status
-    sanitized.status = data.status || 'active';
+    // Status & Approval (new items must be pending review)
+    sanitized.status = data.status || 'pending';
+    sanitized.is_approved = data.is_approved !== undefined ? Boolean(data.is_approved) : false;
 
     // Images resolution
     let finalImages = [];
@@ -804,9 +805,55 @@ export async function executeSupabaseRequest(args) {
         }
 
         // ── 4. MARKETPLACE / BUY-SELL ──────────────────────────────
-        if (cleanUrl.startsWith('buy-sell') || cleanUrl.startsWith('marketplace')) {
+        if (cleanUrl.startsWith('buy-sell') || cleanUrl.startsWith('marketplace') || cleanUrl.startsWith('admin/buysell') || cleanUrl.startsWith('admin/buy-sell') || cleanUrl.startsWith('admin/pending/pending-buysell') || cleanUrl.startsWith('admin/approved/approved-buysell') || cleanUrl.startsWith('admin/rejected/rejected-buysell')) {
+            // Admin actions
+            if (cleanUrl.startsWith('admin/buysell/approve') || cleanUrl.startsWith('admin/buy-sell/approve') || cleanUrl.startsWith('buy-sell/approve') || cleanUrl.startsWith('marketplace/approve')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    const { data } = await supabase.from('buy_sell').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
+                    return { data: { success: true, listing: data, message: 'Buy/Sell listing approved' } }
+                }
+            }
+
+            if (cleanUrl.startsWith('admin/buysell/reject') || cleanUrl.startsWith('admin/buy-sell/reject') || cleanUrl.startsWith('buy-sell/reject') || cleanUrl.startsWith('marketplace/reject')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    const { data } = await supabase.from('buy_sell').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
+                    return { data: { success: true, listing: data, message: 'Buy/Sell listing rejected' } }
+                }
+            }
+
+            if (cleanUrl === 'admin/pending/pending-buysell' || cleanUrl === 'admin/pending/pending-buy-sell' || cleanUrl === 'admin/buysell/pending' || cleanUrl === 'admin/buy-sell/pending' || cleanUrl === 'buy-sell/admin/pending') {
+                let query = supabase.from('buy_sell').select('*').or('is_approved.eq.false,status.eq.pending').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
+            if (cleanUrl === 'admin/approved/approved-buysell' || cleanUrl === 'admin/approved/approved-buy-sell' || cleanUrl === 'admin/buysell/approved' || cleanUrl === 'admin/buy-sell/approved' || cleanUrl === 'buy-sell/admin/approved') {
+                let query = supabase.from('buy_sell').select('*').or('is_approved.eq.true,status.eq.approved').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
+            if (cleanUrl === 'admin/rejected/rejected-buysell' || cleanUrl === 'admin/rejected/rejected-buy-sell' || cleanUrl === 'admin/buysell/rejected' || cleanUrl === 'admin/buy-sell/rejected' || cleanUrl === 'buy-sell/admin/rejected') {
+                let query = supabase.from('buy_sell').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
             if (cleanUrl === 'buy-sell/get' || cleanUrl === 'buy-sell/all' || cleanUrl === 'buy-sell' || cleanUrl === 'marketplace') {
-                let query = supabase.from('buy_sell').select('*').order('created_at', { ascending: false })
+                let query = supabase.from('buy_sell').select('*').or('is_approved.eq.true,status.eq.approved').order('created_at', { ascending: false })
                 if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
                     query = query.ilike('country', `%${queryParams.country}%`)
                 }
@@ -817,13 +864,13 @@ export async function executeSupabaseRequest(args) {
                     query = query.ilike('city', `%${queryParams.city}%`)
                 }
                 if (queryParams.category && queryParams.category !== 'All' && queryParams.category !== 'all') {
-                    query = query.eq('category', queryParams.category)
+                    query = query.ilike('category', `%${queryParams.category}%`)
                 }
                 if (queryParams.subcategory && queryParams.subcategory !== 'All') {
-                    query = query.eq('subcategory', queryParams.subcategory)
+                    query = query.ilike('subcategory', `%${queryParams.subcategory}%`)
                 }
                 if (queryParams.condition && queryParams.condition !== 'All') {
-                    query = query.eq('condition', queryParams.condition)
+                    query = query.ilike('condition', `%${queryParams.condition}%`)
                 }
                 const minP = queryParams.minPrice ?? queryParams.priceMin
                 if (minP !== undefined && minP !== '' && !isNaN(Number(minP))) {
@@ -877,7 +924,7 @@ export async function executeSupabaseRequest(args) {
                 }
                 const sanitized = sanitizeBuySellData(rawPayload, userId)
 
-                let currentPayload = { ...sanitized }
+                let currentPayload = { ...sanitized, status: 'pending', is_approved: false }
                 let insertRes = await supabase.from('buy_sell').insert(currentPayload).select().maybeSingle()
                 
                 // Adaptive recovery loop: dynamically strip non-existent columns reported by Supabase PostgREST PGRST204

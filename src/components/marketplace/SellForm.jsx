@@ -592,7 +592,8 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
     appendIfExists(formData, "name", name);
     appendIfExists(formData, "phone", `${phoneCode}${phone}`);
 
-    formData.append("status", "active");
+    formData.append("status", isEditing ? (initialData?.status || "pending") : "pending");
+    formData.append("is_approved", isEditing ? String(Boolean(initialData?.is_approved)) : "false");
     formData.append("existingImages", JSON.stringify(existingImages));
 
     // New images
@@ -606,20 +607,6 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
       }
     }
 
-    // Existing images to keep (if backend supports re-sending or if we just send deletions)
-    // The current backend likely expects 'galleryImages' for NEW uploads.
-    // For updating existing images, we might need a separate strategy or the backend might handle 'deleteImages' field.
-    // Assuming backend handles replacements or we just add new ones. 
-    // If backend replaces all images provided, we need to handle that. 
-    // Usually 'update' with FormData appends. 
-    // Let's assume for now we append new ones. 
-    // And if we deleted existing ones, we check if backend supports a 'delete_images' field. 
-    // If not, we might be limited. 
-    // But basic NEW image upload works.
-
-    // Pass existing images that were NOT deleted? 
-    // Usually backend handling varies. For now let's send new images.
-
     try {
       let res;
       if (isEditing && initialData?.id) {
@@ -628,7 +615,11 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
         res = await createBuySell(formData).unwrap();
       }
 
-      toast.success(isEditing ? "Listing updated successfully!" : "Product listed successfully!");
+      toast.success(
+        isEditing
+          ? "Listing updated successfully!"
+          : "Product submitted for review! It will appear once approved by admin."
+      );
       if (onPost) {
         onPost(res?.listing || res?.listings?.[0] || res?.data || res);
       }
