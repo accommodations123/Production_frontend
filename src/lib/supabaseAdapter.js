@@ -1002,13 +1002,59 @@ export async function executeSupabaseRequest(args) {
         }
 
         // ── 6. STAY REQUESTS ────────────────────────────────────────
-        if (cleanUrl.startsWith('stay-request')) {
+        if (cleanUrl.startsWith('stay-request') || cleanUrl.startsWith('admin/stay-request') || cleanUrl.startsWith('admin/pending/pending-stay-requests') || cleanUrl.startsWith('admin/approved/approved-stay-requests') || cleanUrl.startsWith('admin/rejected/rejected-stay-requests')) {
+            // Admin actions
+            if (cleanUrl.startsWith('admin/stay-request/approve') || cleanUrl.startsWith('admin/stay-requests/approve') || cleanUrl.startsWith('stay-request/approve')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    const { data } = await supabase.from('stay_requests').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
+                    return { data: { success: true, stay_request: data, message: 'Stay request approved' } }
+                }
+            }
+
+            if (cleanUrl.startsWith('admin/stay-request/reject') || cleanUrl.startsWith('admin/stay-requests/reject') || cleanUrl.startsWith('stay-request/reject')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    const { data } = await supabase.from('stay_requests').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
+                    return { data: { success: true, stay_request: data, message: 'Stay request rejected' } }
+                }
+            }
+
+            if (cleanUrl === 'admin/pending/pending-stay-requests' || cleanUrl === 'admin/stay-requests/pending' || cleanUrl === 'stay-request/admin/pending') {
+                let query = supabase.from('stay_requests').select('*').or('is_approved.eq.false,status.eq.pending').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
+            if (cleanUrl === 'admin/approved/approved-stay-requests' || cleanUrl === 'admin/stay-requests/approved' || cleanUrl === 'stay-request/admin/approved') {
+                let query = supabase.from('stay_requests').select('*').or('is_approved.eq.true,status.eq.approved').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
+            if (cleanUrl === 'admin/rejected/rejected-stay-requests' || cleanUrl === 'admin/stay-requests/rejected' || cleanUrl === 'stay-request/admin/rejected') {
+                let query = supabase.from('stay_requests').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    query = query.ilike('country', `%${queryParams.country}%`)
+                }
+                const { data } = await query
+                return { data: data || [] }
+            }
+
             // 1. Create Stay Request: POST stay-request
             if ((cleanUrl === 'stay-request' || cleanUrl === 'stay-request/create') && method === 'POST') {
                 const userId = await getCurrentUserId()
                 const sanitized = sanitizeStayRequestData(body, userId)
 
-                let currentPayload = { ...sanitized }
+                let currentPayload = { ...sanitized, status: 'pending', is_approved: false }
                 let insertRes = await supabase.from('stay_requests').insert(currentPayload).select().maybeSingle()
 
                 // Adaptive recovery loop for missing columns
@@ -1097,7 +1143,8 @@ export async function executeSupabaseRequest(args) {
             }
 
             // 7. Public Stay Requests Search & Listing: GET stay-request, GET stay-request/search
-            let query = supabase.from('stay_requests').select('*').order('created_at', { ascending: false })
+            // Only show APPROVED stay requests in the public UI
+            let query = supabase.from('stay_requests').select('*').or('is_approved.eq.true,status.eq.approved').order('created_at', { ascending: false })
             if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
                 query = query.ilike('country', `%${queryParams.country}%`)
             }
