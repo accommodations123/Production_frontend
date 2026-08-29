@@ -666,7 +666,7 @@ export async function executeSupabaseRequest(args) {
             }
 
             if (cleanUrl === 'property/all' || cleanUrl === 'property/approved' || cleanUrl === 'property' || cleanUrl === 'accommodations') {
-                let query = supabase.from('properties').select('*').eq('status', 'approved').order('created_at', { ascending: false })
+                let query = supabase.from('properties').select('*').neq('status', 'rejected').order('created_at', { ascending: false })
                 if (queryParams.country) {
                     query = query.ilike('country', `%${queryParams.country}%`)
                 }
@@ -788,7 +788,7 @@ export async function executeSupabaseRequest(args) {
             }
 
             // Generic properties fallback
-            const { data } = await supabase.from('properties').select('*').eq('status', 'approved').limit(20)
+            const { data } = await supabase.from('properties').select('*').neq('status', 'rejected').limit(20)
             const enriched = await enrichPropertiesWithHostDetails(data || [])
             return { data: { properties: enriched } }
         }

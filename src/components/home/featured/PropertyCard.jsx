@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Users, Bed, ShieldCheck, Bath } from 'lucide-react';
+import { MapPin, Users, Bed, ShieldCheck, ShieldAlert, Bath } from 'lucide-react';
 import { VerificationBadge } from '@/components/ui/VerificationBadge';
 import { SocialQuickConnect } from '@/components/ui/SocialConnect';
 import { useCountry } from '@/context/CountryContext';
@@ -137,10 +137,17 @@ export const PropertyCard = React.memo(({ property }) => {
 
                 {/* Top Badges */}
                 <div className="absolute top-4 left-4 z-20 flex gap-2">
-                    <div className="bg-green-500/90 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-green-400/50">
-                        <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                        <span className="text-xs font-bold text-white">Verified</span>
-                    </div>
+                    {propertyData.isVerified ? (
+                        <div className="bg-green-500/90 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-green-400/50">
+                            <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                            <span className="text-xs font-bold text-white">Verified</span>
+                        </div>
+                    ) : (
+                        <div className="bg-amber-500/90 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-amber-400/50">
+                            <ShieldAlert className="w-3.5 h-3.5 text-white" />
+                            <span className="text-xs font-bold text-white">Unverified</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Top Right Heart */}
