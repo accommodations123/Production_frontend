@@ -6,6 +6,7 @@ import { uploadToSupabaseStorage, uploadMultipleToSupabaseStorage } from '@/lib/
  * Handles all database queries, mutations, profile enrichments, and storage uploads.
  */
 
+// ── Database Schema Column Whitelists ──────────────────────────────
 const PROFILE_COLUMNS = new Set([
     'id', 'email', 'name', 'full_name', 'firstName', 'lastName', 'role', 'status',
     'is_approved', 'is_blocked', 'is_verified', 'is_featured', 'phone', 'city',
@@ -13,6 +14,45 @@ const PROFILE_COLUMNS = new Set([
     'last_login_at', 'created_at', 'updated_at', 'state', 'zip_code', 'address',
     'street_address', 'whatsapp', 'facebook', 'instagram', 'id_proof_type', 'id_photo',
     'selfie_photo', 'profile_image', 'avatar_url'
+]);
+
+const EVENT_COLUMNS = new Set([
+    'id', 'title', 'description', 'category', 'event_mode', 'location', 'venue_name',
+    'venue_description', 'city', 'state', 'country', 'zip_code', 'landmark',
+    'parking_info', 'accessibility_info', 'start_date', 'end_date', 'time', 'end_time',
+    'price', 'capacity', 'organizer_name', 'organizer_email', 'phone', 'event_url',
+    'banner_image', 'images', 'what_is_included', 'what_is_not_included', 'status',
+    'is_approved', 'created_at', 'updated_at'
+]);
+
+const PROPERTY_COLUMNS = new Set([
+    'id', 'title', 'description', 'status', 'is_approved', 'price', 'price_per_night',
+    'currency', 'city', 'state', 'country', 'zip_code', 'address', 'images', 'photos',
+    'host_id', 'email', 'phone', 'guests', 'bedrooms', 'bathrooms', 'amenities',
+    'rules', 'property_type', 'created_at', 'updated_at'
+]);
+
+const BUY_SELL_COLUMNS = new Set([
+    'id', 'title', 'name', 'description', 'category', 'status', 'price', 'currency',
+    'city', 'country', 'zip_code', 'images', 'user_id', 'email', 'phone', 'whatsapp',
+    'condition', 'created_at', 'updated_at'
+]);
+
+const TRAVEL_TRIP_COLUMNS = new Set([
+    'id', 'title', 'status', 'price', 'host_id', 'destination', 'origin',
+    'created_at', 'updated_at'
+]);
+
+const STAY_REQUEST_COLUMNS = new Set([
+    'id', 'title', 'description', 'status', 'is_approved', 'currency', 'city',
+    'country', 'images', 'photos', 'user_id', 'email', 'phone', 'guests', 'budget',
+    'check_in', 'check_out', 'room_type', 'created_at', 'updated_at'
+]);
+
+const JOB_COLUMNS = new Set([
+    'id', 'title', 'description', 'status', 'currency', 'location', 'job_type',
+    'experience_level', 'salary_min', 'salary_max', 'requirements', 'skills',
+    'responsibilities', 'created_at', 'updated_at'
 ]);
 
 function sanitizePayload(payload, allowedColumns) {
@@ -277,17 +317,20 @@ export async function executeSupabaseRequest(args) {
             }
             if ((cleanUrl.startsWith('property/create') || cleanUrl === 'property') && method === 'POST') {
                 const userId = await getCurrentUserId()
-                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'properties') : body
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'properties') : { ...(body || {}) }
                 payload.host_id = userId || payload.host_id
                 payload.status = payload.status || 'pending'
-                const { data, error } = await supabase.from('properties').insert(payload).select().maybeSingle()
+                payload.images = payload.images || payload.photos || []
+                const clean = sanitizePayload(payload, PROPERTY_COLUMNS)
+                const { data, error } = await supabase.from('properties').insert(clean).select().maybeSingle()
                 if (error) throw error
                 return { data: { property: data, id: data?.id, success: true } }
             }
             if (cleanUrl.startsWith('property/update/') || (cleanUrl.startsWith('property/') && (method === 'PUT' || method === 'PATCH'))) {
                 const id = cleanUrl.split('/').pop()
-                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'properties') : body
-                const { data, error } = await supabase.from('properties').update(payload).eq('id', id).select().maybeSingle()
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'properties') : { ...(body || {}) }
+                const clean = sanitizePayload(payload, PROPERTY_COLUMNS)
+                const { data, error } = await supabase.from('properties').update(clean).eq('id', id).select().maybeSingle()
                 if (error) throw error
                 return { data: { property: data, success: true } }
             }
@@ -335,15 +378,11 @@ export async function executeSupabaseRequest(args) {
                 return { data: await enrichEventsWithHostDetails(data || []) }
             }
             if (cleanUrl === 'events/my-events' || cleanUrl === 'events/my-listings' || cleanUrl === 'events/host/my-events') {
-                const userId = await getCurrentUserId()
+                const userObj = await getCurrentUserObject()
+                const userEmail = userObj?.email || userObj?.user?.email
                 let q = supabase.from('events').select('*').order('created_at', { ascending: false })
-                if (userId) {
-                    let userEmail = null
-                    try {
-                        const { data: u } = await supabase.from('profiles').select('email').eq('id', userId).maybeSingle()
-                        userEmail = u?.email
-                    } catch {}
-                    q = userEmail ? q.or(`organizer_email.eq.${userEmail},host_id.eq.${userId},created_by.eq.${userId}`) : q.or(`host_id.eq.${userId},created_by.eq.${userId}`)
+                if (userEmail) {
+                    q = q.eq('organizer_email', userEmail)
                 }
                 const { data } = await q
                 return { data: { events: await enrichEventsWithHostDetails(data || []) } }
@@ -380,11 +419,22 @@ export async function executeSupabaseRequest(args) {
                 }
             }
             if ((cleanUrl.startsWith('events/create') || cleanUrl === 'events') && method === 'POST') {
-                const userId = await getCurrentUserId()
-                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'events') : body
-                payload.host_id = userId || payload.host_id
+                const userObj = await getCurrentUserObject()
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'events') : { ...(body || {}) }
+                
+                // Map and normalize event fields
+                payload.organizer_email = payload.organizer_email || payload.email || userObj?.email
+                payload.organizer_name = payload.organizer_name || payload.host_name || userObj?.full_name || userObj?.name || 'Organizer'
+                payload.phone = payload.phone || userObj?.phone
+                payload.start_date = payload.start_date || payload.date
+                payload.category = payload.category || payload.event_type || 'meetup'
+                payload.banner_image = payload.banner_image || payload.bannerImage || payload.banner
+                payload.images = payload.images || payload.galleryImages || (payload.banner_image ? [payload.banner_image] : [])
                 payload.status = payload.status || 'pending'
-                const { data, error } = await supabase.from('events').insert(payload).select().maybeSingle()
+                payload.is_approved = false
+
+                const clean = sanitizePayload(payload, EVENT_COLUMNS)
+                const { data, error } = await supabase.from('events').insert(clean).select().maybeSingle()
                 if (error) throw error
                 return { data: { event: data, id: data?.id, success: true } }
             }
@@ -392,15 +442,16 @@ export async function executeSupabaseRequest(args) {
                 const id = cleanUrl.split('/').pop()
                 const uploaded = body instanceof FormData ? await parseFormDataWithUploads(body, 'events') : {}
                 if (id && (uploaded.banner_image || uploaded.images)) {
-                    await supabase.from('events').update(uploaded).eq('id', id)
+                    await supabase.from('events').update(sanitizePayload(uploaded, EVENT_COLUMNS)).eq('id', id)
                 }
                 return { data: { success: true, ...uploaded } }
             }
             if (cleanUrl.startsWith('events/basic-info/') || cleanUrl.startsWith('events/location/') || cleanUrl.startsWith('events/venue/') || cleanUrl.startsWith('events/schedule/') || cleanUrl.startsWith('events/pricing/') || cleanUrl.startsWith('events/submit/') || cleanUrl.startsWith('events/update/')) {
                 const id = cleanUrl.split('/').pop()
-                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'events') : body
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'events') : { ...(body || {}) }
                 if (cleanUrl.startsWith('events/submit/')) payload.status = 'pending'
-                const { data, error } = await supabase.from('events').update(payload).eq('id', id).select().maybeSingle()
+                const clean = sanitizePayload(payload, EVENT_COLUMNS)
+                const { data, error } = await supabase.from('events').update(clean).eq('id', id).select().maybeSingle()
                 if (error) throw error
                 return { data: { event: data, success: true } }
             }
@@ -452,24 +503,27 @@ export async function executeSupabaseRequest(args) {
             if (cleanUrl.includes('my-listings') || cleanUrl.includes('my-items') || cleanUrl.includes('my-buy-sell')) {
                 const userId = await getCurrentUserId()
                 let q = supabase.from('buy_sell').select('*').order('created_at', { ascending: false })
-                if (userId) q = q.or(`user_id.eq.${userId},host_id.eq.${userId}`)
+                if (userId) q = q.eq('user_id', userId)
                 const { data } = await q
                 return { data: { listings: await enrichBuySellWithHostDetails(data || []) } }
             }
             if ((cleanUrl.startsWith('buy-sell/create') || cleanUrl === 'buy-sell' || cleanUrl === 'marketplace/create') && method === 'POST') {
                 const userId = await getCurrentUserId()
-                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'marketplace') : body
-                payload.user_id = userId || payload.user_id
-                payload.host_id = userId || payload.host_id
-                payload.status = payload.status || 'approved'
-                const { data, error } = await supabase.from('buy_sell').insert(payload).select().maybeSingle()
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'marketplace') : { ...(body || {}) }
+                payload.user_id = userId || payload.user_id || payload.host_id
+                payload.title = payload.title || payload.name
+                payload.images = payload.images || payload.photos || []
+                payload.status = payload.status || 'pending'
+                const clean = sanitizePayload(payload, BUY_SELL_COLUMNS)
+                const { data, error } = await supabase.from('buy_sell').insert(clean).select().maybeSingle()
                 if (error) throw error
                 return { data: { listing: data, success: true } }
             }
             if (cleanUrl.startsWith('buy-sell/update/') || (cleanUrl.startsWith('buy-sell/') && (method === 'PUT' || method === 'PATCH') && !cleanUrl.includes('sold'))) {
                 const id = cleanUrl.split('/').pop()
-                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'marketplace') : body
-                const { data, error } = await supabase.from('buy_sell').update(payload).eq('id', id).select().maybeSingle()
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'marketplace') : { ...(body || {}) }
+                const clean = sanitizePayload(payload, BUY_SELL_COLUMNS)
+                const { data, error } = await supabase.from('buy_sell').update(clean).eq('id', id).select().maybeSingle()
                 if (error) throw error
                 return { data: { listing: data, success: true } }
             }
@@ -499,9 +553,11 @@ export async function executeSupabaseRequest(args) {
         if (cleanUrl.startsWith('travel') || cleanUrl.startsWith('trips')) {
             if ((cleanUrl === 'travel/trips' || cleanUrl === 'trips') && method === 'POST') {
                 const userId = await getCurrentUserId()
-                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'travel') : body
-                payload.host_id = userId || payload.host_id
-                const { data, error } = await supabase.from('travel_trips').insert(payload).select().maybeSingle()
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'travel') : { ...(body || {}) }
+                payload.host_id = userId || payload.host_id || payload.user_id
+                payload.status = payload.status || 'pending'
+                const clean = sanitizePayload(payload, TRAVEL_TRIP_COLUMNS)
+                const { data, error } = await supabase.from('travel_trips').insert(clean).select().maybeSingle()
                 if (error) throw error
                 return { data: { trip: data, success: true } }
             }
@@ -528,9 +584,11 @@ export async function executeSupabaseRequest(args) {
         if (cleanUrl.startsWith('stay-request')) {
             if (cleanUrl === 'stay-request/create' && method === 'POST') {
                 const userId = await getCurrentUserId()
-                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'stay_requests') : body
-                payload.user_id = userId || payload.user_id
-                const { data, error } = await supabase.from('stay_requests').insert(payload).select().maybeSingle()
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'stay_requests') : { ...(body || {}) }
+                payload.user_id = userId || payload.user_id || payload.host_id
+                payload.status = payload.status || 'pending'
+                const clean = sanitizePayload(payload, STAY_REQUEST_COLUMNS)
+                const { data, error } = await supabase.from('stay_requests').insert(clean).select().maybeSingle()
                 if (error) throw error
                 return { data: { request: data, success: true } }
             }
@@ -642,6 +700,14 @@ export async function executeSupabaseRequest(args) {
 
         // ── 7. CAREER & JOBS ────────────────────────────────────────
         if (cleanUrl.startsWith('career') || cleanUrl.startsWith('jobs')) {
+            if ((cleanUrl === 'career/create' || cleanUrl === 'jobs/create' || cleanUrl === 'jobs') && method === 'POST') {
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'jobs') : { ...(body || {}) }
+                payload.status = payload.status || 'active'
+                const clean = sanitizePayload(payload, JOB_COLUMNS)
+                const { data, error } = await supabase.from('jobs').insert(clean).select().maybeSingle()
+                if (error) throw error
+                return { data: { job: data, success: true } }
+            }
             const { data } = await supabase.from('jobs').select('*').order('created_at', { ascending: false })
             return { data: { jobs: data || [] } }
         }
