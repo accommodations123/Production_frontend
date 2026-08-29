@@ -6,7 +6,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { EVENT_CATEGORIES } from "@/lib/mock-events"
 import { TrendingUp, Sparkles, ChevronRight } from "lucide-react"
-import { useGetApprovedEventsQuery } from "@/store/api/eventApi"
+import { useGetApprovedEventsQuery } from "@/store/api/hostApi"
 import { useCountry } from "@/context/CountryContext"
 import { filterUpcomingEvents } from "@/lib/eventUtils"
 
@@ -85,7 +85,7 @@ const EventsPage = () => {
 
   const [searchResultEvents, setSearchResultEvents] = useState([]); // Or just useMemo
 
-  // Process events from API
+  // Process events from API — same defensive extraction as marketplace
   const eventsByCategory = useMemo(() => {
     let rawEventsList = [];
     if (Array.isArray(apiEvents)) {
@@ -99,6 +99,7 @@ const EventsPage = () => {
     }
 
     if (!rawEventsList || rawEventsList.length === 0) return {};
+
 
     const grouped = {};
     EVENT_CATEGORIES.forEach(cat => {

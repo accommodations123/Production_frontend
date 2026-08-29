@@ -635,8 +635,15 @@ function sanitizeEventData(data, isCreate = false) {
     }
 
     if (data.country !== undefined && data.country !== null) {
-        const countryStr = typeof data.country === 'string' ? data.country : data.country?.name || data.country?.label || '';
-        if (countryStr.trim() !== '') sanitized.country = countryStr.trim();
+        let countryStr = typeof data.country === 'string' ? data.country : data.country?.name || data.country?.label || '';
+        countryStr = countryStr.trim();
+        // Resolve 2-letter country codes to full names (same format as buy_sell)
+        if (countryStr.length === 2) {
+            const codeMap = { IN: 'India', US: 'United States of America', GB: 'United Kingdom', CA: 'Canada', AU: 'Australia', DE: 'Germany', FR: 'France', JP: 'Japan', CN: 'China', BR: 'Brazil', ZA: 'South Africa', AE: 'United Arab Emirates', SG: 'Singapore', NZ: 'New Zealand', MX: 'Mexico', IT: 'Italy', ES: 'Spain', KR: 'South Korea', RU: 'Russia', SA: 'Saudi Arabia', MY: 'Malaysia', TH: 'Thailand', PH: 'Philippines', ID: 'Indonesia', NG: 'Nigeria', KE: 'Kenya', GH: 'Ghana', EG: 'Egypt', PK: 'Pakistan', BD: 'Bangladesh', LK: 'Sri Lanka', NP: 'Nepal' };
+            const resolved = codeMap[countryStr.toUpperCase()];
+            if (resolved) countryStr = resolved;
+        }
+        if (countryStr !== '') sanitized.country = countryStr;
     }
 
     if (data.organizer_name || data.organizerName) {
@@ -1087,6 +1094,15 @@ export async function executeSupabaseRequest(args) {
 
             if (cleanUrl === 'events/approved' || cleanUrl === 'events/all' || cleanUrl === 'events') {
                 let query = supabase.from('events').select('*').eq('status', 'approved').order('created_at', { ascending: false })
+                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
+                    const c = queryParams.country.trim()
+                    // Handle both country codes (IN) and full names (India) stored in DB
+                    const codeMap = { IN: 'India', US: 'United States of America', GB: 'United Kingdom', CA: 'Canada', AU: 'Australia', DE: 'Germany', FR: 'France', JP: 'Japan', CN: 'China', BR: 'Brazil', ZA: 'South Africa', AE: 'United Arab Emirates', SG: 'Singapore', NZ: 'New Zealand', MX: 'Mexico', IT: 'Italy', ES: 'Spain', KR: 'South Korea', RU: 'Russia', SA: 'Saudi Arabia', MY: 'Malaysia', TH: 'Thailand', PH: 'Philippines', ID: 'Indonesia', NG: 'Nigeria', KE: 'Kenya', GH: 'Ghana', EG: 'Egypt', PK: 'Pakistan', BD: 'Bangladesh', LK: 'Sri Lanka', NP: 'Nepal' }
+                    const nameMap = Object.fromEntries(Object.entries(codeMap).map(([k, v]) => [v.toLowerCase(), k]))
+                    const resolvedName = c.length === 2 ? (codeMap[c.toUpperCase()] || c) : c
+                    const resolvedCode = c.length === 2 ? c.toUpperCase() : (nameMap[c.toLowerCase()] || c)
+                    query = query.or(`country.eq.${resolvedCode},country.ilike.%${resolvedName}%`)
+                }
                 if (queryParams.limit) {
                     query = query.limit(Number(queryParams.limit))
                 }
@@ -1279,7 +1295,7 @@ export async function executeSupabaseRequest(args) {
                 return { data: data || [] }
             }
 
-            if (cleanUrl === 'buy-sell/approved' || cleanUrl === 'buy-sell/all' || cleanUrl === 'buy-sell' || cleanUrl === 'marketplace' || cleanUrl === 'marketplace/approved') {
+            if (cleanUrl === 'buy-sell/approved' || cleanUrl === 'buy-sell/all' || cleanUrl === 'buy-sell' || cleanUrl === 'buy-sell/get' || cleanUrl === 'marketplace' || cleanUrl === 'marketplace/approved') {
                 let query = supabase.from('buy_sell').select('*').eq('status', 'approved').order('created_at', { ascending: false })
                 if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
                     query = query.ilike('country', `%${queryParams.country}%`)
