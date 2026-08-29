@@ -375,15 +375,9 @@ const SingleProductView = ({ product: initialProduct, onBack }) => {
                     <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">
                       {product.category || "General"}
                     </Badge>
-                    {product.status === "active" ? (
-                      <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1 pl-1 pr-2 hover:bg-emerald-100">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Listing
-                      </Badge>
-                    ) : (
-                      <Badge className="bg-red-50 text-red-700 border-red-200 gap-1 pl-1 pr-2 hover:bg-red-100">
-                        <ShieldCheck className="w-3.5 h-3.5 text-red-600" /> Unverified Listing
-                      </Badge>
-                    )}
+                    <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1 pl-1 pr-2 hover:bg-emerald-100">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Listing
+                    </Badge>
                   </div>
                   <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight leading-tight">
                     {product.title}

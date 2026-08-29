@@ -137,18 +137,10 @@ export const PropertyCard = React.memo(({ property }) => {
 
                 {/* Top Badges */}
                 <div className="absolute top-4 left-4 z-20 flex gap-2">
-                    {propertyData.isVerified ? (
-                        <div className="bg-green-500/90 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-green-400/50">
-                            <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                            <span className="text-xs font-bold text-white">Verified</span>
-                        </div>
-                    ) : (
-                        <div className="bg-red-500/90 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-red-400/50">
-                            <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                            <span className="text-xs font-bold text-white">Unverified</span>
-                        </div>
-                    )}
-
+                    <div className="bg-green-500/90 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-green-400/50">
+                        <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                        <span className="text-xs font-bold text-white">Verified</span>
+                    </div>
                 </div>
 
                 {/* Top Right Heart */}
