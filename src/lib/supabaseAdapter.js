@@ -6,6 +6,26 @@ import { uploadToSupabaseStorage, uploadMultipleToSupabaseStorage } from '@/lib/
  * Handles all database queries, mutations, profile enrichments, and storage uploads.
  */
 
+const PROFILE_COLUMNS = new Set([
+    'id', 'email', 'name', 'full_name', 'firstName', 'lastName', 'role', 'status',
+    'is_approved', 'is_blocked', 'is_verified', 'is_featured', 'phone', 'city',
+    'country', 'occupation', 'headline', 'profession', 'rejection_reason', 'block_reason',
+    'last_login_at', 'created_at', 'updated_at', 'state', 'zip_code', 'address',
+    'street_address', 'whatsapp', 'facebook', 'instagram', 'id_proof_type', 'id_photo',
+    'selfie_photo', 'profile_image', 'avatar_url'
+]);
+
+function sanitizePayload(payload, allowedColumns) {
+    if (!payload || typeof payload !== 'object') return payload;
+    const clean = {};
+    for (const [key, value] of Object.entries(payload)) {
+        if (allowedColumns.has(key)) {
+            clean[key] = value;
+        }
+    }
+    return clean;
+}
+
 // Helper to get active user object
 export async function getCurrentUserObject() {
     try {
@@ -589,11 +609,22 @@ export async function executeSupabaseRequest(args) {
             // Host application submission by user -> status: 'pending', is_approved: false
             if ((cleanUrl === 'host/save' || cleanUrl === 'host/update' || cleanUrl.startsWith('host/update/')) && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
                 const id = cleanUrl.split('/').pop() || userId
-                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'profiles') : body
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'profiles') : { ...(body || {}) }
+                
+                // Map common alias fields
+                if (payload.userId && !payload.id) payload.id = payload.userId;
+                if (payload.user_id && !payload.id) payload.id = payload.user_id;
+                if (payload.name && !payload.full_name) payload.full_name = payload.name;
+                if (payload.address && !payload.street_address) payload.street_address = payload.address;
+
+                payload.id = (id && id !== 'save' && id !== 'update') ? id : (userId || payload.id);
                 payload.status = payload.status || 'pending'
                 payload.is_approved = false
                 payload.role = payload.role || 'user'
-                const { data, error } = await supabase.from('profiles').upsert({ ...payload, id: id !== 'save' && id !== 'update' ? id : (userId || id) }).select().maybeSingle()
+
+                const cleanProfile = sanitizePayload(payload, PROFILE_COLUMNS)
+
+                const { data, error } = await supabase.from('profiles').upsert(cleanProfile).select().maybeSingle()
                 if (error) throw error
                 return { data: { host: data, profile: data, success: true } }
             }
