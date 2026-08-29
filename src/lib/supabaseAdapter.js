@@ -202,6 +202,70 @@ function sanitizePropertyData(data) {
     return sanitized;
 }
 
+async function enrichPropertiesWithHostDetails(items) {
+    if (!items) return []
+    const isSingle = !Array.isArray(items)
+    const array = isSingle ? [items] : items
+    if (array.length === 0) return isSingle ? items : []
+
+    const hostIds = [...new Set(array.map(p => p?.host_id).filter(Boolean))]
+    const hostMap = new Map()
+
+    if (hostIds.length > 0) {
+        try {
+            const { data: hostProfiles } = await supabase.from('profiles').select('*').in('id', hostIds)
+            if (hostProfiles && Array.isArray(hostProfiles)) {
+                for (const h of hostProfiles) {
+                    hostMap.set(h.id, h)
+                }
+            }
+        } catch (err) {
+            console.warn('Error fetching host profiles for properties:', err)
+        }
+    }
+
+    const enriched = array.map(p => {
+        if (!p) return p
+        const host = p.host_id ? hostMap.get(p.host_id) : null
+
+        const hostFullName = host?.full_name || host?.name || [host?.first_name, host?.last_name].filter(Boolean).join(' ') || p.host_name || p.hostName || p.user_name || null
+        const hostPhone = host?.phone || host?.whatsapp || p.phone || null
+        const hostEmail = host?.email || p.email || null
+        const hostImg = host?.profile_image || host?.avatar_url || p.host_image || null
+        const hostIsApproved = host?.is_approved !== undefined ? Boolean(host.is_approved) : (host?.status === 'approved')
+        const hostStatus = host?.status || (hostIsApproved ? 'approved' : 'pending')
+
+        const hostObj = host ? {
+            ...host,
+            name: hostFullName,
+            full_name: hostFullName,
+            phone: hostPhone,
+            email: hostEmail,
+            profile_image: hostImg,
+            is_approved: hostIsApproved,
+            status: hostStatus,
+            User: host
+        } : (p.host || null)
+
+        return {
+            ...p,
+            host_name: hostFullName,
+            hostName: hostFullName,
+            user_name: hostFullName,
+            phone: hostPhone,
+            email: hostEmail,
+            host_phone: hostPhone,
+            host_email: hostEmail,
+            host_status: hostStatus,
+            host_is_approved: hostIsApproved,
+            host: hostObj,
+            User: hostObj || p.User || null
+        }
+    })
+
+    return isSingle ? enriched[0] : enriched
+}
+
 const VALID_PROFILE_COLUMNS = new Set([
     'id', 'email', 'name', 'full_name', 'firstName', 'lastName',
     'role', 'status', 'is_approved', 'is_blocked', 'is_verified',
@@ -480,7 +544,8 @@ export async function executeSupabaseRequest(args) {
                 }
                 const { data, error } = await query
                 if (error) throw error
-                return { data: { properties: data || [], total: data?.length || 0 } }
+                const enriched = await enrichPropertiesWithHostDetails(data || [])
+                return { data: { properties: enriched, total: enriched.length } }
             }
 
             if (cleanUrl === 'property/my-listings') {
@@ -493,21 +558,36 @@ export async function executeSupabaseRequest(args) {
                 if (error) {
                     return { data: { properties: [] } }
                 }
-                return { data: { properties: data || [] } }
+                const enriched = await enrichPropertiesWithHostDetails(data || [])
+                return { data: { properties: enriched } }
             }
 
             if ((cleanUrl === 'property/create-draft' || cleanUrl === 'property/create' || cleanUrl === 'property') && method === 'POST') {
                 const userId = await getCurrentUserId()
                 const rawData = (body instanceof FormData) ? await parseFormDataWithUploads(body, 'properties') : (body || {})
                 const payload = sanitizePropertyData(rawData)
-                if (userId) payload.host_id = userId
+                if (userId) {
+                    payload.host_id = userId
+                    try {
+                        const { data: hostProfile } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+                        if (hostProfile) {
+                            const hostName = hostProfile.full_name || hostProfile.name || ''
+                            if (hostName && !payload.host_name) payload.host_name = hostName
+                            if (hostName && !payload.hostName) payload.hostName = hostName
+                            if (hostName && !payload.user_name) payload.user_name = hostName
+                            if (hostProfile.phone && !payload.phone) payload.phone = hostProfile.phone
+                            if (hostProfile.email && !payload.email) payload.email = hostProfile.email
+                        }
+                    } catch (e) {}
+                }
                 payload.status = payload.status || 'draft'
                 const { data, error } = await supabase.from('properties').insert(payload).select().maybeSingle()
                 if (error) {
                     console.error('Supabase property create error:', error)
                     return { error: { status: 400, error: error.message } }
                 }
-                return { data: { property: data, propertyId: data?.id, data: data, id: data?.id, message: 'Property created' } }
+                const enriched = await enrichPropertiesWithHostDetails(data)
+                return { data: { property: enriched, propertyId: enriched?.id, data: enriched, id: enriched?.id, message: 'Property created' } }
             }
 
             // Upload Property Photos
@@ -538,7 +618,8 @@ export async function executeSupabaseRequest(args) {
                 const id = propertyMatch[1]
                 const { data, error } = await supabase.from('properties').select('*').eq('id', id).maybeSingle()
                 if (error || !data) return { data: { property: null, host: null } }
-                return { data: { property: data, host: null } }
+                const enriched = await enrichPropertiesWithHostDetails(data)
+                return { data: { property: enriched, host: enriched?.host || null } }
             }
 
             if (cleanUrl.startsWith('property/basic-info') || cleanUrl.startsWith('property/address') || cleanUrl.startsWith('property/pricing') || cleanUrl.startsWith('property/amenities') || cleanUrl.startsWith('property/rules') || cleanUrl.startsWith('property/submit')) {
@@ -555,7 +636,8 @@ export async function executeSupabaseRequest(args) {
                     if (error) {
                         console.error('Supabase property update error:', error)
                     }
-                    if (data) return { data: { property: data, propertyId: data.id, data: data, id: data.id, success: true } }
+                    const enriched = data ? await enrichPropertiesWithHostDetails(data) : null
+                    if (enriched) return { data: { property: enriched, propertyId: enriched.id, data: enriched, id: enriched.id, success: true } }
                 }
                 return { data: { success: true, message: 'Property updated' } }
             }
@@ -603,7 +685,7 @@ export async function executeSupabaseRequest(args) {
             }
 
             if (cleanUrl === 'admin/approved/approved-host-details' || cleanUrl === 'admin/host/approved') {
-                let query = supabase.from('profiles').select('*').eq('is_approved', true)
+                let query = supabase.from('profiles').select('*').or('is_approved.eq.true,status.eq.approved')
                 if (queryParams.country) {
                     query = query.ilike('country', `%${queryParams.country}%`)
                 }
