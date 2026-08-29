@@ -1075,27 +1075,18 @@ export async function executeSupabaseRequest(args) {
 
             if (cleanUrl === 'admin/approved/approved-events' || cleanUrl === 'admin/events/approved' || cleanUrl === 'events/admin/approved') {
                 let query = supabase.from('events').select('*').eq('status', 'approved').order('created_at', { ascending: false })
-                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
-                    query = query.ilike('country', `%${queryParams.country}%`)
-                }
                 const { data } = await query
                 return { data: data || [] }
             }
 
             if (cleanUrl === 'admin/rejected/rejected-events' || cleanUrl === 'admin/events/rejected' || cleanUrl === 'events/admin/rejected') {
                 let query = supabase.from('events').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
-                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
-                    query = query.ilike('country', `%${queryParams.country}%`)
-                }
                 const { data } = await query
                 return { data: data || [] }
             }
 
             if (cleanUrl === 'events/approved' || cleanUrl === 'events/all' || cleanUrl === 'events') {
                 let query = supabase.from('events').select('*').eq('status', 'approved').order('created_at', { ascending: false })
-                if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
-                    query = query.ilike('country', `%${queryParams.country}%`)
-                }
                 if (queryParams.limit) {
                     query = query.limit(Number(queryParams.limit))
                 }
