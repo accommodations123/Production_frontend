@@ -600,14 +600,19 @@ const VALID_EVENT_COLUMNS = new Set([
 ]);
 
 function sanitizeEventData(data) {
-    if (!data || typeof data !== 'object') return {};
+    if (!data || typeof data !== 'object') return { title: 'Untitled Event' };
     const sanitized = {};
-    if (data.title) sanitized.title = String(data.title).trim();
+    const titleVal = data.title || data.name || data.eventName || data.event_name || data.eventTitle || data.event_title || '';
+    sanitized.title = titleVal ? String(titleVal).trim() : 'Untitled Event';
+
     if (data.description) sanitized.description = String(data.description).trim();
     if (data.category) sanitized.category = String(data.category).trim();
+    if (data.type && !sanitized.category) sanitized.category = String(data.type).trim();
+    if (data.event_type && !sanitized.category) sanitized.category = String(data.event_type).trim();
     if (data.location) sanitized.location = String(data.location).trim();
     if (data.address && !sanitized.location) sanitized.location = String(data.address).trim();
     if (data.venue && !sanitized.location) sanitized.location = String(data.venue).trim();
+    if (data.venue_name && !sanitized.location) sanitized.location = String(data.venue_name).trim();
     if (data.city) sanitized.city = String(data.city).trim();
     if (data.country) sanitized.country = typeof data.country === 'string' ? data.country : data.country?.name || '';
     if (data.organizerName && !data.organizer_name) sanitized.organizer_name = data.organizerName;
@@ -620,6 +625,7 @@ function sanitizeEventData(data) {
     if (data.end_date) sanitized.end_date = data.end_date;
     if (data.date && !sanitized.start_date) sanitized.start_date = data.date;
     if (data.time) sanitized.time = String(data.time).trim();
+    if (data.start_time && !sanitized.time) sanitized.time = String(data.start_time).trim();
     if (data.price !== undefined && data.price !== null && data.price !== '') {
         sanitized.price = Number(data.price) || 0;
     }
@@ -1039,12 +1045,29 @@ export async function executeSupabaseRequest(args) {
                 }
                 payload.status = payload.status || 'draft'
                 payload.is_approved = false
-                const { data, error } = await supabase.from('events').insert(payload).select().maybeSingle()
-                if (error) {
-                    console.error('Supabase event create error:', error)
-                    return { error: { status: 400, error: error.message, message: error.message } }
+                if (!payload.title || payload.title.trim() === '') {
+                    payload.title = 'Untitled Event Draft'
                 }
-                return { data: { event: data, id: data?.id, success: true, message: 'Event draft created' } }
+
+                let insertRes = await supabase.from('events').insert(payload).select().maybeSingle()
+
+                let attempts = 0
+                while (insertRes.error && (insertRes.error.code === 'PGRST204' || insertRes.error.message?.includes('Could not find the')) && attempts < 10) {
+                    attempts++
+                    const match = insertRes.error.message?.match(/Could not find the '([^']+)' column/)
+                    if (match && match[1] && payload[match[1]] !== undefined) {
+                        delete payload[match[1]]
+                        insertRes = await supabase.from('events').insert(payload).select().maybeSingle()
+                    } else {
+                        break
+                    }
+                }
+
+                if (insertRes.error) {
+                    console.error('Supabase event create error:', insertRes.error)
+                    return { error: { status: 400, error: insertRes.error.message, message: insertRes.error.message } }
+                }
+                return { data: { event: insertRes.data, id: insertRes.data?.id, eventId: insertRes.data?.id, success: true, message: 'Event draft created' } }
             }
 
             // Upload Event Media
@@ -1094,12 +1117,26 @@ export async function executeSupabaseRequest(args) {
                         payload.status = 'pending'
                         payload.is_approved = false
                     }
-                    const { data, error } = await supabase.from('events').update(payload).eq('id', id).select().maybeSingle()
-                    if (error) {
-                        console.error('Supabase event update error:', error)
-                        return { error: { status: 400, error: error.message, message: error.message } }
+
+                    let updateRes = await supabase.from('events').update(payload).eq('id', id).select().maybeSingle()
+
+                    let attempts = 0
+                    while (updateRes.error && (updateRes.error.code === 'PGRST204' || updateRes.error.message?.includes('Could not find the')) && attempts < 10) {
+                        attempts++
+                        const match = updateRes.error.message?.match(/Could not find the '([^']+)' column/)
+                        if (match && match[1] && payload[match[1]] !== undefined) {
+                            delete payload[match[1]]
+                            updateRes = await supabase.from('events').update(payload).eq('id', id).select().maybeSingle()
+                        } else {
+                            break
+                        }
                     }
-                    return { data: { event: data, id: data?.id, success: true, message: 'Event updated successfully' } }
+
+                    if (updateRes.error) {
+                        console.error('Supabase event update error:', updateRes.error)
+                        return { error: { status: 400, error: updateRes.error.message, message: updateRes.error.message } }
+                    }
+                    return { data: { event: updateRes.data, id: updateRes.data?.id, eventId: updateRes.data?.id, success: true, message: 'Event updated successfully' } }
                 }
                 return { data: { success: true, message: 'Event updated' } }
             }
