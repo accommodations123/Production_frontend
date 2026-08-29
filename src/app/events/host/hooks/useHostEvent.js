@@ -257,6 +257,9 @@ export const useHostEvent = () => {
 
         try {
             let currentId = eventId
+            const fullPhone = formData.phone
+                ? (formData.phoneCode ? `${formData.phoneCode} ${formData.phone}`.trim() : formData.phone)
+                : '';
 
             if (!currentId) {
                 const draftPayload = {
@@ -264,6 +267,7 @@ export const useHostEvent = () => {
                     description: formData.description,
                     type: formData.event_type,
                     category: formData.event_type,
+                    event_mode: formData.event_mode,
                     start_date: formData.date,
                     start_time: formData.time,
                     time: formData.time,
@@ -271,6 +275,16 @@ export const useHostEvent = () => {
                     city: formData.city,
                     state: formData.state,
                     country: formData.country,
+                    zip_code: formData.zip_code,
+                    landmark: formData.landmark,
+                    venue_name: formData.venue_name,
+                    venue_description: formData.venue_description,
+                    what_is_included: formData.what_is_included || '',
+                    what_is_not_included: formData.what_is_not_included || '',
+                    parking_info: formData.parking_info,
+                    accessibility_info: formData.accessibility_info,
+                    event_url: formData.event_url,
+                    phone: fullPhone,
                     price: Number(formData.price) || 0
                 }
                 if (formData.end_date) draftPayload.end_date = formData.end_date
@@ -286,7 +300,8 @@ export const useHostEvent = () => {
             await hostEventService.updateBasicInfo(currentId, {
                 title: formData.title,
                 description: formData.description,
-                type: formData.event_type
+                type: formData.event_type,
+                phone: fullPhone
             })
 
             // Backend eventLocationSchema expects: country, state, city, street_address, landmark, zip_code
@@ -306,7 +321,10 @@ export const useHostEvent = () => {
             // ALWAYS call updateVenue — this is where event_mode gets saved
             const venuePayload = {
                 event_mode: formData.event_mode,
-                online_instructions: formData.online_instructions
+                online_instructions: formData.online_instructions,
+                what_is_included: formData.what_is_included || '',
+                what_is_not_included: formData.what_is_not_included || '',
+                phone: fullPhone
             }
             if (formData.event_mode !== 'online') {
                 venuePayload.venue_name = formData.venue_name

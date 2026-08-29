@@ -670,8 +670,10 @@ function sanitizeEventData(data, isCreate = false) {
     if (data.event_url !== undefined && data.event_url !== null) {
         sanitized.event_url = String(data.event_url).trim();
     }
-    if (data.phone !== undefined && data.phone !== null) {
+    if (data.phone !== undefined && data.phone !== null && String(data.phone).trim() !== '') {
         sanitized.phone = String(data.phone).trim();
+    } else if (data.contact_number || data.phone_number || data.contactNumber) {
+        sanitized.phone = String(data.contact_number || data.phone_number || data.contactNumber).trim();
     }
     if (data.state !== undefined && data.state !== null) {
         sanitized.state = String(data.state).trim();
@@ -688,11 +690,15 @@ function sanitizeEventData(data, isCreate = false) {
     if (data.venue_description !== undefined && data.venue_description !== null) {
         sanitized.venue_description = String(data.venue_description).trim();
     }
-    if (data.what_is_included !== undefined && data.what_is_included !== null) {
+    if (data.what_is_included !== undefined && data.what_is_included !== null && String(data.what_is_included).trim() !== '') {
         sanitized.what_is_included = Array.isArray(data.what_is_included) ? data.what_is_included.join(', ') : String(data.what_is_included);
+    } else if (data.included_items !== undefined && data.included_items !== null) {
+        sanitized.what_is_included = Array.isArray(data.included_items) ? data.included_items.join(', ') : String(data.included_items);
     }
-    if (data.what_is_not_included !== undefined && data.what_is_not_included !== null) {
+    if (data.what_is_not_included !== undefined && data.what_is_not_included !== null && String(data.what_is_not_included).trim() !== '') {
         sanitized.what_is_not_included = Array.isArray(data.what_is_not_included) ? data.what_is_not_included.join(', ') : String(data.what_is_not_included);
+    } else if (data.not_included_items !== undefined && data.not_included_items !== null) {
+        sanitized.what_is_not_included = Array.isArray(data.not_included_items) ? data.not_included_items.join(', ') : String(data.not_included_items);
     }
     if (data.parking_info !== undefined && data.parking_info !== null) {
         sanitized.parking_info = String(data.parking_info).trim();
