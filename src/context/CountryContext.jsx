@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { hostApi } from "@/store/api/hostApi";
+import { eventApi } from "@/store/api/eventApi";
 import { authApi } from "@/store/api/authApi";
 import { COUNTRIES } from "@/lib/mock-data";
 import axios from "axios";
@@ -73,6 +74,9 @@ export const CountryProvider = ({ children }) => {
           dispatch(
             hostApi.util.invalidateTags(["Event", "Job"])
           );
+          dispatch(
+            eventApi.util.invalidateTags(["Event"])
+          );
 
           return;
         }
@@ -106,6 +110,9 @@ export const CountryProvider = ({ children }) => {
     // Refetch event and job queries
     dispatch(
       hostApi.util.invalidateTags(["Event", "Job"])
+    );
+    dispatch(
+      eventApi.util.invalidateTags(["Event"])
     );
 
   }, [dispatch]);

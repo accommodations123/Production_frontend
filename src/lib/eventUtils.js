@@ -24,21 +24,32 @@ const buildDateTime = (dateStr, timeStr) => {
 
     try {
         if (dateStr instanceof Date) {
-            return isNaN(dateStr.getTime()) ? null : dateStr
+            const d = new Date(dateStr.getTime())
+            return isNaN(d.getTime()) ? null : d
         }
 
-        const date = new Date(dateStr)
+        const rawStr = String(dateStr).trim()
+        const dateOnlyPart = rawStr.split('T')[0]
+        const parts = dateOnlyPart.split(/[-/]/).map(Number)
+
+        let date
+        if (parts.length === 3 && parts[0] > 1900) {
+            date = new Date(parts[0], parts[1] - 1, parts[2])
+        } else {
+            date = new Date(rawStr)
+        }
+
         if (isNaN(date.getTime())) return null
 
         if (timeStr) {
             const cleanTime = typeof timeStr === 'string' ? timeStr.replace(/[^\d:]/g, '') : ''
-            const parts = cleanTime.split(':').map(Number)
-            const [h = 23, m = 59, s = 59] = parts
+            const timeParts = cleanTime.split(':').map(Number)
+            const [h = 23, m = 59, s = 59] = timeParts
             if (!isNaN(h) && !isNaN(m)) {
                 date.setHours(h, m, isNaN(s) ? 59 : s, 0)
             }
-        } else if (typeof dateStr === 'string' && !dateStr.includes('T') && !dateStr.includes(':')) {
-            // Only a date string with no time component (e.g., "2026-08-20") → assume end of the day
+        } else {
+            // Only a date string (or timestamp starting at 00:00) → assume end of the day
             date.setHours(23, 59, 59, 999)
         }
 
@@ -67,14 +78,31 @@ export const getEventEndDate = (event) => {
     const endDate = event.end_date ?? event.endDate
     const endTime = event.end_time ?? event.endTime
 
-    const resolved = buildDateTime(endDate, endTime)
-    if (resolved) return resolved
+    if (endDate) {
+        const resolved = buildDateTime(endDate, endTime)
+        if (resolved) return resolved
+    }
 
-    // Fall back to start date
+    // Fall back to start date + start time
     const startDate = event.start_date ?? event.date ?? event.event_date
     const startTime = event.start_time ?? event.time
 
-    return buildDateTime(startDate, startTime)
+    if (startDate) {
+        const date = buildDateTime(startDate, startTime)
+        if (date) {
+            if (startTime) {
+                // Buffer by 4 hours after start time or end of the day, whichever is later
+                const withBuffer = new Date(date.getTime() + 4 * 60 * 60 * 1000)
+                const endOfDay = new Date(date)
+                endOfDay.setHours(23, 59, 59, 999)
+                return withBuffer > endOfDay ? withBuffer : endOfDay
+            }
+            date.setHours(23, 59, 59, 999)
+            return date
+        }
+    }
+
+    return null
 }
 
 /**
