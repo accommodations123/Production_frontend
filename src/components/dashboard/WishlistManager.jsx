@@ -3,10 +3,11 @@
 import React, { useState } from 'react';
 import { useGetWishlistQuery } from '@/store/api/hostApi';
 import { PropertyCard } from '@/components/home/featured/PropertyCard';
+import { StayRequestCard } from '@/components/search/StayRequestCard';
 import { EventCard } from '@/app/events/components/EventCard';
 import { ProductCard } from '@/components/marketplace/ProductCard';
 import TripCard from '@/components/travel/TripCard';
-import { Loader2, Heart, ShoppingBag, Calendar, Home, Plane, Users, ChevronRight } from 'lucide-react';
+import { Loader2, Heart, ShoppingBag, Calendar, Home, Plane, Users, FileText, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CommunityGroupCard } from '@/components/home/featured/CommunityGroupCard';
 import { PeopleCard } from '@/features/people/components/PeopleCard';
@@ -25,6 +26,7 @@ export function WishlistManager() {
 
   const tabs = [
     { id: 'property', label: 'Stays', icon: Home },
+    { id: 'stay-request', label: 'Stay Requests', icon: FileText },
     { id: 'event', label: 'Events', icon: Calendar },
     { id: 'buy-sell', label: 'Marketplace', icon: ShoppingBag },
     { id: 'trip', label: 'Travel Plans', icon: Plane },
@@ -50,7 +52,7 @@ export function WishlistManager() {
           <div className="space-y-2">
             <h3 className="text-xl font-bold text-gray-900">No Saved Items Yet</h3>
             <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
-              Explore stays, marketplace products, travel match itineraries, and communities to save them to your custom collections.
+              Explore stays, stay requests, marketplace products, travel match itineraries, and communities to save them to your custom collections.
             </p>
           </div>
           <Link to="/" className="inline-block">
@@ -73,6 +75,11 @@ export function WishlistManager() {
             <div key={item.id || item._id} className="relative group">
               {(() => {
                 switch (activeTab) {
+                  case 'stay-request':
+                  case 'stay_request':
+                  case 'stay-requests':
+                    return <StayRequestCard request={details} />;
+
                   case 'property':
                     const normalizedProperty = {
                       ...details,

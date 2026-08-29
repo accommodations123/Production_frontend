@@ -29,9 +29,10 @@ async function getCurrentUserId() {
 let hasWishlistTableInDb = null
 
 function mapItemTypeToAliases(type) {
-    if (!type) return ['property', 'accommodations', 'stay', 'event', 'events', 'buysell', 'buy-sell', 'marketplace', 'product', 'trip', 'travel', 'travel_trip', 'expert', 'people', 'person']
+    if (!type) return ['property', 'accommodations', 'stay', 'stay-request', 'stay_request', 'stay-requests', 'stay_requests', 'event', 'events', 'buysell', 'buy-sell', 'marketplace', 'product', 'trip', 'travel', 'travel_trip', 'expert', 'people', 'person']
     const t = String(type).toLowerCase()
     if (['property', 'accommodations', 'stay'].includes(t)) return ['property', 'accommodations', 'stay']
+    if (['stay-request', 'stay_request', 'stay-requests', 'stay_requests', 'seeker', 'seekers'].includes(t)) return ['stay-request', 'stay_request', 'stay-requests', 'stay_requests', 'seeker', 'seekers']
     if (['event', 'events'].includes(t)) return ['event', 'events']
     if (['buysell', 'buy-sell', 'marketplace', 'product'].includes(t)) return ['buysell', 'buy-sell', 'marketplace', 'product']
     if (['trip', 'travel', 'travel_trip'].includes(t)) return ['trip', 'travel', 'travel_trip']
@@ -1428,6 +1429,9 @@ export async function executeSupabaseRequest(args) {
                         try {
                             if (['property', 'accommodations', 'stay'].includes(type)) {
                                 const { data } = await supabase.from('properties').select('*').eq('id', itemId).maybeSingle()
+                                details = data
+                            } else if (['stay-request', 'stay_request', 'stay-requests', 'stay_requests', 'seeker', 'seekers'].includes(type)) {
+                                const { data } = await supabase.from('stay_requests').select('*').eq('id', itemId).maybeSingle()
                                 details = data
                             } else if (['event', 'events'].includes(type)) {
                                 const { data } = await supabase.from('events').select('*').eq('id', itemId).maybeSingle()

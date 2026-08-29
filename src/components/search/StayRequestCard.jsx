@@ -1,6 +1,7 @@
 import { MapPin, Clock, Home, ShieldCheck } from 'lucide-react';
 import { useCountry } from '@/context/CountryContext';
 import { SocialQuickConnect } from '@/components/ui/SocialConnect';
+import WishlistButton from "@/components/ui/WishlistButton";
 
 export function StayRequestCard({ request }) {
   const { formatPrice } = useCountry();
@@ -116,6 +117,15 @@ export function StayRequestCard({ request }) {
               </p>
             </div>
           </div>
+
+          <WishlistButton
+            itemId={itemId}
+            itemType="stay-request"
+            className="p-2 rounded-full border border-slate-200/60 bg-slate-50 hover:bg-slate-100 shrink-0 cursor-pointer shadow-xs"
+            iconSize={16}
+            filledColor="fill-[#CB2A26] text-[#CB2A26]"
+            outlineColor="text-slate-400 hover:text-slate-600"
+          />
         </div>
 
         {/* Feature Tags / Badges Row */}

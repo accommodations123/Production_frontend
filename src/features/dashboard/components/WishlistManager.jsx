@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGetWishlistQuery } from '@/store/api/hostApi';
 import { PropertyCard, EventCard, ProductCard, TripCard } from '@/shared/components/cards';
-import { Heart, ShoppingBag, Calendar, Home, Plane } from 'lucide-react';
+import { StayRequestCard } from '@/components/search/StayRequestCard';
+import { Heart, ShoppingBag, Calendar, Home, Plane, Users, FileText } from 'lucide-react';
 import { cn } from "@/shared/utils/utils";
 import { resolveImageUrl } from '@/shared/utils/imageUtils';
 import { CardSkeleton } from "@/shared/ui/Skeleton";
@@ -21,6 +22,7 @@ export function WishlistManager() {
 
   const tabs = [
     { id: 'property', label: 'Stays', icon: Home },
+    { id: 'stay-request', label: 'Stay Requests', icon: FileText },
     { id: 'event', label: 'Events', icon: Calendar },
     { id: 'buy-sell', label: 'Marketplace', icon: ShoppingBag },
     { id: 'trip', label: 'Travel Plans', icon: Plane },
@@ -40,7 +42,7 @@ export function WishlistManager() {
         <EmptyState
           icon={Heart}
           title="No Saved Items Yet"
-          description="Explore stays, marketplace products, travel match itineraries, and communities to save them to your custom collections."
+          description="Explore stays, stay requests, marketplace products, travel match itineraries, and communities to save them to your custom collections."
           actionText="Start Exploring"
           actionLink={
             <Link to="/">
@@ -62,6 +64,11 @@ export function WishlistManager() {
             <div key={item.id || item._id} className="relative group">
               {(() => {
                 switch (activeTab) {
+                  case 'stay-request':
+                  case 'stay_request':
+                  case 'stay-requests':
+                    return <StayRequestCard request={details} />;
+
                   case 'property': {
                     const normalizedProperty = {
                       ...details,
