@@ -114,21 +114,25 @@ const EventsPage = () => {
 
     // 2. Then filter by country
     const filteredApiEvents = activeApiEvents.filter(event => {
-      if (!activeCountry?.name) return true;
-      const eventCountry = (event.country || "").toLowerCase().trim();
-      const selectedCountry = (activeCountry.name || "").toLowerCase().trim();
+      if (!activeCountry?.name && !activeCountry?.code) return true;
+      const eventCountry = (typeof event.country === 'string' ? event.country : event.country?.name || event.country?.code || "").toLowerCase().trim();
+      const selectedCountryName = (activeCountry.name || "").toLowerCase().trim();
       const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim();
 
       // Allow online events to show globally
       if (event.event_mode?.toLowerCase() === "online") return true;
 
+      // If event has no country specified, show it
       if (!eventCountry) return true;
 
-      const normEvent = normalizeCountryName(event.country)?.toLowerCase() || eventCountry;
-      const normSelected = normalizeCountryName(activeCountry.name)?.toLowerCase() || selectedCountry;
+      // If active country is Global or All, show it
+      if (selectedCountryName === "global" || selectedCountryName === "all" || !selectedCountryName) return true;
+
+      const normEvent = (normalizeCountryName(event.country) || eventCountry).toLowerCase();
+      const normSelected = (normalizeCountryName(activeCountry.name || activeCountry.code) || selectedCountryName).toLowerCase();
 
       return (
-        eventCountry === selectedCountry ||
+        eventCountry === selectedCountryName ||
         eventCountry === selectedCountryCode ||
         normEvent === normSelected ||
         normEvent.includes(normSelected) ||

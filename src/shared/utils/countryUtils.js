@@ -18,11 +18,15 @@ const US_ALIASES = ["United States", "United States of America", "US", "USA"];
  */
 export function normalizeCountryName(name) {
     if (!name) return "";
-    const trimmed = name.trim();
-    if (US_ALIASES.includes(trimmed)) return "United States of America";
+    const str = typeof name === 'string' ? name : (name?.name || name?.code || String(name));
+    const trimmed = str.trim();
+    if (!trimmed) return "";
+    if (US_ALIASES.some(alias => alias.toLowerCase() === trimmed.toLowerCase())) {
+        return "United States of America";
+    }
 
     const found = COUNTRIES.find(
-        (c) => c.name === trimmed || c.code === trimmed.toUpperCase(),
+        (c) => c.name?.toLowerCase() === trimmed.toLowerCase() || c.code?.toLowerCase() === trimmed.toLowerCase(),
     );
     return found?.name || trimmed;
 }
