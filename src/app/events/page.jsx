@@ -81,9 +81,16 @@ const EventsPage = () => {
 
   // Process events from API
   const eventsByCategory = useMemo(() => {
-    const rawEventsList = Array.isArray(apiEvents)
-      ? apiEvents
-      : (Array.isArray(apiEvents?.events) ? apiEvents.events : (Array.isArray(apiEvents?.data) ? apiEvents.data : []));
+    let rawEventsList = [];
+    if (Array.isArray(apiEvents)) {
+      rawEventsList = apiEvents;
+    } else if (apiEvents && typeof apiEvents === 'object') {
+      if (Array.isArray(apiEvents.events)) rawEventsList = apiEvents.events;
+      else if (Array.isArray(apiEvents.data?.events)) rawEventsList = apiEvents.data.events;
+      else if (Array.isArray(apiEvents.data)) rawEventsList = apiEvents.data;
+      else if (Array.isArray(apiEvents.results)) rawEventsList = apiEvents.results;
+      else if (Array.isArray(apiEvents.items)) rawEventsList = apiEvents.items;
+    }
 
     if (!rawEventsList || rawEventsList.length === 0) return {};
 
@@ -109,11 +116,12 @@ const EventsPage = () => {
       return "other";
     };
 
-    // 1. Remove expired events first
-    const activeApiEvents = filterUpcomingEvents(rawEventsList);
+    // 1. Filter upcoming events with fallback
+    const upcoming = filterUpcomingEvents(rawEventsList);
+    const activeApiEvents = (Array.isArray(upcoming) && upcoming.length > 0) ? upcoming : rawEventsList;
 
-    // 2. Then filter by country
-    const filteredApiEvents = activeApiEvents.filter(event => {
+    // 2. Filter by country with fallback
+    const countryFiltered = activeApiEvents.filter(event => {
       if (!activeCountry?.name && !activeCountry?.code) return true;
       const eventCountry = (typeof event.country === 'string' ? event.country : event.country?.name || event.country?.code || "").toLowerCase().trim();
       const selectedCountryName = (activeCountry.name || "").toLowerCase().trim();
@@ -139,6 +147,10 @@ const EventsPage = () => {
         normSelected.includes(normEvent)
       );
     });
+
+    const filteredApiEvents = (Array.isArray(countryFiltered) && countryFiltered.length > 0)
+      ? countryFiltered
+      : activeApiEvents;
 
     filteredApiEvents.forEach(event => {
       const categoryId = classifyEventCategory(event);

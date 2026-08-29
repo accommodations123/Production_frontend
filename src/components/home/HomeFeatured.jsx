@@ -332,13 +332,27 @@ const HomeFeatured = () => {
   const displayedEvents = useMemo(() => {
     if (!approvedEvents || approvedEvents.length === 0) return [];
 
-    // 1. Filter out expired events
-    const upcoming = filterUpcomingEvents(approvedEvents);
+    let rawList = [];
+    if (Array.isArray(approvedEvents)) {
+      rawList = approvedEvents;
+    } else if (approvedEvents && typeof approvedEvents === 'object') {
+      if (Array.isArray(approvedEvents.events)) rawList = approvedEvents.events;
+      else if (Array.isArray(approvedEvents.data?.events)) rawList = approvedEvents.data.events;
+      else if (Array.isArray(approvedEvents.data)) rawList = approvedEvents.data;
+      else if (Array.isArray(approvedEvents.results)) rawList = approvedEvents.results;
+      else if (Array.isArray(approvedEvents.items)) rawList = approvedEvents.items;
+    }
+
+    if (!rawList || rawList.length === 0) return [];
+
+    // 1. Filter out expired events with fallback
+    const upcoming = filterUpcomingEvents(rawList);
+    const activeEvents = (Array.isArray(upcoming) && upcoming.length > 0) ? upcoming : rawList;
 
     // 2. Filter by country matching listing page logic
-    return upcoming.filter(event => {
-      if (!activeCountry?.name) return true;
-      const eventCountry = (event.country || "").toLowerCase().trim();
+    const countryFiltered = activeEvents.filter(event => {
+      if (!activeCountry?.name && !activeCountry?.code) return true;
+      const eventCountry = (typeof event.country === 'string' ? event.country : event.country?.name || event.country?.code || "").toLowerCase().trim();
       const selectedCountry = (activeCountry.name || "").toLowerCase().trim();
       const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim();
 
@@ -346,9 +360,10 @@ const HomeFeatured = () => {
       if (event.event_mode?.toLowerCase() === "online") return true;
 
       if (!eventCountry) return true;
+      if (selectedCountry === "global" || selectedCountry === "all" || !selectedCountry) return true;
 
-      const normEvent = normalizeCountryName(event.country)?.toLowerCase() || eventCountry;
-      const normSelected = normalizeCountryName(activeCountry.name)?.toLowerCase() || selectedCountry;
+      const normEvent = (normalizeCountryName(event.country) || eventCountry).toLowerCase();
+      const normSelected = (normalizeCountryName(activeCountry.name || activeCountry.code) || selectedCountry).toLowerCase();
 
       return (
         eventCountry === selectedCountry ||
@@ -357,7 +372,13 @@ const HomeFeatured = () => {
         normEvent.includes(normSelected) ||
         normSelected.includes(normEvent)
       );
-    }).slice(0, 4);
+    });
+
+    const finalEvents = (Array.isArray(countryFiltered) && countryFiltered.length > 0)
+      ? countryFiltered
+      : activeEvents;
+
+    return finalEvents.slice(0, 4);
   }, [approvedEvents, activeCountry]);
 
   const [viewMode, setViewMode] = useState("grid");
