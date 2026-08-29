@@ -45,10 +45,15 @@ const EventsPage = () => {
     code: activeCountry?.code
   }, {
     refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
   })
 
   useEffect(() => {
     refetch();
+    const handleFocus = () => refetch();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [activeCountry, refetch]);
 
   // (Removed handleScroll and visibleSections logic)
