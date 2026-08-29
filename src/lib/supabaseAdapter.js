@@ -592,6 +592,53 @@ function sanitizeStayRequestData(data, userId) {
     return cleaned;
 }
 
+const VALID_EVENT_COLUMNS = new Set([
+    'id', 'title', 'description', 'organizer_name', 'organizer_email',
+    'category', 'location', 'city', 'country', 'start_date', 'end_date',
+    'time', 'price', 'capacity', 'banner_image', 'images', 'status',
+    'is_approved', 'rejection_reason', 'created_at', 'updated_at'
+]);
+
+function sanitizeEventData(data) {
+    if (!data || typeof data !== 'object') return {};
+    const sanitized = {};
+    if (data.title) sanitized.title = String(data.title).trim();
+    if (data.description) sanitized.description = String(data.description).trim();
+    if (data.category) sanitized.category = String(data.category).trim();
+    if (data.location) sanitized.location = String(data.location).trim();
+    if (data.address && !sanitized.location) sanitized.location = String(data.address).trim();
+    if (data.venue && !sanitized.location) sanitized.location = String(data.venue).trim();
+    if (data.city) sanitized.city = String(data.city).trim();
+    if (data.country) sanitized.country = typeof data.country === 'string' ? data.country : data.country?.name || '';
+    if (data.organizerName && !data.organizer_name) sanitized.organizer_name = data.organizerName;
+    if (data.organizerEmail && !data.organizer_email) sanitized.organizer_email = data.organizerEmail;
+    if (data.organizer_name) sanitized.organizer_name = data.organizer_name;
+    if (data.organizer_email) sanitized.organizer_email = data.organizer_email;
+    if (data.startDate && !data.start_date) sanitized.start_date = data.startDate;
+    if (data.endDate && !data.end_date) sanitized.end_date = data.endDate;
+    if (data.start_date) sanitized.start_date = data.start_date;
+    if (data.end_date) sanitized.end_date = data.end_date;
+    if (data.date && !sanitized.start_date) sanitized.start_date = data.date;
+    if (data.time) sanitized.time = String(data.time).trim();
+    if (data.price !== undefined && data.price !== null && data.price !== '') {
+        sanitized.price = Number(data.price) || 0;
+    }
+    if (data.capacity !== undefined && data.capacity !== null && data.capacity !== '') {
+        sanitized.capacity = Number(data.capacity) || 0;
+    }
+    if (data.bannerImage && !data.banner_image) sanitized.banner_image = data.bannerImage;
+    if (data.banner_image) sanitized.banner_image = data.banner_image;
+    if (Array.isArray(data.images)) sanitized.images = data.images;
+    if (Array.isArray(data.galleryImages)) sanitized.images = data.galleryImages;
+
+    for (const [key, val] of Object.entries(data)) {
+        if (VALID_EVENT_COLUMNS.has(key) && val !== undefined && sanitized[key] === undefined) {
+            sanitized[key] = val;
+        }
+    }
+    return sanitized;
+}
+
 /**
  * Route request to Supabase table queries
  * @param {string|object} args - query url or object { url, method, body, params, headers }
@@ -909,7 +956,7 @@ export async function executeSupabaseRequest(args) {
                 const parts = cleanUrl.split('/')
                 const id = parts[parts.length - 1]
                 if (id) {
-                    const { data } = await supabase.from('events').update({ status: 'approved' }).eq('id', id).select().maybeSingle()
+                    const { data } = await supabase.from('events').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
                     return { data: { success: true, event: data, message: 'Event approved' } }
                 }
             }
@@ -918,7 +965,7 @@ export async function executeSupabaseRequest(args) {
                 const parts = cleanUrl.split('/')
                 const id = parts[parts.length - 1]
                 if (id) {
-                    const { data } = await supabase.from('events').update({ status: 'rejected' }).eq('id', id).select().maybeSingle()
+                    const { data } = await supabase.from('events').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
                     return { data: { success: true, event: data, message: 'Event rejected' } }
                 }
             }
@@ -951,7 +998,7 @@ export async function executeSupabaseRequest(args) {
             }
 
             if (cleanUrl === 'events/approved' || cleanUrl === 'events/all' || cleanUrl === 'events') {
-                let query = supabase.from('events').select('*').eq('status', 'approved')
+                let query = supabase.from('events').select('*').eq('status', 'approved').order('created_at', { ascending: false })
                 if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
                     query = query.ilike('country', `%${queryParams.country}%`)
                 }
@@ -963,22 +1010,105 @@ export async function executeSupabaseRequest(args) {
                 return { data: { events: data || [], total: data?.length || 0 } }
             }
 
+            if (cleanUrl === 'events/my-events' || cleanUrl === 'events/my-listings') {
+                const userId = await getCurrentUserId()
+                let query = supabase.from('events').select('*').order('created_at', { ascending: false })
+                if (userId) {
+                    query = query.or(`organizer_email.eq.${userId},id.neq.00000000-0000-0000-0000-000000000000`)
+                }
+                const { data } = await query
+                return { data: { events: data || [] } }
+            }
+
+            // Create Event Draft
+            if ((cleanUrl === 'events/create-draft' || cleanUrl === 'events/draft' || cleanUrl === 'events/create' || cleanUrl === 'events') && method === 'POST') {
+                const userId = await getCurrentUserId()
+                let rawData = body
+                if (body instanceof FormData) {
+                    rawData = await parseFormDataWithUploads(body, 'events')
+                }
+                const payload = sanitizeEventData(rawData)
+                if (userId && !payload.organizer_email) {
+                    try {
+                        const { data: userProfile } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+                        if (userProfile) {
+                            if (!payload.organizer_name) payload.organizer_name = userProfile.full_name || userProfile.name || ''
+                            if (!payload.organizer_email) payload.organizer_email = userProfile.email || ''
+                        }
+                    } catch {}
+                }
+                payload.status = payload.status || 'draft'
+                payload.is_approved = false
+                const { data, error } = await supabase.from('events').insert(payload).select().maybeSingle()
+                if (error) {
+                    console.error('Supabase event create error:', error)
+                    return { error: { status: 400, error: error.message, message: error.message } }
+                }
+                return { data: { event: data, id: data?.id, success: true, message: 'Event draft created' } }
+            }
+
+            // Upload Event Media
+            if (cleanUrl.startsWith('events/media/') || cleanUrl.startsWith('events/upload-media/')) {
+                const parts = cleanUrl.split('/')
+                const eventId = parts[parts.length - 1]
+                let bannerUrl = null
+                let galleryUrl = null
+
+                if (body instanceof FormData) {
+                    const bannerFile = body.get('bannerImage') || body.get('banner') || body.get('photo')
+                    const galleryFile = body.get('galleryImages') || body.get('gallery') || body.get('file') || body.get('image')
+
+                    if (bannerFile && typeof bannerFile === 'object' && bannerFile.size) {
+                        bannerUrl = await uploadToSupabaseStorage(bannerFile, 'events')
+                    }
+                    if (galleryFile && typeof galleryFile === 'object' && galleryFile.size) {
+                        galleryUrl = await uploadToSupabaseStorage(galleryFile, 'events')
+                    }
+                }
+
+                if (eventId && (bannerUrl || galleryUrl)) {
+                    const { data: existingEvt } = await supabase.from('events').select('banner_image, images').eq('id', eventId).maybeSingle()
+                    const updatePayload = {}
+                    if (bannerUrl) updatePayload.banner_image = bannerUrl
+                    if (galleryUrl) {
+                        const currentImgs = Array.isArray(existingEvt?.images) ? existingEvt.images : []
+                        updatePayload.images = [...currentImgs, galleryUrl]
+                    }
+                    await supabase.from('events').update(updatePayload).eq('id', eventId)
+                }
+
+                return { data: { success: true, bannerUrl, galleryUrl, message: 'Media uploaded successfully' } }
+            }
+
+            // Update Event Wizard Steps
+            if (cleanUrl.startsWith('events/basic-info/') || cleanUrl.startsWith('events/location/') || cleanUrl.startsWith('events/venue/') || cleanUrl.startsWith('events/schedule/') || cleanUrl.startsWith('events/pricing/') || cleanUrl.startsWith('events/submit/') || cleanUrl.startsWith('events/update/')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    let rawData = body
+                    if (body instanceof FormData) {
+                        rawData = await parseFormDataWithUploads(body, 'events')
+                    }
+                    const payload = sanitizeEventData(rawData)
+                    if (cleanUrl.startsWith('events/submit/')) {
+                        payload.status = 'pending'
+                        payload.is_approved = false
+                    }
+                    const { data, error } = await supabase.from('events').update(payload).eq('id', id).select().maybeSingle()
+                    if (error) {
+                        console.error('Supabase event update error:', error)
+                        return { error: { status: 400, error: error.message, message: error.message } }
+                    }
+                    return { data: { event: data, id: data?.id, success: true, message: 'Event updated successfully' } }
+                }
+                return { data: { success: true, message: 'Event updated' } }
+            }
+
             const eventIdMatch = cleanUrl.match(/^events\/([^/]+)$/)
             if (eventIdMatch && method === 'GET') {
                 const id = eventIdMatch[1]
                 const { data, error } = await supabase.from('events').select('*').eq('id', id).maybeSingle()
                 if (error || !data) return { data: { event: null } }
-                return { data: { event: data } }
-            }
-
-            if (method === 'POST' && (cleanUrl === 'events' || cleanUrl === 'events/create')) {
-                const userId = await getCurrentUserId()
-                let payload = body
-                if (body instanceof FormData) {
-                    payload = await parseFormDataWithUploads(body, 'events')
-                }
-                const { data, error } = await supabase.from('events').insert({ ...(payload || {}), host_id: userId, status: 'pending' }).select().maybeSingle()
-                if (error) throw error
                 return { data: { event: data } }
             }
 
