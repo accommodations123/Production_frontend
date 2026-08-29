@@ -6,7 +6,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { EVENT_CATEGORIES } from "@/lib/mock-events"
 import { TrendingUp, Sparkles, ChevronRight } from "lucide-react"
-import { useGetApprovedEventsQuery } from "@/store/api/hostApi"
+import { useGetApprovedEventsQuery } from "@/store/api/eventApi"
 import { useCountry } from "@/context/CountryContext"
 import { filterUpcomingEvents } from "@/lib/eventUtils"
 
