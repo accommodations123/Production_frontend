@@ -599,41 +599,75 @@ const VALID_EVENT_COLUMNS = new Set([
     'is_approved', 'rejection_reason', 'created_at', 'updated_at'
 ]);
 
-function sanitizeEventData(data) {
-    if (!data || typeof data !== 'object') return { title: 'Untitled Event' };
+function sanitizeEventData(data, isCreate = false) {
+    if (!data || typeof data !== 'object') {
+        return isCreate ? { title: 'Untitled Event Draft' } : {};
+    }
     const sanitized = {};
-    const titleVal = data.title || data.name || data.eventName || data.event_name || data.eventTitle || data.event_title || '';
-    sanitized.title = titleVal ? String(titleVal).trim() : 'Untitled Event';
 
-    if (data.description) sanitized.description = String(data.description).trim();
-    if (data.category) sanitized.category = String(data.category).trim();
-    if (data.type && !sanitized.category) sanitized.category = String(data.type).trim();
-    if (data.event_type && !sanitized.category) sanitized.category = String(data.event_type).trim();
-    if (data.location) sanitized.location = String(data.location).trim();
-    if (data.address && !sanitized.location) sanitized.location = String(data.address).trim();
-    if (data.venue && !sanitized.location) sanitized.location = String(data.venue).trim();
-    if (data.venue_name && !sanitized.location) sanitized.location = String(data.venue_name).trim();
-    if (data.city) sanitized.city = String(data.city).trim();
-    if (data.country) sanitized.country = typeof data.country === 'string' ? data.country : data.country?.name || '';
-    if (data.organizerName && !data.organizer_name) sanitized.organizer_name = data.organizerName;
-    if (data.organizerEmail && !data.organizer_email) sanitized.organizer_email = data.organizerEmail;
-    if (data.organizer_name) sanitized.organizer_name = data.organizer_name;
-    if (data.organizer_email) sanitized.organizer_email = data.organizer_email;
-    if (data.startDate && !data.start_date) sanitized.start_date = data.startDate;
-    if (data.endDate && !data.end_date) sanitized.end_date = data.endDate;
-    if (data.start_date) sanitized.start_date = data.start_date;
-    if (data.end_date) sanitized.end_date = data.end_date;
-    if (data.date && !sanitized.start_date) sanitized.start_date = data.date;
-    if (data.time) sanitized.time = String(data.time).trim();
-    if (data.start_time && !sanitized.time) sanitized.time = String(data.start_time).trim();
+    const titleVal = data.title || data.name || data.eventName || data.event_name || data.eventTitle || data.event_title;
+    if (titleVal !== undefined && titleVal !== null && String(titleVal).trim() !== '') {
+        sanitized.title = String(titleVal).trim();
+    } else if (isCreate) {
+        sanitized.title = 'Untitled Event Draft';
+    }
+
+    const descVal = data.description || data.desc || data.venue_description;
+    if (descVal !== undefined && descVal !== null && String(descVal).trim() !== '') {
+        sanitized.description = String(descVal).trim();
+    }
+
+    const catVal = data.category || data.type || data.event_type;
+    if (catVal !== undefined && catVal !== null && String(catVal).trim() !== '') {
+        sanitized.category = String(catVal).trim();
+    }
+
+    const locVal = data.location || data.street_address || data.address || data.venue_name || data.venue || data.landmark;
+    if (locVal !== undefined && locVal !== null && String(locVal).trim() !== '') {
+        sanitized.location = String(locVal).trim();
+    }
+
+    if (data.city !== undefined && data.city !== null && String(data.city).trim() !== '') {
+        sanitized.city = String(data.city).trim();
+    }
+
+    if (data.country !== undefined && data.country !== null) {
+        const countryStr = typeof data.country === 'string' ? data.country : data.country?.name || data.country?.label || '';
+        if (countryStr.trim() !== '') sanitized.country = countryStr.trim();
+    }
+
+    if (data.organizer_name || data.organizerName) {
+        sanitized.organizer_name = String(data.organizer_name || data.organizerName).trim();
+    }
+    if (data.organizer_email || data.organizerEmail) {
+        sanitized.organizer_email = String(data.organizer_email || data.organizerEmail).trim();
+    }
+
+    const startDateVal = data.start_date || data.startDate || data.date;
+    if (startDateVal !== undefined && startDateVal !== null && String(startDateVal).trim() !== '') {
+        sanitized.start_date = String(startDateVal).trim();
+    }
+
+    const endDateVal = data.end_date || data.endDate;
+    if (endDateVal !== undefined && endDateVal !== null && String(endDateVal).trim() !== '') {
+        sanitized.end_date = String(endDateVal).trim();
+    }
+
+    const timeVal = data.time || data.start_time || data.startTime;
+    if (timeVal !== undefined && timeVal !== null && String(timeVal).trim() !== '') {
+        sanitized.time = String(timeVal).trim();
+    }
+
     if (data.price !== undefined && data.price !== null && data.price !== '') {
         sanitized.price = Number(data.price) || 0;
     }
     if (data.capacity !== undefined && data.capacity !== null && data.capacity !== '') {
         sanitized.capacity = Number(data.capacity) || 0;
     }
-    if (data.bannerImage && !data.banner_image) sanitized.banner_image = data.bannerImage;
-    if (data.banner_image) sanitized.banner_image = data.banner_image;
+
+    if (data.banner_image || data.bannerImage) {
+        sanitized.banner_image = data.banner_image || data.bannerImage;
+    }
     if (Array.isArray(data.images)) sanitized.images = data.images;
     if (Array.isArray(data.galleryImages)) sanitized.images = data.galleryImages;
 
@@ -1033,7 +1067,7 @@ export async function executeSupabaseRequest(args) {
                 if (body instanceof FormData) {
                     rawData = await parseFormDataWithUploads(body, 'events')
                 }
-                const payload = sanitizeEventData(rawData)
+                const payload = sanitizeEventData(rawData, true)
                 if (userId && !payload.organizer_email) {
                     try {
                         const { data: userProfile } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
@@ -1045,9 +1079,6 @@ export async function executeSupabaseRequest(args) {
                 }
                 payload.status = payload.status || 'draft'
                 payload.is_approved = false
-                if (!payload.title || payload.title.trim() === '') {
-                    payload.title = 'Untitled Event Draft'
-                }
 
                 let insertRes = await supabase.from('events').insert(payload).select().maybeSingle()
 
