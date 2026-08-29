@@ -25,6 +25,46 @@ import { Footer } from "@/components/layout/Footer";
 import { toast } from "sonner";
 
 import { COUNTRIES } from "@/lib/mock-data";
+import { useCountry } from "@/context/CountryContext";
+import { getCurrencyForCountry } from "@/shared/utils/countryUtils";
+
+const CURRENCY_OPTIONS = [
+  { code: "INR", symbol: "₹" },
+  { code: "USD", symbol: "$" },
+  { code: "EUR", symbol: "€" },
+  { code: "GBP", symbol: "£" },
+  { code: "CAD", symbol: "$" },
+  { code: "AUD", symbol: "$" },
+  { code: "AED", symbol: "د.إ" },
+  { code: "SGD", symbol: "$" },
+  { code: "ZAR", symbol: "R" },
+  { code: "JPY", symbol: "¥" },
+  { code: "CHF", symbol: "CHF" },
+  { code: "NZD", symbol: "$" },
+  { code: "SAR", symbol: "﷼" },
+  { code: "QAR", symbol: "﷼" },
+  { code: "KWD", symbol: "KD" },
+  { code: "MYR", symbol: "RM" },
+  { code: "THB", symbol: "฿" },
+  { code: "PHP", symbol: "₱" },
+  { code: "IDR", symbol: "Rp" },
+  { code: "VND", symbol: "₫" },
+  { code: "BRL", symbol: "R$" },
+  { code: "MXN", symbol: "$" },
+  { code: "TRY", symbol: "₺" },
+  { code: "RUB", symbol: "₽" },
+  { code: "SEK", symbol: "kr" },
+  { code: "NOK", symbol: "kr" },
+  { code: "DKK", symbol: "kr" },
+  { code: "PLN", symbol: "zł" },
+  { code: "EGP", symbol: "E£" },
+  { code: "NGN", symbol: "₦" },
+  { code: "KES", symbol: "KSh" },
+  { code: "BDT", symbol: "৳" },
+  { code: "PKR", symbol: "Rs" },
+  { code: "LKR", symbol: "Rs" },
+  { code: "NPR", symbol: "रू" }
+];
 
 const FALLBACK_LOCATION_DATA = {
   "India": {
@@ -73,17 +113,20 @@ const FALLBACK_LOCATION_DATA = {
 export default function PostStayRequestPage() {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
+  const { activeCountry } = useCountry();
 
   // RTK Query Mutation
   const [createStayRequest] = useCreateStayRequestMutation();
 
+  const initialCurrency = activeCountry?.currency || getCurrencyForCountry(activeCountry?.name || activeCountry?.code) || "INR";
+
   const [form, setForm] = useState({
     title: "",
-    country: "",
+    country: activeCountry?.name || "",
     state: "",
     city: "",
     budget: "",
-    currency: "EUR",
+    currency: initialCurrency,
     stayType: "Long Term",
     furnishing: "Furnished",
     description: "",
@@ -121,6 +164,53 @@ export default function PostStayRequestPage() {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedState, setSelectedState] = useState(null);
 
+  // Auto-sync Target Destination & Currency from Navbar active country on load/change
+  useEffect(() => {
+    if (!activeCountry?.name || !countriesList.length) return;
+
+    const normalizedActiveName = activeCountry.name === "United States" ? "United States of America" : activeCountry.name;
+    const match = countriesList.find(
+      (c) =>
+        c.name?.toLowerCase() === normalizedActiveName.toLowerCase() ||
+        c.name?.toLowerCase() === activeCountry.name?.toLowerCase() ||
+        c.isoCode?.toUpperCase() === activeCountry.code?.toUpperCase()
+    );
+
+    const targetCountry = match || {
+      name: normalizedActiveName,
+      isoCode: activeCountry.code,
+    };
+
+    const derivedCurrency =
+      activeCountry.currency ||
+      getCurrencyForCountry(targetCountry.name || targetCountry.isoCode) ||
+      "INR";
+
+    // Set selected country if none is selected yet or matching initial navbar country
+    if (!selectedCountry) {
+      setSelectedCountry(targetCountry);
+      setForm((prev) => ({
+        ...prev,
+        country: targetCountry.name,
+        currency: prev.currency || derivedCurrency,
+      }));
+
+      const activeStateObj = locationMod?.State || locationMod?.default?.State;
+      if (activeStateObj && targetCountry?.isoCode) {
+        const states = activeStateObj.getStatesOfCountry(targetCountry.isoCode);
+        setStatesList(states || []);
+      } else {
+        const fallbackStates = FALLBACK_LOCATION_DATA[targetCountry.name]
+          ? Object.keys(FALLBACK_LOCATION_DATA[targetCountry.name]).map((s) => ({
+              name: s,
+              isoCode: s,
+            }))
+          : [];
+        setStatesList(fallbackStates);
+      }
+    }
+  }, [activeCountry, countriesList, locationMod, selectedCountry]);
+
   // Section DOM references for scroll navigation
   const sectionRefs = {
     basics: useRef(null),
@@ -142,14 +232,25 @@ export default function PostStayRequestPage() {
 
   const handleCountryChange = (country) => {
     const countryName = country?.name || country;
+    const derivedCurrency =
+      country?.currency ||
+      getCurrencyForCountry(countryName || country?.isoCode) ||
+      "INR";
+
     setSelectedCountry(country);
-    setForm((prev) => ({ ...prev, country: countryName, state: "", city: "" }));
+    setForm((prev) => ({
+      ...prev,
+      country: countryName,
+      currency: derivedCurrency,
+      state: "",
+      city: ""
+    }));
     setSelectedState(null);
 
     const activeStateObj = locationMod?.State || locationMod?.default?.State;
     if (activeStateObj && country?.isoCode) {
       const states = activeStateObj.getStatesOfCountry(country.isoCode);
-      setStatesList(states);
+      setStatesList(states || []);
     } else {
       const fallbackStates = FALLBACK_LOCATION_DATA[countryName]
         ? Object.keys(FALLBACK_LOCATION_DATA[countryName]).map((s) => ({ name: s, isoCode: s }))
@@ -529,12 +630,16 @@ export default function PostStayRequestPage() {
                       onChange={handleChange}
                       className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-sm font-bold text-slate-800 cursor-pointer focus:outline-none"
                     >
-                      <option value="EUR">EUR (€)</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="INR">INR (₹)</option>
-                      <option value="GBP">GBP (£)</option>
-                      <option value="CAD">CAD ($)</option>
-                      <option value="AUD">AUD ($)</option>
+                      {CURRENCY_OPTIONS.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.code} ({c.symbol})
+                        </option>
+                      ))}
+                      {!CURRENCY_OPTIONS.some((c) => c.code === form.currency) && form.currency && (
+                        <option value={form.currency}>
+                          {form.currency}
+                        </option>
+                      )}
                     </select>
                   </div>
                 </div>

@@ -2,23 +2,66 @@ import { useState, useEffect } from "react";
 import { X, FileText, MapPin, Loader2, Info } from "lucide-react";
 import { useCreateStayRequestMutation } from "@/store/api/stayRequestApi";
 import { useAuth } from "@/shared/hooks/useAuth";
+import { useCountry } from "@/context/CountryContext";
+import { getCurrencyForCountry } from "@/shared/utils/countryUtils";
 import { loadLocationData } from "@/shared/utils/lazyLocationData";
 import SearchableDropdown from "@/shared/ui/SearchableDropdown";
 import { toast } from "sonner";
 
+const CURRENCY_OPTIONS = [
+  { code: "INR", symbol: "₹" },
+  { code: "USD", symbol: "$" },
+  { code: "EUR", symbol: "€" },
+  { code: "GBP", symbol: "£" },
+  { code: "CAD", symbol: "$" },
+  { code: "AUD", symbol: "$" },
+  { code: "AED", symbol: "د.إ" },
+  { code: "SGD", symbol: "$" },
+  { code: "ZAR", symbol: "R" },
+  { code: "JPY", symbol: "¥" },
+  { code: "CHF", symbol: "CHF" },
+  { code: "NZD", symbol: "$" },
+  { code: "SAR", symbol: "﷼" },
+  { code: "QAR", symbol: "﷼" },
+  { code: "KWD", symbol: "KD" },
+  { code: "MYR", symbol: "RM" },
+  { code: "THB", symbol: "฿" },
+  { code: "PHP", symbol: "₱" },
+  { code: "IDR", symbol: "Rp" },
+  { code: "VND", symbol: "₫" },
+  { code: "BRL", symbol: "R$" },
+  { code: "MXN", symbol: "$" },
+  { code: "TRY", symbol: "₺" },
+  { code: "RUB", symbol: "₽" },
+  { code: "SEK", symbol: "kr" },
+  { code: "NOK", symbol: "kr" },
+  { code: "DKK", symbol: "kr" },
+  { code: "PLN", symbol: "zł" },
+  { code: "EGP", symbol: "E£" },
+  { code: "NGN", symbol: "₦" },
+  { code: "KES", symbol: "KSh" },
+  { code: "BDT", symbol: "৳" },
+  { code: "PKR", symbol: "Rs" },
+  { code: "LKR", symbol: "Rs" },
+  { code: "NPR", symbol: "रू" }
+];
+
 export default function PostStayRequestModal({ onClose, onAdd }) {
   const { user: currentUser } = useAuth();
+  const { activeCountry } = useCountry();
   
   // RTK Query Mutation
   const [createStayRequest] = useCreateStayRequestMutation();
 
+  const initialCurrency = activeCountry?.currency || getCurrencyForCountry(activeCountry?.name || activeCountry?.code) || "INR";
+
   const [form, setForm] = useState({
     title: "",
-    country: "",
+    country: activeCountry?.name || "",
     state: "",
     city: "",
     budget: "",
-    currency: "EUR",
+    currency: initialCurrency,
     stayType: "Long Term",
     furnishing: "Furnished",
     description: "",
@@ -48,6 +91,43 @@ export default function PostStayRequestModal({ onClose, onAdd }) {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedState, setSelectedState] = useState(null);
 
+  // Auto-sync country and currency from Navbar active country
+  useEffect(() => {
+    if (!activeCountry?.name || !countriesList.length) return;
+
+    const normalizedActiveName = activeCountry.name === "United States" ? "United States of America" : activeCountry.name;
+    const match = countriesList.find(
+      (c) =>
+        c.name?.toLowerCase() === normalizedActiveName.toLowerCase() ||
+        c.name?.toLowerCase() === activeCountry.name?.toLowerCase() ||
+        c.isoCode?.toUpperCase() === activeCountry.code?.toUpperCase()
+    );
+
+    const targetCountry = match || {
+      name: normalizedActiveName,
+      isoCode: activeCountry.code,
+    };
+
+    const derivedCurrency =
+      activeCountry.currency ||
+      getCurrencyForCountry(targetCountry.name || targetCountry.isoCode) ||
+      "INR";
+
+    if (!selectedCountry) {
+      setSelectedCountry(targetCountry);
+      setForm((prev) => ({
+        ...prev,
+        country: targetCountry.name,
+        currency: prev.currency || derivedCurrency,
+      }));
+
+      if (locationMod && targetCountry?.isoCode) {
+        const states = locationMod.State.getStatesOfCountry(targetCountry.isoCode);
+        setStatesList(states || []);
+      }
+    }
+  }, [activeCountry, countriesList, locationMod, selectedCountry]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -55,9 +135,21 @@ export default function PostStayRequestModal({ onClose, onAdd }) {
 
   const handleCountryChange = (country) => {
     if (!locationMod) return;
+    const countryName = country?.name || country;
+    const derivedCurrency =
+      country?.currency ||
+      getCurrencyForCountry(countryName || country?.isoCode) ||
+      "INR";
+
     setSelectedCountry(country);
-    setForm((prev) => ({ ...prev, country: country.name, state: "", city: "" }));
-    setStatesList(locationMod.State.getStatesOfCountry(country.isoCode));
+    setForm((prev) => ({
+      ...prev,
+      country: countryName,
+      currency: derivedCurrency,
+      state: "",
+      city: ""
+    }));
+    setStatesList(locationMod.State.getStatesOfCountry(country.isoCode) || []);
     setCitiesList([]);
     setCitiesFetched(false);
     setSelectedState(null);
@@ -237,10 +329,16 @@ export default function PostStayRequestModal({ onClose, onAdd }) {
                   onChange={handleChange}
                   className="w-1/3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-slate-350 cursor-pointer"
                 >
-                  <option value="EUR">EUR (€)</option>
-                  <option value="INR">INR (₹)</option>
-                  <option value="USD">USD ($)</option>
-                  <option value="ZAR">ZAR (R)</option>
+                  {CURRENCY_OPTIONS.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} ({c.symbol})
+                    </option>
+                  ))}
+                  {!CURRENCY_OPTIONS.some((c) => c.code === form.currency) && form.currency && (
+                    <option value={form.currency}>
+                      {form.currency}
+                    </option>
+                  )}
                 </select>
               </div>
               {formErrors.budget && <span className="text-[10px] text-red-500 font-bold mt-1 block">{formErrors.budget}</span>}

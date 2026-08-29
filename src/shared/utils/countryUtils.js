@@ -90,3 +90,27 @@ export function getCurrencySymbol(str) {
         return "$";
     }
 }
+/**
+ * Look up the 3-letter currency code (e.g. "INR", "USD", "EUR", "GBP") for a country name or code.
+ *
+ * @param {string} countryNameOrCode
+ * @returns {string} e.g. "INR", "USD", "EUR"
+ */
+export function getCurrencyForCountry(str) {
+    if (!str) return "USD";
+    const upper = str.toString().trim().toUpperCase();
+
+    if (upper === "INDIA" || upper === "IN" || upper === "INR") return "INR";
+    if (upper === "UNITED STATES" || upper === "UNITED STATES OF AMERICA" || upper === "US" || upper === "USA" || upper === "USD") return "USD";
+    if (upper === "UNITED KINGDOM" || upper === "UK" || upper === "GB" || upper === "GBP") return "GBP";
+    if (upper === "CANADA" || upper === "CA" || upper === "CAD") return "CAD";
+    if (upper === "AUSTRALIA" || upper === "AU" || upper === "AUD") return "AUD";
+    if (upper === "SOUTH AFRICA" || upper === "ZA" || upper === "ZAR") return "ZAR";
+    if (upper === "UNITED ARAB EMIRATES" || upper === "UAE" || upper === "AE" || upper === "AED") return "AED";
+    if (upper === "SINGAPORE" || upper === "SG" || upper === "SGD") return "SGD";
+    if (["GERMANY", "FRANCE", "ITALY", "SPAIN", "IRELAND", "NETHERLANDS", "AUSTRIA", "BELGIUM", "PORTUGAL", "GREECE", "FINLAND", "EUR"].includes(upper)) return "EUR";
+
+    const country = getCountryByName(str) || getCountryByCode(str);
+    return country?.currency || "USD";
+}
+
