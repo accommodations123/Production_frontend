@@ -521,11 +521,32 @@ export async function executeSupabaseRequest(args) {
         }
 
         // ── 6. PROFILES / HOST / USER ──────────────────────────────
-        if (cleanUrl.startsWith('host') || cleanUrl.startsWith('profiles') || cleanUrl.startsWith('user') || cleanUrl === 'auth/me' || cleanUrl === 'auth/user') {
+        if (cleanUrl.startsWith('host') || cleanUrl.startsWith('profiles') || cleanUrl.startsWith('user') || cleanUrl.startsWith('admin/approved/approved-host') || cleanUrl.startsWith('admin/pending/pending-host') || cleanUrl.startsWith('admin/rejected/rejected-host') || cleanUrl === 'auth/me' || cleanUrl === 'auth/user') {
             const userObj = await getCurrentUserObject()
             const userId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
             const userEmail = userObj?.email || userObj?.user?.email
 
+            // Admin Host Approval Actions
+            if ((cleanUrl.includes('/approve/') || cleanUrl.endsWith('/approve')) && method !== 'GET') {
+                const id = cleanUrl.split('/').pop()
+                const { data } = await supabase.from('profiles').update({ status: 'approved', is_approved: true, role: 'host' }).eq('id', id).select().maybeSingle()
+                return { data: { success: true, host: data, profile: data, message: 'Host approved' } }
+            }
+            if ((cleanUrl.includes('/reject/') || cleanUrl.endsWith('/reject')) && method !== 'GET') {
+                const id = cleanUrl.split('/').pop()
+                const { data } = await supabase.from('profiles').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
+                return { data: { success: true, host: data, profile: data, message: 'Host rejected' } }
+            }
+            if (cleanUrl.includes('pending') && method === 'GET') {
+                const { data } = await supabase.from('profiles').select('*').eq('status', 'pending').order('created_at', { ascending: false })
+                return { data: { hosts: data || [], profiles: data || [] } }
+            }
+            if (cleanUrl.includes('rejected') && method === 'GET') {
+                const { data } = await supabase.from('profiles').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
+                return { data: { hosts: data || [], profiles: data || [] } }
+            }
+
+            // Current logged-in user profile & host status
             if (cleanUrl === 'host/profile' || cleanUrl === 'host/me' || cleanUrl === 'host/get' || cleanUrl === 'auth/me' || cleanUrl === 'auth/user' || cleanUrl === 'user/profile' || cleanUrl === 'user/me' || cleanUrl === 'user/get' || cleanUrl === 'profiles/me') {
                 if (!userId && !userEmail) return { data: { host: null, user: null, profile: null } }
 
@@ -543,14 +564,16 @@ export async function executeSupabaseRequest(args) {
                     } catch {}
                 }
 
+                // If brand new user, initialize as standard user (NOT approved host)
                 if (!profile && (userId || userEmail)) {
                     const fallbackProfile = {
-                        id: userId || 'dcc13926-3cb1-42cd-8732-fd031ee042e8',
-                        email: userEmail || 'bhargavreddy.mettu@gmail.com',
-                        full_name: userObj?.full_name || userObj?.name || [userObj?.first_name, userObj?.last_name].filter(Boolean).join(' ') || 'Bhargav Reddy',
-                        phone: userObj?.phone || '+91 8328632931',
-                        status: 'approved',
-                        is_approved: true,
+                        id: userId || '4ff1273a-306d-4227-be1e-8f1d7127bf10',
+                        email: userEmail,
+                        full_name: userObj?.full_name || userObj?.name || [userObj?.first_name, userObj?.last_name].filter(Boolean).join(' ') || (userEmail ? userEmail.split('@')[0] : 'User'),
+                        phone: userObj?.phone || null,
+                        role: 'user',
+                        status: null,
+                        is_approved: false,
                     }
                     try {
                         const { data } = await supabase.from('profiles').upsert(fallbackProfile).select().maybeSingle()
@@ -563,11 +586,13 @@ export async function executeSupabaseRequest(args) {
                 return { data: { host: profile, user: profile, profile, data: profile } }
             }
 
+            // Host application submission by user -> status: 'pending', is_approved: false
             if ((cleanUrl === 'host/save' || cleanUrl === 'host/update' || cleanUrl.startsWith('host/update/')) && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
                 const id = cleanUrl.split('/').pop() || userId
                 let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'profiles') : body
-                payload.status = payload.status || 'approved'
-                payload.is_approved = payload.is_approved !== undefined ? payload.is_approved : true
+                payload.status = payload.status || 'pending'
+                payload.is_approved = false
+                payload.role = payload.role || 'user'
                 const { data, error } = await supabase.from('profiles').upsert({ ...payload, id: id !== 'save' && id !== 'update' ? id : (userId || id) }).select().maybeSingle()
                 if (error) throw error
                 return { data: { host: data, profile: data, success: true } }
@@ -579,7 +604,8 @@ export async function executeSupabaseRequest(args) {
                 return { data: { host: data, profile: data, user: data } }
             }
 
-            const { data } = await supabase.from('profiles').select('*').limit(50)
+            // List of approved hosts (for directory / admin)
+            const { data } = await supabase.from('profiles').select('*').or('status.eq.approved,is_approved.eq.true').limit(50)
             return { data: { profiles: data || [], hosts: data || [] } }
         }
 

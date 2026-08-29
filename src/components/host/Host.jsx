@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { FaWhatsapp, FaInstagram, FaFacebook } from "react-icons/fa";
-import { LogIn, ArrowRight } from "lucide-react";
+import { LogIn, ArrowRight, Check } from "lucide-react";
 import { fetchAddressByPincode } from "@/lib/pincodeUtils";
 import { Navbar } from "@/components/layout/Navbar";
 import { loadLocationData } from '@/lib/lazyLocationData';
@@ -417,6 +417,39 @@ export default function HostOnboardingForm() {
             <p className="text-accent mt-1">Join our community and start hosting today</p>
           </div>
 
+          {/* Approved Status Banner */}
+          {hostProfile?.status === "approved" && (
+            <div className="bg-emerald-50 border-l-4 border-emerald-500 p-6 m-6 rounded-lg shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <Check className="h-7 w-7 text-emerald-600" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-bold text-emerald-900">Host Verified & Approved!</h3>
+                    <p className="text-emerald-700 text-sm mt-0.5">Your host application is approved by the admin. You can now host events, post listings, create stay requests, and travel trips.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 self-end sm:self-center">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/events/host")}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm cursor-pointer"
+                  >
+                    Host an Event
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/host/create")}
+                    className="px-4 py-2 bg-white hover:bg-gray-100 text-emerald-700 border border-emerald-300 text-sm font-medium rounded-lg transition-colors shadow-sm cursor-pointer"
+                  >
+                    List Accommodation
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Pending Status Overlay */}
           {hostProfile?.status === "pending" && (
             <div className="bg-blue-50 border-l-4 border-blue-400 p-6 m-6 rounded-lg shadow-sm">
@@ -442,7 +475,7 @@ export default function HostOnboardingForm() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => navigate("/dashboard")}
+                    onClick={() => navigate("/account-v2")}
                     className="px-4 py-2 bg-white hover:bg-gray-100 text-blue-700 border border-blue-300 text-sm font-medium rounded-lg transition-colors shadow-sm"
                   >
                     Go to Dashboard

@@ -26,7 +26,7 @@ export default function HostEventPage() {
     skip: !userData
   })
 
-  const isVerifiedHost = hostProfile?.status === 'approved';
+  const isVerifiedHost = hostProfile?.status === 'approved' || hostProfile?.is_approved === true;
 
   const {
     step,

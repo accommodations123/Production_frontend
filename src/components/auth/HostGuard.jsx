@@ -5,7 +5,7 @@ import { useGetHostProfileQuery } from '@/store/api/hostApi';
 
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
-const HostGuard = ({ children }) => {
+export function HostGuard({ children }) {
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -25,26 +25,26 @@ const HostGuard = ({ children }) => {
 
         // If not logged in, redirect to signin
         if (!user) {
-            // Optional: You might want to save the current location to redirect back after login
             navigate('/signin', { replace: true, state: { from: location } });
             return;
         }
 
-        // If User is Logged In...
-        const hasHostProfile = host && (host.id || host._id); // Check for valid ID
+        // Host verification check: requires approved host status from admin
+        const isApprovedHost = host && (host.status === 'approved' || host.is_approved === true);
 
-        if (!hasHostProfile) {
+        if (!isApprovedHost) {
             navigate('/hosts', { replace: true });
         }
 
     }, [user, host, isUserLoading, isHostLoading, navigate, location]);
 
     // Show loading spinner while loading or if redirecting
-    if (isUserLoading || isHostLoading || (!user) || (user && !(host && (host.id || host._id)))) {
+    const isApprovedHost = host && (host.status === 'approved' || host.is_approved === true);
+    if (isUserLoading || isHostLoading || (!user) || (user && !isApprovedHost)) {
         return <LoadingSpinner />;
     }
 
     return children;
-};
+}
 
 export default HostGuard;

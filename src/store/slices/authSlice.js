@@ -85,18 +85,29 @@ export const fetchCurrentUser = createAsyncThunk(
                 return { user };
             }
 
-            // No active session in Supabase - purge any legacy or stale data
-            try {
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
-            } catch {}
+            // Check if user is stored in localStorage
+            const stored = localStorage.getItem('user');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (parsed && (parsed.id || parsed.email)) {
+                        return { user: parsed };
+                    }
+                } catch {}
+            }
 
+            // No active session found
             return { user: null };
         } catch (error) {
-            try {
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
-            } catch {}
+            const stored = localStorage.getItem('user');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (parsed && (parsed.id || parsed.email)) {
+                        return { user: parsed };
+                    }
+                } catch {}
+            }
             return { user: null };
         }
     },
