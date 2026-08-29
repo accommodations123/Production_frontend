@@ -690,6 +690,7 @@ export async function executeSupabaseRequest(args) {
     }
 
     const url = typeof args === 'string' ? args : args.url || ''
+    const method = (typeof args === 'object' && args.method ? args.method.toUpperCase() : 'GET')
     let body = typeof args === 'object' ? args.body : undefined
     if (typeof body === 'string') {
         try {
