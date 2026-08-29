@@ -1,15 +1,17 @@
 import { useSaveHostMutation, useGetHostProfileQuery } from "@/store/api/hostApi";
 import { useGetMeQuery } from "@/store/api/authApi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { FaWhatsapp, FaInstagram, FaFacebook } from "react-icons/fa";
+import { LogIn, ArrowRight } from "lucide-react";
 import { fetchAddressByPincode } from "@/lib/pincodeUtils";
 import { Navbar } from "@/components/layout/Navbar";
 import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
 import { extractUsername } from "@/lib/socialUtils";
+import { useAuth } from "@/shared/hooks/useAuth";
 
 // Helper to split phone number
 // Known country codes (most common first)
@@ -83,13 +85,25 @@ export default function HostOnboardingForm() {
   const [pincodeLoading, setPincodeLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Using the provided API hooks
+  // Using auth hook
+  const { user: currentUser, isAuthenticated, loading: isAuthLoading } = useAuth();
   const { data: userData } = useGetMeQuery();
   const [saveHost, { isLoading: isSubmitLoading, isError, error }] = useSaveHostMutation();
 
   const { data: hostProfile, isLoading: isProfileLoading } = useGetHostProfileQuery(undefined, {
-    skip: !userData
+    skip: !isAuthenticated && !userData
   });
+
+  // Pre-fill user data when available
+  useEffect(() => {
+    if (currentUser) {
+      setFormData(prev => ({
+        ...prev,
+        full_name: prev.full_name || currentUser.full_name || currentUser.name || "",
+        email: prev.email || currentUser.email || ""
+      }));
+    }
+  }, [currentUser]);
 
   // Redirect if already a host
   useEffect(() => {
@@ -320,6 +334,41 @@ export default function HostOnboardingForm() {
       setIsSubmitting(false);
     }
   };
+
+  if (!isAuthLoading && (!isAuthenticated || !currentUser)) {
+    return (
+      <div className="min-h-screen bg-[#00142E] flex flex-col pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center py-16">
+          <div className="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-2xl border border-slate-100 text-center space-y-6 text-slate-800 animate-in fade-in duration-200">
+            <div className="w-16 h-16 bg-red-50 text-[#CB2A25] rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+              <LogIn className="w-8 h-8" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Sign In to Become a Host</h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
+                Please sign in to your NextKinLife account before applying to become a verified host.
+              </p>
+            </div>
+            <div className="pt-2 space-y-3">
+              <Link
+                to="/signin?redirect=/hosts"
+                className="w-full h-12 bg-[#CB2A25] hover:bg-[#b0221e] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-red-500/20 active:scale-98 transition-all"
+              >
+                <span>Sign In</span> <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                to="/signup?redirect=/hosts"
+                className="w-full h-12 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-sm rounded-xl flex items-center justify-center border border-slate-200 active:scale-98 transition-all"
+              >
+                Create an Account
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-primary flex flex-col pt-24 pb-12 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
