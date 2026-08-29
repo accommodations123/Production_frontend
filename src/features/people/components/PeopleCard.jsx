@@ -183,14 +183,17 @@ export function PeopleCard({ person }) {
       : (country && country !== "Global" ? country : "India");
 
   const isVerified = Boolean(
+    person.status === 'approved' ||
+    person.is_approved !== false ||
+    person.is_verified ||
     person.identity_verified ||
     person.documents_verified ||
     person.linkedin_verified ||
     person.verified
   );
 
-  const hasCustomAvatar = Boolean(person.avatar || person.user?.profile_image);
-  const avatarUrl = person.avatar || person.user?.profile_image;
+  const hasCustomAvatar = Boolean(person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image);
+  const avatarUrl = person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image;
   const skills = Array.isArray(person.skills) ? person.skills : [];
 
   return (

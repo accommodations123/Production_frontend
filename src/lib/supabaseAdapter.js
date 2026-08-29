@@ -1406,7 +1406,12 @@ export async function executeSupabaseRequest(args) {
                 if (userId) {
                     const parsedBody = (body instanceof FormData) ? await parseFormDataWithUploads(body, 'profiles') : body
                     const sanitized = sanitizeProfileData(parsedBody)
-                    const { data } = await supabase.from('profiles').update(sanitized).eq('id', userId).select().maybeSingle()
+                    const isSubmittingExpertDetails = Boolean(sanitized.profession || sanitized.headline || sanitized.bio || parsedBody?.profession || parsedBody?.headline || parsedBody?.bio)
+                    const updatePayload = {
+                        ...sanitized,
+                        ...(isSubmittingExpertDetails ? { status: 'pending', is_approved: false } : {})
+                    }
+                    const { data } = await supabase.from('profiles').update(updatePayload).eq('id', userId).select().maybeSingle()
                     return { data: { profile: data || sanitized, success: true } }
                 }
             }
@@ -1417,8 +1422,17 @@ export async function executeSupabaseRequest(args) {
             }
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data, error } = await query
-            if (error) return { data: { people: [] } }
-            return { data: { people: data || [] } }
+            if (error) return { data: { people: [], profiles: [], items: [], results: [] } }
+            const expertProfiles = (data || []).filter(p => p.role === 'expert' || p.profession || p.headline || p.occupation || (p.bio && p.bio.trim().length > 0))
+            return {
+                data: {
+                    people: expertProfiles,
+                    profiles: expertProfiles,
+                    items: expertProfiles,
+                    results: expertProfiles,
+                    total: expertProfiles.length
+                }
+            }
         }
 
         // ── 10. AUTH / ME ───────────────────────────────────────────

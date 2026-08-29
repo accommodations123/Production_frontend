@@ -81,8 +81,12 @@ export default function PeopleHome() {
   const peopleList = useMemo(() => {
     if (!data) return [];
     if (Array.isArray(data)) return data;
+    if (Array.isArray(data.people)) return data.people;
+    if (Array.isArray(data.profiles)) return data.profiles;
     if (Array.isArray(data.items)) return data.items;
     if (Array.isArray(data.results)) return data.results;
+    if (Array.isArray(data.data?.people)) return data.data.people;
+    if (Array.isArray(data.data?.profiles)) return data.data.profiles;
     if (Array.isArray(data.data?.items)) return data.data.items;
     if (Array.isArray(data.data?.results)) return data.data.results;
     if (Array.isArray(data.data)) return data.data;

@@ -312,8 +312,12 @@ const HomeFeatured = () => {
   const displayedPeople = useMemo(() => {
     if (!peopleData) return [];
     if (Array.isArray(peopleData)) return peopleData;
+    if (Array.isArray(peopleData.people)) return peopleData.people;
+    if (Array.isArray(peopleData.profiles)) return peopleData.profiles;
     if (Array.isArray(peopleData.items)) return peopleData.items;
     if (Array.isArray(peopleData.results)) return peopleData.results;
+    if (Array.isArray(peopleData.data?.people)) return peopleData.data.people;
+    if (Array.isArray(peopleData.data?.profiles)) return peopleData.data.profiles;
     if (Array.isArray(peopleData.data?.items)) return peopleData.data.items;
     if (Array.isArray(peopleData.data?.results)) return peopleData.data.results;
     if (Array.isArray(peopleData.data)) return peopleData.data;

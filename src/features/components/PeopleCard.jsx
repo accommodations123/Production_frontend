@@ -50,13 +50,16 @@ export default function PeopleCard({ person }) {
   const currency = person.pricing?.currency || "USD";
 
   const isVerified = Boolean(
+    person.status === 'approved' ||
+    person.is_approved !== false ||
+    person.is_verified ||
     person.identity_verified ||
     person.documents_verified ||
     person.linkedin_verified ||
     person.verified
   );
 
-  const avatar = person.avatar || person.user?.profile_image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
+  const avatar = person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
   const skills = Array.isArray(person.skills) ? person.skills : [];
 
   return (
