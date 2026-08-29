@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { executeSupabaseRequest } from './supabaseAdapter';
 
 const baseURL = import.meta.env.VITE_API_URL || (
     import.meta.env.PROD 
@@ -8,6 +9,59 @@ const baseURL = import.meta.env.VITE_API_URL || (
 
 export const axiosClient = axios.create({
     baseURL,
+    adapter: async (config) => {
+        try {
+            let url = config.url || '';
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                try {
+                    const parsed = new URL(url);
+                    url = parsed.pathname.replace(/^\/functions\/v1\/?/, '').replace(/^\/api\/?/, '');
+                } catch {}
+            }
+
+            const result = await executeSupabaseRequest({
+                url,
+                method: config.method ? config.method.toUpperCase() : 'GET',
+                body: config.data,
+                params: config.params,
+                headers: config.headers
+            });
+
+            if (result.error) {
+                const error = new Error(result.error.message || result.error.error || 'Request failed');
+                error.config = config;
+                error.response = {
+                    data: result.error,
+                    status: result.error.status || 400,
+                    statusText: 'Bad Request',
+                    headers: {},
+                    config
+                };
+                return Promise.reject(error);
+            }
+
+            return {
+                data: result.data,
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+                request: {}
+            };
+        } catch (err) {
+            console.error('axiosClient adapter error:', err);
+            const error = new Error(err.message || 'Request failed');
+            error.config = config;
+            error.response = {
+                data: { message: err.message },
+                status: 500,
+                statusText: 'Internal Server Error',
+                headers: {},
+                config
+            };
+            return Promise.reject(error);
+        }
+    }
 });
 
 // Interceptor to dynamically inject Supabase & selectedCountry headers on every request

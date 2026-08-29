@@ -26,7 +26,7 @@ async function getCurrentUserId() {
 }
 
 // Wishlist helper utilities for storage and normalization
-let hasWishlistTableInDb = null
+let hasWishlistTableInDb = false;
 
 function mapItemTypeToAliases(type) {
     if (!type) return ['property', 'accommodations', 'stay', 'stay-request', 'stay_request', 'stay-requests', 'stay_requests', 'event', 'events', 'buysell', 'buy-sell', 'marketplace', 'product', 'trip', 'travel', 'travel_trip', 'expert', 'people', 'person']
@@ -1107,9 +1107,11 @@ export async function executeSupabaseRequest(args) {
             const eventIdMatch = cleanUrl.match(/^events\/([^/]+)$/)
             if (eventIdMatch && method === 'GET') {
                 const id = eventIdMatch[1]
-                const { data, error } = await supabase.from('events').select('*').eq('id', id).maybeSingle()
-                if (error || !data) return { data: { event: null } }
-                return { data: { event: data } }
+                if (id && !['approved', 'all', 'create-draft', 'draft', 'create', 'my-events', 'my-listings', 'search'].includes(id)) {
+                    const { data, error } = await supabase.from('events').select('*').eq('id', id).maybeSingle()
+                    if (error || !data) return { data: { event: null } }
+                    return { data: { event: data } }
+                }
             }
 
             const { data } = await supabase.from('events').select('*').eq('status', 'approved').limit(20)
@@ -1123,7 +1125,7 @@ export async function executeSupabaseRequest(args) {
                 const parts = cleanUrl.split('/')
                 const id = parts[parts.length - 1]
                 if (id) {
-                    const { data } = await supabase.from('buy_sell').update({ status: 'approved' }).eq('id', id).select().maybeSingle()
+                    const { data } = await supabase.from('buy_sell').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
                     return { data: { success: true, listing: data, message: 'Buy/Sell listing approved' } }
                 }
             }
@@ -1132,12 +1134,12 @@ export async function executeSupabaseRequest(args) {
                 const parts = cleanUrl.split('/')
                 const id = parts[parts.length - 1]
                 if (id) {
-                    const { data } = await supabase.from('buy_sell').update({ status: 'rejected' }).eq('id', id).select().maybeSingle()
+                    const { data } = await supabase.from('buy_sell').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
                     return { data: { success: true, listing: data, message: 'Buy/Sell listing rejected' } }
                 }
             }
 
-            if (cleanUrl === 'admin/pending/pending-buysell' || cleanUrl === 'admin/pending/pending-buy-sell' || cleanUrl === 'admin/buysell/pending' || cleanUrl === 'admin/buy-sell/pending' || cleanUrl === 'buy-sell/admin/pending') {
+            if (cleanUrl === 'admin/pending/pending-buysell' || cleanUrl === 'admin/pending/pending-buy-sell' || cleanUrl === 'admin/buysell/pending' || cleanUrl === 'admin/buy-sell/pending' || cleanUrl === 'buy-sell/admin/pending' || cleanUrl === 'marketplace/admin/pending') {
                 let query = supabase.from('buy_sell').select('*').eq('status', 'pending').order('created_at', { ascending: false })
                 if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
                     query = query.ilike('country', `%${queryParams.country}%`)
@@ -1146,7 +1148,7 @@ export async function executeSupabaseRequest(args) {
                 return { data: data || [] }
             }
 
-            if (cleanUrl === 'admin/approved/approved-buysell' || cleanUrl === 'admin/approved/approved-buy-sell' || cleanUrl === 'admin/buysell/approved' || cleanUrl === 'admin/buy-sell/approved' || cleanUrl === 'buy-sell/admin/approved') {
+            if (cleanUrl === 'admin/approved/approved-buysell' || cleanUrl === 'admin/approved/approved-buy-sell' || cleanUrl === 'admin/buysell/approved' || cleanUrl === 'admin/buy-sell/approved' || cleanUrl === 'buy-sell/admin/approved' || cleanUrl === 'marketplace/admin/approved') {
                 let query = supabase.from('buy_sell').select('*').eq('status', 'approved').order('created_at', { ascending: false })
                 if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
                     query = query.ilike('country', `%${queryParams.country}%`)
@@ -1155,7 +1157,7 @@ export async function executeSupabaseRequest(args) {
                 return { data: data || [] }
             }
 
-            if (cleanUrl === 'admin/rejected/rejected-buysell' || cleanUrl === 'admin/rejected/rejected-buy-sell' || cleanUrl === 'admin/buysell/rejected' || cleanUrl === 'admin/buy-sell/rejected' || cleanUrl === 'buy-sell/admin/rejected') {
+            if (cleanUrl === 'admin/rejected/rejected-buysell' || cleanUrl === 'admin/rejected/rejected-buy-sell' || cleanUrl === 'admin/buysell/rejected' || cleanUrl === 'admin/buy-sell/rejected' || cleanUrl === 'buy-sell/admin/rejected' || cleanUrl === 'marketplace/admin/rejected') {
                 let query = supabase.from('buy_sell').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
                 if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
                     query = query.ilike('country', `%${queryParams.country}%`)
@@ -1164,7 +1166,7 @@ export async function executeSupabaseRequest(args) {
                 return { data: data || [] }
             }
 
-            if (cleanUrl === 'buy-sell/get' || cleanUrl === 'buy-sell/all' || cleanUrl === 'buy-sell' || cleanUrl === 'marketplace') {
+            if (cleanUrl === 'buy-sell/approved' || cleanUrl === 'buy-sell/all' || cleanUrl === 'buy-sell' || cleanUrl === 'marketplace' || cleanUrl === 'marketplace/approved') {
                 let query = supabase.from('buy_sell').select('*').eq('status', 'approved').order('created_at', { ascending: false })
                 if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
                     query = query.ilike('country', `%${queryParams.country}%`)
@@ -1223,12 +1225,14 @@ export async function executeSupabaseRequest(args) {
             const buySellMatch = cleanUrl.match(/^(?:buy-sell\/get|marketplace|buy-sell)\/([^/]+)$/)
             if (buySellMatch && method === 'GET') {
                 const id = buySellMatch[1]
-                const { data, error } = await supabase.from('buy_sell').select('*').eq('id', id).maybeSingle()
-                if (error || !data) return { data: { listing: null } }
-                return { data: { listing: data } }
+                if (id && !['approved', 'all', 'create', 'my-listings', 'search'].includes(id)) {
+                    const { data, error } = await supabase.from('buy_sell').select('*').eq('id', id).maybeSingle()
+                    if (error || !data) return { data: { listing: null } }
+                    return { data: { listing: data } }
+                }
             }
 
-            if ((cleanUrl === 'buy-sell/create' || cleanUrl === 'marketplace/create' || cleanUrl === 'buy-sell') && method === 'POST') {
+            if ((cleanUrl === 'buy-sell/create' || cleanUrl === 'marketplace/create' || cleanUrl === 'buy-sell' || cleanUrl === 'marketplace') && method === 'POST') {
                 const userId = await getCurrentUserId()
                 let rawPayload = body
                 if (body instanceof FormData) {
@@ -1271,7 +1275,7 @@ export async function executeSupabaseRequest(args) {
             }
 
             const updateMatch = cleanUrl.match(/^(?:buy-sell\/update|marketplace\/update|buy-sell)\/([^/]+)$/)
-            if (updateMatch && (method === 'PUT' || method === 'POST' || method === 'PATCH')) {
+            if (updateMatch && (method === 'PUT' || method === 'POST' || method === 'PATCH') && !['create', 'approved', 'all'].includes(updateMatch[1])) {
                 const id = updateMatch[1]
                 const userId = await getCurrentUserId()
                 let rawPayload = body
@@ -1342,7 +1346,7 @@ export async function executeSupabaseRequest(args) {
             if (cleanUrl === 'admin/pending/pending-travel' || cleanUrl === 'admin/pending/pending-trips' || cleanUrl === 'admin/travel/pending' || cleanUrl === 'travel/admin/pending') {
                 let query = supabase.from('travel_trips').select('*').eq('status', 'pending').order('created_at', { ascending: false })
                 if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
-                    query = query.or(`to_country.ilike.%${queryParams.country}%,from_country.ilike.%${queryParams.country}%,destination.ilike.%${queryParams.country}%`)
+                    query = query.or(`destination.ilike.%${queryParams.country}%,origin.ilike.%${queryParams.country}%,title.ilike.%${queryParams.country}%`)
                 }
                 const { data } = await query
                 return { data: data || [] }
@@ -1351,7 +1355,7 @@ export async function executeSupabaseRequest(args) {
             if (cleanUrl === 'admin/approved/approved-travel' || cleanUrl === 'admin/approved/approved-trips' || cleanUrl === 'admin/travel/approved' || cleanUrl === 'travel/admin/approved') {
                 let query = supabase.from('travel_trips').select('*').eq('status', 'approved').order('created_at', { ascending: false })
                 if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
-                    query = query.or(`to_country.ilike.%${queryParams.country}%,from_country.ilike.%${queryParams.country}%,destination.ilike.%${queryParams.country}%`)
+                    query = query.or(`destination.ilike.%${queryParams.country}%,origin.ilike.%${queryParams.country}%,title.ilike.%${queryParams.country}%`)
                 }
                 const { data } = await query
                 return { data: data || [] }
@@ -1360,7 +1364,7 @@ export async function executeSupabaseRequest(args) {
             if (cleanUrl === 'admin/rejected/rejected-travel' || cleanUrl === 'admin/rejected/rejected-trips' || cleanUrl === 'admin/travel/rejected' || cleanUrl === 'travel/admin/rejected') {
                 let query = supabase.from('travel_trips').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
                 if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
-                    query = query.or(`to_country.ilike.%${queryParams.country}%,from_country.ilike.%${queryParams.country}%,destination.ilike.%${queryParams.country}%`)
+                    query = query.or(`destination.ilike.%${queryParams.country}%,origin.ilike.%${queryParams.country}%,title.ilike.%${queryParams.country}%`)
                 }
                 const { data } = await query
                 return { data: data || [] }
@@ -1369,7 +1373,7 @@ export async function executeSupabaseRequest(args) {
             if (cleanUrl === 'travel/trips' || cleanUrl === 'travel/trips/search') {
                 let query = supabase.from('travel_trips').select('*').eq('status', 'approved').order('created_at', { ascending: false })
                 if (queryParams.country && queryParams.country !== 'Global' && queryParams.country !== 'All') {
-                    query = query.or(`destination.ilike.%${queryParams.country}%,origin.ilike.%${queryParams.country}%,to_country.ilike.%${queryParams.country}%,from_country.ilike.%${queryParams.country}%`)
+                    query = query.or(`destination.ilike.%${queryParams.country}%,origin.ilike.%${queryParams.country}%,title.ilike.%${queryParams.country}%`)
                 }
                 if (queryParams.limit) {
                     query = query.limit(Number(queryParams.limit))
