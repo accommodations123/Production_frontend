@@ -1,11 +1,9 @@
-import { useState } from 'react';
-import { MapPin, Clock, Home, ShieldCheck, Bookmark } from 'lucide-react';
+import { MapPin, Clock, Home, ShieldCheck } from 'lucide-react';
 import { useCountry } from '@/context/CountryContext';
 import { SocialQuickConnect } from '@/components/ui/SocialConnect';
 
 export function StayRequestCard({ request }) {
   const { formatPrice } = useCountry();
-  const [isSaved, setIsSaved] = useState(false);
 
   if (!request) return null;
 
@@ -118,18 +116,6 @@ export function StayRequestCard({ request }) {
               </p>
             </div>
           </div>
-
-          <button
-            onClick={() => setIsSaved(!isSaved)}
-            className={`p-2 rounded-full border transition-all cursor-pointer shrink-0 ${
-              isSaved
-                ? 'bg-red-50 text-[#CB2A26] border-red-200'
-                : 'bg-slate-50 text-slate-400 hover:text-slate-700 hover:bg-slate-100 border-slate-200/60'
-            }`}
-            title={isSaved ? 'Saved Request' : 'Save Request'}
-          >
-            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-[#CB2A26] text-[#CB2A26]' : ''}`} />
-          </button>
         </div>
 
         {/* Feature Tags / Badges Row */}
