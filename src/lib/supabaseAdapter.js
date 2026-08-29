@@ -621,9 +621,52 @@ export async function executeSupabaseRequest(args) {
 
     try {
         // ── 1. PROPERTIES ──────────────────────────────────────────
-        if (cleanUrl.startsWith('property') || cleanUrl.startsWith('accommodations')) {
-            if (cleanUrl === 'property/all' || cleanUrl === 'property/approved' || cleanUrl === 'property') {
-                let query = supabase.from('properties').select('*')
+        if (cleanUrl.startsWith('property') || cleanUrl.startsWith('accommodations') || cleanUrl.startsWith('admin/properties') || cleanUrl.startsWith('admin/pending/pending-properties') || cleanUrl.startsWith('admin/approved/approved-properties') || cleanUrl.startsWith('admin/rejected/rejected-properties')) {
+            // Admin actions for properties
+            if (cleanUrl.startsWith('admin/property/approve') || cleanUrl.startsWith('admin/properties/approve') || cleanUrl.startsWith('property/approve')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    const { data } = await supabase.from('properties').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
+                    return { data: { success: true, property: data, message: 'Property approved' } }
+                }
+            }
+
+            if (cleanUrl.startsWith('admin/property/reject') || cleanUrl.startsWith('admin/properties/reject') || cleanUrl.startsWith('property/reject')) {
+                const parts = cleanUrl.split('/')
+                const id = parts[parts.length - 1]
+                if (id) {
+                    const { data } = await supabase.from('properties').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
+                    return { data: { success: true, property: data, message: 'Property rejected' } }
+                }
+            }
+
+            if (cleanUrl === 'admin/pending/pending-properties' || cleanUrl === 'admin/properties/pending') {
+                let query = supabase.from('properties').select('*').eq('status', 'pending').order('created_at', { ascending: false })
+                if (queryParams.country) query = query.ilike('country', `%${queryParams.country}%`)
+                const { data } = await query
+                const enriched = await enrichPropertiesWithHostDetails(data || [])
+                return { data: enriched }
+            }
+
+            if (cleanUrl === 'admin/approved/approved-properties' || cleanUrl === 'admin/properties/approved') {
+                let query = supabase.from('properties').select('*').eq('status', 'approved').order('created_at', { ascending: false })
+                if (queryParams.country) query = query.ilike('country', `%${queryParams.country}%`)
+                const { data } = await query
+                const enriched = await enrichPropertiesWithHostDetails(data || [])
+                return { data: enriched }
+            }
+
+            if (cleanUrl === 'admin/rejected/rejected-properties' || cleanUrl === 'admin/properties/rejected') {
+                let query = supabase.from('properties').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
+                if (queryParams.country) query = query.ilike('country', `%${queryParams.country}%`)
+                const { data } = await query
+                const enriched = await enrichPropertiesWithHostDetails(data || [])
+                return { data: enriched }
+            }
+
+            if (cleanUrl === 'property/all' || cleanUrl === 'property/approved' || cleanUrl === 'property' || cleanUrl === 'accommodations') {
+                let query = supabase.from('properties').select('*').eq('status', 'approved').order('created_at', { ascending: false })
                 if (queryParams.country) {
                     query = query.ilike('country', `%${queryParams.country}%`)
                 }
@@ -745,8 +788,9 @@ export async function executeSupabaseRequest(args) {
             }
 
             // Generic properties fallback
-            const { data } = await supabase.from('properties').select('*').limit(20)
-            return { data: { properties: data || [] } }
+            const { data } = await supabase.from('properties').select('*').eq('status', 'approved').limit(20)
+            const enriched = await enrichPropertiesWithHostDetails(data || [])
+            return { data: { properties: enriched } }
         }
 
         // ── 2. HOST PROFILE ─────────────────────────────────────────
