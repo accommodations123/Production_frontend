@@ -26,10 +26,12 @@ const EVENT_COLUMNS = new Set([
 ]);
 
 const PROPERTY_COLUMNS = new Set([
-    'id', 'title', 'description', 'status', 'is_approved', 'price', 'price_per_night',
-    'currency', 'city', 'state', 'country', 'zip_code', 'address', 'images', 'photos',
-    'host_id', 'email', 'phone', 'guests', 'bedrooms', 'bathrooms', 'amenities',
-    'rules', 'property_type', 'created_at', 'updated_at'
+    'id', 'host_id', 'host_name', 'hostName', 'user_name', 'phone', 'email', 'title',
+    'description', 'category_id', 'property_type', 'privacy_type', 'guests', 'guest_capacity',
+    'bedrooms', 'bathrooms', 'pets_allowed', 'area', 'address', 'city', 'state', 'country',
+    'zip_code', 'photos', 'images', 'video', 'amenities', 'rules', 'legal_docs',
+    'price_per_night', 'price_per_month', 'price_per_hour', 'price', 'currency', 'status',
+    'is_approved', 'rejection_reason', 'created_at', 'updated_at'
 ]);
 
 const BUY_SELL_COLUMNS = new Set([
@@ -315,25 +317,97 @@ export async function executeSupabaseRequest(args) {
                 const { data } = await q
                 return { data: { properties: await enrichPropertiesWithHostDetails(data || []) } }
             }
-            if ((cleanUrl.startsWith('property/create') || cleanUrl === 'property') && method === 'POST') {
+            if ((cleanUrl.startsWith('property/create') || cleanUrl === 'property' || cleanUrl === 'property/create-draft') && method === 'POST') {
                 const userId = await getCurrentUserId()
                 let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'properties') : { ...(body || {}) }
                 payload.host_id = userId || payload.host_id
                 payload.status = payload.status || 'pending'
+
+                // Map aliases
+                if (payload.categoryId && !payload.category_id) payload.category_id = payload.categoryId;
+                if (payload.propertyType && !payload.property_type) payload.property_type = payload.propertyType;
+                if (payload.privacyType && !payload.privacy_type) payload.privacy_type = payload.privacyType;
+                if (payload.street_address && !payload.address) payload.address = payload.street_address;
+                if (payload.address && !payload.street_address) payload.street_address = payload.address;
+                if (payload.petsAllowed !== undefined) payload.pets_allowed = Boolean(Number(payload.petsAllowed));
+                if (payload.area !== undefined) payload.area = Number(payload.area) || null;
+                if (payload.guests !== undefined) payload.guests = Number(payload.guests) || 1;
+                if (payload.bedrooms !== undefined) payload.bedrooms = Number(payload.bedrooms) || 0;
+                if (payload.bathrooms !== undefined) payload.bathrooms = Number(payload.bathrooms) || 0;
+
+                // Price mapping
+                if (payload.pricePerHour !== undefined || payload.priceNight !== undefined || payload.pricePerNight !== undefined || payload.priceWeek !== undefined || payload.priceMonth !== undefined || payload.pricePerMonth !== undefined || payload.price !== undefined || payload.rent !== undefined) {
+                    const night = Number(payload.priceNight ?? payload.pricePerNight ?? payload.price_per_night ?? payload.price) || 0;
+                    const month = Number(payload.priceMonth ?? payload.pricePerMonth ?? payload.price_per_month) || 0;
+                    const hour = Number(payload.pricePerHour ?? payload.price_per_hour) || 0;
+                    payload.price_per_night = night;
+                    payload.price_per_month = month;
+                    payload.price_per_hour = hour;
+                    payload.price = night || month || hour || Number(payload.price) || 0;
+                }
+
                 payload.images = payload.images || payload.photos || []
+                payload.photos = payload.photos || payload.images || []
+
                 const clean = sanitizePayload(payload, PROPERTY_COLUMNS)
                 const { data, error } = await supabase.from('properties').insert(clean).select().maybeSingle()
                 if (error) throw error
-                return { data: { property: data, id: data?.id, success: true } }
+                return { data: { propertyId: data?.id, id: data?.id, data, property: data, success: true } }
             }
-            if (cleanUrl.startsWith('property/update/') || (cleanUrl.startsWith('property/') && (method === 'PUT' || method === 'PATCH'))) {
+
+            // Step & general updates: property/basic-info/:id, property/address/:id, property/pricing/:id, property/amenities/:id, property/rules/:id, property/media/:id, property/submit/:id, property/update/:id
+            if (cleanUrl.startsWith('property/') && (method === 'PUT' || method === 'PATCH' || method === 'POST') && !cleanUrl.includes('create') && !cleanUrl.includes('delete') && !cleanUrl.startsWith('property/get')) {
                 const id = cleanUrl.split('/').pop()
                 let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'properties') : { ...(body || {}) }
+
+                // Map aliases
+                if (payload.categoryId && !payload.category_id) payload.category_id = payload.categoryId;
+                if (payload.propertyType && !payload.property_type) payload.property_type = payload.propertyType;
+                if (payload.privacyType && !payload.privacy_type) payload.privacy_type = payload.privacyType;
+                if (payload.street_address && !payload.address) payload.address = payload.street_address;
+                if (payload.address && !payload.street_address) payload.street_address = payload.address;
+                if (payload.petsAllowed !== undefined) payload.pets_allowed = Boolean(Number(payload.petsAllowed));
+                if (payload.area !== undefined) payload.area = Number(payload.area) || null;
+                if (payload.guests !== undefined) payload.guests = Number(payload.guests) || 1;
+                if (payload.bedrooms !== undefined) payload.bedrooms = Number(payload.bedrooms) || 0;
+                if (payload.bathrooms !== undefined) payload.bathrooms = Number(payload.bathrooms) || 0;
+
+                // Price mapping
+                if (payload.pricePerHour !== undefined || payload.priceNight !== undefined || payload.pricePerNight !== undefined || payload.priceWeek !== undefined || payload.priceMonth !== undefined || payload.pricePerMonth !== undefined || payload.price !== undefined || payload.rent !== undefined) {
+                    const night = Number(payload.priceNight ?? payload.pricePerNight ?? payload.price_per_night ?? payload.price) || 0;
+                    const month = Number(payload.priceMonth ?? payload.pricePerMonth ?? payload.price_per_month) || 0;
+                    const hour = Number(payload.pricePerHour ?? payload.price_per_hour) || 0;
+                    payload.price_per_night = night;
+                    payload.price_per_month = month;
+                    payload.price_per_hour = hour;
+                    payload.price = night || month || hour || Number(payload.price) || 0;
+                }
+
+                // Photos / Media
+                if (cleanUrl.includes('media') || cleanUrl.includes('photos') || cleanUrl.includes('photo')) {
+                    const photoUrl = payload.photo || payload.photos || payload.image || payload.images;
+                    if (photoUrl) {
+                        const { data: cur } = await supabase.from('properties').select('photos, images').eq('id', id).maybeSingle();
+                        const curPhotos = Array.isArray(cur?.photos) ? cur.photos : [];
+                        const curImages = Array.isArray(cur?.images) ? cur.images : [];
+                        const added = Array.isArray(photoUrl) ? photoUrl : [photoUrl];
+                        payload.photos = [...new Set([...curPhotos, ...added])];
+                        payload.images = [...new Set([...curImages, ...added])];
+                    }
+                }
+
+                // Submit step
+                if (cleanUrl.includes('submit')) {
+                    payload.status = 'approved';
+                    payload.is_approved = true;
+                }
+
                 const clean = sanitizePayload(payload, PROPERTY_COLUMNS)
                 const { data, error } = await supabase.from('properties').update(clean).eq('id', id).select().maybeSingle()
                 if (error) throw error
-                return { data: { property: data, success: true } }
+                return { data: { property: data, data, success: true } }
             }
+
             if (cleanUrl.startsWith('property/delete/') || (cleanUrl.startsWith('property/') && method === 'DELETE')) {
                 const id = cleanUrl.split('/').pop()
                 await supabase.from('properties').delete().eq('id', id)
