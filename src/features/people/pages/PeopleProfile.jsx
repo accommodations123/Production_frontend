@@ -337,8 +337,15 @@ export default function PeopleProfile() {
     person.linkedin_verified
   );
 
-  const hasCustomAvatar = Boolean(person.avatar || person.user?.profile_image);
-  const avatarUrl = person.avatar || person.user?.profile_image;
+  const name = person.name || person.full_name || (person.firstName ? `${person.firstName} ${person.lastName || ''}`.trim() : "") || "Expert Advisor";
+  const profession = person.profession || person.headline || person.occupation || "Expert Advisor";
+  const bio = person.bio || person.description || (person.headline ? `Specialized in ${person.headline}. Dedicated to providing seamless relocation and consulting support.` : "Experienced professional dedicated to helping expats navigate relocation, housing, and local integration seamlessly.");
+  const city = person.city || "";
+  const state = person.state || "";
+  const country = person.country || "";
+  const locationText = city && country ? `${city}, ${country}` : (city ? `${city}${state ? `, ${state}` : ''}` : (country || "Global"));
+  const hasCustomAvatar = Boolean(person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image);
+  const avatarUrl = person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image;
   const coverImage = person.cover_image || "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop&q=80";
   const hourlyRate = person.pricing?.consultation ?? person.hourlyRate ?? person.hourly_rate ?? 0;
   const currency = (person.pricing?.currency && person.pricing.currency !== "USD")
@@ -346,8 +353,10 @@ export default function PeopleProfile() {
     : (person.currency && person.currency !== "USD")
       ? person.currency
       : (person.country && person.country !== "Global" ? person.country : "India");
-  const skills = Array.isArray(person.skills) ? person.skills : [];
-  const languages = Array.isArray(person.languages) ? person.languages : [];
+  const skills = Array.isArray(person.skills) && person.skills.length > 0
+    ? person.skills
+    : (profession !== "Expert Advisor" ? profession.split(/[,|•/]/).map(s => s.trim()).filter(Boolean) : ["Consulting", "Support", "Advisor"]);
+  const languages = Array.isArray(person.languages) && person.languages.length > 0 ? person.languages : ["English"];
   const experiences = Array.isArray(person.experiences) ? person.experiences : [];
   const educations = Array.isArray(person.educations) ? person.educations : [];
   const services = Array.isArray(person.services) ? person.services : [];
@@ -436,14 +445,14 @@ export default function PeopleProfile() {
 
                   <div className="space-y-1.5 pt-1">
                     <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                      {person.name}
+                      {name}
                     </h1>
                     <p className="text-slate-700 font-bold text-sm sm:text-base leading-snug">
-                      {person.profession || person.headline}
+                      {profession}
                     </p>
                     <p className="text-slate-500 text-xs font-semibold flex items-center justify-center sm:justify-start gap-1">
                       <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      {person.city}, {person.state ? `${person.state}, ` : ""}{person.country}
+                      {locationText}
                     </p>
 
                     {/* Rating + Badges */}
@@ -573,9 +582,9 @@ export default function PeopleProfile() {
                   <h2 className="text-base font-extrabold text-slate-900">About</h2>
                 </div>
                 <div className="text-slate-700 text-sm leading-relaxed whitespace-pre-line">
-                  {person.bio && person.bio.length > 300 && !isBioExpanded ? (
+                  {bio && bio.length > 300 && !isBioExpanded ? (
                     <>
-                      {person.bio.slice(0, 300)}...
+                      {bio.slice(0, 300)}...
                       <button
                         onClick={() => setIsBioExpanded(true)}
                         className="text-[#E1392A] font-bold text-xs ml-1 inline-flex items-center gap-0.5 cursor-pointer"
@@ -584,7 +593,7 @@ export default function PeopleProfile() {
                       </button>
                     </>
                   ) : (
-                    person.bio
+                    bio
                   )}
                 </div>
               </div>

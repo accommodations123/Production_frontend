@@ -127,11 +127,7 @@ export function PeopleCard({ person }) {
     }
   };
 
-  // Field mapping normalizing backend schema vs legacy frontend expected props
-  const name = person.name || "Professional";
-  const profession = person.headline || person.profession || (person.category ? person.category.replace("-", " & ") : "");
-  const bio = person.bio || "";
-  
+
   const reviewCount = useMemo(() => {
     if (liveReviews.length > 0) return liveReviews.length;
     return Number(
@@ -173,8 +169,13 @@ export function PeopleCard({ person }) {
         : person.experiences?.length
           ? `${person.experiences.length}+ yrs`
           : "1+ yrs";
+  const name = person.name || person.full_name || (person.firstName ? `${person.firstName} ${person.lastName || ''}`.trim() : "") || "Expert Advisor";
+  const profession = person.profession || person.headline || person.occupation || "Verified Advisor";
+  const bio = person.bio || person.description || (person.headline ? `Specialized in ${person.headline}` : "Dedicated expat support advisor assisting with relocation, housing, and integration.");
   const city = person.city || "";
+  const state = person.state || "";
   const country = person.country || "";
+  const locationText = city && country ? `${city}, ${country}` : city || state || country || "Global";
   const hourlyRate = person.pricing?.consultation ?? person.hourlyRate ?? person.hourly_rate ?? 0;
   const currency = (person.pricing?.currency && person.pricing.currency !== "USD")
     ? person.pricing.currency
@@ -194,7 +195,9 @@ export function PeopleCard({ person }) {
 
   const hasCustomAvatar = Boolean(person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image);
   const avatarUrl = person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image;
-  const skills = Array.isArray(person.skills) ? person.skills : [];
+  const skills = Array.isArray(person.skills) && person.skills.length > 0
+    ? person.skills
+    : (profession !== "Verified Advisor" ? profession.split(/[,|•/]/).map(s => s.trim()).filter(Boolean) : ["Consulting", "Support", "Advisor"]);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/60 p-5 flex flex-col justify-between h-full group hover:-translate-y-1.5 hover:border-slate-300 hover:shadow-[0_16px_36px_rgba(0,0,0,0.05)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] relative overflow-hidden">
@@ -297,7 +300,7 @@ export function PeopleCard({ person }) {
 
           <div className="px-1">
             <span className="text-[10px] text-[#717171] font-bold uppercase tracking-wider block">Location</span>
-            <span className="text-xs font-bold text-slate-800 block truncate mt-1">{city || country || "Global"}</span>
+            <span className="text-xs font-bold text-slate-800 block truncate mt-1">{locationText}</span>
           </div>
         </div>
 
