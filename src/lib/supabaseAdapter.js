@@ -224,13 +224,31 @@ export async function enrichTravelWithHostDetails(items) {
     const base = await enrichWithProfiles(list, 'host_id');
     const formatted = base.map(trip => {
         if (!trip) return trip;
+        let meta = {};
+        if (trip.title && (trip.title.startsWith('{') || trip.title.startsWith('['))) {
+            try {
+                meta = JSON.parse(trip.title);
+            } catch {}
+        }
+
         const host = trip.Host || trip.host || trip.User || trip.user || {};
         const hostFullName = host.full_name || host.name || trip.host_name || 'Traveler';
-        const fromCity = trip.origin || trip.from_city || trip.fromCity || host.city || 'Origin';
-        const toCity = trip.destination || trip.to_city || trip.toCity || 'Destination';
-        const fromCountry = host.country || 'India';
-        const toCountry = trip.to_country || trip.destination_country || host.country || 'USA';
-        const travelDate = trip.travel_date || trip.created_at;
+        
+        const rawOrigin = trip.origin || '';
+        const rawDest = trip.destination || '';
+
+        const fromCity = meta.from_city || (rawOrigin ? rawOrigin.split(',')[0].trim() : (host.city || 'Hyderabad'));
+        const fromCountry = meta.from_country || (rawOrigin.includes(',') ? rawOrigin.split(',')[1].trim() : (host.country || 'India'));
+        
+        const toCity = meta.to_city || (rawDest ? rawDest.split(',')[0].trim() : 'San Francisco');
+        const toCountry = meta.to_country || (rawDest.includes(',') ? rawDest.split(',')[1].trim() : 'USA');
+
+        const travelDate = trip.travel_date || trip.created_at || '2026-09-15';
+        const departureTime = trip.departure_time || '10:00 AM';
+        const arrivalDate = meta.arrival_date || travelDate;
+        const arrivalTime = meta.arrival_time || '08:00 PM';
+        const airline = meta.airline || 'Commercial Airline';
+        const flightNumber = meta.flight_number || '';
 
         const userObj = {
             id: trip.host_id || host.id,
@@ -250,6 +268,10 @@ export async function enrichTravelWithHostDetails(items) {
         };
 
         const flightObj = {
+            airline: airline,
+            flightName: airline,
+            flightNumber: flightNumber,
+            flight_number: flightNumber,
             from: fromCity,
             to: toCity,
             from_city: fromCity,
@@ -260,15 +282,19 @@ export async function enrichTravelWithHostDetails(items) {
             toCountry: toCountry,
             departureDate: travelDate,
             departure_date: travelDate,
-            departureTime: trip.departure_time || '10:00 AM',
-            departure_time: trip.departure_time || '10:00 AM',
+            departureTime: departureTime,
+            departure_time: departureTime,
+            arrivalDate: arrivalDate,
+            arrival_date: arrivalDate,
+            arrivalTime: arrivalTime,
+            arrival_time: arrivalTime,
             seatsAvailable: trip.seats_available || 1,
             seats_available: trip.seats_available || 1
         };
 
         const tripMeta = {
-            age: host.age || '25-35',
-            languages: host.languages || ['English', 'Hindi']
+            age: meta.age || host.age || '25-35',
+            languages: meta.languages || host.languages || ['English', 'Hindi']
         };
 
         return {
@@ -276,19 +302,30 @@ export async function enrichTravelWithHostDetails(items) {
             id: trip.id,
             host_id: trip.host_id,
             user_id: trip.host_id,
-            title: trip.title || `${fromCity} to ${toCity}`,
-            origin: fromCity,
-            destination: toCity,
+            host_name: hostFullName,
+            title: `${fromCity} to ${toCity}`,
+            origin: fromCountry ? `${fromCity}, ${fromCountry}` : fromCity,
+            destination: toCountry ? `${toCity}, ${toCountry}` : toCity,
             from_city: fromCity,
             fromCity: fromCity,
+            from_country: fromCountry,
+            fromCountry: fromCountry,
             to_city: toCity,
             toCity: toCity,
+            to_country: toCountry,
+            toCountry: toCountry,
             travel_date: travelDate,
             travelDate: travelDate,
             date: travelDate,
-            departure_time: trip.departure_time || '10:00 AM',
-            time: trip.departure_time || '10:00 AM',
+            departure_time: departureTime,
+            departureTime: departureTime,
+            time: departureTime,
+            arrival_date: arrivalDate,
+            arrival_time: arrivalTime,
+            airline: airline,
+            flight_number: flightNumber,
             price: Number(trip.price) || 0,
+            seats_available: trip.seats_available || 1,
             status: trip.status || 'approved',
             user: userObj,
             User: userObj,
@@ -865,15 +902,46 @@ export async function executeSupabaseRequest(args) {
             }
 
             if ((cleanUrl === 'travel/trips' || cleanUrl === 'trips' || cleanUrl === 'travel/create' || cleanUrl === 'travel/trips/create') && method === 'POST') {
-                const userId = await getCurrentUserId()
+                const userObj = await getCurrentUserObject()
+                const userId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
                 let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'travel') : { ...(body || {}) }
+                
+                const fromCity = payload.from_city || payload.fromCity || payload.from || payload.origin || ''
+                const fromCountry = payload.from_country || payload.fromCountry || ''
+                const toCity = payload.to_city || payload.toCity || payload.to || payload.destination || ''
+                const toCountry = payload.to_country || payload.toCountry || ''
+
+                const originStr = fromCity ? (fromCountry ? `${fromCity}, ${fromCountry}` : fromCity) : (payload.origin || '')
+                const destStr = toCity ? (toCountry ? `${toCity}, ${toCountry}` : toCity) : (payload.destination || '')
+
+                const meta = {
+                    airline: payload.airline || payload.flight?.airline || 'Commercial Airline',
+                    flight_number: payload.flight_number || payload.flightNumber || payload.flight?.flightNumber || '',
+                    flightName: payload.flightName || payload.airline || '',
+                    from_country: fromCountry,
+                    from_state: payload.from_state || payload.fromState || '',
+                    from_city: fromCity,
+                    to_country: toCountry,
+                    to_state: payload.to_state || payload.toState || '',
+                    to_city: toCity,
+                    arrival_date: payload.arrival_date || payload.arrivalDate || payload.travel_date || '',
+                    arrival_time: payload.arrival_time || payload.arrivalTime || '',
+                    age: payload.age || null,
+                    languages: payload.languages || [],
+                    travelers_count: Number(payload.travelers_count || payload.travelersCount || 1)
+                };
+
                 payload.host_id = userId || payload.host_id || payload.user_id
-                payload.status = payload.status || 'pending'
-                payload.origin = payload.origin || payload.from_city || payload.fromCity || payload.from
-                payload.destination = payload.destination || payload.to_city || payload.toCity || payload.to
-                payload.travel_date = payload.travel_date || payload.departureDate || payload.departure_date || payload.date
-                payload.departure_time = payload.departure_time || payload.departureTime || payload.time
-                payload.title = payload.title || (payload.origin && payload.destination ? `${payload.origin} to ${payload.destination}` : 'Travel Plan')
+                payload.host_name = userObj?.full_name || userObj?.name || [userObj?.first_name, userObj?.last_name].filter(Boolean).join(' ') || payload.host_name || 'Traveler'
+                payload.status = 'pending'
+                payload.origin = originStr
+                payload.destination = destStr
+                payload.travel_date = payload.travel_date || payload.departureDate || payload.departure_date || payload.date || new Date().toISOString()
+                payload.departure_time = payload.departure_time || payload.departureTime || payload.time || '10:00 AM'
+                payload.seats_available = Number(payload.travelers_count || payload.travelersCount || payload.seats_available || 1)
+                payload.price = Number(payload.price || 0)
+                payload.title = JSON.stringify(meta)
+
                 const clean = sanitizePayload(payload, TRAVEL_TRIP_COLUMNS)
                 const { data, error } = await supabase.from('travel_trips').insert(clean).select().maybeSingle()
                 if (error) throw error
