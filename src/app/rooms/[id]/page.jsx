@@ -332,6 +332,7 @@ export default function RoomPage() {
                                  socials={listing.host.socials}
                                  ownerId={listing.host.user_id}
                                  ownerName={listing.host.name}
+                                 itemId={listing.id || id}
                              />
                         </div>
 

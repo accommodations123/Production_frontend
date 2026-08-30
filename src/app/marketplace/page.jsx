@@ -542,36 +542,17 @@ const SingleProductView = ({ product: initialProduct, onBack }) => {
 
               {/* Action Buttons */}
               <div className="space-y-4">
-                <div className="flex flex-col gap-3">
-                  {product.sellerPhone && (
-                    <button
-                      onClick={() => {
-                        const cleanNumber = product.sellerPhone.replace(/\D/g, '');
-                        window.open(`https://wa.me/${cleanNumber}`, '_blank');
-                      }}
-                      className="w-full h-12 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#25D366]/20 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 text-base cursor-pointer"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      Chat on WhatsApp
-                    </button>
-                  )}
-
-                  {product.sellerPhone && (
-                    <button
-                      onClick={() => window.open(`tel:${product.sellerPhone}`)}
-                      className="w-full h-12 bg-[#00142E] hover:bg-slate-800 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95 text-base border border-slate-700 cursor-pointer"
-                    >
-                      <Phone className="w-5 h-5" />
-                      Call Seller
-                    </button>
-                  )}
-
-                  {/* Other social connections */}
-                  <div className="pt-4 border-t border-slate-100 mt-2">
-                    <div className="text-xs text-slate-400 font-semibold mb-3 uppercase tracking-wider text-center">Other Channels</div>
-                    <HostDetailSocials socials={socials} className="justify-center" />
-                  </div>
-                </div>
+                <SellerContactButtons
+                  phone={product.sellerPhone || product.phone}
+                  email={product.sellerEmail || product.email}
+                  instagram={product.instagram}
+                  facebook={product.facebook}
+                  ownerId={product.user_id || product.userId || product.User?.id || product.user?.id}
+                  ownerName={product.contact_name || product.user_name || product.user?.name || "Seller"}
+                  itemId={product.id || product._id}
+                  itemTitle={product.title}
+                  itemType="buysell"
+                />
               </div>
             </div>
           </div>

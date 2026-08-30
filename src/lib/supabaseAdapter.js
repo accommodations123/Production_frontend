@@ -1417,7 +1417,283 @@ export async function executeSupabaseRequest(args) {
             }
         }
 
-        // ── 9. NOTIFICATIONS ────────────────────────────────────────
+        // ── 9. CONNECTION REQUESTS ───────────────────────────────────
+        if (cleanUrl.startsWith('connection-requests') || cleanUrl.startsWith('connections')) {
+            const userObj = await getCurrentUserObject()
+            const currentUserId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
+
+            // 1. Send Connection Request: POST connection-requests
+            if ((cleanUrl === 'connection-requests' || cleanUrl === 'connections') && method === 'POST') {
+                if (!currentUserId) {
+                    return { error: { status: 401, data: { message: 'Authentication required' } } }
+                }
+
+                const targetUserId = body?.targetUserId || body?.target_user_id || body?.recipient_id || body?.owner_id
+                if (!targetUserId) {
+                    return { error: { status: 400, data: { message: 'Target user ID is required' } } }
+                }
+
+                if (String(currentUserId) === String(targetUserId)) {
+                    return { error: { status: 400, data: { message: 'Cannot connect with yourself' } } }
+                }
+
+                const itemId = body?.itemId || body?.item_id || ''
+                const itemTitle = body?.itemTitle || body?.item_title || ''
+                const itemType = body?.itemType || body?.item_type || 'accommodations'
+                const requesterName = userObj?.name || userObj?.full_name || body?.requesterName || 'Community Member'
+                const requesterEmail = userObj?.email || body?.requesterEmail || ''
+                const requesterPhone = userObj?.phone || body?.requesterPhone || ''
+
+                // Get target user profile
+                const { data: targetProfile } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle()
+                let targetMeta = {}
+                if (targetProfile?.street_address && (targetProfile.street_address.startsWith('{') || targetProfile.street_address.startsWith('['))) {
+                    try { targetMeta = JSON.parse(targetProfile.street_address) } catch {}
+                }
+                targetMeta.incoming_requests = Array.isArray(targetMeta.incoming_requests) ? targetMeta.incoming_requests : []
+
+                // Get current user profile
+                const { data: currentProfile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
+                let currentMeta = {}
+                if (currentProfile?.street_address && (currentProfile.street_address.startsWith('{') || currentProfile.street_address.startsWith('['))) {
+                    try { currentMeta = JSON.parse(currentProfile.street_address) } catch {}
+                }
+                currentMeta.outgoing_requests = Array.isArray(currentMeta.outgoing_requests) ? currentMeta.outgoing_requests : []
+
+                const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
+                const newRequest = {
+                    id: requestId,
+                    requestId: requestId,
+                    requester_id: currentUserId,
+                    requesterId: currentUserId,
+                    requester_name: requesterName,
+                    requesterName: requesterName,
+                    requester_email: requesterEmail,
+                    requesterEmail: requesterEmail,
+                    requester_phone: requesterPhone,
+                    requesterPhone: requesterPhone,
+                    target_user_id: targetUserId,
+                    targetUserId: targetUserId,
+                    target_name: body?.targetName || targetProfile?.name || targetProfile?.full_name || 'Host',
+                    targetName: body?.targetName || targetProfile?.name || targetProfile?.full_name || 'Host',
+                    item_id: itemId,
+                    itemId: itemId,
+                    item_title: itemTitle,
+                    itemTitle: itemTitle,
+                    item_type: itemType,
+                    itemType: itemType,
+                    status: 'pending',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                }
+
+                // Deduplicate/Update existing
+                const existingIdx = targetMeta.incoming_requests.findIndex(r => 
+                    String(r.requesterId || r.requester_id) === String(currentUserId) &&
+                    (!itemId || String(r.itemId || r.item_id) === String(itemId))
+                )
+                if (existingIdx >= 0) {
+                    targetMeta.incoming_requests[existingIdx] = { ...targetMeta.incoming_requests[existingIdx], ...newRequest, status: 'pending', updated_at: new Date().toISOString() }
+                } else {
+                    targetMeta.incoming_requests.unshift(newRequest)
+                }
+
+                const outIdx = currentMeta.outgoing_requests.findIndex(r => 
+                    String(r.targetUserId || r.target_user_id) === String(targetUserId) &&
+                    (!itemId || String(r.itemId || r.item_id) === String(itemId))
+                )
+                if (outIdx >= 0) {
+                    currentMeta.outgoing_requests[outIdx] = { ...currentMeta.outgoing_requests[outIdx], ...newRequest, status: 'pending', updated_at: new Date().toISOString() }
+                } else {
+                    currentMeta.outgoing_requests.unshift(newRequest)
+                }
+
+                // Save to database
+                await Promise.all([
+                    supabase.from('profiles').update({ street_address: JSON.stringify(targetMeta) }).eq('id', targetUserId),
+                    supabase.from('profiles').update({ street_address: JSON.stringify(currentMeta) }).eq('id', currentUserId)
+                ])
+
+                return { data: { success: true, message: 'Connection request sent successfully', data: newRequest } }
+            }
+
+            // 2. Get Incoming Connection Requests: GET connection-requests/incoming
+            if (cleanUrl.startsWith('connection-requests/incoming')) {
+                if (!currentUserId) {
+                    return { data: { data: [], count: 0, totalPages: 1 } }
+                }
+
+                const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
+                let meta = {}
+                if (profile?.street_address && (profile.street_address.startsWith('{') || profile.street_address.startsWith('['))) {
+                    try { meta = JSON.parse(profile.street_address) } catch {}
+                }
+                const incoming = Array.isArray(meta.incoming_requests) ? meta.incoming_requests : []
+                return {
+                    data: {
+                        data: incoming,
+                        count: incoming.length,
+                        total: incoming.length,
+                        totalPages: Math.ceil(incoming.length / (parseInt(queryParams.limit) || 10)) || 1
+                    }
+                }
+            }
+
+            // 3. Get Outgoing Connection Requests: GET connection-requests/outgoing
+            if (cleanUrl.startsWith('connection-requests/outgoing')) {
+                if (!currentUserId) {
+                    return { data: { data: [], count: 0, totalPages: 1 } }
+                }
+
+                const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
+                let meta = {}
+                if (profile?.street_address && (profile.street_address.startsWith('{') || profile.street_address.startsWith('['))) {
+                    try { meta = JSON.parse(profile.street_address) } catch {}
+                }
+                const outgoing = Array.isArray(meta.outgoing_requests) ? meta.outgoing_requests : []
+                return {
+                    data: {
+                        data: outgoing,
+                        count: outgoing.length,
+                        total: outgoing.length,
+                        totalPages: Math.ceil(outgoing.length / (parseInt(queryParams.limit) || 10)) || 1
+                    }
+                }
+            }
+
+            // 4. Get Connection Status: GET connection-requests/status/:targetUserId
+            if (cleanUrl.startsWith('connection-requests/status')) {
+                const targetUserId = cleanUrl.split('/')[2] || queryParams.targetUserId
+                const itemId = queryParams.itemId || ''
+
+                if (!targetUserId || !currentUserId) {
+                    return { data: { status: 'none', isConnected: false, isOwner: false } }
+                }
+
+                if (String(targetUserId) === String(currentUserId)) {
+                    return { data: { status: 'accepted', isConnected: true, isOwner: true } }
+                }
+
+                // Check requester's outgoing requests
+                const { data: myProfile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
+                let myMeta = {}
+                if (myProfile?.street_address && (myProfile.street_address.startsWith('{') || myProfile.street_address.startsWith('['))) {
+                    try { myMeta = JSON.parse(myProfile.street_address) } catch {}
+                }
+                const outgoing = Array.isArray(myMeta.outgoing_requests) ? myMeta.outgoing_requests : []
+                const matched = outgoing.find(r => 
+                    String(r.targetUserId || r.target_user_id) === String(targetUserId) &&
+                    (!itemId || !r.itemId || !r.item_id || String(r.itemId || r.item_id) === String(itemId))
+                )
+
+                let currentStatus = matched ? matched.status : 'none'
+
+                // Check if target user profile has real social contacts to unlock on accepted
+                if (currentStatus === 'accepted') {
+                    const { data: targetProfile } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle()
+                    let targetMeta = {}
+                    if (targetProfile?.street_address && (targetProfile.street_address.startsWith('{') || targetProfile.street_address.startsWith('['))) {
+                        try { targetMeta = JSON.parse(targetProfile.street_address) } catch {}
+                    }
+                    return {
+                        data: {
+                            status: 'accepted',
+                            isConnected: true,
+                            isOwner: false,
+                            data: {
+                                status: 'accepted',
+                                targetWhatsapp: targetProfile?.whatsapp || targetMeta?.whatsapp || targetProfile?.phone || '',
+                                targetPhone: targetProfile?.phone || targetMeta?.phone || '',
+                                targetEmail: targetProfile?.email || targetMeta?.email || '',
+                                targetInstagram: targetProfile?.instagram || targetMeta?.instagram || '',
+                                targetFacebook: targetProfile?.facebook || targetMeta?.facebook || '',
+                                targetLinkedin: targetProfile?.linkedin || targetMeta?.linkedin || '',
+                                targetTwitter: targetProfile?.twitter || targetMeta?.twitter || ''
+                            }
+                        }
+                    }
+                }
+
+                return {
+                    data: {
+                        status: currentStatus,
+                        isConnected: currentStatus === 'accepted',
+                        isOwner: false,
+                        data: { status: currentStatus }
+                    }
+                }
+            }
+
+            // 5. Accept / Decline Connection Request: PATCH or PUT connection-requests/:requestId/status
+            if (cleanUrl.match(/^connection-requests\/[^/]+\/status$/) && (method === 'PATCH' || method === 'PUT' || method === 'POST')) {
+                if (!currentUserId) {
+                    return { error: { status: 401, data: { message: 'Authentication required' } } }
+                }
+
+                const requestId = cleanUrl.split('/')[1]
+                const newStatus = (body?.status || body?.action || 'accepted').toLowerCase()
+                const finalStatus = (newStatus === 'accept' || newStatus === 'accepted') ? 'accepted' : 'rejected'
+
+                // Load receiver profile (current user)
+                const { data: myProfile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
+                let myMeta = {}
+                if (myProfile?.street_address && (myProfile.street_address.startsWith('{') || myProfile.street_address.startsWith('['))) {
+                    try { myMeta = JSON.parse(myProfile.street_address) } catch {}
+                }
+                myMeta.incoming_requests = Array.isArray(myMeta.incoming_requests) ? myMeta.incoming_requests : []
+
+                const reqIndex = myMeta.incoming_requests.findIndex(r => String(r.id || r.requestId) === String(requestId))
+                if (reqIndex < 0) {
+                    return { error: { status: 404, data: { message: 'Connection request not found' } } }
+                }
+
+                const targetReq = myMeta.incoming_requests[reqIndex]
+                // SECURITY CHECK: Current user must be the recipient!
+                if (String(targetReq.targetUserId || targetReq.target_user_id) !== String(currentUserId)) {
+                    return { error: { status: 403, data: { message: 'Unauthorized to update this request' } } }
+                }
+
+                targetReq.status = finalStatus
+                targetReq.updated_at = new Date().toISOString()
+                myMeta.incoming_requests[reqIndex] = targetReq
+
+                // Update requester's outgoing requests
+                const requesterId = targetReq.requesterId || targetReq.requester_id
+                const { data: reqProfile } = await supabase.from('profiles').select('*').eq('id', requesterId).maybeSingle()
+                let reqMeta = {}
+                if (reqProfile?.street_address && (reqProfile.street_address.startsWith('{') || reqProfile.street_address.startsWith('['))) {
+                    try { reqMeta = JSON.parse(reqProfile.street_address) } catch {}
+                }
+                reqMeta.outgoing_requests = Array.isArray(reqMeta.outgoing_requests) ? reqMeta.outgoing_requests : []
+                const outIdx = reqMeta.outgoing_requests.findIndex(r => String(r.id || r.requestId) === String(requestId) || (String(r.targetUserId || r.target_user_id) === String(currentUserId) && String(r.itemId || r.item_id) === String(targetReq.itemId || targetReq.item_id)))
+                if (outIdx >= 0) {
+                    reqMeta.outgoing_requests[outIdx].status = finalStatus
+                    reqMeta.outgoing_requests[outIdx].updated_at = new Date().toISOString()
+                }
+
+                // If accepted, add to connections
+                if (finalStatus === 'accepted') {
+                    myMeta.connections = Array.isArray(myMeta.connections) ? myMeta.connections : []
+                    if (!myMeta.connections.some(c => String(c.userId || c.user_id) === String(requesterId))) {
+                        myMeta.connections.push({ userId: requesterId, user_id: requesterId, itemId: targetReq.itemId, item_id: targetReq.item_id, status: 'accepted', updated_at: new Date().toISOString() })
+                    }
+
+                    reqMeta.connections = Array.isArray(reqMeta.connections) ? reqMeta.connections : []
+                    if (!reqMeta.connections.some(c => String(c.userId || c.user_id) === String(currentUserId))) {
+                        reqMeta.connections.push({ userId: currentUserId, user_id: currentUserId, itemId: targetReq.itemId, item_id: targetReq.item_id, status: 'accepted', updated_at: new Date().toISOString() })
+                    }
+                }
+
+                await Promise.all([
+                    supabase.from('profiles').update({ street_address: JSON.stringify(myMeta) }).eq('id', currentUserId),
+                    supabase.from('profiles').update({ street_address: JSON.stringify(reqMeta) }).eq('id', requesterId)
+                ])
+
+                return { data: { success: true, message: `Request ${finalStatus}`, data: targetReq } }
+            }
+        }
+
+        // ── 10. NOTIFICATIONS ────────────────────────────────────────
         if (cleanUrl.startsWith('notifications')) {
             return { data: { notifications: [], unreadCount: 0 } }
         }
