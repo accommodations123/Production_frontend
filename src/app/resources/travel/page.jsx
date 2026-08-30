@@ -166,25 +166,31 @@ export default function TravelPage() {
       const resolvedUserId = trip.host.user_id || trip.user_id || trip.host_user_id || trip.host.id;
       return {
         ...trip,
+        destination: trip.destination || (trip.flight?.to_city ? `${trip.flight.to_city}${trip.flight.to_country ? `, ${trip.flight.to_country}` : ''}` : `${trip.to_city || ''}`),
+        origin: trip.origin || (trip.flight?.from_city ? `${trip.flight.from_city}${trip.flight.from_country ? `, ${trip.flight.from_country}` : ''}` : `${trip.from_city || ''}`),
+        date: trip.travel_date || trip.date || trip.flight?.departureDate || trip.created_at,
+        time: trip.departure_time || trip.time || trip.flight?.departureTime || "10:00 AM",
         matches: trip.matches || [],
         host_id: trip.host?.id,
         user_id: resolvedUserId,
         flight: {
           ...trip.flight,
-          from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.host.country),
-          to_country: normalizeCountry(trip.flight.to_country || trip.to_country || "")
+          airline: trip.flight?.airline || trip.airline || "Commercial Airline",
+          flight_number: trip.flight?.flight_number || trip.flight_number || "",
+          from_country: normalizeCountry(trip.flight?.from_country || trip.from_country || trip.host?.country || "India"),
+          to_country: normalizeCountry(trip.flight?.to_country || trip.to_country || "USA")
         },
         user: {
           id: resolvedUserId,
           user_id: resolvedUserId,
-          fullName: trip.host.full_name,
-          full_name: trip.host.full_name,
+          fullName: trip.host.full_name || trip.host.name || "Traveler",
+          full_name: trip.host.full_name || trip.host.name || "Traveler",
           age: trip.trip_meta.age || "",
           languages: trip.trip_meta.languages || [],
-          gender: "", // Not provided in payload, default to empty
-          country: trip.host.country,
-          state: trip.host.city,
-          city: trip.host.city,
+          gender: "",
+          country: trip.host.country || "India",
+          state: trip.host.city || "",
+          city: trip.host.city || "",
           image: resolveImageUrl(trip.host.profile_image || trip.host.User?.profile_image || trip.host.user?.profile_image || null),
           verified: trip.host.verified || false
         },
@@ -197,18 +203,24 @@ export default function TravelPage() {
       const resolvedUserId = trip.user.user_id || trip.user.id || trip.host_id || trip.user_id;
       return {
         ...trip,
+        destination: trip.destination || (trip.flight?.to_city ? `${trip.flight.to_city}${trip.flight.to_country ? `, ${trip.flight.to_country}` : ''}` : `${trip.to_city || ''}`),
+        origin: trip.origin || (trip.flight?.from_city ? `${trip.flight.from_city}${trip.flight.from_country ? `, ${trip.flight.from_country}` : ''}` : `${trip.from_city || ''}`),
+        date: trip.travel_date || trip.date || trip.flight?.departureDate || trip.created_at,
+        time: trip.departure_time || trip.time || trip.flight?.departureTime || "10:00 AM",
         host_id: trip.host_id || (trip.host ? trip.host.id : undefined),
         user_id: resolvedUserId,
         flight: {
           ...trip.flight,
-          from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.user.country),
-          to_country: normalizeCountry(trip.flight.to_country || trip.to_country || "")
+          airline: trip.flight?.airline || trip.airline || "Commercial Airline",
+          flight_number: trip.flight?.flight_number || trip.flight_number || "",
+          from_country: normalizeCountry(trip.flight.from_country || trip.from_country || trip.user.country || "India"),
+          to_country: normalizeCountry(trip.flight.to_country || trip.to_country || "USA")
         },
         user: {
           ...trip.user,
           id: resolvedUserId,
           user_id: resolvedUserId,
-          fullName: trip.user.full_name || trip.user.fullName,
+          fullName: trip.user.full_name || trip.user.fullName || "Traveler",
           image: resolveImageUrl(trip.user.image || trip.user.profile_image || trip.user.User?.profile_image || trip.user.user?.profile_image || null)
         },
         socials: socials
@@ -217,65 +229,65 @@ export default function TravelPage() {
 
     // Determine the full name from various possible fields
     let fullName = "Traveler";
+    if (trip.user?.fullName) fullName = trip.user.fullName;
+    else if (trip.user?.full_name) fullName = trip.user.full_name;
+    else if (trip.user?.name) fullName = trip.user.name;
+    else if (trip.host?.fullName) fullName = trip.host.fullName;
+    else if (trip.host?.full_name) fullName = trip.host.full_name;
+    else if (trip.host?.name) fullName = trip.host.name;
+    else if (trip.host_name) fullName = trip.host_name;
 
-    if (trip.host?.full_name) {
-      fullName = trip.host.full_name;
-    } else if (trip.user?.full_name) {
-      fullName = trip.user.full_name;
-    } else if (trip.host?.user?.full_name) {
-      fullName = trip.host.user.full_name;
-    } else if (trip.host_id === currentUser?.id && currentUser?.fullName) {
-      fullName = currentUser.fullName;
-    } else if (trip.host_id === currentUser?.id && (currentUser?.first_name || currentUser?.last_name)) {
-      fullName = `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim();
-    }
-
-    const resolvedUserId = trip.host?.user_id || trip.user_id || trip.host_user_id || trip.host_id || trip.user?.user_id || trip.user?.id;
+    const fromCity = trip.from_city || trip.origin || trip.flight?.from || "";
+    const toCity = trip.to_city || trip.destination || trip.flight?.to || "";
+    const fromCountry = normalizeCountry(trip.from_country || trip.flight?.from_country || trip.user?.country || trip.host?.country || "India");
+    const toCountry = normalizeCountry(trip.to_country || trip.flight?.to_country || "USA");
 
     return {
-      id: trip.id,
-      host_id: trip.host_id,
-      user_id: resolvedUserId,
-      matches: trip.matches || [],
+      ...trip,
+      id: trip.id || trip._id || trip.trip_id,
+      host_id: trip.host_id || trip.user_id,
+      user_id: trip.user_id || trip.host_id,
+      destination: trip.destination || (toCity ? `${toCity}${toCountry ? `, ${toCountry}` : ''}` : "Travel Destination"),
+      origin: trip.origin || (fromCity ? `${fromCity}${fromCountry ? `, ${fromCountry}` : ''}` : "Travel Origin"),
+      date: trip.travel_date || trip.date || trip.departureDate || trip.flight?.departureDate,
+      time: trip.departure_time || trip.time || trip.departureTime || trip.flight?.departureTime || "10:00 AM",
+      status: trip.status || "active",
+      flight: {
+        airline: trip.flight?.airline || trip.airline || "Commercial Airline",
+        flightName: trip.flight?.flightName || trip.flightName || trip.airline || "Commercial Airline",
+        flightNumber: trip.flight?.flightNumber || trip.flight?.flight_number || trip.flight_number || "",
+        from: fromCity,
+        to: toCity,
+        from_country: fromCountry,
+        to_country: toCountry,
+        departureDate: trip.travel_date || trip.date || trip.flight?.departureDate,
+        departureTime: trip.departure_time || trip.time || trip.flight?.departureTime || "10:00 AM",
+        arrivalDate: trip.arrival_date || trip.flight?.arrivalDate || trip.travel_date,
+        arrivalTime: trip.arrival_time || trip.flight?.arrivalTime || "08:00 PM",
+        seatsAvailable: trip.seats_available || trip.travelers_count || 1,
+        stops: trip.stops || []
+      },
       user: {
-        id: resolvedUserId,
-        user_id: resolvedUserId,
+        id: trip.user_id || trip.host_id,
+        user_id: trip.user_id || trip.host_id,
         fullName: fullName,
         full_name: fullName,
-        age: trip.age || trip.user?.age || trip.host?.age || "",
-        gender: trip.gender || trip.user?.gender || trip.host?.gender || "",
-        country: normalizeCountry(trip.user?.country || trip.host?.country || trip.from_country),
-        state: trip.user?.state || trip.host?.city || "",
-        city: trip.user?.city || trip.host?.city || "",
-        languages: (trip.languages || trip.user?.languages)
-          ? (Array.isArray(trip.languages || trip.user?.languages)
-            ? (trip.languages || trip.user?.languages)
-            : (trip.languages || trip.user?.languages).split(',').map(l => l.trim()))
-          : (trip.host?.languages || []),
-        image: resolveImageUrl(trip.image || trip.user?.image || trip.user?.profile_image || trip.user?.User?.profile_image || trip.user?.user?.profile_image || trip.host?.image || trip.host?.profile_image || trip.host?.User?.profile_image || trip.host?.user?.profile_image || null),
-        verified: trip.host?.user?.verified || trip.user?.verified || false
-      },
-      destination: trip.to_city ? `${trip.to_city}${trip.to_country ? `, ${normalizeCountry(trip.to_country)}` : ''}` : normalizeCountry(trip.to_country || ""),
-      date: trip.travel_date,
-      time: trip.departure_time,
-      flight: {
-        airline: trip.airline,
-        flightNumber: trip.flight_number,
-        from: trip.from_city,
-        to: trip.to_city,
-        // Improved fallback: Check flat field -> flight object -> user/host country
-        from_country: normalizeCountry(trip.from_country || trip.flight?.from_country || trip.user?.country || trip.host?.country),
-        to_country: normalizeCountry(trip.to_country || trip.flight?.to_country || ""),
-        departureDate: trip.travel_date,
-        departureTime: trip.departure_time,
-        arrivalDate: trip.arrival_date,
-        arrivalTime: trip.arrival_time
+        age: trip.age || trip.trip_meta?.age || "25-35",
+        languages: trip.languages || trip.trip_meta?.languages || ["English"],
+        gender: "",
+        country: fromCountry,
+        state: trip.from_state || trip.user?.state || "",
+        city: fromCity,
+        phone: trip.phone || trip.user?.phone || trip.host?.phone || "",
+        email: trip.email || trip.user?.email || trip.host?.email || "",
+        whatsapp: trip.whatsapp || trip.user?.whatsapp || trip.host?.whatsapp || "",
+        image: resolveImageUrl(trip.user?.image || trip.user?.profile_image || trip.host?.profile_image || trip.host?.avatar_url || null),
+        verified: Boolean(trip.is_approved || trip.user?.verified || trip.host?.verified)
       },
       socials: socials
     };
   };
 
-  // Helper to ensure backend gets the full name it likely expects for USA
   const getBackendCountryName = (c) => {
     if (!c) return undefined;
     const lower = c.toLowerCase().trim();
@@ -287,9 +299,7 @@ export default function TravelPage() {
 
   const { data: publicTripsData } = useGetPublicTripsQuery({
     page: 1,
-    limit: 50,
-    country: getBackendCountryName(filters.country),
-    // status: 'active' // Keep commented out for now to see cancelled/pending trips for debugging
+    limit: 50
   });
 
   // Sync My Trips
@@ -328,7 +338,9 @@ export default function TravelPage() {
       if (!dateStr) return true;
       const tripDate = new Date(dateStr);
       if (isNaN(tripDate.getTime())) return true;
-      return tripDate >= today;
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      return tripDate >= yesterday;
     });
 
     setPlans(activeUpcomingTrips);
@@ -352,43 +364,47 @@ export default function TravelPage() {
   // Filter Logic
   const filteredPlans = useMemo(() => {
     return plans.filter((plan) => {
+      const planUser = plan.user || {};
+      const planFlight = plan.flight || {};
+
       const matchesSearch =
         !searchTerm ||
-        plan.user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        planUser.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         plan.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        plan.flight.from?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        plan.flight.to?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        plan.flight.airline?.toLowerCase().includes(searchTerm.toLowerCase());
+        plan.origin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        planFlight.from?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        planFlight.to?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        planFlight.airline?.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Filter by ORIGIN country (from_country) OR DESTINATION country (to_country)
       const selectedCountryName = filters.country;
       const matchesCountry = (() => {
-        if (!selectedCountryName) return true;
+        if (!selectedCountryName || selectedCountryName === "all" || selectedCountryName === "Global") return true;
         const normTarget = normalizeCountry(selectedCountryName).toLowerCase();
-        const normFrom = normalizeCountry(
-          plan.flight?.from_country || plan.from_country || plan.user?.country || ""
-        ).toLowerCase();
-        const normTo = normalizeCountry(
-          plan.flight?.to_country || plan.to_country || ""
-        ).toLowerCase();
+        const normFrom = normalizeCountry(planFlight.from_country || plan.from_country || planUser.country || plan.origin || "").toLowerCase();
+        const normTo = normalizeCountry(planFlight.to_country || plan.to_country || plan.destination || "").toLowerCase();
         const normDest = (plan.destination || "").toLowerCase();
+        const normOrigin = (plan.origin || "").toLowerCase();
 
         return (
-          (normFrom && (normFrom === normTarget || normFrom.includes(normTarget) || normTarget.includes(normFrom))) ||
-          (normTo && (normTo === normTarget || normTo.includes(normTarget) || normTarget.includes(normTo))) ||
-          (normDest && normDest.includes(normTarget))
+          normFrom.includes(normTarget) ||
+          normTarget.includes(normFrom) ||
+          normTo.includes(normTarget) ||
+          normTarget.includes(normTo) ||
+          normDest.includes(normTarget) ||
+          normOrigin.includes(normTarget)
         );
       })();
 
       const matchesState =
         !filters.state ||
-        plan.user.state?.toLowerCase().includes(filters.state.toLowerCase());
+        planUser.state?.toLowerCase().includes(filters.state.toLowerCase());
 
       const matchesCity =
         !filters.city ||
-        plan.user.city?.toLowerCase().includes(filters.city.toLowerCase()) ||
-        plan.flight.from?.toLowerCase().includes(filters.city.toLowerCase()) ||
-        plan.flight.to?.toLowerCase().includes(filters.city.toLowerCase());
+        planUser.city?.toLowerCase().includes(filters.city.toLowerCase()) ||
+        planFlight.from?.toLowerCase().includes(filters.city.toLowerCase()) ||
+        planFlight.to?.toLowerCase().includes(filters.city.toLowerCase());
 
       return matchesSearch && matchesCountry && matchesState && matchesCity;
     });
