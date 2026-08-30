@@ -404,10 +404,10 @@ export async function executeSupabaseRequest(args) {
                     }
                 }
 
-                // Submit step
+                // Submit step -> pending admin approval
                 if (cleanUrl.includes('submit')) {
-                    payload.status = 'approved';
-                    payload.is_approved = true;
+                    payload.status = 'pending';
+                    payload.is_approved = false;
                 }
 
                 const clean = sanitizePayload(payload, PROPERTY_COLUMNS)
@@ -430,7 +430,17 @@ export async function executeSupabaseRequest(args) {
             }
 
             // Public List
-            let query = supabase.from('properties').select('*').neq('status', 'rejected').order('created_at', { ascending: false })
+            let query = supabase.from('properties').select('*').order('created_at', { ascending: false })
+            if (cleanUrl.includes('pending')) {
+                query = query.eq('status', 'pending')
+            } else if (cleanUrl.includes('rejected')) {
+                query = query.eq('status', 'rejected')
+            } else if (cleanUrl.includes('all')) {
+                query = query.neq('status', 'rejected')
+            } else {
+                query = query.eq('status', 'approved')
+            }
+
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data, error } = await query
             if (error) throw error
@@ -551,7 +561,16 @@ export async function executeSupabaseRequest(args) {
             }
 
             // Public List
-            let query = supabase.from('events').select('*').neq('status', 'rejected').order('created_at', { ascending: false })
+            let query = supabase.from('events').select('*').order('created_at', { ascending: false })
+            if (cleanUrl.includes('pending')) {
+                query = query.eq('status', 'pending')
+            } else if (cleanUrl.includes('rejected')) {
+                query = query.eq('status', 'rejected')
+            } else if (cleanUrl.includes('all')) {
+                query = query.neq('status', 'rejected')
+            } else {
+                query = query.eq('status', 'approved')
+            }
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data, error } = await query
             if (error) throw error
@@ -623,7 +642,16 @@ export async function executeSupabaseRequest(args) {
             }
 
             // Public Listings: /buy-sell/get, /buy-sell/approved, /buy-sell/all, /buy-sell, /marketplace
-            let query = supabase.from('buy_sell').select('*').neq('status', 'rejected').order('created_at', { ascending: false })
+            let query = supabase.from('buy_sell').select('*').order('created_at', { ascending: false })
+            if (cleanUrl.includes('pending')) {
+                query = query.eq('status', 'pending')
+            } else if (cleanUrl.includes('rejected')) {
+                query = query.eq('status', 'rejected')
+            } else if (cleanUrl.includes('all')) {
+                query = query.neq('status', 'rejected')
+            } else {
+                query = query.eq('status', 'approved')
+            }
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data, error } = await query
             if (error) throw error
@@ -656,7 +684,16 @@ export async function executeSupabaseRequest(args) {
                 return { data: { trip: await enrichWithProfiles(data, 'host_id') } }
             }
 
-            let query = supabase.from('travel_trips').select('*').neq('status', 'rejected').order('created_at', { ascending: false })
+            let query = supabase.from('travel_trips').select('*').order('created_at', { ascending: false })
+            if (cleanUrl.includes('pending')) {
+                query = query.eq('status', 'pending')
+            } else if (cleanUrl.includes('rejected')) {
+                query = query.eq('status', 'rejected')
+            } else if (cleanUrl.includes('all')) {
+                query = query.neq('status', 'rejected')
+            } else {
+                query = query.eq('status', 'approved')
+            }
             const { data } = await query
             const enriched = await enrichWithProfiles(data || [], 'host_id')
             return { data: { trips: enriched, total: enriched.length } }
@@ -674,7 +711,16 @@ export async function executeSupabaseRequest(args) {
                 if (error) throw error
                 return { data: { request: data, success: true } }
             }
-            let query = supabase.from('stay_requests').select('*').neq('status', 'rejected').order('created_at', { ascending: false })
+            let query = supabase.from('stay_requests').select('*').order('created_at', { ascending: false })
+            if (cleanUrl.includes('pending')) {
+                query = query.eq('status', 'pending')
+            } else if (cleanUrl.includes('rejected')) {
+                query = query.eq('status', 'rejected')
+            } else if (cleanUrl.includes('all')) {
+                query = query.neq('status', 'rejected')
+            } else {
+                query = query.eq('status', 'approved')
+            }
             const { data } = await query
             const enriched = await enrichWithProfiles(data || [], 'user_id')
             return { data: { requests: enriched, total: enriched.length } }
