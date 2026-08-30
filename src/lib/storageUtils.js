@@ -12,7 +12,16 @@ export async function uploadToSupabaseStorage(file, folder = 'uploads', bucket =
     if (!supabase) throw new Error('Supabase client not initialized');
 
     const fileExt = file.name ? file.name.split('.').pop() : 'jpg';
-    const cleanFileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+    let userId = null;
+    try {
+        const stored = localStorage.getItem('user');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            userId = parsed?.id || parsed?.user?.id;
+        }
+    } catch {}
+
+    const cleanFileName = `${userId ? userId + '/' : ''}${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
 
     const { data, error } = await supabase.storage
         .from(bucket)

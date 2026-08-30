@@ -153,24 +153,32 @@ export async function enrichWithProfiles(items, idKey = 'host_id') {
         const hostIsApproved = host?.is_approved !== undefined ? Boolean(host.is_approved) : (host?.status === 'approved')
         const hostStatus = host?.status || (hostIsApproved ? 'approved' : 'pending')
 
-        const hostObj = host ? {
-            ...host,
+        const cleanHost = host ? { ...host } : null
+        if (cleanHost) {
+            delete cleanHost.id_proof_type
+            delete cleanHost.id_photo
+            delete cleanHost.rejection_reason
+            delete cleanHost.block_reason
+        }
+
+        const hostObj = cleanHost ? {
+            ...cleanHost,
             full_name: hostFullName,
             name: hostFullName,
             phone: hostPhone,
             email: hostEmail,
             profile_image: hostImg,
-            selfie_photo: hostImg,
+            avatar_url: hostImg,
             is_approved: hostIsApproved,
             status: hostStatus,
-            User: host
+            User: cleanHost
         } : {
             full_name: hostFullName,
             name: hostFullName,
             phone: hostPhone,
             email: hostEmail,
             profile_image: hostImg,
-            selfie_photo: hostImg,
+            avatar_url: hostImg,
             is_approved: true,
             status: 'approved',
             User: {
@@ -178,7 +186,7 @@ export async function enrichWithProfiles(items, idKey = 'host_id') {
                 name: hostFullName,
                 email: hostEmail,
                 profile_image: hostImg,
-                selfie_photo: hostImg,
+                avatar_url: hostImg,
             }
         }
 
@@ -719,7 +727,7 @@ export async function executeSupabaseRequest(args) {
                 // If brand new user, initialize as standard user (NOT approved host)
                 if (!profile && (userId || userEmail)) {
                     const fallbackProfile = {
-                        id: userId || '4ff1273a-306d-4227-be1e-8f1d7127bf10',
+                        id: userId || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : undefined),
                         email: userEmail,
                         full_name: userObj?.full_name || userObj?.name || [userObj?.first_name, userObj?.last_name].filter(Boolean).join(' ') || (userEmail ? userEmail.split('@')[0] : 'User'),
                         phone: userObj?.phone || null,
