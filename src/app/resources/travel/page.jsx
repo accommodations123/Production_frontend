@@ -302,48 +302,55 @@ export default function TravelPage() {
     limit: 50
   });
 
+  const extractTripList = (raw) => {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw.results)) return raw.results;
+    if (Array.isArray(raw.trips)) return raw.trips;
+    if (Array.isArray(raw.data)) return raw.data;
+    if (raw.data && typeof raw.data === 'object') {
+      if (Array.isArray(raw.data.results)) return raw.data.results;
+      if (Array.isArray(raw.data.trips)) return raw.data.trips;
+      if (Array.isArray(raw.data.data)) return raw.data.data;
+    }
+    return [];
+  };
+
   // Sync My Trips
   useEffect(() => {
-    const rawMyTrips = myTripsData?.trips || myTripsData?.results || myTripsData?.data || (Array.isArray(myTripsData) ? myTripsData : null);
-    if (rawMyTrips) {
-      const mapped = rawMyTrips.map(mapTripToPlan);
+    const rawMyTrips = extractTripList(myTripsData);
+    if (rawMyTrips.length > 0) {
+      const mapped = rawMyTrips.map(mapTripToPlan).filter(Boolean);
       setMyTrips(mapped);
     }
   }, [myTripsData, currentUser]);
 
   // Sync Plans (Public Feed or Search Results)
   useEffect(() => {
-    let combined = [];
+    let rawList = [];
 
     // Priority 1: Search Results
-    if (searchResults?.results || searchResults?.trips || searchResults?.data) {
-      const list = searchResults.results || searchResults.trips || searchResults.data || [];
-      combined = list.map(mapTripToPlan);
+    if (searchResults) {
+      const searchList = extractTripList(searchResults);
+      if (searchList.length > 0) rawList = searchList;
     }
+    
     // Priority 2: Public Feed (Default)
-    else if (publicTripsData?.results || publicTripsData?.trips || publicTripsData?.data || Array.isArray(publicTripsData)) {
-      const list = publicTripsData.results || publicTripsData.trips || publicTripsData.data || (Array.isArray(publicTripsData) ? publicTripsData : []);
-      combined = list.map(mapTripToPlan);
+    if (!rawList.length && publicTripsData) {
+      rawList = extractTripList(publicTripsData);
     }
 
-    // Deduplicate by ID and filter out past / completed trips
-    const uniqueCombined = Array.from(new Map(combined.map(item => [item.id, item])).values());
+    const mapped = rawList.map(mapTripToPlan).filter(Boolean);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Deduplicate by ID
+    const uniqueCombined = Array.from(new Map(mapped.map(item => [item.id, item])).values());
 
-    const activeUpcomingTrips = uniqueCombined.filter((item) => {
-      if (item.status === "completed" || item.status === "cancelled") return false;
-      const dateStr = item.date || item.flight?.departureDate || item.travel_date;
-      if (!dateStr) return true;
-      const tripDate = new Date(dateStr);
-      if (isNaN(tripDate.getTime())) return true;
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      return tripDate >= yesterday;
+    const activeTrips = uniqueCombined.filter((item) => {
+      if (item.status === "completed" || item.status === "cancelled" || item.status === "rejected") return false;
+      return true;
     });
 
-    setPlans(activeUpcomingTrips);
+    setPlans(activeTrips);
 
   }, [searchResults, publicTripsData, currentUser, hostProfile]);
 
