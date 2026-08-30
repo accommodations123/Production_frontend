@@ -294,8 +294,9 @@ export default function TravelPage() {
 
   // Sync My Trips
   useEffect(() => {
-    if (myTripsData?.trips) {
-      const mapped = myTripsData.trips.map(mapTripToPlan);
+    const rawMyTrips = myTripsData?.trips || myTripsData?.results || myTripsData?.data || (Array.isArray(myTripsData) ? myTripsData : null);
+    if (rawMyTrips) {
+      const mapped = rawMyTrips.map(mapTripToPlan);
       setMyTrips(mapped);
     }
   }, [myTripsData, currentUser]);
@@ -305,12 +306,14 @@ export default function TravelPage() {
     let combined = [];
 
     // Priority 1: Search Results
-    if (searchResults?.results) {
-      combined = searchResults.results.map(mapTripToPlan);
+    if (searchResults?.results || searchResults?.trips || searchResults?.data) {
+      const list = searchResults.results || searchResults.trips || searchResults.data || [];
+      combined = list.map(mapTripToPlan);
     }
     // Priority 2: Public Feed (Default)
-    else if (publicTripsData?.results) {
-      combined = publicTripsData.results.map(mapTripToPlan);
+    else if (publicTripsData?.results || publicTripsData?.trips || publicTripsData?.data || Array.isArray(publicTripsData)) {
+      const list = publicTripsData.results || publicTripsData.trips || publicTripsData.data || (Array.isArray(publicTripsData) ? publicTripsData : []);
+      combined = list.map(mapTripToPlan);
     }
 
     // Deduplicate by ID and filter out past / completed trips

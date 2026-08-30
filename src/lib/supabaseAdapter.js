@@ -41,8 +41,8 @@ const BUY_SELL_COLUMNS = new Set([
 ]);
 
 const TRAVEL_TRIP_COLUMNS = new Set([
-    'id', 'title', 'status', 'price', 'host_id', 'destination', 'origin',
-    'created_at', 'updated_at'
+    'id', 'title', 'status', 'price', 'host_id', 'host_name', 'destination', 'origin',
+    'travel_date', 'departure_time', 'seats_available', 'created_at', 'updated_at'
 ]);
 
 const STAY_REQUEST_COLUMNS = new Set([
@@ -214,6 +214,102 @@ export async function enrichWithProfiles(items, idKey = 'host_id') {
 export const enrichPropertiesWithHostDetails = (items) => enrichWithProfiles(items, 'host_id')
 export const enrichEventsWithHostDetails = (items) => enrichWithProfiles(items, 'host_id')
 export const enrichBuySellWithHostDetails = (items) => enrichWithProfiles(items, 'user_id')
+export const enrichStayWithUserDetails = (items) => enrichWithProfiles(items, 'user_id')
+
+export async function enrichTravelWithHostDetails(items) {
+    const isSingle = !Array.isArray(items);
+    const list = Array.isArray(items) ? items : (items ? [items] : []);
+    if (!list.length) return isSingle ? null : [];
+
+    const base = await enrichWithProfiles(list, 'host_id');
+    const formatted = base.map(trip => {
+        if (!trip) return trip;
+        const host = trip.Host || trip.host || trip.User || trip.user || {};
+        const hostFullName = host.full_name || host.name || trip.host_name || 'Traveler';
+        const fromCity = trip.origin || trip.from_city || trip.fromCity || host.city || 'Origin';
+        const toCity = trip.destination || trip.to_city || trip.toCity || 'Destination';
+        const fromCountry = host.country || 'India';
+        const toCountry = trip.to_country || trip.destination_country || host.country || 'USA';
+        const travelDate = trip.travel_date || trip.created_at;
+
+        const userObj = {
+            id: trip.host_id || host.id,
+            user_id: trip.host_id || host.id,
+            fullName: hostFullName,
+            full_name: hostFullName,
+            name: hostFullName,
+            image: host.profile_image || host.avatar_url || null,
+            profile_image: host.profile_image || host.avatar_url || null,
+            avatar_url: host.profile_image || host.avatar_url || null,
+            city: host.city || fromCity,
+            country: host.country || fromCountry,
+            verified: Boolean(host.is_approved),
+            whatsapp: host.whatsapp || host.phone || '',
+            phone: host.phone || '',
+            email: host.email || ''
+        };
+
+        const flightObj = {
+            from: fromCity,
+            to: toCity,
+            from_city: fromCity,
+            to_city: toCity,
+            from_country: fromCountry,
+            to_country: toCountry,
+            fromCountry: fromCountry,
+            toCountry: toCountry,
+            departureDate: travelDate,
+            departure_date: travelDate,
+            departureTime: trip.departure_time || '10:00 AM',
+            departure_time: trip.departure_time || '10:00 AM',
+            seatsAvailable: trip.seats_available || 1,
+            seats_available: trip.seats_available || 1
+        };
+
+        const tripMeta = {
+            age: host.age || '25-35',
+            languages: host.languages || ['English', 'Hindi']
+        };
+
+        return {
+            ...trip,
+            id: trip.id,
+            host_id: trip.host_id,
+            user_id: trip.host_id,
+            title: trip.title || `${fromCity} to ${toCity}`,
+            origin: fromCity,
+            destination: toCity,
+            from_city: fromCity,
+            fromCity: fromCity,
+            to_city: toCity,
+            toCity: toCity,
+            travel_date: travelDate,
+            travelDate: travelDate,
+            date: travelDate,
+            departure_time: trip.departure_time || '10:00 AM',
+            time: trip.departure_time || '10:00 AM',
+            price: Number(trip.price) || 0,
+            status: trip.status || 'approved',
+            user: userObj,
+            User: userObj,
+            host: userObj,
+            Host: userObj,
+            flight: flightObj,
+            trip_meta: tripMeta,
+            matches: [],
+            socials: {
+                whatsapp: host.whatsapp || host.phone || '',
+                email: host.email || '',
+                phone: host.phone || '',
+                instagram: host.instagram || '',
+                facebook: host.facebook || '',
+                twitter: host.twitter || ''
+            }
+        };
+    });
+
+    return isSingle ? formatted[0] : formatted;
+}
 
 // ── Wishlist Local Fallback Helpers ────────────────────────────────
 function getLocalWishlist(userId) {
@@ -660,28 +756,55 @@ export async function executeSupabaseRequest(args) {
         }
 
         // ── 4. TRAVEL / TRIPS ───────────────────────────────────────
-        if (cleanUrl.startsWith('travel') || cleanUrl.startsWith('trips')) {
-            if ((cleanUrl === 'travel/trips' || cleanUrl === 'trips') && method === 'POST') {
+        if (cleanUrl.startsWith('travel') || cleanUrl.startsWith('trips') || cleanUrl.startsWith('admin/travel') || cleanUrl.startsWith('admin/trips') || cleanUrl.startsWith('admin/pending/pending-travel') || cleanUrl.startsWith('admin/approved/approved-travel') || cleanUrl.startsWith('admin/rejected/rejected-travel')) {
+            // Admin Actions (Mutations only)
+            if ((cleanUrl.includes('/approve/') || cleanUrl.endsWith('/approve')) && method !== 'GET') {
+                const id = cleanUrl.split('/').pop()
+                const { data } = await supabase.from('travel_trips').update({ status: 'approved' }).eq('id', id).select().maybeSingle()
+                return { data: { success: true, trip: data, message: 'Trip approved' } }
+            }
+            if ((cleanUrl.includes('/reject/') || cleanUrl.endsWith('/reject')) && method !== 'GET') {
+                const id = cleanUrl.split('/').pop()
+                const { data } = await supabase.from('travel_trips').update({ status: 'rejected' }).eq('id', id).select().maybeSingle()
+                return { data: { success: true, trip: data, message: 'Trip rejected' } }
+            }
+            if ((cleanUrl.includes('/delete/') || cleanUrl.endsWith('/delete')) && method === 'DELETE') {
+                const id = cleanUrl.split('/').pop()
+                await supabase.from('travel_trips').delete().eq('id', id)
+                return { data: { success: true } }
+            }
+
+            if ((cleanUrl === 'travel/trips' || cleanUrl === 'trips' || cleanUrl === 'travel/create' || cleanUrl === 'travel/trips/create') && method === 'POST') {
                 const userId = await getCurrentUserId()
                 let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'travel') : { ...(body || {}) }
                 payload.host_id = userId || payload.host_id || payload.user_id
                 payload.status = payload.status || 'pending'
+                payload.origin = payload.origin || payload.from_city || payload.fromCity || payload.from
+                payload.destination = payload.destination || payload.to_city || payload.toCity || payload.to
+                payload.travel_date = payload.travel_date || payload.departureDate || payload.departure_date || payload.date
+                payload.departure_time = payload.departure_time || payload.departureTime || payload.time
+                payload.title = payload.title || (payload.origin && payload.destination ? `${payload.origin} to ${payload.destination}` : 'Travel Plan')
                 const clean = sanitizePayload(payload, TRAVEL_TRIP_COLUMNS)
                 const { data, error } = await supabase.from('travel_trips').insert(clean).select().maybeSingle()
                 if (error) throw error
-                return { data: { trip: data, success: true } }
+                const enriched = await enrichTravelWithHostDetails(data)
+                return { data: { trip: enriched, results: [enriched], trips: [enriched], success: true } }
             }
-            if (cleanUrl === 'travel/trips/me' || cleanUrl === 'trips/me') {
+
+            if (cleanUrl === 'travel/trips/me' || cleanUrl === 'trips/me' || cleanUrl === 'travel/me') {
                 const userId = await getCurrentUserId()
                 let q = supabase.from('travel_trips').select('*').order('created_at', { ascending: false })
                 if (userId) q = q.eq('host_id', userId)
                 const { data } = await q
-                return { data: { trips: await enrichWithProfiles(data || [], 'host_id') } }
+                const enriched = await enrichTravelWithHostDetails(data || [])
+                return { data: { results: enriched, trips: enriched, data: enriched, total: enriched.length, count: enriched.length } }
             }
-            const singleTripMatch = cleanUrl.match(/^(?:travel\/trips|trips)\/([^/]+)$/)
-            if (singleTripMatch && method === 'GET' && !['all', 'approved', 'me', 'search'].includes(singleTripMatch[1])) {
+
+            const singleTripMatch = cleanUrl.match(/^(?:travel\/trips|trips|travel)\/([^/]+)$/)
+            if (singleTripMatch && method === 'GET' && !['all', 'approved', 'pending', 'rejected', 'me', 'search', 'get'].includes(singleTripMatch[1])) {
                 const { data } = await supabase.from('travel_trips').select('*').eq('id', singleTripMatch[1]).maybeSingle()
-                return { data: { trip: await enrichWithProfiles(data, 'host_id') } }
+                const enriched = await enrichTravelWithHostDetails(data)
+                return { data: { trip: enriched, results: enriched ? [enriched] : [], data: enriched } }
             }
 
             let query = supabase.from('travel_trips').select('*').order('created_at', { ascending: false })
@@ -694,9 +817,20 @@ export async function executeSupabaseRequest(args) {
             } else {
                 query = query.eq('status', 'approved')
             }
-            const { data } = await query
-            const enriched = await enrichWithProfiles(data || [], 'host_id')
-            return { data: { trips: enriched, total: enriched.length } }
+
+            const { data, error } = await query
+            if (error) throw error
+            const enriched = await enrichTravelWithHostDetails(data || [])
+            return {
+                data: {
+                    results: enriched,
+                    trips: enriched,
+                    data: enriched,
+                    total: enriched.length,
+                    count: enriched.length,
+                    success: true
+                }
+            }
         }
 
         // ── 5. STAY REQUESTS ────────────────────────────────────────
