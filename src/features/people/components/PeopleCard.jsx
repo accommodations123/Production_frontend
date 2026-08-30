@@ -284,12 +284,14 @@ export function PeopleCard({ person }) {
           <div>
             <span className="text-[10px] text-[#717171] font-bold uppercase tracking-wider block">Rating</span>
             <span className="text-xs font-bold text-slate-800 flex items-center justify-center gap-0.5 mt-1">
-              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              {reviewCount > 0
-                ? `${(rating > 0 ? rating : 5).toFixed(1)} (${reviewCount})`
-                : rating > 0
-                  ? `${rating.toFixed(1)} (1)`
-                  : `0 (0)`}
+              {reviewCount > 0 && rating > 0 ? (
+                <>
+                  <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                  {rating.toFixed(1)} ({reviewCount})
+                </>
+              ) : (
+                <span className="text-[10px] text-slate-400 font-semibold">No reviews yet</span>
+              )}
             </span>
           </div>
           
@@ -327,9 +329,15 @@ export function PeopleCard({ person }) {
       <div className="flex items-center justify-between pt-4 border-t border-slate-100/80 mt-auto">
         <div>
           <span className="text-[9px] font-bold text-[#717171] uppercase tracking-wider block">Consultation Rate</span>
-          <span className="text-slate-900 font-black text-base sm:text-lg">
-            {getCurrencySymbol(currency)}{hourlyRate} <span className="text-[#717171] text-[10px] font-bold">/ hr</span>
-          </span>
+          {Number(hourlyRate) > 0 ? (
+            <span className="text-slate-900 font-black text-base sm:text-lg">
+              {getCurrencySymbol(currency)}{Number(hourlyRate).toLocaleString()} <span className="text-[#717171] text-[10px] font-bold">/ hr</span>
+            </span>
+          ) : (
+            <span className="text-slate-500 font-bold text-xs mt-1 block">
+              Rate not provided
+            </span>
+          )}
         </div>
         <Link to={`/people/${person.id}`}>
           <Button

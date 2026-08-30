@@ -479,11 +479,15 @@ export default function PeopleProfile() {
 
                     {/* Rating + Badges */}
                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1 text-xs">
-                      <div className="flex items-center gap-1 font-bold text-slate-800">
-                        <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                        <span>{avgRating > 0 ? avgRating.toFixed(1) : "0"}</span>
-                        <span className="text-blue-600 font-medium">({totalReviewsCount} reviews)</span>
-                      </div>
+                      {totalReviewsCount > 0 && avgRating > 0 ? (
+                        <div className="flex items-center gap-1 font-bold text-slate-800">
+                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          <span>{avgRating.toFixed(1)}</span>
+                          <span className="text-blue-600 font-medium">({totalReviewsCount} reviews)</span>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400 font-medium text-xs">No reviews yet</span>
+                      )}
 
                       {isVerified && (
                         <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200 text-[10px]">
@@ -827,9 +831,15 @@ export default function PeopleProfile() {
                 <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-2">
                   <div className="flex justify-between items-center">
                     <h3 className="font-extrabold text-slate-900 text-sm">1-on-1 Advisory Consultation</h3>
-                    <span className="font-black text-slate-900 text-sm">
-                      {getCurrencySymbol(currency)}{hourlyRate} / hr
-                    </span>
+                    {Number(hourlyRate) > 0 ? (
+                      <span className="font-black text-slate-900 text-sm">
+                        {getCurrencySymbol(currency)}{Number(hourlyRate).toLocaleString()} / hr
+                      </span>
+                    ) : (
+                      <span className="font-semibold text-slate-500 text-xs">
+                        Rate not provided
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-slate-600">
                     Personalized relocation guidance, document review, or direct expert advice.

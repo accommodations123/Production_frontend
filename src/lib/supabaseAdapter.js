@@ -313,6 +313,17 @@ export async function enrichTravelWithHostDetails(items) {
 
 export function formatPersonProfile(p) {
     if (!p) return null;
+    let meta = {};
+    if (p.street_address && (p.street_address.startsWith('{') || p.street_address.startsWith('['))) {
+        try {
+            meta = JSON.parse(p.street_address);
+        } catch {}
+    } else if (p.address && (p.address.startsWith('{') || p.address.startsWith('['))) {
+        try {
+            meta = JSON.parse(p.address);
+        } catch {}
+    }
+
     const fullName = p.full_name || p.name || [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Expert Advisor';
     const profession = p.profession || p.headline || p.occupation || 'Verified Advisor';
     const headline = p.headline || p.profession || p.occupation || '';
@@ -321,6 +332,16 @@ export function formatPersonProfile(p) {
     const state = p.state || '';
     const country = p.country || 'India';
     const location = city && country ? `${city}, ${country}` : (city || state || country || 'Global');
+
+    const rawHourly = meta.hourly_rate ?? p.hourly_rate ?? p.hourlyRate ?? p.pricing?.consultation ?? null;
+    const hourlyRate = (rawHourly !== null && rawHourly !== undefined && !isNaN(Number(rawHourly)) && Number(rawHourly) > 0) ? Number(rawHourly) : null;
+    const currency = meta.currency || p.currency || 'INR';
+    const bio = meta.bio || p.bio || (headline ? `Specialized in ${headline}` : `Professional advisor in ${location}`);
+    const category = meta.category || p.category || (profession.toLowerCase().includes('legal') ? 'legal' : (profession.toLowerCase().includes('tax') ? 'finance' : 'relocation'));
+    const skills = (meta.skills && meta.skills.length > 0) ? meta.skills : (Array.isArray(p.skills) ? p.skills : [profession, 'Expat Assistance', 'Community Support']);
+    const languages = (meta.languages && meta.languages.length > 0) ? meta.languages : (Array.isArray(p.languages) ? p.languages : ['English', 'Hindi']);
+    const educations = (meta.educations && meta.educations.length > 0) ? meta.educations : (Array.isArray(p.educations) ? p.educations : []);
+    const experience = meta.experience || p.experience || null;
 
     return {
         ...p,
@@ -332,8 +353,8 @@ export function formatPersonProfile(p) {
         profession: profession,
         headline: headline,
         occupation: p.occupation || profession,
-        bio: p.bio || (headline ? `Specialized in ${headline}` : `Professional advisor in ${location}`),
-        category: p.category || (profession.toLowerCase().includes('legal') ? 'legal' : (profession.toLowerCase().includes('tax') ? 'finance' : 'relocation')),
+        bio: bio,
+        category: category,
         country: country,
         state: state,
         city: city,
@@ -346,20 +367,25 @@ export function formatPersonProfile(p) {
         is_approved: Boolean(p.is_approved),
         isApproved: Boolean(p.is_approved),
         status: p.status || (p.is_approved ? 'approved' : 'pending'),
-        skills: Array.isArray(p.skills) ? p.skills : [profession, 'Expat Assistance', 'Community Support'],
-        languages: Array.isArray(p.languages) ? p.languages : ['English', 'Hindi'],
+        skills: skills,
+        languages: languages,
+        educations: educations,
+        experience: experience,
+        hourlyRate: hourlyRate,
+        hourly_rate: hourlyRate,
         pricing: {
-            consultation: 0,
-            currency: 'USD',
-            type: 'free'
+            consultation: hourlyRate,
+            currency: currency,
+            type: meta.pricing_type || 'hourly'
         },
-        hourlyRate: 0,
-        currency: 'USD',
+        currency: currency,
         stats: {
-            rating: 5,
+            rating: 0,
             review_count: 0,
             followers_count: 0
         },
+        rating: 0,
+        review_count: 0,
         socials: {
             whatsapp: p.whatsapp || p.phone || '',
             email: p.email || '',
@@ -1064,6 +1090,27 @@ export async function executeSupabaseRequest(args) {
                 payload.is_approved = false
                 payload.role = 'expert'
 
+                // Pack rich metadata into street_address so hourly_rate, bio, educations, skills, pricing are never lost in Postgres
+                const rawHourly = payload.hourlyRate ?? payload.hourly_rate ?? payload.pricing?.consultation ?? null;
+                const meta = {
+                    hourly_rate: (rawHourly !== null && rawHourly !== undefined && !isNaN(Number(rawHourly)) && Number(rawHourly) > 0) ? Number(rawHourly) : null,
+                    currency: payload.currency || payload.pricing?.currency || 'INR',
+                    pricing_type: payload.pricingType || payload.pricing?.type || 'hourly',
+                    bio: payload.bio || payload.description || null,
+                    category: payload.category || null,
+                    skills: Array.isArray(payload.skills) ? payload.skills : (payload.skills ? String(payload.skills).split(',').map(s => s.trim()).filter(Boolean) : []),
+                    languages: Array.isArray(payload.languages) ? payload.languages : (payload.languages ? String(payload.languages).split(',').map(s => s.trim()).filter(Boolean) : []),
+                    experience: payload.experience || null,
+                    educations: Array.isArray(payload.educations) && payload.educations.length > 0
+                        ? payload.educations
+                        : (payload.education_degree ? [{
+                            degree: payload.education_degree,
+                            institution: payload.education_school || 'University / Institute',
+                            year: payload.education_year || ''
+                        }] : [])
+                };
+                payload.street_address = JSON.stringify(meta);
+
                 const cleanProfile = sanitizePayload(payload, PROFILE_COLUMNS)
                 const { data, error } = await supabase.from('profiles').upsert(cleanProfile).select().maybeSingle()
                 if (error) throw error
@@ -1089,7 +1136,7 @@ export async function executeSupabaseRequest(args) {
 
             // Reviews endpoint
             if (cleanUrl.includes('reviews')) {
-                return { data: { reviews: [], data: [], total: 0, count: 0, rating: 5 } }
+                return { data: { reviews: [], data: [], total: 0, count: 0, rating: 0 } }
             }
 
             // Followers / Following endpoint
