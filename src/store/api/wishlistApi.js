@@ -24,22 +24,22 @@ export const wishlistApi = createApi({
             query: (data) => ({
                 url: 'wishlist/add',
                 method: 'POST',
-                body: { item_type: data.type, item_id: data.id },
+                body: { ...data, id: data.id || data.itemId, type: data.type || data.itemType, item_type: data.type || data.itemType, item_id: data.id || data.itemId },
             }),
-            invalidatesTags: (result, error, { type, id }) => [
+            invalidatesTags: (result, error, data) => [
                 'Wishlist',
-                { type: 'Wishlist', id: `${type}-${id}` },
+                { type: 'Wishlist', id: `${data.type || data.itemType}-${data.id || data.itemId}` },
             ],
         }),
 
         removeFromWishlist: builder.mutation({
-            query: ({ type, id }) => ({
-                url: `wishlist/${type}/${id}`,
+            query: (data) => ({
+                url: `wishlist/${data.type || data.itemType}/${data.id || data.itemId}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: (result, error, { type, id }) => [
+            invalidatesTags: (result, error, data) => [
                 'Wishlist',
-                { type: 'Wishlist', id: `${type}-${id}` },
+                { type: 'Wishlist', id: `${data.type || data.itemType}-${data.id || data.itemId}` },
             ],
         }),
 
@@ -47,11 +47,11 @@ export const wishlistApi = createApi({
             query: (data) => ({
                 url: 'wishlist/toggle',
                 method: 'POST',
-                body: { item_type: data.type, item_id: data.id },
+                body: { ...data, id: data.id || data.itemId, type: data.type || data.itemType, item_type: data.type || data.itemType, item_id: data.id || data.itemId },
             }),
-            invalidatesTags: (result, error, { type, id }) => [
+            invalidatesTags: (result, error, data) => [
                 'Wishlist',
-                { type: 'Wishlist', id: `${type}-${id}` },
+                { type: 'Wishlist', id: `${data.type || data.itemType}-${data.id || data.itemId}` },
             ],
         }),
     }),

@@ -1259,17 +1259,135 @@ export async function executeSupabaseRequest(args) {
 
         // ── 8. WISHLIST ─────────────────────────────────────────────
         if (cleanUrl.startsWith('wishlist')) {
-            const userId = await getCurrentUserId()
-            if (cleanUrl.includes('toggle') && method === 'POST') {
-                const itemId = body?.itemId || body?.item_id || cleanUrl.split('/').pop()
-                const current = getLocalWishlist(userId)
-                const exists = current.some(i => i.id === itemId || i.item_id === itemId)
-                const updated = exists ? current.filter(i => i.id !== itemId && i.item_id !== itemId) : [...current, { id: itemId, item_id: itemId, created_at: new Date().toISOString() }]
-                setLocalWishlist(userId, updated)
-                return { data: { success: true, isWishlisted: !exists } }
+            const userObj = await getCurrentUserObject()
+            const userId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
+            
+            if (!userId) {
+                return { data: { wishlist: [], items: [], total: 0, count: 0, isWishlisted: false, is_wishlisted: false, success: false } }
             }
-            const items = getLocalWishlist(userId)
-            return { data: { wishlist: items, total: items.length } }
+
+            // Get current user profile
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+            let profileMeta = {}
+            if (profile?.street_address && (profile.street_address.startsWith('{') || profile.street_address.startsWith('['))) {
+                try {
+                    profileMeta = JSON.parse(profile.street_address)
+                } catch {}
+            }
+            let userWishlist = Array.isArray(profileMeta.wishlist) ? profileMeta.wishlist : []
+
+            // 1. Check status: wishlist/check/:type/:id or wishlist/check
+            if (cleanUrl.startsWith('wishlist/check')) {
+                const parts = cleanUrl.split('/')
+                const typeParam = parts[2] || queryParams.type
+                const idParam = parts[3] || queryParams.id || queryParams.itemId
+                const isSaved = userWishlist.some(i => (String(i.id) === String(idParam) || String(i.item_id) === String(idParam)))
+                return { data: { isWishlisted: Boolean(isSaved), is_wishlisted: Boolean(isSaved), isSaved: Boolean(isSaved), saved: Boolean(isSaved), success: true } }
+            }
+
+            // 2. Toggle status: wishlist/toggle (POST)
+            if (cleanUrl.includes('toggle') && method === 'POST') {
+                const targetId = body?.id || body?.itemId || body?.item_id
+                const targetType = body?.type || body?.itemType || 'property'
+                
+                if (!targetId) {
+                    return { data: { success: false, isWishlisted: false } }
+                }
+
+                const existsIndex = userWishlist.findIndex(i => String(i.id) === String(targetId) || String(i.item_id) === String(targetId))
+                let newSavedState = false
+                
+                if (existsIndex >= 0) {
+                    userWishlist.splice(existsIndex, 1)
+                    newSavedState = false
+                } else {
+                    userWishlist.push({
+                        id: targetId,
+                        item_id: targetId,
+                        type: targetType,
+                        created_at: new Date().toISOString()
+                    })
+                    newSavedState = true
+                }
+
+                profileMeta.wishlist = userWishlist
+                await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
+
+                return { data: { success: true, isWishlisted: newSavedState, is_wishlisted: newSavedState, isSaved: newSavedState, saved: newSavedState } }
+            }
+
+            // 3. Add to wishlist: wishlist/add (POST)
+            if (cleanUrl.includes('add') && method === 'POST') {
+                const targetId = body?.id || body?.itemId || body?.item_id
+                const targetType = body?.type || body?.itemType || 'property'
+                if (targetId && !userWishlist.some(i => String(i.id) === String(targetId) || String(i.item_id) === String(targetId))) {
+                    userWishlist.push({
+                        id: targetId,
+                        item_id: targetId,
+                        type: targetType,
+                        created_at: new Date().toISOString()
+                    })
+                    profileMeta.wishlist = userWishlist
+                    await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
+                }
+                return { data: { success: true, isWishlisted: true, is_wishlisted: true } }
+            }
+
+            // 4. Remove from wishlist: wishlist/:type/:id or DELETE
+            if (method === 'DELETE' || (cleanUrl.startsWith('wishlist/') && !['wishlist', 'wishlist/all'].includes(cleanUrl))) {
+                const parts = cleanUrl.split('/')
+                const targetId = parts.length > 2 ? parts[parts.length - 1] : parts[1]
+                userWishlist = userWishlist.filter(i => String(i.id) !== String(targetId) && String(i.item_id) !== String(targetId))
+                profileMeta.wishlist = userWishlist
+                await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
+                return { data: { success: true, isWishlisted: false, is_wishlisted: false } }
+            }
+
+            // 5. Get Wishlist List (GET wishlist)
+            const typeFilter = queryParams.type
+            let filteredList = typeFilter && typeFilter !== 'all' ? userWishlist.filter(i => i.type === typeFilter || (typeFilter === 'buysell' && (i.type === 'buy_sell' || i.type === 'marketplace' || i.type === 'product')) || (typeFilter === 'expert' && (i.type === 'people' || i.type === 'professional')) || (typeFilter === 'trip' && i.type === 'travel')) : userWishlist
+
+            // Enrich items with real details from DB
+            const enrichedList = await Promise.all(filteredList.map(async (wItem) => {
+                const t = (wItem.type || '').toLowerCase()
+                let details = null
+                try {
+                    if (t === 'property' || t === 'stay') {
+                        const { data } = await supabase.from('properties').select('*').eq('id', wItem.id).maybeSingle()
+                        details = data ? (await enrichPropertiesWithHostDetails(data)) : null
+                    } else if (t === 'event') {
+                        const { data } = await supabase.from('events').select('*').eq('id', wItem.id).maybeSingle()
+                        details = data ? (await enrichEventsWithHostDetails(data)) : null
+                    } else if (t === 'buysell' || t === 'buy_sell' || t === 'marketplace' || t === 'product') {
+                        const { data } = await supabase.from('buy_sell').select('*').eq('id', wItem.id).maybeSingle()
+                        details = data ? (await enrichBuySellWithHostDetails(data)) : null
+                    } else if (t === 'trip' || t === 'travel' || t === 'travel_trip') {
+                        const { data } = await supabase.from('travel_trips').select('*').eq('id', wItem.id).maybeSingle()
+                        details = data ? (await enrichTravelWithHostDetails(data)) : null
+                    } else if (t === 'expert' || t === 'people' || t === 'profile') {
+                        const { data } = await supabase.from('profiles').select('*').eq('id', wItem.id).maybeSingle()
+                        details = data ? formatPersonProfile(data) : null
+                    }
+                } catch {}
+
+                return {
+                    ...wItem,
+                    id: wItem.id,
+                    item_id: wItem.id,
+                    type: wItem.type,
+                    details: details || { id: wItem.id, title: 'Saved Item' }
+                }
+            }))
+
+            return {
+                data: {
+                    wishlist: enrichedList,
+                    items: enrichedList,
+                    total: enrichedList.length,
+                    count: enrichedList.length,
+                    success: true
+                }
+            }
         }
 
         // ── 9. NOTIFICATIONS ────────────────────────────────────────
