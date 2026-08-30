@@ -958,8 +958,8 @@ export async function executeSupabaseRequest(args) {
                 return { data: { results: enriched, trips: enriched, data: enriched, total: enriched.length, count: enriched.length } }
             }
 
-            const singleTripMatch = cleanUrl.match(/^(?:travel\/trips|trips|travel)\/([^/]+)$/)
-            if (singleTripMatch && method === 'GET' && !['all', 'approved', 'pending', 'rejected', 'me', 'search', 'get'].includes(singleTripMatch[1])) {
+            const singleTripMatch = cleanUrl.match(/^(?:travel\/trips|trips)\/([^/]+)$/) || (cleanUrl.startsWith('travel/') && !['travel/trips', 'travel/me', 'travel/create', 'travel/search', 'travel/all', 'travel/approved', 'travel/pending', 'travel/rejected', 'travel/get'].includes(cleanUrl) ? cleanUrl.match(/^travel\/([^/]+)$/) : null);
+            if (singleTripMatch && method === 'GET' && !['trips', 'all', 'approved', 'pending', 'rejected', 'me', 'search', 'get', 'create'].includes(singleTripMatch[1])) {
                 const { data } = await supabase.from('travel_trips').select('*').eq('id', singleTripMatch[1]).maybeSingle()
                 const enriched = await enrichTravelWithHostDetails(data)
                 return { data: { trip: enriched, results: enriched ? [enriched] : [], data: enriched } }
