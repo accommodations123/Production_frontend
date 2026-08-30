@@ -311,6 +311,70 @@ export async function enrichTravelWithHostDetails(items) {
     return isSingle ? formatted[0] : formatted;
 }
 
+export function formatPersonProfile(p) {
+    if (!p) return null;
+    const fullName = p.full_name || p.name || [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Expert Advisor';
+    const profession = p.profession || p.headline || p.occupation || 'Verified Advisor';
+    const headline = p.headline || p.profession || p.occupation || '';
+    const avatar = p.profile_image || p.avatar_url || p.image || null;
+    const city = p.city || '';
+    const state = p.state || '';
+    const country = p.country || 'India';
+    const location = city && country ? `${city}, ${country}` : (city || state || country || 'Global');
+
+    return {
+        ...p,
+        id: p.id,
+        user_id: p.id,
+        name: fullName,
+        full_name: fullName,
+        fullName: fullName,
+        profession: profession,
+        headline: headline,
+        occupation: p.occupation || profession,
+        bio: p.bio || (headline ? `Specialized in ${headline}` : `Professional advisor in ${location}`),
+        category: p.category || (profession.toLowerCase().includes('legal') ? 'legal' : (profession.toLowerCase().includes('tax') ? 'finance' : 'relocation')),
+        country: country,
+        state: state,
+        city: city,
+        location: location,
+        avatar: avatar,
+        avatar_url: avatar,
+        profile_image: avatar,
+        image: avatar,
+        verified: Boolean(p.is_approved || p.is_verified),
+        is_approved: Boolean(p.is_approved),
+        isApproved: Boolean(p.is_approved),
+        status: p.status || (p.is_approved ? 'approved' : 'pending'),
+        skills: Array.isArray(p.skills) ? p.skills : [profession, 'Expat Assistance', 'Community Support'],
+        languages: Array.isArray(p.languages) ? p.languages : ['English', 'Hindi'],
+        pricing: {
+            consultation: 0,
+            currency: 'USD',
+            type: 'free'
+        },
+        hourlyRate: 0,
+        currency: 'USD',
+        stats: {
+            rating: 5,
+            review_count: 0,
+            followers_count: 0
+        },
+        socials: {
+            whatsapp: p.whatsapp || p.phone || '',
+            email: p.email || '',
+            phone: p.phone || '',
+            instagram: p.instagram || '',
+            facebook: p.facebook || ''
+        },
+        contact_preferences: {
+            allow_whatsapp: true,
+            allow_email: true,
+            allow_phone: false
+        }
+    };
+}
+
 // ── Wishlist Local Fallback Helpers ────────────────────────────────
 function getLocalWishlist(userId) {
     try {
@@ -960,7 +1024,111 @@ export async function executeSupabaseRequest(args) {
             return { data: { profiles: data || [], hosts: data || [] } }
         }
 
-        // ── 7. CAREER & JOBS ────────────────────────────────────────
+        // ── 7. PEOPLE / EXPERTS / PROFESSIONALS ─────────────────────
+        if (cleanUrl === 'people' || cleanUrl.startsWith('people/') || cleanUrl.startsWith('admin/people') || cleanUrl.startsWith('admin/professionals') || cleanUrl.startsWith('admin/pending/pending-people') || cleanUrl.startsWith('admin/approved/approved-people') || cleanUrl.startsWith('admin/rejected/rejected-people')) {
+            const userObj = await getCurrentUserObject()
+            const userId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
+
+            // Admin Actions (Mutations only)
+            if ((cleanUrl.includes('/approve/') || cleanUrl.endsWith('/approve')) && method !== 'GET') {
+                const id = cleanUrl.split('/').pop()
+                const { data } = await supabase.from('profiles').update({ status: 'approved', is_approved: true, is_verified: true, role: 'expert' }).eq('id', id).select().maybeSingle()
+                return { data: { success: true, profile: data ? formatPersonProfile(data) : null, message: 'Expert approved' } }
+            }
+            if ((cleanUrl.includes('/reject/') || cleanUrl.endsWith('/reject')) && method !== 'GET') {
+                const id = cleanUrl.split('/').pop()
+                const { data } = await supabase.from('profiles').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
+                return { data: { success: true, profile: data ? formatPersonProfile(data) : null, message: 'Expert rejected' } }
+            }
+
+            // File Upload for People (POST people/upload)
+            if (cleanUrl === 'people/upload' && method === 'POST') {
+                const uploaded = body instanceof FormData ? await parseFormDataWithUploads(body, 'profiles') : {}
+                const urls = uploaded.images || (uploaded.url ? [uploaded.url] : (uploaded.avatar ? [uploaded.avatar] : []))
+                return { data: { urls: urls, url: urls[0] || null, success: true } }
+            }
+
+            // Create / Update expert profile (POST people or PUT people/me)
+            if ((cleanUrl === 'people' && method === 'POST') || ((cleanUrl === 'people/me' || cleanUrl.startsWith('people/me/')) && (method === 'PUT' || method === 'PATCH' || method === 'POST'))) {
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'profiles') : { ...(body || {}) }
+                
+                payload.id = userId || payload.id
+                payload.full_name = payload.full_name || payload.name || payload.fullName
+                payload.name = payload.full_name
+                payload.profession = payload.profession || payload.headline || payload.occupation || 'Verified Advisor'
+                payload.headline = payload.headline || payload.profession
+                payload.occupation = payload.occupation || payload.profession
+                payload.profile_image = payload.avatar || payload.profile_image || payload.avatar_url
+                payload.avatar_url = payload.profile_image
+                payload.status = payload.status || 'pending'
+                payload.is_approved = false
+                payload.role = 'expert'
+
+                const cleanProfile = sanitizePayload(payload, PROFILE_COLUMNS)
+                const { data, error } = await supabase.from('profiles').upsert(cleanProfile).select().maybeSingle()
+                if (error) throw error
+                const formatted = formatPersonProfile(data)
+                return { data: { profile: formatted, data: formatted, success: true } }
+            }
+
+            // Current logged-in user expert profile (GET people/me)
+            if (cleanUrl === 'people/me' && method === 'GET') {
+                if (!userId) return { data: null }
+                const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+                const formatted = data ? formatPersonProfile(data) : null
+                return { data: { profile: formatted, data: formatted } }
+            }
+
+            // Single Profile (GET people/profile/:id or GET people/:id)
+            const singlePersonMatch = cleanUrl.match(/^people\/(?:profile\/)?([^/]+)$/)
+            if (singlePersonMatch && method === 'GET' && !['search', 'me', 'all', 'approved', 'pending', 'rejected', 'upload', 'followers', 'following', 'reviews'].includes(singlePersonMatch[1])) {
+                const { data } = await supabase.from('profiles').select('*').eq('id', singlePersonMatch[1]).maybeSingle()
+                const formatted = data ? formatPersonProfile(data) : null
+                return { data: { profile: formatted, data: formatted } }
+            }
+
+            // Reviews endpoint
+            if (cleanUrl.includes('reviews')) {
+                return { data: { reviews: [], data: [], total: 0, count: 0, rating: 5 } }
+            }
+
+            // Followers / Following endpoint
+            if (cleanUrl.includes('follow')) {
+                return { data: { success: true, followed: true, data: [] } }
+            }
+
+            // Public List of People / Professionals (GET people or GET people/search)
+            let query = supabase.from('profiles').select('*').order('created_at', { ascending: false })
+            if (cleanUrl.includes('pending')) {
+                query = query.eq('status', 'pending')
+            } else if (cleanUrl.includes('rejected')) {
+                query = query.eq('status', 'rejected')
+            } else if (cleanUrl.includes('all')) {
+                query = query.neq('status', 'rejected')
+            } else {
+                query = query.or('status.eq.approved,is_approved.eq.true')
+            }
+
+            if (queryParams.limit) query = query.limit(Number(queryParams.limit))
+            const { data, error } = await query
+            if (error) throw error
+            const formattedList = (data || []).map(formatPersonProfile)
+
+            return {
+                data: {
+                    people: formattedList,
+                    profiles: formattedList,
+                    results: formattedList,
+                    items: formattedList,
+                    data: formattedList,
+                    total: formattedList.length,
+                    count: formattedList.length,
+                    success: true
+                }
+            }
+        }
+
+        // ── 8. CAREER & JOBS ────────────────────────────────────────
         if (cleanUrl.startsWith('career') || cleanUrl.startsWith('jobs')) {
             if ((cleanUrl === 'career/create' || cleanUrl === 'jobs/create' || cleanUrl === 'jobs') && method === 'POST') {
                 let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'jobs') : { ...(body || {}) }
