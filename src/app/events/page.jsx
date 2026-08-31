@@ -19,6 +19,7 @@ import { usePagination } from "@/hooks/usePagination"
 import { Pagination } from "@/components/ui/Pagination"
 
 import { normalizeCountryName } from "@/shared/utils/countryUtils"
+import { resolveImageUrl, normalizeImages } from "@/lib/imageUtils"
 
 // Constants for better maintainability
 const SCROLL_THRESHOLD = 50
@@ -184,7 +185,8 @@ const EventsPage = () => {
         location: locationStr,
         city: event.city || "",
         country: event.country || "",
-        image: event.banner_image || event.image || (Array.isArray(event.gallery_images) && event.gallery_images.length > 0 ? event.gallery_images[0] : null),
+        image: resolveImageUrl(event.banner_image || event.image || (Array.isArray(event.images) ? event.images[0] : null) || (Array.isArray(event.gallery_images) && event.gallery_images.length > 0 ? event.gallery_images[0] : null)),
+        banner_image: resolveImageUrl(event.banner_image || event.image || (Array.isArray(event.images) ? event.images[0] : null)),
         price: event.price ?? event.ticketPrice ?? 0,
         organizer: hostName,
         type: event.event_type || event.type || "Event",
@@ -194,13 +196,13 @@ const EventsPage = () => {
         comments_count: event.comments_count || event.commentsCount || 0,
         host: hostObj ? {
           full_name: hostName,
-          selfie_photo: hostPhoto,
-          profile_image: hostPhoto,
+          selfie_photo: resolveImageUrl(hostPhoto),
+          profile_image: resolveImageUrl(hostPhoto),
           phone: hostObj.phone || hostObj.whatsapp,
           email: hostObj.email,
           status: hostObj.status
         } : null,
-        gallery_images: Array.isArray(event.gallery_images) ? event.gallery_images : [],
+        gallery_images: normalizeImages(event.images || event.gallery_images || (event.banner_image ? [event.banner_image] : [])),
         included_items: Array.isArray(event.included_items) ? event.included_items : [],
         schedule: Array.isArray(event.schedule) ? event.schedule : [],
         event_mode: event.event_mode || "offline",

@@ -120,20 +120,26 @@ export const PropertyCard = React.memo(({ property }) => {
     return (
         <CardContainer key={propertyData.id} linkTo={`/rooms/${propertyData.id}`}>
             {/* Image Section */}
-            <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden bg-gray-100">
-                <img
-                    src={propertyData.image}
-                    alt={propertyData.title}
-                    className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                    onLoad={() => setIsImageLoaded(true)}
-                    onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'%3E%3C/path%3E%3Cpolyline points='9 22 9 12 15 12 15 22'%3E%3C/polyline%3E%3C/svg%3E"; // SVG Home Icon
-                        e.target.className = "w-1/2 h-1/2 object-contain mx-auto my-auto opacity-50";
-                        e.target.classList.remove('opacity-0');
-                    }}
-                    loading="lazy"
-                />
+            <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden bg-slate-100 flex items-center justify-center">
+                {propertyData.image ? (
+                    <img
+                        src={propertyData.image}
+                        alt={propertyData.title}
+                        className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        onLoad={() => setIsImageLoaded(true)}
+                        onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'%3E%3C/path%3E%3Cpolyline points='9 22 9 12 15 12 15 22'%3E%3C/polyline%3E%3C/svg%3E";
+                            e.target.className = "w-1/2 h-1/2 object-contain mx-auto my-auto opacity-50";
+                            setIsImageLoaded(true);
+                        }}
+                        loading="lazy"
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+                        <MapPin className="w-12 h-12 text-slate-400/60" />
+                    </div>
+                )}
 
                 {/* Top Badges */}
                 <div className="absolute top-4 left-4 z-20 flex gap-2">

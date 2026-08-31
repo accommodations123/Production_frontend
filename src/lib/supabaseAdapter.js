@@ -791,11 +791,34 @@ export async function executeSupabaseRequest(args) {
             }
             if (cleanUrl.startsWith('events/media/')) {
                 const id = cleanUrl.split('/').pop()
-                const uploaded = body instanceof FormData ? await parseFormDataWithUploads(body, 'events') : {}
-                if (id && (uploaded.banner_image || uploaded.images)) {
-                    await supabase.from('events').update(sanitizePayload(uploaded, EVENT_COLUMNS)).eq('id', id)
+                const uploaded = body instanceof FormData ? await parseFormDataWithUploads(body, 'events') : { ...(body || {}) }
+                
+                const allImgs = normalizeImages([
+                    ...(Array.isArray(uploaded.galleryImages) ? uploaded.galleryImages : (uploaded.galleryImages ? [uploaded.galleryImages] : [])),
+                    ...(Array.isArray(uploaded.images) ? uploaded.images : (uploaded.images ? [uploaded.images] : [])),
+                    uploaded.bannerImage,
+                    uploaded.banner_image,
+                    uploaded.banner
+                ].filter(Boolean));
+
+                const updatePayload = {};
+                if (uploaded.bannerImage || uploaded.banner_image || uploaded.banner) {
+                    updatePayload.banner_image = uploaded.bannerImage || uploaded.banner_image || uploaded.banner || allImgs[0] || null;
                 }
-                return { data: { success: true, ...uploaded } }
+                if (allImgs.length > 0) {
+                    const { data: existEv } = await supabase.from('events').select('images,banner_image').eq('id', id).maybeSingle();
+                    const existingList = Array.isArray(existEv?.images) ? existEv.images : [];
+                    const mergedImages = Array.from(new Set([...existingList, ...allImgs]));
+                    updatePayload.images = mergedImages;
+                    if (!updatePayload.banner_image && !existEv?.banner_image) {
+                        updatePayload.banner_image = mergedImages[0] || null;
+                    }
+                }
+
+                if (id && Object.keys(updatePayload).length > 0) {
+                    await supabase.from('events').update(sanitizePayload(updatePayload, EVENT_COLUMNS)).eq('id', id);
+                }
+                return { data: { success: true, ...uploaded, ...updatePayload } }
             }
             if (cleanUrl.startsWith('events/basic-info/') || cleanUrl.startsWith('events/location/') || cleanUrl.startsWith('events/venue/') || cleanUrl.startsWith('events/schedule/') || cleanUrl.startsWith('events/pricing/') || cleanUrl.startsWith('events/submit/') || cleanUrl.startsWith('events/update/')) {
                 const id = cleanUrl.split('/').pop()

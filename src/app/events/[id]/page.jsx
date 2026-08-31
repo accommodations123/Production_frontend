@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { useGetEventByIdQuery, useJoinEventMutation, useLeaveEventMutation } from "@/store/api/hostApi"
 import { toast } from "sonner"
+import { resolveImageUrl, normalizeImages } from "@/lib/imageUtils"
 
 // Hooks & Services
 import { useAuth } from "./hooks/useAuth"
@@ -29,16 +30,20 @@ export default function EventDetailsPage() {
         const raw = apiEvent.event || apiEvent.data || apiEvent
         const hostObj = raw.Host || raw.host || raw.User || raw.user || null
         const hostName = hostObj?.full_name || hostObj?.name || hostObj?.User?.full_name || raw.organizer || raw.hostName || "Host"
-        const hostPhoto = hostObj?.profile_image || hostObj?.selfie_photo || hostObj?.avatar || hostObj?.User?.profile_image || null
+        const hostPhoto = resolveImageUrl(hostObj?.profile_image || hostObj?.selfie_photo || hostObj?.avatar || hostObj?.User?.profile_image || null)
 
         const locationStr = raw.location || 
             (raw.city && raw.country ? `${raw.city}, ${raw.country}` : raw.city || raw.street_address || raw.venue_name || raw.address || "Location TBA")
+
+        const resolvedBanner = resolveImageUrl(raw.banner_image || raw.image || (Array.isArray(raw.images) ? raw.images[0] : null) || (raw.gallery_images?.[0]) || null)
+        const resolvedGallery = normalizeImages(raw.images || raw.gallery_images || (resolvedBanner ? [resolvedBanner] : []))
 
         return {
             id: raw.id || raw._id || raw.eventId,
             title: raw.title || raw.eventName || raw.name || "Untitled Event",
             description: raw.description || raw.desc || "No description available",
-            image: raw.banner_image || raw.image || (raw.gallery_images?.[0]) || null,
+            image: resolvedBanner,
+            banner_image: resolvedBanner,
             date: raw.start_date || raw.date || raw.event_date,
             time: raw.start_time || raw.time,
             end_date: raw.end_date || raw.endDate,
@@ -55,7 +60,8 @@ export default function EventDetailsPage() {
             accessibilityInfo: raw.accessibility_info || raw.accessibilityInfo,
             googleMapsUrl: raw.google_maps_url || raw.googleMapsUrl,
             attendeesCount: raw.attendees_count || raw.attendeesCount || 0,
-            galleryImages: Array.isArray(raw.gallery_images) ? raw.gallery_images : [],
+            galleryImages: resolvedGallery,
+            images: resolvedGallery,
             includedItems: Array.isArray(raw.included_items) ? raw.included_items : [],
             schedule: Array.isArray(raw.schedule) ? raw.schedule : [],
             facilities: Array.isArray(raw.facilities) ? raw.facilities : [],
