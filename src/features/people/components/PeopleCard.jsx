@@ -158,17 +158,17 @@ export function PeopleCard({ person }) {
     return isNaN(rawRating) ? 0 : rawRating;
   }, [liveReviews, person]);
 
-  // Extract years of experience intelligently from experience field, headline or profession
-  const expMatch = String(person.experience || person.headline || person.profession || "").match(/(\d+)\s*(?:years?|yrs?)/i);
-  const experience = typeof person.experience === 'string' && person.experience && !person.experience.toLowerCase().includes("developer")
-    ? person.experience
+  // Extract years of experience accurately from experience field, without inventing fallback values
+  const expMatch = String(person.experience || "").match(/(\d+)\s*(?:years?|yrs?)/i);
+  const experience = typeof person.experience === 'string' && person.experience.trim()
+    ? person.experience.trim()
     : expMatch
       ? `${expMatch[1]}+ yrs`
       : (person.yearsOfExperience || person.years_of_experience)
         ? `${person.yearsOfExperience || person.years_of_experience} yrs`
         : person.experiences?.length
-          ? `${person.experiences.length}+ yrs`
-          : "1+ yrs";
+          ? `${person.experiences.length} yrs`
+          : "—";
   const name = person.name || person.full_name || (person.firstName ? `${person.firstName} ${person.lastName || ''}`.trim() : "") || "Expert Advisor";
   const profession = person.profession || person.headline || person.occupation || "Verified Advisor";
   const bio = person.bio || person.description || (person.headline ? `Specialized in ${person.headline}` : "Dedicated expat support advisor assisting with relocation, housing, and integration.");

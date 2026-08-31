@@ -997,13 +997,20 @@ export default function BecomeExpert() {
                         />
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <TextField
                           label="Languages Spoken *"
                           placeholder="e.g. English, German"
                           error={errors.languages}
                           variant="light"
                           {...register("languages")}
+                        />
+                        <TextField
+                          label="Years of Experience (Optional)"
+                          placeholder="e.g. 5+ years or 3 years"
+                          error={errors.experience}
+                          variant="light"
+                          {...register("experience")}
                         />
                         <TextField
                           label="Core Skills (comma separated) *"

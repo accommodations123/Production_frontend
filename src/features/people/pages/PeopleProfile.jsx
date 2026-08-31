@@ -356,14 +356,16 @@ export default function PeopleProfile() {
   const languages = Array.isArray(person.languages) && person.languages.length > 0 ? person.languages : ["English"];
   const experiences = (Array.isArray(person.experiences) && person.experiences.length > 0)
     ? person.experiences
-    : [
-        {
-          role: profession,
-          company: (person.category ? person.category.replace(/-/g, ' ').toUpperCase() : "Tech & Mentorship"),
-          period: person.experience || "5+ years",
-          description: bio || "Proven track record delivering technical and advisory solutions."
-        }
-      ];
+    : person.experience
+      ? [
+          {
+            role: profession,
+            company: (person.category ? person.category.replace(/-/g, ' ').toUpperCase() : "Independent Practice"),
+            period: String(person.experience).toLowerCase().includes('yr') ? person.experience : `${person.experience} yrs`,
+            description: bio || "Professional advisory and consulting practice."
+          }
+        ]
+      : [];
   const educations = (Array.isArray(person.educations) && person.educations.length > 0) ? person.educations : [];
   const services = (Array.isArray(person.services) && person.services.length > 0)
     ? person.services

@@ -195,11 +195,13 @@ export default function PeopleHome() {
 
       // 6. Experience
       if (selectedExperience && selectedExperience !== "all") {
-        const expMatch = String(p.experience || p.headline || p.profession || "").match(/(\d+)\s*(?:years?|yrs?)/i);
+        const expMatch = String(p.experience || "").match(/(\d+)\s*(?:years?|yrs?)/i);
+        const parsedNum = p.experience && !isNaN(Number(p.experience)) ? Number(p.experience) : null;
         const years = expMatch
           ? parseInt(expMatch[1], 10)
-          : Number(p.yearsOfExperience || p.years_of_experience || (p.experiences?.length ? p.experiences.length : 1));
+          : (parsedNum ?? Number(p.yearsOfExperience || p.years_of_experience || (p.experiences?.length ? p.experiences.length : 0)));
 
+        if (!years) return false;
         if (selectedExperience === "junior" && (years < 1 || years > 4)) return false;
         if (selectedExperience === "mid" && (years < 5 || years > 9)) return false;
         if (selectedExperience === "senior" && years < 10) return false;
