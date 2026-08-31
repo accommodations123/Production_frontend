@@ -20,6 +20,19 @@ function hydratePhone(fullPhone, defaultCode = '+91', defaultIso = 'IN') {
   return { code: parsed.code, iso: defaultIso, number: parsed.number };
 }
 
+function cleanStreetAddress(val) {
+  if (!val) return '';
+  if (typeof val === 'string' && (val.trim().startsWith('{') || val.trim().startsWith('['))) {
+    try {
+      const parsed = JSON.parse(val);
+      return parsed.address || parsed.street_address || '';
+    } catch {
+      return '';
+    }
+  }
+  return typeof val === 'string' ? val : '';
+}
+
 export function PersonalInfo({ initialData, verificationState, onUpdate, isUpdating, isHost }) {
   const { activeCountry } = useCountry();
   const navigate = useNavigate();
@@ -34,7 +47,7 @@ export function PersonalInfo({ initialData, verificationState, onUpdate, isUpdat
     country: initialData?.country || '',
     state: initialData?.state || '',
     city: initialData?.city || '',
-    address: initialData?.address || '',
+    address: cleanStreetAddress(initialData?.address || initialData?.street_address),
     zip: initialData?.zip || '',
     whatsapp: initialData?.whatsapp || '',
     facebook: initialData?.facebook || '',
@@ -63,7 +76,7 @@ export function PersonalInfo({ initialData, verificationState, onUpdate, isUpdat
       country: initialData.country || prev.country || '',
       state: initialData.state || prev.state || '',
       city: initialData.city || prev.city || '',
-      address: initialData.street_address || initialData.address || prev.address || '',
+      address: cleanStreetAddress(initialData.street_address || initialData.address || prev.address),
       zip: initialData.zip_code || initialData.zip || prev.zip || '',
       whatsapp: pWa.number || '',
       whatsappCode: pWa.code,

@@ -331,12 +331,6 @@ export default function PeopleProfile() {
     );
   }
 
-  const isVerified = Boolean(
-    person.identity_verified ||
-    person.documents_verified ||
-    person.linkedin_verified
-  );
-
   const name = person.name || person.full_name || (person.firstName ? `${person.firstName} ${person.lastName || ''}`.trim() : "") || "Expert Advisor";
   const profession = person.profession || person.headline || person.occupation || "Expert Advisor";
   const bio = person.bio || person.description || (person.headline ? `Specialized in ${person.headline}. Dedicated to providing seamless relocation and consulting support.` : "Experienced professional dedicated to helping expats navigate relocation, housing, and local integration seamlessly.");
@@ -486,12 +480,6 @@ export default function PeopleProfile() {
                         </div>
                       ) : (
                         <span className="text-slate-400 font-medium text-xs">No reviews yet</span>
-                      )}
-
-                      {isVerified && (
-                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200 text-[10px]">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Advisor
-                        </span>
                       )}
 
                       {person.status === "pending" && isOwnProfile && (

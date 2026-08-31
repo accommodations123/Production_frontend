@@ -373,7 +373,7 @@ export function formatPersonProfile(p) {
     }
 
     const fullName = p.full_name || p.name || [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Expert Advisor';
-    const profession = p.profession || p.headline || p.occupation || 'Verified Advisor';
+    const profession = p.profession || p.headline || p.occupation || 'Advisor';
     const headline = p.headline || p.profession || p.occupation || '';
     const avatar = p.profile_image || p.avatar_url || p.image || null;
     const city = p.city || '';
@@ -453,6 +453,27 @@ export function formatPersonProfile(p) {
             allow_email: true,
             allow_phone: false
         }
+    };
+}
+
+export function formatUserProfile(p) {
+    if (!p) return null;
+    let cleanAddress = p.address || p.street_address || "";
+    let meta = {};
+    if (typeof cleanAddress === 'string' && (cleanAddress.trim().startsWith('{') || cleanAddress.trim().startsWith('['))) {
+        try {
+            meta = JSON.parse(cleanAddress);
+            cleanAddress = meta.address || meta.street_address || "";
+        } catch {
+            cleanAddress = "";
+        }
+    }
+    return {
+        ...p,
+        name: p.full_name || p.name || p.displayName,
+        full_name: p.full_name || p.name || p.displayName,
+        address: cleanAddress,
+        street_address: cleanAddress
     };
 }
 
@@ -1205,7 +1226,8 @@ export async function executeSupabaseRequest(args) {
                     }
                 }
 
-                return { data: { host: profile, user: profile, profile, data: profile } }
+                const formattedProfile = formatUserProfile(profile);
+                return { data: { host: formattedProfile, user: formattedProfile, profile: formattedProfile, data: formattedProfile } }
             }
 
             // Host application submission by user -> status: 'pending', is_approved: false
@@ -1217,24 +1239,45 @@ export async function executeSupabaseRequest(args) {
                 if (payload.userId && !payload.id) payload.id = payload.userId;
                 if (payload.user_id && !payload.id) payload.id = payload.user_id;
                 if (payload.name && !payload.full_name) payload.full_name = payload.name;
-                if (payload.address && !payload.street_address) payload.street_address = payload.address;
 
                 payload.id = (id && id !== 'save' && id !== 'update') ? id : (userId || payload.id);
                 payload.status = payload.status || 'pending'
                 payload.is_approved = false
                 payload.role = payload.role || 'user'
 
+                // Check existing street_address to preserve JSON metadata if present
+                let existingMeta = {};
+                if (payload.id) {
+                    const { data: existProf } = await supabase.from('profiles').select('street_address').eq('id', payload.id).maybeSingle();
+                    if (existProf?.street_address && (existProf.street_address.startsWith('{') || existProf.street_address.startsWith('['))) {
+                        try { existingMeta = JSON.parse(existProf.street_address); } catch {}
+                    }
+                }
+
+                const physicalAddress = payload.address || payload.street_address;
+                if (Object.keys(existingMeta).length > 0) {
+                    if (physicalAddress !== undefined) {
+                        existingMeta.address = physicalAddress;
+                        existingMeta.street_address = physicalAddress;
+                    }
+                    payload.street_address = JSON.stringify(existingMeta);
+                } else if (physicalAddress !== undefined) {
+                    payload.street_address = physicalAddress;
+                }
+
                 const cleanProfile = sanitizePayload(payload, PROFILE_COLUMNS)
 
                 const { data, error } = await supabase.from('profiles').upsert(cleanProfile).select().maybeSingle()
                 if (error) throw error
-                return { data: { host: data, profile: data, success: true } }
+                const formatted = formatUserProfile(data);
+                return { data: { host: formatted, profile: formatted, user: formatted, success: true } }
             }
 
             const hostIdMatch = cleanUrl.match(/^(?:host|profiles|user)\/([^/]+)$/)
             if (hostIdMatch && method === 'GET' && !['profile', 'me', 'save', 'update', 'get', 'search', 'all'].includes(hostIdMatch[1])) {
                 const { data } = await supabase.from('profiles').select('*').eq('id', hostIdMatch[1]).maybeSingle()
-                return { data: { host: data, profile: data, user: data } }
+                const formatted = formatUserProfile(data);
+                return { data: { host: formatted, profile: formatted, user: formatted } }
             }
 
             // List of approved hosts (for directory / admin)
@@ -1273,7 +1316,7 @@ export async function executeSupabaseRequest(args) {
                 payload.id = userId || payload.id
                 payload.full_name = payload.full_name || payload.name || payload.fullName
                 payload.name = payload.full_name
-                payload.profession = payload.profession || payload.headline || payload.occupation || 'Verified Advisor'
+                payload.profession = payload.profession || payload.headline || payload.occupation || 'Advisor'
                 payload.headline = payload.headline || payload.profession
                 payload.occupation = payload.occupation || payload.profession
                 payload.profile_image = payload.avatar || payload.profile_image || payload.avatar_url

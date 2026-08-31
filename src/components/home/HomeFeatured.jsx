@@ -552,7 +552,7 @@ const HomeFeatured = () => {
               <div className="col-span-full py-12 sm:py-16 lg:py-20 text-center bg-[#F8F9FA] rounded-[1.5rem] sm:rounded-[2rem] border-2 border-dashed border-[#D1CBB7]/30">
                 <Users className="w-10 h-10 sm:w-12 sm:h-12 text-[#D1CBB7] mx-auto mb-4" />
                 <h3 className="text-lg sm:text-xl font-bold text-[#00142E] mb-2">No Advisors Found</h3>
-                <p className="text-[#00142E]/60 text-sm sm:text-base">Be the first to join as a verified advisor!</p>
+                <p className="text-[#00142E]/60 text-sm sm:text-base">Be the first to join as an expert advisor!</p>
                 <Button onClick={() => navigate('/people/become')} className="mt-4 sm:mt-6 bg-[#CB2A25] hover:bg-[#a0221e] text-white rounded-full text-sm sm:text-base px-4 sm:px-6 py-2">Join as an Expert</Button>
               </div>
             )}

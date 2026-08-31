@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Sparkles, ShieldCheck, Search, UserCheck } from "lucide-react";
+import { Sparkles, Users, Search, UserCheck } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { useSelector } from "react-redux";
 import { useGetMyProfileQuery } from "@/store/api/peopleApi";
@@ -28,7 +28,7 @@ export default function PeopleHero({ searchQuery, setSearchQuery, totalCount = 0
 
           <div className="max-w-2xl space-y-5">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300 text-xs font-semibold tracking-wide uppercase select-none">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#E1392A]" /> Verified Support Networks
+              <Users className="w-3.5 h-3.5 text-[#E1392A]" /> Expat Support Networks
             </div>
             
             <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.1] sm:leading-[1.12]">
@@ -36,7 +36,7 @@ export default function PeopleHero({ searchQuery, setSearchQuery, totalCount = 0
             </h1>
             
             <p className="text-[#717171] text-sm sm:text-base leading-relaxed font-medium max-w-xl">
-              Consult verified immigration attorneys, housing agents, cross-border accountants, and local liaisons to ensure a smooth transition into your new home.
+              Consult immigration attorneys, housing agents, cross-border accountants, and local liaisons to ensure a smooth transition into your new home.
             </p>
 
             {/* Elegant Search Pill inside Hero */}
@@ -64,8 +64,8 @@ export default function PeopleHero({ searchQuery, setSearchQuery, totalCount = 0
                 <span className="text-[10px] sm:text-xs font-semibold text-[#717171] uppercase tracking-wider block">Local Experts</span>
               </div>
               <div className="space-y-0.5">
-                <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight block">100%</span>
-                <span className="text-[10px] sm:text-xs font-semibold text-[#717171] uppercase tracking-wider block">Verified</span>
+                <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight block">50+</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-[#717171] uppercase tracking-wider block">Countries</span>
               </div>
             </div>
 

@@ -30,7 +30,8 @@ import {
   Check,
   FileText,
   Briefcase,
-  Layers
+  Layers,
+  Users
 } from "lucide-react";
 import {
   FaFacebookF,
@@ -658,13 +659,13 @@ export default function BecomeExpert() {
               </h1>
               <p className="text-slate-400 text-sm max-w-xl font-medium mt-1">
                 {isExisting
-                  ? "Update your verified advisor details, rates, and expertise to keep your profile current."
-                  : "Build your verified advisor identity in 3 simple steps to offer relocation, legal, housing, and tax assistance to global expats."}
+                  ? "Update your advisor details, rates, and expertise to keep your profile current."
+                  : "Build your advisor profile in 3 simple steps to offer relocation, legal, housing, and tax assistance to global expats."}
               </p>
             </div>
             <div className="hidden lg:flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2.5 rounded-2xl text-xs text-slate-300">
-              <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
-              <span>NextKinLife Verified Expert Network</span>
+              <Users className="w-5 h-5 text-red-400 shrink-0" />
+              <span>NextKinLife Expat Expert Network</span>
             </div>
           </div>
         </div>

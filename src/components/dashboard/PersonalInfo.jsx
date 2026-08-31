@@ -160,6 +160,19 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
     social: false,
   });
 
+  const cleanStreetAddress = (val) => {
+    if (!val) return "";
+    if (typeof val === "string" && (val.trim().startsWith("{") || val.trim().startsWith("["))) {
+      try {
+        const parsed = JSON.parse(val);
+        return parsed.address || parsed.street_address || "";
+      } catch {
+        return "";
+      }
+    }
+    return typeof val === "string" ? val : "";
+  };
+
   const [formData, setFormData] = useState({
     full_name: initialData?.full_name || initialData?.name || "",
     email: initialData?.email || "",
@@ -167,7 +180,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
     country: initialData?.country || "",
     state: initialData?.state || "",
     city: initialData?.city || "",
-    address: initialData?.address || "",
+    address: cleanStreetAddress(initialData?.address || initialData?.street_address),
     zip: initialData?.zip || "",
     whatsapp: initialData?.whatsapp || "",
     facebook: initialData?.facebook || "",
@@ -277,7 +290,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
           country: initialData.country || prev.country || "",
           state: initialData.state || prev.state || "",
           city: initialData.city || prev.city || "",
-          address: initialData.street_address || initialData.address || prev.address || "",
+          address: cleanStreetAddress(initialData.street_address || initialData.address || prev.address),
           zip: initialData.zip_code || initialData.zip || prev.zip || "",
           whatsapp: parsedWhatsApp.number || "",
           whatsappCode: parsedWhatsApp.code,

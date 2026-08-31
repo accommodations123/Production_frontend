@@ -159,18 +159,19 @@ export function PeopleCard({ person }) {
   }, [liveReviews, person]);
 
   // Extract years of experience accurately from experience field, without inventing fallback values
-  const expMatch = String(person.experience || "").match(/(\d+)\s*(?:years?|yrs?)/i);
-  const experience = typeof person.experience === 'string' && person.experience.trim()
-    ? person.experience.trim()
-    : expMatch
-      ? `${expMatch[1]}+ yrs`
-      : (person.yearsOfExperience || person.years_of_experience)
-        ? `${person.yearsOfExperience || person.years_of_experience} yrs`
-        : person.experiences?.length
-          ? `${person.experiences.length} yrs`
+  if (!person) return null;
+
+  // Format experience string
+  const experienceDisplay =
+    person.experience !== undefined && person.experience !== null && String(person.experience).trim() !== ""
+      ? (/^\d+$/.test(String(person.experience).trim()) ? `${person.experience} yrs` : String(person.experience).trim())
+      : (Array.isArray(person.experiences) && person.experiences.length > 0)
+        ? (person.experiences[0]?.duration || `${person.experiences.length} yrs`)
+        : (Array.isArray(person.experience) && person.experience.length > 0)
+          ? `${person.experience.length} yrs`
           : "—";
   const name = person.name || person.full_name || (person.firstName ? `${person.firstName} ${person.lastName || ''}`.trim() : "") || "Expert Advisor";
-  const profession = person.profession || person.headline || person.occupation || "Verified Advisor";
+  const profession = person.profession || person.headline || person.occupation || "Advisor";
   const bio = person.bio || person.description || (person.headline ? `Specialized in ${person.headline}` : "Dedicated expat support advisor assisting with relocation, housing, and integration.");
   const city = person.city || "";
   const state = person.state || "";
@@ -186,21 +187,11 @@ export function PeopleCard({ person }) {
 
   const currency = person.currency || person.pricing?.currency || (country && country !== "Global" ? country : "INR");
 
-  const isVerified = Boolean(
-    person.status === 'approved' ||
-    person.is_approved !== false ||
-    person.is_verified ||
-    person.identity_verified ||
-    person.documents_verified ||
-    person.linkedin_verified ||
-    person.verified
-  );
-
   const hasCustomAvatar = Boolean(person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image);
   const avatarUrl = person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image;
   const skills = Array.isArray(person.skills) && person.skills.length > 0
     ? person.skills
-    : (profession !== "Verified Advisor" ? profession.split(/[,|•/]/).map(s => s.trim()).filter(Boolean) : ["Consulting", "Support", "Advisor"]);
+    : (profession !== "Advisor" ? profession.split(/[,|•/]/).map(s => s.trim()).filter(Boolean) : ["Consulting", "Support", "Advisor"]);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/60 p-5 flex flex-col justify-between h-full group hover:-translate-y-1.5 hover:border-slate-300 hover:shadow-[0_16px_36px_rgba(0,0,0,0.05)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] relative overflow-hidden">
@@ -258,11 +249,6 @@ export function PeopleCard({ person }) {
             ) : (
               <div className="w-16 h-16 rounded-full bg-[#00142E] text-white flex items-center justify-center font-black text-xl border border-slate-100 shadow-sm">
                 {name?.charAt(0) || "P"}
-              </div>
-            )}
-            {isVerified && (
-              <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5 border-2 border-white shadow-sm flex items-center justify-center">
-                <ShieldCheck className="w-3.5 h-3.5" />
               </div>
             )}
           </div>

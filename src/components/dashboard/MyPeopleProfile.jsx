@@ -116,7 +116,7 @@ export function MyPeopleProfile() {
               <User className="w-5 h-5 text-[#E1392A]" /> My Professional Profile
             </h2>
             <p className="text-xs text-gray-500 mt-1 font-medium">
-              Manage your verified advisor identity, skills, consultation rates, and social channels.
+              Manage your professional advisor identity, skills, consultation rates, and social channels.
             </p>
           </div>
 
@@ -129,32 +129,34 @@ export function MyPeopleProfile() {
           </Button>
         </div>
 
-        {profile ? (
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-6 space-y-4">
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-200 shrink-0 border border-slate-200 shadow-xs">
-                {profile.avatar || currentUser?.profile_image ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-[#E1392A]" />
+          </div>
+        ) : profile ? (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 p-5 bg-slate-50/70 rounded-2xl border border-slate-100">
+              <div className="relative shrink-0">
+                {profile.profile_image || profile.avatar ? (
                   <img
-                    src={profile.avatar || currentUser?.profile_image}
-                    alt={profile.name}
-                    className="w-full h-full object-cover"
+                    src={profile.profile_image || profile.avatar}
+                    alt={profile.name || "Advisor"}
+                    className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md"
                   />
                 ) : (
-                  <div className="w-full h-full bg-[#00142E] text-white flex items-center justify-center font-black text-xl">
-                    {profile.name?.charAt(0) || "P"}
+                  <div className="w-20 h-20 rounded-full bg-[#00142E] text-white flex items-center justify-center font-black text-2xl border-2 border-white shadow-md">
+                    {(profile.name || "A").charAt(0)}
                   </div>
                 )}
               </div>
 
-              <div className="space-y-1 text-center sm:text-left flex-1">
+              <div className="flex-1 text-center sm:text-left space-y-1.5 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <h3 className="text-lg font-extrabold text-slate-900">{profile.name}</h3>
-                  {profile.is_blocked ? (
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full w-fit mx-auto sm:mx-0">
-                      🔒 Blocked
-                    </span>
-                  ) : profile.status === "rejected" ? (
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full w-fit mx-auto sm:mx-0">
+                  <h3 className="text-base font-extrabold text-slate-900 truncate">
+                    {profile.name || profile.full_name}
+                  </h3>
+                  {profile.status === "rejected" ? (
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-red-700 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full w-fit mx-auto sm:mx-0">
                       ✕ Rejected
                     </span>
                   ) : profile.status === "pending" || (!profile.is_approved && profile.status !== "approved") ? (
@@ -164,11 +166,6 @@ export function MyPeopleProfile() {
                   ) : (
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full w-fit mx-auto sm:mx-0">
                       ✓ Approved & Live
-                    </span>
-                  )}
-                  {(profile.is_verified || profile.isVerified) && (
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full w-fit mx-auto sm:mx-0">
-                      ✓ Verified Advisor
                     </span>
                   )}
                 </div>
