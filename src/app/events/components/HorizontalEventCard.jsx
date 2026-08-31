@@ -7,6 +7,7 @@ import WishlistButton from "@/components/ui/WishlistButton"
 import { useCountry } from "@/context/CountryContext"
 import { getEventStatus } from "@/lib/eventUtils"
 import { formatUTCDate } from "../../../utils/timezone"
+import { resolveImageUrl } from "@/lib/imageUtils"
 
 export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
     const status = getEventStatus(event)
@@ -29,10 +30,8 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
 
     // Get event image with fallback
     const getEventImage = () => {
-        if (event.image) return event.image;
-        if (event.banner_image) return event.banner_image;
-        if (event.gallery_images && event.gallery_images.length > 0) return event.gallery_images[0];
-        return null;
+        const raw = event.banner_image || event.image || (event.gallery_images && event.gallery_images.length > 0 ? event.gallery_images[0] : null) || (Array.isArray(event.images) ? event.images[0] : null);
+        return resolveImageUrl(raw);
     };
 
     const eventImage = getEventImage();
@@ -155,9 +154,15 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
                     {/* Rating */}
                     <div className="flex items-center justify-between mb-4 bg-gray-50/50 p-2 rounded-lg">
                         <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs font-bold text-gray-900">4.9</span>
-                            <span className="text-[10px] text-gray-500">({event.reviews_count || 0})</span>
+                            {Number(event.rating || event.avg_rating || 0) > 0 ? (
+                                <>
+                                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                    <span className="text-xs font-bold text-gray-900">{Number(event.rating || event.avg_rating).toFixed(1)}</span>
+                                    <span className="text-[10px] text-gray-500">({event.reviews_count || event.review_count || 0})</span>
+                                </>
+                            ) : (
+                                <span className="text-[10px] text-gray-400 font-medium">No reviews yet</span>
+                            )}
                         </div>
                         <div className="flex items-center gap-1 text-gray-500">
                             <MessageCircle className="h-3 w-3" />

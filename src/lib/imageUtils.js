@@ -46,6 +46,52 @@ export function resolveImageUrl(imagePath, fallback = null) {
     return `${MEDIA_STORAGE_BASE}/${cleanPath}`;
 }
 
+export const normalizeImageUrl = resolveImageUrl;
+
+/**
+ * Normalizes an array or single value of images to an array of valid URLs.
+ * Handles arrays, JSON-encoded strings, comma-separated strings, and single URLs.
+ *
+ * @param {any} raw - Array, string, or object containing image URLs/paths
+ * @param {string|null} [fallback] - Optional fallback image URL
+ * @returns {string[]} Array of resolved image URLs
+ */
+export function normalizeImages(raw, fallback = null) {
+    if (!raw) return fallback ? [fallback] : [];
+
+    let list = [];
+    if (Array.isArray(raw)) {
+        list = raw;
+    } else if (typeof raw === 'string') {
+        const trimmed = raw.trim();
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+            try {
+                const parsed = JSON.parse(trimmed);
+                if (Array.isArray(parsed)) list = parsed;
+            } catch {
+                list = [trimmed];
+            }
+        } else if (trimmed.includes(',')) {
+            list = trimmed.split(',').map(s => s.trim()).filter(Boolean);
+        } else if (trimmed) {
+            list = [trimmed];
+        }
+    } else if (typeof raw === 'object') {
+        if (Array.isArray(raw.images)) list = raw.images;
+        else if (Array.isArray(raw.photos)) list = raw.photos;
+        else if (raw.url || raw.src) list = [raw.url || raw.src];
+    }
+
+    const resolved = list
+        .map(item => resolveImageUrl(typeof item === 'string' ? item : item?.url || item?.src || null))
+        .filter(Boolean);
+
+    if (resolved.length === 0 && fallback) {
+        return [fallback];
+    }
+    return resolved;
+}
+
 
 /**
  * Compresses an image file (JPEG/PNG) on the client side using Canvas.

@@ -157,8 +157,8 @@ export default function SearchPage() {
                                     : "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop",
                                 type: property.property_type || "Apartment",
                                 category: property.category || property.property_type || "Apartment",
-                                rating: 4.8,
-                                reviews: 12,
+                                rating: Number(property.rating || property.avg_rating || 0),
+                                reviews: Number(property.review_count || property.reviews_count || 0),
                                 isVerified: property.status === 'approved',
                                 status: property.status,
                                 furnishing: property.furnishing || "Unfurnished",
@@ -168,11 +168,24 @@ export default function SearchPage() {
                                 host: mergedHost
                             };
                         }).filter(item => {
-                            const isVisible = item.status === 'approved' || item.status === 'pending';
-                            const isActive = !item.is_expired;
-                            const notExpired = !item.listing_expires_at || new Date(item.listing_expires_at) > new Date();
-                            return isVisible && isActive && notExpired && item.property_type !== 'seeker_request';
-                        });
+                             const isVisible = item.status === 'approved';
+                             const isActive = !item.is_expired;
+                             const notExpired = !item.listing_expires_at || new Date(item.listing_expires_at) > new Date();
+                             
+                             if (!isVisible || !isActive || !notExpired || item.property_type === 'seeker_request') return false;
+
+                             if (activeCountry?.name && activeCountry.name !== "Global" && activeCountry.name !== "All") {
+                                 const cNorm = activeCountry.name.toLowerCase();
+                                 const itemC = (item.country || '').toLowerCase();
+                                 const itemAddr = (item.fullAddress || item.address || item.city || '').toLowerCase();
+                                 if (cNorm.includes('united states') || cNorm === 'usa' || cNorm === 'us') {
+                                     return itemC.includes('united states') || itemC.includes('usa') || itemC.includes('us') || itemAddr.includes('usa') || itemAddr.includes('united states');
+                                 }
+                                 return itemC.includes(cNorm) || itemAddr.includes(cNorm);
+                             }
+
+                             return true;
+                         });
                     }
                 }
 

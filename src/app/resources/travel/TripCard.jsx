@@ -60,10 +60,18 @@ export default function TripCard({ plan, isSelected, onSelect, onMatchRequest })
                     </div>
                 </div>
                 <div className="flex flex-col items-end">
-                    <div className="flex gap-0.5 text-yellow-400">
-                        {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
-                    </div>
-                    <span className="text-[10px]" style={{ color: 'var(--color-secondary)' }}>4.9 (12 reviews)</span>
+                    {Number(plan.rating || plan.user?.rating || 0) > 0 ? (
+                        <>
+                            <div className="flex gap-0.5 text-yellow-400">
+                                {[...Array(Math.min(5, Math.max(1, Math.round(plan.rating || plan.user?.rating || 5))))].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
+                            </div>
+                            <span className="text-[10px]" style={{ color: 'var(--color-secondary)' }}>
+                                {Number(plan.rating || plan.user?.rating).toFixed(1)} ({plan.reviews_count || plan.user?.review_count || 0} reviews)
+                            </span>
+                        </>
+                    ) : (
+                        <span className="text-[10px] text-slate-400 font-semibold">No reviews yet</span>
+                    )}
                 </div>
             </div>
 

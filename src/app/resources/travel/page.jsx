@@ -239,8 +239,8 @@ export default function TravelPage() {
 
     const fromCity = trip.from_city || trip.origin || trip.flight?.from || "";
     const toCity = trip.to_city || trip.destination || trip.flight?.to || "";
-    const fromCountry = normalizeCountry(trip.from_country || trip.flight?.from_country || trip.user?.country || trip.host?.country || "India");
-    const toCountry = normalizeCountry(trip.to_country || trip.flight?.to_country || "USA");
+    const fromCountry = normalizeCountry(trip.from_country || trip.flight?.from_country || trip.user?.country || trip.host?.country || "");
+    const toCountry = normalizeCountry(trip.to_country || trip.flight?.to_country || "");
 
     return {
       ...trip,

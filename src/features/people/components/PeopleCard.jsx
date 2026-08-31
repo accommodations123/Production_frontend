@@ -151,12 +151,12 @@ export function PeopleCard({ person }) {
       person.average_rating ??
       person.rating_average ??
       person.stats?.rating ??
-      (Array.isArray(person.reviews) && person.reviews.length
+      (Array.isArray(person.reviews) && person.reviews.length > 0
         ? (person.reviews.reduce((acc, r) => acc + Number(r.rating || 0), 0) / person.reviews.length)
-        : (reviewCount > 0 ? 5 : 0))
+        : 0)
     );
     return isNaN(rawRating) ? 0 : rawRating;
-  }, [liveReviews, person, reviewCount]);
+  }, [liveReviews, person]);
 
   // Extract years of experience intelligently from experience field, headline or profession
   const expMatch = String(person.experience || person.headline || person.profession || "").match(/(\d+)\s*(?:years?|yrs?)/i);
@@ -176,12 +176,15 @@ export function PeopleCard({ person }) {
   const state = person.state || "";
   const country = person.country || "";
   const locationText = city && country ? `${city}, ${country}` : city || state || country || "Global";
-  const hourlyRate = person.pricing?.consultation ?? person.hourlyRate ?? person.hourly_rate ?? 0;
-  const currency = (person.pricing?.currency && person.pricing.currency !== "USD")
-    ? person.pricing.currency
-    : (person.currency && person.currency !== "USD")
-      ? person.currency
-      : (country && country !== "Global" ? country : "India");
+  const hourlyRate = (person.hourly_rate !== null && person.hourly_rate !== undefined && person.hourly_rate !== "")
+    ? Number(person.hourly_rate)
+    : (person.hourlyRate !== null && person.hourlyRate !== undefined && person.hourlyRate !== "")
+      ? Number(person.hourlyRate)
+      : (person.pricing?.consultation !== null && person.pricing?.consultation !== undefined && person.pricing?.consultation !== "")
+        ? Number(person.pricing.consultation)
+        : null;
+
+  const currency = person.currency || person.pricing?.currency || (country && country !== "Global" ? country : "INR");
 
   const isVerified = Boolean(
     person.status === 'approved' ||

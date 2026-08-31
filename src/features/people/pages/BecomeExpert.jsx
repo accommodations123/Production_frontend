@@ -292,8 +292,15 @@ export default function BecomeExpert() {
         state: typeof existingProfile.state === "string" ? existingProfile.state : "",
         city: typeof existingProfile.city === "string" ? existingProfile.city : "",
         timezone: typeof existingProfile.timezone === "string" ? existingProfile.timezone : "UTC",
-        hourlyRate: existingProfile.hourlyRate ?? existingProfile.pricing?.consultation ?? 50,
-        currency: existingProfile.currency || existingProfile.pricing?.currency || "USD",
+        education_degree: existingProfile.educations?.[0]?.degree || existingProfile.education_degree || "",
+        education_school: existingProfile.educations?.[0]?.institution || existingProfile.educations?.[0]?.school || existingProfile.education_school || "",
+        education_year: existingProfile.educations?.[0]?.year || existingProfile.education_year || "",
+        hourlyRate: (existingProfile.hourlyRate !== null && existingProfile.hourlyRate !== undefined && !isNaN(Number(existingProfile.hourlyRate)))
+          ? Number(existingProfile.hourlyRate)
+          : (existingProfile.hourly_rate !== null && existingProfile.hourly_rate !== undefined && !isNaN(Number(existingProfile.hourly_rate)))
+            ? Number(existingProfile.hourly_rate)
+            : (existingProfile.pricing?.consultation ? Number(existingProfile.pricing.consultation) : 500),
+        currency: existingProfile.currency || existingProfile.pricing?.currency || "INR",
         pricingType: existingProfile.pricingType || existingProfile.pricing?.type || "hourly",
         availability: typeof existingProfile.availability === "string" ? existingProfile.availability : "Available",
         accepting_clients: existingProfile.accepting_clients ?? true,
@@ -528,12 +535,13 @@ export default function BecomeExpert() {
             institution: data.education_school?.trim() || "University / Institute",
             year: data.education_year?.trim() || ""
           }
-        ] : [],
-        hourlyRate: Number(data.hourlyRate),
-        currency: data.currency || "USD",
+        ] : (Array.isArray(existingProfile?.educations) ? existingProfile.educations : []),
+        hourlyRate: !isNaN(Number(data.hourlyRate)) ? Number(data.hourlyRate) : null,
+        hourly_rate: !isNaN(Number(data.hourlyRate)) ? Number(data.hourlyRate) : null,
+        currency: data.currency || existingProfile?.currency || "INR",
         pricing: {
-          consultation: Number(data.hourlyRate),
-          currency: data.currency || "USD",
+          consultation: !isNaN(Number(data.hourlyRate)) ? Number(data.hourlyRate) : null,
+          currency: data.currency || existingProfile?.currency || "INR",
           type: data.pricingType || "hourly"
         },
         availability: data.availability || "Available",

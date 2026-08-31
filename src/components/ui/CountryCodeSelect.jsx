@@ -23,8 +23,16 @@ export const CountryCodeSelect = ({ value, onChange, className, isoCode }) => {
 
     const selectedCountry = React.useMemo(() => {
         if (isoCode) {
-            const found = COUNTRIES.find(c => c.code === isoCode);
-            if (found && found.phoneCode === value) return found;
+            const cleanIso = String(isoCode).trim().toUpperCase();
+            const found = COUNTRIES.find(c => 
+                c.code?.toUpperCase() === cleanIso || 
+                c.name?.toLowerCase() === cleanIso.toLowerCase() ||
+                (cleanIso === "USA" && c.code === "US")
+            );
+            if (found) return found;
+        }
+        if (value === "+1") {
+            return COUNTRIES.find(c => c.code === "US") || COUNTRIES.find(c => c.phoneCode === "+1");
         }
         return COUNTRIES.find(c => c.phoneCode === value) || COUNTRIES.find(c => c.code === "IN");
     }, [value, isoCode]);

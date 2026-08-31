@@ -347,12 +347,9 @@ export default function PeopleProfile() {
   const hasCustomAvatar = Boolean(person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image);
   const avatarUrl = person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image;
   const coverImage = person.cover_image || "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop&q=80";
-  const hourlyRate = person.pricing?.consultation ?? person.hourlyRate ?? person.hourly_rate ?? 0;
-  const currency = (person.pricing?.currency && person.pricing.currency !== "USD")
-    ? person.pricing.currency
-    : (person.currency && person.currency !== "USD")
-      ? person.currency
-      : (person.country && person.country !== "Global" ? person.country : "India");
+  const rawHourly = person.pricing?.consultation ?? person.hourlyRate ?? person.hourly_rate ?? null;
+  const hourlyRate = (rawHourly !== null && rawHourly !== undefined && !isNaN(Number(rawHourly)) && Number(rawHourly) > 0) ? Number(rawHourly) : null;
+  const currency = person.currency || person.pricing?.currency || (person.country && person.country !== "Global" ? person.country : "INR");
   const skills = Array.isArray(person.skills) && person.skills.length > 0
     ? person.skills
     : (profession !== "Expert Advisor" ? profession.split(/[,|•/]/).map(s => s.trim()).filter(Boolean) : ["Consulting", "Support", "Advisor"]);
@@ -386,7 +383,7 @@ export default function PeopleProfile() {
   const calculatedRating = reviews.length > 0
     ? (reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length)
     : Number(person.rating || 0);
-  const avgRating = totalReviewsCount > 0 ? (calculatedRating > 0 ? calculatedRating : 5) : 0;
+  const avgRating = totalReviewsCount > 0 ? (calculatedRating > 0 ? calculatedRating : 0) : 0;
 
   return (
     <div className="bg-[#FAFBFD] min-h-screen flex flex-col justify-between">

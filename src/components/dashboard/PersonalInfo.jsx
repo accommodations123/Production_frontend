@@ -231,7 +231,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
 
   const KNOWN_CODES = ["+1", "+91", "+44", "+86", "+81", "+49", "+33", "+61", "+55", "+39", "+34", "+7", "+82", "+62", "+52", "+31", "+27", "+966", "+971", "+65", "+60", "+63", "+66", "+84", "+92", "+94", "+880", "+977", "+254", "+233", "+234"];
 
-  const splitPhone = (fullPhone, defaultCode = "+91", defaultIso = "IN") => {
+  const splitPhone = (fullPhone, userCountry = "", defaultCode = "+91", defaultIso = "IN") => {
     if (!fullPhone) return { code: defaultCode, iso: defaultIso, number: "" };
     const phoneStr = fullPhone.toString().trim();
     if (phoneStr.startsWith('+')) {
@@ -239,8 +239,18 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
       for (const code of sortedCodes) {
         if (phoneStr.startsWith(code)) {
           const number = phoneStr.slice(code.length).trim();
-          const found = COUNTRIES.find(c => c.phoneCode === code);
-          const iso = found ? found.code : defaultIso;
+          let iso = defaultIso;
+          if (code === "+1") {
+            const cleanC = (userCountry || "").toLowerCase().trim();
+            if (cleanC.includes("canada") || cleanC === "ca") {
+              iso = "CA";
+            } else {
+              iso = "US";
+            }
+          } else {
+            const found = COUNTRIES.find(c => c.phoneCode === code);
+            iso = found ? found.code : defaultIso;
+          }
           return { code, iso, number };
         }
       }
@@ -253,8 +263,9 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
       setFormData(prev => {
         const defaultCode = activeCountry?.phoneCode || "+91";
         const defaultIso = activeCountry?.code || "IN";
-        const parsedPhone = splitPhone(initialData.phone, defaultCode, defaultIso);
-        const parsedWhatsApp = splitPhone(initialData.whatsapp, defaultCode, defaultIso);
+        const userC = initialData.country || prev.country || activeCountry?.name || "";
+        const parsedPhone = splitPhone(initialData.phone, userC, defaultCode, defaultIso);
+        const parsedWhatsApp = splitPhone(initialData.whatsapp, userC, defaultCode, defaultIso);
 
         return {
           ...prev,
@@ -278,9 +289,9 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
     }
   }, [initialData]);
 
-  // Dynamically update prefix if global activeCountry changes
+  // Update default prefix only if no country or phone is already configured
   useEffect(() => {
-    if (activeCountry) {
+    if (activeCountry && !initialData?.phone && !initialData?.country) {
       setFormData(prev => ({
         ...prev,
         phoneCode: activeCountry.phoneCode || "+91",
@@ -289,7 +300,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
         whatsappIso: activeCountry.code || "IN"
       }));
     }
-  }, [activeCountry]);
+  }, [activeCountry, initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

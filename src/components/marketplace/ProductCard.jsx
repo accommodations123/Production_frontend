@@ -5,6 +5,7 @@ import { useCountry } from "@/context/CountryContext";
 import WishlistButton from "@/components/ui/WishlistButton";
 import { SocialQuickConnect } from "@/components/ui/SocialConnect";
 import { formatUTCDate } from "../../utils/timezone";
+import { resolveImageUrl } from "@/lib/imageUtils";
 
 export const CardContainer = ({ children, onClick, className = "" }) => {
   const navigate = (e) => {
@@ -81,10 +82,11 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
       "",
   };
 
-  const imageUrl =
-    product?.images?.length > 0
-      ? product.images[0]
-      : product?.image || null;
+  const normImgs = Array.isArray(product?.images)
+    ? product.images
+    : (product?.images ? [product.images] : []);
+  const rawImage = normImgs[0] || product?.image || product?.photos?.[0] || null;
+  const imageUrl = resolveImageUrl(rawImage);
 
   const getPostedDateDisplay = () => {
     if (product?.postedTime) return product.postedTime;

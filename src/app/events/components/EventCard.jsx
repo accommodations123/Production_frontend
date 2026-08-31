@@ -7,6 +7,7 @@ import { COUNTRIES } from "@/lib/mock-data"
 import WishlistButton from "@/components/ui/WishlistButton"
 import { useCountry } from "@/context/CountryContext"
 import { getEventStatus } from "@/lib/eventUtils"
+import { resolveImageUrl } from "@/lib/imageUtils"
 
 export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
     const status = getEventStatus(event)
@@ -44,10 +45,8 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
 
     // Get event image with fallback
     const getEventImage = () => {
-        if (event.image) return event.image;
-        if (event.banner_image) return event.banner_image;
-        if (event.gallery_images && event.gallery_images.length > 0) return event.gallery_images[0];
-        return null;
+        const raw = event.banner_image || event.image || (event.gallery_images && event.gallery_images.length > 0 ? event.gallery_images[0] : null) || (Array.isArray(event.images) ? event.images[0] : null);
+        return resolveImageUrl(raw);
     };
 
     const eventImage = getEventImage();

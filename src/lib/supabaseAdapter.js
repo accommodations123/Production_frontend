@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 import { uploadToSupabaseStorage, uploadMultipleToSupabaseStorage } from '@/lib/storageUtils'
+import { normalizeImages, resolveImageUrl } from '@/lib/imageUtils'
+import { normalizeCountryName } from '@/shared/utils/countryUtils'
 
 /**
  * Clean & Streamlined Supabase Adapter & PostgREST Router
@@ -190,8 +192,17 @@ export async function enrichWithProfiles(items, idKey = 'host_id') {
             }
         }
 
+        const cleanPhotos = normalizeImages(item.photos || item.images || (item.photo ? [item.photo] : []))
+        const cleanBanner = resolveImageUrl(item.banner_image || item.banner || (Array.isArray(item.images) ? item.images[0] : null) || item.image || null)
+        const cleanEventImages = normalizeImages(item.images || (cleanBanner ? [cleanBanner] : []))
+        const cleanBuySellImages = normalizeImages(item.images || item.photos || (item.image ? [item.image] : []))
+
         return {
             ...item,
+            photos: cleanPhotos.length > 0 ? cleanPhotos : (item.photos || []),
+            images: cleanEventImages.length > 0 ? cleanEventImages : (cleanBuySellImages.length > 0 ? cleanBuySellImages : (item.images || [])),
+            banner_image: cleanBanner || item.banner_image || null,
+            image: cleanBanner || cleanPhotos[0] || cleanBuySellImages[0] || item.image || null,
             host_name: hostFullName,
             hostName: hostFullName,
             organizer_name: item.organizer_name || hostFullName,
@@ -237,14 +248,14 @@ export async function enrichTravelWithHostDetails(items) {
         const rawOrigin = trip.origin || '';
         const rawDest = trip.destination || '';
 
-        const fromCity = meta.from_city || (rawOrigin ? rawOrigin.split(',')[0].trim() : (host.city || 'Hyderabad'));
-        const fromCountry = meta.from_country || (rawOrigin.includes(',') ? rawOrigin.split(',')[1].trim() : (host.country || 'India'));
+        const fromCity = meta.from_city || (rawOrigin ? rawOrigin.split(',')[0].trim() : (host.city || ''));
+        const fromCountry = meta.from_country || (rawOrigin.includes(',') ? rawOrigin.split(',')[1].trim() : (host.country || ''));
         
-        const toCity = meta.to_city || (rawDest ? rawDest.split(',')[0].trim() : 'San Francisco');
-        const toCountry = meta.to_country || (rawDest.includes(',') ? rawDest.split(',')[1].trim() : 'USA');
+        const toCity = meta.to_city || (rawDest ? rawDest.split(',')[0].trim() : '');
+        const toCountry = meta.to_country || (rawDest.includes(',') ? rawDest.split(',')[1].trim() : '');
 
-        const travelDate = trip.travel_date || trip.created_at || '2026-09-15';
-        const departureTime = trip.departure_time || '10:00 AM';
+        const travelDate = trip.travel_date || meta.departure_date || trip.created_at || '';
+        const departureTime = trip.departure_time || meta.departure_time || '10:00 AM';
         const arrivalDate = meta.arrival_date || travelDate;
         const arrivalTime = meta.arrival_time || '08:00 PM';
         const airline = meta.airline || 'Commercial Airline';
@@ -293,8 +304,8 @@ export async function enrichTravelWithHostDetails(items) {
         };
 
         const tripMeta = {
-            age: meta.age || host.age || '25-35',
-            languages: meta.languages || host.languages || ['English', 'Hindi']
+            age: meta.age || host.age || '',
+            languages: meta.languages || host.languages || ['English']
         };
 
         return {
@@ -303,9 +314,9 @@ export async function enrichTravelWithHostDetails(items) {
             host_id: trip.host_id,
             user_id: trip.host_id,
             host_name: hostFullName,
-            title: `${fromCity} to ${toCity}`,
-            origin: fromCountry ? `${fromCity}, ${fromCountry}` : fromCity,
-            destination: toCountry ? `${toCity}, ${toCountry}` : toCity,
+            title: (fromCity && toCity) ? `${fromCity} to ${toCity}` : (trip.title || 'Travel Partner Trip'),
+            origin: fromCountry ? (fromCity ? `${fromCity}, ${fromCountry}` : fromCountry) : fromCity,
+            destination: toCountry ? (toCity ? `${toCity}, ${toCountry}` : toCountry) : toCity,
             from_city: fromCity,
             fromCity: fromCity,
             from_country: fromCountry,
@@ -380,6 +391,12 @@ export function formatPersonProfile(p) {
     const educations = (meta.educations && meta.educations.length > 0) ? meta.educations : (Array.isArray(p.educations) ? p.educations : []);
     const experience = meta.experience || p.experience || null;
 
+    const reviews = Array.isArray(meta.reviews) ? meta.reviews : [];
+    const reviewCount = reviews.length;
+    const avgRating = reviewCount > 0
+        ? Number((reviews.reduce((acc, r) => acc + Number(r.rating || 0), 0) / reviewCount).toFixed(1))
+        : 0;
+
     return {
         ...p,
         id: p.id,
@@ -417,12 +434,13 @@ export function formatPersonProfile(p) {
         },
         currency: currency,
         stats: {
-            rating: 0,
-            review_count: 0,
-            followers_count: 0
+            rating: avgRating,
+            review_count: reviewCount,
+            followers_count: Array.isArray(meta.followers) ? meta.followers.length : 0
         },
-        rating: 0,
-        review_count: 0,
+        rating: avgRating,
+        review_count: reviewCount,
+        reviews: reviews,
         socials: {
             whatsapp: p.whatsapp || p.phone || '',
             email: p.email || '',
@@ -664,6 +682,16 @@ export async function executeSupabaseRequest(args) {
                 query = query.eq('status', 'approved')
             }
 
+            const propCountryParam = queryParams.country || queryParams.country_name || queryParams.countryName;
+            if (propCountryParam && propCountryParam.toLowerCase() !== 'all' && propCountryParam.toLowerCase() !== 'global') {
+                const norm = normalizeCountryName(propCountryParam);
+                if (norm === 'United States of America' || propCountryParam.toLowerCase() === 'usa' || propCountryParam.toLowerCase() === 'us' || propCountryParam.toLowerCase() === 'united states') {
+                    query = query.in('country', ['United States of America', 'United States', 'USA', 'US']);
+                } else {
+                    query = query.or(`country.ilike.%${propCountryParam}%,country.ilike.%${norm}%`);
+                }
+            }
+
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data, error } = await query
             if (error) throw error
@@ -743,8 +771,16 @@ export async function executeSupabaseRequest(args) {
                 payload.phone = payload.phone || userObj?.phone
                 payload.start_date = payload.start_date || payload.date
                 payload.category = payload.category || payload.event_type || 'meetup'
-                payload.banner_image = payload.banner_image || payload.bannerImage || payload.banner
-                payload.images = payload.images || payload.galleryImages || (payload.banner_image ? [payload.banner_image] : [])
+                
+                const allImgs = normalizeImages([
+                    ...(Array.isArray(payload.galleryImages) ? payload.galleryImages : (payload.galleryImages ? [payload.galleryImages] : [])),
+                    ...(Array.isArray(payload.images) ? payload.images : (payload.images ? [payload.images] : [])),
+                    ...(Array.isArray(payload.existingImages) ? payload.existingImages : (payload.existingImages ? [payload.existingImages] : [])),
+                    payload.banner_image, payload.bannerImage, payload.banner
+                ].filter(Boolean));
+
+                payload.banner_image = allImgs[0] || payload.banner_image || null;
+                payload.images = allImgs;
                 payload.status = payload.status || 'pending'
                 payload.is_approved = false
 
@@ -794,6 +830,17 @@ export async function executeSupabaseRequest(args) {
             } else {
                 query = query.eq('status', 'approved')
             }
+
+            const eventCountryParam = queryParams.country || queryParams.name || queryParams.code;
+            if (eventCountryParam && eventCountryParam.toLowerCase() !== 'all' && eventCountryParam.toLowerCase() !== 'global') {
+                const norm = normalizeCountryName(eventCountryParam);
+                if (norm === 'United States of America' || eventCountryParam.toLowerCase() === 'usa' || eventCountryParam.toLowerCase() === 'us' || eventCountryParam.toLowerCase() === 'united states') {
+                    query = query.or(`country.in.("United States of America","United States","USA","US"),event_mode.ilike.%online%`);
+                } else {
+                    query = query.or(`country.ilike.%${eventCountryParam}%,country.ilike.%${norm}%,event_mode.ilike.%online%`);
+                }
+            }
+
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data, error } = await query
             if (error) throw error
@@ -836,7 +883,15 @@ export async function executeSupabaseRequest(args) {
                 let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'marketplace') : { ...(body || {}) }
                 payload.user_id = userId || payload.user_id || payload.host_id
                 payload.title = payload.title || payload.name
-                payload.images = payload.images || payload.photos || []
+                
+                const allImgs = normalizeImages([
+                    ...(Array.isArray(payload.galleryImages) ? payload.galleryImages : (payload.galleryImages ? [payload.galleryImages] : [])),
+                    ...(Array.isArray(payload.images) ? payload.images : (payload.images ? [payload.images] : [])),
+                    ...(Array.isArray(payload.photos) ? payload.photos : (payload.photos ? [payload.photos] : [])),
+                    ...(Array.isArray(payload.existingImages) ? payload.existingImages : (payload.existingImages ? [payload.existingImages] : []))
+                ].filter(Boolean));
+
+                payload.images = allImgs;
                 payload.status = payload.status || 'pending'
                 const clean = sanitizePayload(payload, BUY_SELL_COLUMNS)
                 const { data, error } = await supabase.from('buy_sell').insert(clean).select().maybeSingle()
@@ -846,6 +901,16 @@ export async function executeSupabaseRequest(args) {
             if (cleanUrl.startsWith('buy-sell/update/') || (cleanUrl.startsWith('buy-sell/') && (method === 'PUT' || method === 'PATCH') && !cleanUrl.includes('sold'))) {
                 const id = cleanUrl.split('/').pop()
                 let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'marketplace') : { ...(body || {}) }
+                
+                if (payload.galleryImages || payload.existingImages || payload.photos || payload.images) {
+                    payload.images = normalizeImages([
+                        ...(Array.isArray(payload.galleryImages) ? payload.galleryImages : (payload.galleryImages ? [payload.galleryImages] : [])),
+                        ...(Array.isArray(payload.images) ? payload.images : (payload.images ? [payload.images] : [])),
+                        ...(Array.isArray(payload.photos) ? payload.photos : (payload.photos ? [payload.photos] : [])),
+                        ...(Array.isArray(payload.existingImages) ? payload.existingImages : (payload.existingImages ? [payload.existingImages] : []))
+                    ].filter(Boolean));
+                }
+
                 const clean = sanitizePayload(payload, BUY_SELL_COLUMNS)
                 const { data, error } = await supabase.from('buy_sell').update(clean).eq('id', id).select().maybeSingle()
                 if (error) throw error
@@ -875,6 +940,17 @@ export async function executeSupabaseRequest(args) {
             } else {
                 query = query.eq('status', 'approved')
             }
+
+            const buySellCountryParam = queryParams.country || queryParams.country_name || queryParams.countryName;
+            if (buySellCountryParam && buySellCountryParam.toLowerCase() !== 'all' && buySellCountryParam.toLowerCase() !== 'global') {
+                const norm = normalizeCountryName(buySellCountryParam);
+                if (norm === 'United States of America' || buySellCountryParam.toLowerCase() === 'usa' || buySellCountryParam.toLowerCase() === 'us' || buySellCountryParam.toLowerCase() === 'united states') {
+                    query = query.in('country', ['United States of America', 'United States', 'USA', 'US']);
+                } else {
+                    query = query.or(`country.ilike.%${buySellCountryParam}%,country.ilike.%${norm}%`);
+                }
+            }
+
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data, error } = await query
             if (error) throw error
@@ -976,16 +1052,30 @@ export async function executeSupabaseRequest(args) {
                 query = query.eq('status', 'approved')
             }
 
+            if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data, error } = await query
             if (error) throw error
             const enriched = await enrichTravelWithHostDetails(data || [])
+
+            const travelCountryParam = queryParams.country || queryParams.country_name || queryParams.countryName;
+            let filteredTrips = enriched;
+            if (travelCountryParam && travelCountryParam.toLowerCase() !== 'all' && travelCountryParam.toLowerCase() !== 'global') {
+                const norm = normalizeCountryName(travelCountryParam).toLowerCase();
+                const rawParam = travelCountryParam.toLowerCase();
+                filteredTrips = enriched.filter(t => {
+                    const fromC = (t.from_country || t.fromCountry || t.origin || '').toLowerCase();
+                    const toC = (t.to_country || t.toCountry || t.destination || '').toLowerCase();
+                    return fromC.includes(norm) || fromC.includes(rawParam) || toC.includes(norm) || toC.includes(rawParam);
+                });
+            }
+
             return {
                 data: {
-                    results: enriched,
-                    trips: enriched,
-                    data: enriched,
-                    total: enriched.length,
-                    count: enriched.length,
+                    results: filteredTrips,
+                    trips: filteredTrips,
+                    data: filteredTrips,
+                    total: filteredTrips.length,
+                    count: filteredTrips.length,
                     success: true
                 }
             }
@@ -1013,6 +1103,17 @@ export async function executeSupabaseRequest(args) {
             } else {
                 query = query.eq('status', 'approved')
             }
+
+            const stayCountryParam = queryParams.country || queryParams.country_name || queryParams.countryName;
+            if (stayCountryParam && stayCountryParam.toLowerCase() !== 'all' && stayCountryParam.toLowerCase() !== 'global') {
+                const norm = normalizeCountryName(stayCountryParam);
+                if (norm === 'United States of America' || stayCountryParam.toLowerCase() === 'usa' || stayCountryParam.toLowerCase() === 'us' || stayCountryParam.toLowerCase() === 'united states') {
+                    query = query.in('country', ['United States of America', 'United States', 'USA', 'US']);
+                } else {
+                    query = query.or(`country.ilike.%${stayCountryParam}%,country.ilike.%${norm}%`);
+                }
+            }
+
             const { data } = await query
             const enriched = await enrichWithProfiles(data || [], 'user_id')
             return { data: { requests: enriched, total: enriched.length } }
@@ -1158,24 +1259,34 @@ export async function executeSupabaseRequest(args) {
                 payload.is_approved = false
                 payload.role = 'expert'
 
+                // Fetch existing street_address to preserve reviews and connections on update
+                let existingMeta = {};
+                if (payload.id) {
+                    const { data: existProf } = await supabase.from('profiles').select('street_address').eq('id', payload.id).maybeSingle();
+                    if (existProf?.street_address && (existProf.street_address.startsWith('{') || existProf.street_address.startsWith('['))) {
+                        try { existingMeta = JSON.parse(existProf.street_address); } catch {}
+                    }
+                }
+
                 // Pack rich metadata into street_address so hourly_rate, bio, educations, skills, pricing are never lost in Postgres
-                const rawHourly = payload.hourlyRate ?? payload.hourly_rate ?? payload.pricing?.consultation ?? null;
+                const rawHourly = payload.hourlyRate ?? payload.hourly_rate ?? payload.pricing?.consultation ?? existingMeta.hourly_rate ?? null;
                 const meta = {
+                    ...existingMeta,
                     hourly_rate: (rawHourly !== null && rawHourly !== undefined && !isNaN(Number(rawHourly)) && Number(rawHourly) > 0) ? Number(rawHourly) : null,
-                    currency: payload.currency || payload.pricing?.currency || 'INR',
-                    pricing_type: payload.pricingType || payload.pricing?.type || 'hourly',
-                    bio: payload.bio || payload.description || null,
-                    category: payload.category || null,
-                    skills: Array.isArray(payload.skills) ? payload.skills : (payload.skills ? String(payload.skills).split(',').map(s => s.trim()).filter(Boolean) : []),
-                    languages: Array.isArray(payload.languages) ? payload.languages : (payload.languages ? String(payload.languages).split(',').map(s => s.trim()).filter(Boolean) : []),
-                    experience: payload.experience || null,
+                    currency: payload.currency || payload.pricing?.currency || existingMeta.currency || 'INR',
+                    pricing_type: payload.pricingType || payload.pricing?.type || existingMeta.pricing_type || 'hourly',
+                    bio: payload.bio || payload.description || existingMeta.bio || null,
+                    category: payload.category || existingMeta.category || null,
+                    skills: Array.isArray(payload.skills) ? payload.skills : (payload.skills ? String(payload.skills).split(',').map(s => s.trim()).filter(Boolean) : (existingMeta.skills || [])),
+                    languages: Array.isArray(payload.languages) ? payload.languages : (payload.languages ? String(payload.languages).split(',').map(s => s.trim()).filter(Boolean) : (existingMeta.languages || [])),
+                    experience: payload.experience || existingMeta.experience || null,
                     educations: Array.isArray(payload.educations) && payload.educations.length > 0
                         ? payload.educations
                         : (payload.education_degree ? [{
                             degree: payload.education_degree,
                             institution: payload.education_school || 'University / Institute',
                             year: payload.education_year || ''
-                        }] : [])
+                        }] : (existingMeta.educations || []))
                 };
                 payload.street_address = JSON.stringify(meta);
 
@@ -1194,17 +1305,55 @@ export async function executeSupabaseRequest(args) {
                 return { data: { profile: formatted, data: formatted } }
             }
 
+            // Reviews endpoint (GET/POST people/reviews/:expertId)
+            if (cleanUrl.includes('reviews')) {
+                const parts = cleanUrl.split('/');
+                const expertId = parts[parts.length - 1] === 'reviews' ? parts[parts.length - 2] : parts[parts.length - 1];
+                
+                if (method === 'POST') {
+                    const reviewerId = await getCurrentUserId();
+                    const userObj = await getCurrentUserObject();
+                    const { data: expertProfile } = await supabase.from('profiles').select('*').eq('id', expertId).maybeSingle();
+                    let meta = {};
+                    if (expertProfile?.street_address && (expertProfile.street_address.startsWith('{') || expertProfile.street_address.startsWith('['))) {
+                        try { meta = JSON.parse(expertProfile.street_address); } catch {}
+                    }
+                    meta.reviews = Array.isArray(meta.reviews) ? meta.reviews : [];
+                    const newRev = {
+                        id: `rev_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+                        reviewer_id: reviewerId,
+                        reviewer_name: userObj?.full_name || userObj?.name || 'Community Member',
+                        reviewer_image: userObj?.profile_image || userObj?.avatar_url || null,
+                        rating: Number(body?.rating || body?.stars || 5),
+                        comment: body?.comment || body?.review || '',
+                        created_at: new Date().toISOString()
+                    };
+                    meta.reviews.unshift(newRev);
+                    meta.rating = Number((meta.reviews.reduce((s, r) => s + Number(r.rating || 0), 0) / meta.reviews.length).toFixed(1));
+                    meta.review_count = meta.reviews.length;
+                    
+                    await supabase.from('profiles').update({ street_address: JSON.stringify(meta) }).eq('id', expertId);
+                    return { data: { success: true, review: newRev, reviews: meta.reviews, rating: meta.rating, count: meta.review_count } };
+                }
+
+                if (method === 'GET') {
+                    const { data: expertProfile } = await supabase.from('profiles').select('*').eq('id', expertId).maybeSingle();
+                    let meta = {};
+                    if (expertProfile?.street_address && (expertProfile.street_address.startsWith('{') || expertProfile.street_address.startsWith('['))) {
+                        try { meta = JSON.parse(expertProfile.street_address); } catch {}
+                    }
+                    const revs = Array.isArray(meta.reviews) ? meta.reviews : [];
+                    const rating = revs.length > 0 ? Number((revs.reduce((s, r) => s + Number(r.rating || 0), 0) / revs.length).toFixed(1)) : 0;
+                    return { data: { reviews: revs, data: revs, rating: rating, total: revs.length, count: revs.length } };
+                }
+            }
+
             // Single Profile (GET people/profile/:id or GET people/:id)
             const singlePersonMatch = cleanUrl.match(/^people\/(?:profile\/)?([^/]+)$/)
             if (singlePersonMatch && method === 'GET' && !['search', 'me', 'all', 'approved', 'pending', 'rejected', 'upload', 'followers', 'following', 'reviews'].includes(singlePersonMatch[1])) {
                 const { data } = await supabase.from('profiles').select('*').eq('id', singlePersonMatch[1]).maybeSingle()
                 const formatted = data ? formatPersonProfile(data) : null
                 return { data: { profile: formatted, data: formatted } }
-            }
-
-            // Reviews endpoint
-            if (cleanUrl.includes('reviews')) {
-                return { data: { reviews: [], data: [], total: 0, count: 0, rating: 0 } }
             }
 
             // Followers / Following endpoint
@@ -1222,6 +1371,16 @@ export async function executeSupabaseRequest(args) {
                 query = query.neq('status', 'rejected')
             } else {
                 query = query.or('status.eq.approved,is_approved.eq.true')
+            }
+
+            const peopleCountryParam = queryParams.country || queryParams.country_name || queryParams.countryName;
+            if (peopleCountryParam && peopleCountryParam.toLowerCase() !== 'all' && peopleCountryParam.toLowerCase() !== 'global') {
+                const norm = normalizeCountryName(peopleCountryParam);
+                if (norm === 'United States of America' || peopleCountryParam.toLowerCase() === 'usa' || peopleCountryParam.toLowerCase() === 'us' || peopleCountryParam.toLowerCase() === 'united states') {
+                    query = query.in('country', ['United States of America', 'United States', 'USA', 'US']);
+                } else {
+                    query = query.or(`country.ilike.%${peopleCountryParam}%,country.ilike.%${norm}%`);
+                }
             }
 
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))

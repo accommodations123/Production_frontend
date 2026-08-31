@@ -296,6 +296,21 @@ const HomeFeatured = () => {
       : activeCountry?.name
   });
 
+  const displayedProperties = useMemo(() => {
+    if (!allProperties || !Array.isArray(allProperties)) return [];
+    
+    return allProperties.filter(property => {
+      if (!activeCountry?.name || activeCountry.name === "Global" || activeCountry.name === "All") return true;
+      const cNorm = activeCountry.name.toLowerCase().trim();
+      const propCountry = (property.country || '').toLowerCase().trim();
+      const propAddr = (property.address || property.city || '').toLowerCase().trim();
+      if (cNorm.includes('united states') || cNorm === 'usa' || cNorm === 'us') {
+        return propCountry.includes('united states') || propCountry.includes('usa') || propCountry.includes('us') || propAddr.includes('usa') || propAddr.includes('united states');
+      }
+      return propCountry.includes(cNorm) || propAddr.includes(cNorm);
+    }).slice(0, 4);
+  }, [allProperties, activeCountry]);
+
   const displayedStayRequests = useMemo(() => {
     if (!stayRequestsData) return [];
     let items = [];
@@ -354,16 +369,16 @@ const HomeFeatured = () => {
     // 2. Filter by country matching listing page logic
     const countryFiltered = activeEvents.filter(event => {
       if (!activeCountry?.name && !activeCountry?.code) return true;
-      const eventCountry = (typeof event.country === 'string' ? event.country : event.country?.name || event.country?.code || "").toLowerCase().trim();
       const selectedCountry = (activeCountry.name || "").toLowerCase().trim();
-      const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim();
+      if (selectedCountry === "global" || selectedCountry === "all" || !selectedCountry) return true;
 
       // Allow online events to show globally
       if (event.event_mode?.toLowerCase() === "online") return true;
 
-      if (!eventCountry) return true;
-      if (selectedCountry === "global" || selectedCountry === "all" || !selectedCountry) return true;
+      const eventCountry = (typeof event.country === 'string' ? event.country : event.country?.name || event.country?.code || "").toLowerCase().trim();
+      if (!eventCountry) return false;
 
+      const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim();
       const normEvent = (normalizeCountryName(event.country) || eventCountry).toLowerCase();
       const normSelected = (normalizeCountryName(activeCountry.name || activeCountry.code) || selectedCountry).toLowerCase();
 
@@ -376,11 +391,7 @@ const HomeFeatured = () => {
       );
     });
 
-    const finalEvents = (Array.isArray(countryFiltered) && countryFiltered.length > 0)
-      ? countryFiltered
-      : activeEvents;
-
-    return finalEvents.slice(0, 4);
+    return countryFiltered.slice(0, 4);
   }, [approvedEvents, activeCountry]);
 
   const [viewMode, setViewMode] = useState("grid");
@@ -413,8 +424,8 @@ const HomeFeatured = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {propertiesLoading ? (
               [1, 2, 3, 4].map((n) => <Skeleton key={n} className="h-[300px] sm:h-[380px] lg:h-[420px]" />)
-            ) : allProperties?.length > 0 ? (
-              allProperties.slice(0, 4).filter(Boolean).map((property, idx) => (
+            ) : displayedProperties?.length > 0 ? (
+              displayedProperties.map((property, idx) => (
                 <motion.div
                   key={property.id || property._id}
                   {...fadeInUp}
