@@ -60,7 +60,20 @@ export default function TravelFilter({
         if (!countryIsoCode) { setCitiesList([]); return; }
         let cancelled = false;
         loadLocationData().then(({ City }) => {
-            if (!cancelled) setCitiesList(City.getCitiesOfCountry(countryIsoCode));
+            if (!cancelled) {
+                const rawCities = City.getCitiesOfCountry(countryIsoCode) || [];
+                const seenNames = new Set();
+                const uniqueCities = [];
+                for (const c of rawCities) {
+                    const normalizedName = c.name?.trim();
+                    if (normalizedName && !seenNames.has(normalizedName.toLowerCase())) {
+                        seenNames.add(normalizedName.toLowerCase());
+                        uniqueCities.push(c);
+                    }
+                }
+                uniqueCities.sort((a, b) => a.name.localeCompare(b.name));
+                setCitiesList(uniqueCities);
+            }
         });
         return () => { cancelled = true; };
     }, [countryIsoCode]);
@@ -68,7 +81,7 @@ export default function TravelFilter({
     // City search filter
     const filteredCities = React.useMemo(() => {
         if (!citySearch) return citiesList;
-        const lowerSearch = citySearch.toLowerCase();
+        const lowerSearch = citySearch.toLowerCase().trim();
         return citiesList.filter(c => c.name.toLowerCase().includes(lowerSearch));
     }, [citiesList, citySearch]);
 

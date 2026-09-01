@@ -22,6 +22,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import HostGuard from "@/components/auth/HostGuard";
 import { usePagination } from "@/hooks/usePagination";
 import { Pagination } from "@/components/ui/Pagination";
+import { normalizeCountryName } from "@/shared/utils/countryUtils";
 
 /* ================= COMPONENT ================= */
 
@@ -131,10 +132,75 @@ export default function MarketplacePage() {
   const products = productsData || [];
 
   /* ================= FILTER LOGIC ================= */
+  const filteredProducts = useMemo(() => {
+    if (!products || !Array.isArray(products)) return [];
 
-  /* ================= FILTER LOGIC ================= */
-  // Filtering is now handled by the backend API
-  const filteredProducts = products;
+    return products.filter((item) => {
+      // 1. Search Query
+      if (filters.search) {
+        const query = filters.search.toLowerCase().trim();
+        const titleMatch = item.title?.toLowerCase().includes(query);
+        const descMatch = item.description?.toLowerCase().includes(query);
+        const catMatch = item.category?.toLowerCase().includes(query);
+        const subcatMatch = item.subcategory?.toLowerCase().includes(query);
+        const cityMatch = item.city?.toLowerCase().includes(query);
+        const stateMatch = item.state?.toLowerCase().includes(query);
+        const locationMatch = (item.location || "")?.toLowerCase().includes(query);
+        if (!titleMatch && !descMatch && !catMatch && !subcatMatch && !cityMatch && !stateMatch && !locationMatch) {
+          return false;
+        }
+      }
+
+      // 2. Category Filter
+      if (filters.category && filters.category !== "All" && filters.category !== "") {
+        const itemCat = (item.category || "").toLowerCase();
+        const filterCat = filters.category.toLowerCase();
+        if (itemCat !== filterCat && !itemCat.includes(filterCat)) {
+          return false;
+        }
+      }
+
+      // 3. Price Filter (Min / Max)
+      const rawPrice = item.price ?? item.price_per_month ?? item.price_amount;
+      const price = Number(rawPrice || 0);
+      if (filters.priceMin !== "" && !isNaN(Number(filters.priceMin))) {
+        if (price < Number(filters.priceMin)) return false;
+      }
+      if (filters.priceMax !== "" && !isNaN(Number(filters.priceMax))) {
+        if (price > Number(filters.priceMax)) return false;
+      }
+
+      // 4. Country Filter
+      const selectedCountry = filters.country || activeCountry?.name;
+      if (selectedCountry && selectedCountry !== "All" && selectedCountry !== "Global") {
+        const normSelected = normalizeCountryName(selectedCountry).toLowerCase();
+        const normItemCountry = normalizeCountryName(item.country || "").toLowerCase();
+        if (normItemCountry && !normItemCountry.includes(normSelected) && !normSelected.includes(normItemCountry)) {
+          return false;
+        }
+      }
+
+      // 5. State Filter
+      if (filters.state && filters.state !== "All States" && filters.state !== "ALL_STATES") {
+        const itemState = (item.state || "").toLowerCase();
+        const filterState = filters.state.toLowerCase();
+        if (itemState !== filterState && !itemState.includes(filterState)) {
+          return false;
+        }
+      }
+
+      // 6. City Filter
+      if (filters.city && filters.city !== "All Cities") {
+        const itemCity = (item.city || item.location || "").toLowerCase();
+        const filterCity = filters.city.toLowerCase();
+        if (itemCity !== filterCity && !itemCity.includes(filterCity)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [products, filters, activeCountry]);
 
   // ✅ Pagination
   const {
