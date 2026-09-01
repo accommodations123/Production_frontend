@@ -5,8 +5,10 @@ import { Check, MapPin } from 'lucide-react';
 
 import { cn } from "@/lib/utils";
 import { PROPERTY_TYPES } from '@/lib/accommodation-data';
+import { useCountry } from "@/context/CountryContext";
 
 export function FilterSidebar({ filters, onFilterChange, distinctValues = {}, className }) {
+    const { formatPrice } = useCountry();
     // Local state for location input — avoids URL updates on every keystroke
     const [localLocation, setLocalLocation] = useState(filters.location || '');
     const debounceRef = useRef(null);
@@ -89,7 +91,7 @@ export function FilterSidebar({ filters, onFilterChange, distinctValues = {}, cl
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="font-bold text-sm text-gray-900">Price Range</h3>
                     <span className="text-xs text-primary font-bold">
-                        ₹{filters.minPrice || 0} - ₹{filters.maxPrice || 50000}
+                        {formatPrice(filters.minPrice || 0)} - {formatPrice(filters.maxPrice || 50000)}
                     </span>
                 </div>
                 <Slider

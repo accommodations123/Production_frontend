@@ -11,8 +11,10 @@ import { Button } from "@/shared/ui/button";
 import { Users, Sparkles, ChevronDown, Loader2 } from "lucide-react";
 import { useGetPublicProfilesQuery } from "@/store/api/peopleApi";
 import { COUNTRIES } from "@/lib/mock-data";
+import { useCountry } from "@/context/CountryContext";
 
 export default function PeopleHome() {
+  const { activeCountry } = useCountry();
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get("query") || "";
   const selectedCategory = searchParams.get("category") || "all";
@@ -45,6 +47,14 @@ export default function PeopleHome() {
   const [selectedExperience, setSelectedExperience] = useState("all");
   const [selectedRating, setSelectedRating] = useState("all");
 
+  const activeCountryFilter = useMemo(() => {
+    if (selectedCountry !== "all") return selectedCountry;
+    if (activeCountry?.name && activeCountry.name !== "Global" && activeCountry.name !== "All") {
+      return activeCountry.name;
+    }
+    return "all";
+  }, [selectedCountry, activeCountry]);
+
   // Pagination limit count
   const [limit, setLimit] = useState(12);
 
@@ -56,15 +66,17 @@ export default function PeopleHome() {
       category: selectedCategory !== "all" ? selectedCategory : undefined,
     };
 
-    if (selectedCountry !== "all") {
-      params.country = selectedCountry;
+    if (activeCountryFilter !== "all") {
+      params.country = (activeCountryFilter === "United States" || activeCountryFilter === "USA" || activeCountryFilter === "US")
+        ? "United States of America"
+        : activeCountryFilter;
     }
 
     if (selectedLocation !== "all") {
       const parts = selectedLocation.split(",");
       if (parts.length >= 2) {
         params.city = parts[0].trim();
-        if (selectedCountry === "all") {
+        if (activeCountryFilter === "all") {
           params.country = parts[1].trim();
         }
       } else {
@@ -73,7 +85,7 @@ export default function PeopleHome() {
     }
 
     return params;
-  }, [selectedCategory, selectedCountry, selectedLocation, limit]);
+  }, [selectedCategory, activeCountryFilter, selectedLocation, limit]);
 
   // Fetch live profiles from backend API
   const { data, isLoading, isFetching, isError, refetch } = useGetPublicProfilesQuery(queryParams);
@@ -121,10 +133,16 @@ export default function PeopleHome() {
       }
 
       // 3. Country
-      if (selectedCountry && selectedCountry !== "all") {
+      if (activeCountryFilter && activeCountryFilter !== "all") {
         const pCountry = (p.country || "").toLowerCase().trim();
-        const sCountry = selectedCountry.toLowerCase().trim();
-        if (pCountry !== sCountry && !pCountry.includes(sCountry) && !sCountry.includes(pCountry)) {
+        const sCountry = activeCountryFilter.toLowerCase().trim();
+        const pState = (p.state || "").toLowerCase().trim();
+        const pCity = (p.city || "").toLowerCase().trim();
+
+        if (sCountry.includes("united states") || sCountry === "usa" || sCountry === "us") {
+          const isUS = pCountry.includes("united states") || pCountry.includes("usa") || pCountry.includes("us") || pState.includes("usa") || pCity.includes("usa");
+          if (!isUS) return false;
+        } else if (pCountry !== sCountry && !pCountry.includes(sCountry) && !sCountry.includes(pCountry)) {
           return false;
         }
       }

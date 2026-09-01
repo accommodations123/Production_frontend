@@ -7,7 +7,6 @@ export const getHostPath = (type, isAuthenticated) => {
     switch (type) {
         case 'property': return '/host/create';
         case 'event': return '/events/host';
-        case 'group': return '/groups/add-resource';
         case 'travel': return '/travel';
         case 'marketplace': return '/marketplace?action=sell';
         case 'people':

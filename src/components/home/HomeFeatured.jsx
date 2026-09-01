@@ -323,28 +323,63 @@ const HomeFeatured = () => {
     } else if (Array.isArray(stayRequestsData.data)) {
       items = stayRequestsData.data;
     }
-    return items.filter(Boolean).slice(0, 4);
-  }, [stayRequestsData]);
+    return items.filter(Boolean).filter(req => {
+      if (!activeCountry?.name || activeCountry.name === "Global" || activeCountry.name === "All") return true;
+      const cNorm = activeCountry.name.toLowerCase().trim();
+      const reqCountry = (req.country || '').toLowerCase().trim();
+      const reqCity = (req.city || '').toLowerCase().trim();
+      if (cNorm.includes('united states') || cNorm === 'usa' || cNorm === 'us') {
+        return reqCountry.includes('united states') || reqCountry.includes('usa') || reqCountry.includes('us') || reqCity.includes('usa');
+      }
+      return reqCountry.includes(cNorm) || reqCity.includes(cNorm);
+    }).slice(0, 4);
+  }, [stayRequestsData, activeCountry]);
 
   const displayedPeople = useMemo(() => {
     if (!peopleData) return [];
-    if (Array.isArray(peopleData)) return peopleData;
-    if (Array.isArray(peopleData.people)) return peopleData.people;
-    if (Array.isArray(peopleData.profiles)) return peopleData.profiles;
-    if (Array.isArray(peopleData.items)) return peopleData.items;
-    if (Array.isArray(peopleData.results)) return peopleData.results;
-    if (Array.isArray(peopleData.data?.people)) return peopleData.data.people;
-    if (Array.isArray(peopleData.data?.profiles)) return peopleData.data.profiles;
-    if (Array.isArray(peopleData.data?.items)) return peopleData.data.items;
-    if (Array.isArray(peopleData.data?.results)) return peopleData.data.results;
-    if (Array.isArray(peopleData.data)) return peopleData.data;
-    return [];
-  }, [peopleData]);
+    let list = [];
+    if (Array.isArray(peopleData)) list = peopleData;
+    else if (Array.isArray(peopleData.people)) list = peopleData.people;
+    else if (Array.isArray(peopleData.profiles)) list = peopleData.profiles;
+    else if (Array.isArray(peopleData.items)) list = peopleData.items;
+    else if (Array.isArray(peopleData.results)) list = peopleData.results;
+    else if (Array.isArray(peopleData.data?.people)) list = peopleData.data.people;
+    else if (Array.isArray(peopleData.data?.profiles)) list = peopleData.data.profiles;
+    else if (Array.isArray(peopleData.data?.items)) list = peopleData.data.items;
+    else if (Array.isArray(peopleData.data?.results)) list = peopleData.data.results;
+    else if (Array.isArray(peopleData.data)) list = peopleData.data;
+
+    return list.filter(person => {
+      if (!activeCountry?.name || activeCountry.name === "Global" || activeCountry.name === "All") return true;
+      const cNorm = activeCountry.name.toLowerCase().trim();
+      const pCountry = (person.country || '').toLowerCase().trim();
+      const pState = (person.state || '').toLowerCase().trim();
+      const pCity = (person.city || '').toLowerCase().trim();
+      if (cNorm.includes('united states') || cNorm === 'usa' || cNorm === 'us') {
+        return pCountry.includes('united states') || pCountry.includes('usa') || pCountry.includes('us') || pState.includes('usa') || pCity.includes('usa');
+      }
+      return pCountry.includes(cNorm) || pState.includes(cNorm) || pCity.includes(cNorm);
+    }).slice(0, 4);
+  }, [peopleData, activeCountry]);
 
   const displayedTrips = useMemo(() => {
-    if (!publicTripsData?.results) return [];
-    return publicTripsData.results.map(trip => mapTripToPlan(trip, currentUser)).slice(0, 4);
-  }, [publicTripsData, currentUser]);
+    if (!publicTripsData?.results && !Array.isArray(publicTripsData)) return [];
+    const rawList = Array.isArray(publicTripsData) ? publicTripsData : (publicTripsData.results || publicTripsData.data || []);
+    return rawList
+      .map(trip => mapTripToPlan(trip, currentUser))
+      .filter(Boolean)
+      .filter(plan => {
+        if (!activeCountry?.name || activeCountry.name === "Global" || activeCountry.name === "All") return true;
+        const cNorm = activeCountry.name.toLowerCase().trim();
+        const fromC = (plan.flight?.from_country || plan.user?.country || '').toLowerCase().trim();
+        const toC = (plan.flight?.to_country || plan.destination || '').toLowerCase().trim();
+        if (cNorm.includes('united states') || cNorm === 'usa' || cNorm === 'us') {
+          return fromC.includes('united states') || fromC.includes('usa') || fromC.includes('us') || toC.includes('united states') || toC.includes('usa') || toC.includes('us');
+        }
+        return fromC.includes(cNorm) || toC.includes(cNorm);
+      })
+      .slice(0, 4);
+  }, [publicTripsData, currentUser, activeCountry]);
 
   const displayedEvents = useMemo(() => {
     if (!approvedEvents || approvedEvents.length === 0) return [];
@@ -393,6 +428,20 @@ const HomeFeatured = () => {
 
     return countryFiltered.slice(0, 4);
   }, [approvedEvents, activeCountry]);
+
+  const displayedMarketplace = useMemo(() => {
+    if (!marketplaceItems || !Array.isArray(marketplaceItems)) return [];
+    return marketplaceItems.filter(item => {
+      if (!activeCountry?.name || activeCountry.name === "Global" || activeCountry.name === "All") return true;
+      const cNorm = activeCountry.name.toLowerCase().trim();
+      const itemCountry = (item.country || '').toLowerCase().trim();
+      const itemLocation = (item.city || item.location || '').toLowerCase().trim();
+      if (cNorm.includes('united states') || cNorm === 'usa' || cNorm === 'us') {
+        return itemCountry.includes('united states') || itemCountry.includes('usa') || itemCountry.includes('us') || itemLocation.includes('usa') || itemLocation.includes('united states');
+      }
+      return itemCountry.includes(cNorm) || itemLocation.includes(cNorm);
+    }).slice(0, 4);
+  }, [marketplaceItems, activeCountry]);
 
   const [viewMode, setViewMode] = useState("grid");
 
@@ -620,14 +669,14 @@ const HomeFeatured = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {marketplaceLoading ? (
               [1, 2, 3, 4].map((n) => <Skeleton key={n} className="h-[280px] sm:h-[320px] lg:h-[340px]" />)
-            ) : marketplaceItems?.length > 0 ? (
-              marketplaceItems.slice(0, 4).filter(Boolean).map((item, idx) => (
+            ) : displayedMarketplace?.length > 0 ? (
+              displayedMarketplace.map((item, idx) => (
                 <motion.div key={item.id} {...fadeInUp} transition={{ delay: idx * 0.1 }}>
                   <ProductCard product={item} onClick={(p) => navigate(`/marketplace?product=${p.id}`)} />
                 </motion.div>
               ))
             ) : (
-              <div className="col-span-full text-center py-12 sm:py-16 text-[#00142E]/50">No active listings.</div>
+              <div className="col-span-full text-center py-12 sm:py-16 text-[#00142E]/50">No active listings in this country.</div>
             )}
           </div>
         </div>

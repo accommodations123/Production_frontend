@@ -24,9 +24,9 @@ export const StepSelection = ({ formData, setFormData, nextStep, setContribution
             borderColor: 'border-purple-500/20'
         },
         {
-            id: 'group',
-            title: 'Start a Community',
-            description: 'Create a community group based on interests, culture, or location',
+            id: 'expert',
+            title: 'Become an Expert',
+            description: 'Provide consultation and advice to fellow expats',
             icon: <Users className="h-10 w-10" />,
             color: 'from-green-500 to-emerald-500',
             bgColor: 'bg-green-500/10',

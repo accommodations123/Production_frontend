@@ -9,7 +9,6 @@ import TripCard from '@/components/travel/TripCard';
 import { Loader2, Heart, ShoppingBag, Calendar, Home, Plane, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
-import { CommunityGroupCard } from '@/components/home/featured/CommunityGroupCard';
 import { Footer } from '@/components/layout/Footer';
 import { resolveImageUrl } from '@/lib/imageUtils';
 
@@ -215,9 +214,6 @@ export default function WishlistPage() {
                                 socials: socials
                             };
                             return <TripCard key={item.id} plan={normalizedTrip} isSelected={false} />;
-
-                        case 'community':
-                            return <CommunityGroupCard key={item.id} group={{ ...details, id: details.id || details._id }} />;
 
                         default:
                             return null;

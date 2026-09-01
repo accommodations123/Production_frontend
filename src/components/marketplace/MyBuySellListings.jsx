@@ -18,8 +18,11 @@ import {
 import { SellForm } from "@/components/marketplace/SellForm";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getCurrencySymbol, getCurrencyForCountry } from "@/shared/utils/countryUtils";
+import { useCountry } from "@/context/CountryContext";
 
 export function MyBuySellListings() {
+  const { activeCountry } = useCountry();
   const { data: listings = [], isLoading, isError } = useGetMyBuySellListingsQuery();
   const [deleteListing] = useDeleteBuySellMutation();
   const [markAsSold] = useMarkBuySellAsSoldMutation();
@@ -165,7 +168,7 @@ export function MyBuySellListings() {
 
                   {/* Price Tag */}
                   <span className="absolute bottom-3.5 left-3.5 px-3.5 py-1.5 bg-[#0A1A2F]/90 backdrop-blur-sm rounded-xl text-xs font-black text-white shadow-md">
-                    ₹{Number(item.price).toLocaleString()}
+                    {getCurrencySymbol((item.country && item.country !== "Global") ? getCurrencyForCountry(item.country) : (item.currency && item.currency !== "INR") ? item.currency : (activeCountry?.currency || "USD"))}{Number(item.price).toLocaleString()}
                   </span>
                 </div>
 

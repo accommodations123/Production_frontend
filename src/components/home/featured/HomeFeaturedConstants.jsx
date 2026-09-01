@@ -145,25 +145,25 @@ export const FEATURE_CARDS = [
     {
         icon: <Home className="w-8 h-8" />,
         title: "Accommodations",
-        description: "Verified homes with Indian hosts",
+        description: "Verified homes with trusted hosts",
         stats: "10K+"
     },
     {
         icon: <UsersIcon className="w-8 h-8" />,
-        title: "Join Communities",
-        description: "Connect with like-minded people",
+        title: "People & Experts",
+        description: "Connect with verified advisors and mentors",
         stats: "500+"
     },
     {
         icon: <Plane className="w-8 h-8" />,
-        title: "Travel Community",
-        description: "Find travel companions",
+        title: "Travel Partners",
+        description: "Find trusted travel companions",
         stats: "200+"
     },
     {
         icon: <Package className="w-8 h-8" />,
-        title: "Community Sharing",
-        description: "Share trusted items within community",
+        title: "Marketplace",
+        description: "Buy and sell items securely",
         stats: "5K+"
     }
 ];

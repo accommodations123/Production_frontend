@@ -129,25 +129,24 @@ const EventsPage = () => {
       return "other";
     };
 
-    // 1. Filter upcoming events with fallback
+    // 1. Filter upcoming events
     const upcoming = filterUpcomingEvents(rawEventsList);
     const activeApiEvents = (Array.isArray(upcoming) && upcoming.length > 0) ? upcoming : rawEventsList;
 
-    // 2. Filter by country with fallback
+    // 2. Filter strictly by country
     const countryFiltered = activeApiEvents.filter(event => {
       if (!activeCountry?.name && !activeCountry?.code) return true;
-      const eventCountry = (typeof event.country === 'string' ? event.country : event.country?.name || event.country?.code || "").toLowerCase().trim();
       const selectedCountryName = (activeCountry.name || "").toLowerCase().trim();
       const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim();
+
+      // If active country is Global or All, show all
+      if (selectedCountryName === "global" || selectedCountryName === "all" || !selectedCountryName) return true;
 
       // Allow online events to show globally
       if (event.event_mode?.toLowerCase() === "online") return true;
 
-      // If event has no country specified, show it
-      if (!eventCountry) return true;
-
-      // If active country is Global or All, show it
-      if (selectedCountryName === "global" || selectedCountryName === "all" || !selectedCountryName) return true;
+      const eventCountry = (typeof event.country === 'string' ? event.country : event.country?.name || event.country?.code || "").toLowerCase().trim();
+      if (!eventCountry) return false;
 
       const normEvent = (normalizeCountryName(event.country) || eventCountry).toLowerCase();
       const normSelected = (normalizeCountryName(activeCountry.name || activeCountry.code) || selectedCountryName).toLowerCase();
@@ -161,9 +160,7 @@ const EventsPage = () => {
       );
     });
 
-    const filteredApiEvents = (Array.isArray(countryFiltered) && countryFiltered.length > 0)
-      ? countryFiltered
-      : activeApiEvents;
+    const filteredApiEvents = countryFiltered;
 
     filteredApiEvents.forEach(event => {
       const categoryId = classifyEventCategory(event);

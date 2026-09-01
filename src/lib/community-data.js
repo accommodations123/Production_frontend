@@ -1,45 +1,4 @@
-export const COMMUNITY_DIRECTORY = [
-    {
-        id: 1,
-        category: "Associations",
-        name: "Indian Association of Berlin",
-        location: "Berlin, Germany",
-        description: "Promoting Indian culture and supporting the diaspora in Germany.",
-        contact: "contact@iaberlin.org"
-    },
-    {
-        id: 2,
-        category: "Student Groups",
-        name: "Indian Students at UofT",
-        location: "Toronto, Canada",
-        description: "Official student group for Indians at University of Toronto.",
-        contact: "isa@utoronto.ca"
-    },
-    {
-        id: 3,
-        category: "Religious",
-        name: "BAPS Shri Swaminarayan Mandir",
-        location: "London, UK",
-        description: "A spiritual place for worship and community events.",
-        contact: "info@londonmandir.baps.org"
-    },
-    {
-        id: 4,
-        category: "Associations",
-        name: "Telugu Association of North America",
-        location: "USA (National)",
-        description: "Serving the Telugu speaking community across North America.",
-        contact: "info@tana.org"
-    },
-    {
-        id: 5,
-        category: "Media",
-        name: "India Abroad",
-        location: "Global",
-        description: "Leading newspaper for the Indian diaspora.",
-        contact: "www.indiaabroad.com"
-    }
-];
+export const COMMUNITY_DIRECTORY = [];
 
 export const DAILY_LIVING_GUIDES = [
     {

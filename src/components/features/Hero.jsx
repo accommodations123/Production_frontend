@@ -4,22 +4,15 @@ import React from "react"
 import { ArrowRight, ShieldCheck, Star, Users, Home, Calendar, Sparkles, Plane, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
-import { useGetMeQuery } from "@/store/api/authApi"
-import { toast } from "sonner"
+import { useAuth } from "@/shared/hooks/useAuth"
 import { getHostPath } from "@/lib/navigationUtils"
 
 export function Hero() {
   const navigate = useNavigate()
-  const { data: userData } = useGetMeQuery()
+  const { isAuthenticated } = useAuth()
 
-  const handleJoinCommunity = () => {
-    if (!userData?.user) {
-      navigate('/signup')
-    } else if (userData.user.isHost) {
-      toast.info("You are already a registered host!")
-    } else {
-      navigate('/groups')
-    }
+  const handleExplore = () => {
+    navigate('/accommodations')
   }
 
   return (
@@ -95,11 +88,11 @@ export function Hero() {
             {/* Premium CTA Button */}
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <Button
-                onClick={handleJoinCommunity}
+                onClick={handleExplore}
                 size="lg"
                 className="group h-14 md:h-16 px-8 md:px-12 rounded-full bg-gradient-to-r from-[#C93A30] via-[#D94438] to-[#E44D42] hover:from-[#b02e25] hover:via-[#C93A30] hover:to-[#D94438] text-white text-base md:text-lg font-bold shadow-xl shadow-[#C93A30]/30 hover:shadow-2xl hover:shadow-[#C93A30]/40 transition-all duration-300 hover:-translate-y-1 w-full sm:w-auto cursor-pointer border-0"
               >
-                <span>Join Community</span>
+                <span>Explore Accommodations</span>
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
@@ -112,7 +105,7 @@ export function Hero() {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 {/* Accommodations */}
                 <button
-                  onClick={() => navigate(getHostPath('property', !!userData?.user))}
+                  onClick={() => navigate(getHostPath('property', isAuthenticated))}
                   className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-gray-200/60 hover:border-[#C93A30]/30 hover:shadow-xl hover:shadow-[#C93A30]/5 transition-all duration-300 group cursor-pointer text-center relative overflow-hidden"
                 >
                   <div className="w-10 h-10 rounded-xl bg-[#FFF0EE] flex items-center justify-center text-[#C93A30] group-hover:scale-110 transition-transform duration-300">
@@ -123,7 +116,7 @@ export function Hero() {
                 </button>
                 {/* Events */}
                 <button
-                  onClick={() => navigate(getHostPath('event', !!userData?.user))}
+                  onClick={() => navigate(getHostPath('event', isAuthenticated))}
                   className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-gray-200/60 hover:border-[#C93A30]/30 hover:shadow-xl hover:shadow-[#C93A30]/5 transition-all duration-300 group cursor-pointer text-center"
                 >
                   <div className="w-10 h-10 rounded-xl bg-[#FFF0EE] flex items-center justify-center text-[#C93A30] group-hover:scale-110 transition-transform duration-300">
@@ -134,7 +127,7 @@ export function Hero() {
                 </button>
                 {/* Travel */}
                 <button
-                  onClick={() => navigate(getHostPath('travel', !!userData?.user))}
+                  onClick={() => navigate(getHostPath('travel', isAuthenticated))}
                   className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-gray-200/60 hover:border-[#C93A30]/30 hover:shadow-xl hover:shadow-[#C93A30]/5 transition-all duration-300 group cursor-pointer text-center"
                 >
                   <div className="w-10 h-10 rounded-xl bg-[#FFF0EE] flex items-center justify-center text-[#C93A30] group-hover:scale-110 transition-transform duration-300">
@@ -145,7 +138,7 @@ export function Hero() {
                 </button>
                 {/* Marketplace */}
                 <button
-                  onClick={() => navigate(getHostPath('marketplace', !!userData?.user))}
+                  onClick={() => navigate(getHostPath('marketplace', isAuthenticated))}
                   className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-gray-200/60 hover:border-[#C93A30]/30 hover:shadow-xl hover:shadow-[#C93A30]/5 transition-all duration-300 group cursor-pointer text-center"
                 >
                   <div className="w-10 h-10 rounded-xl bg-[#FFF0EE] flex items-center justify-center text-[#C93A30] group-hover:scale-110 transition-transform duration-300">
@@ -156,13 +149,13 @@ export function Hero() {
                 </button>
                 {/* People */}
                 <button
-                  onClick={() => navigate('/people')}
+                  onClick={() => navigate(getHostPath('people', isAuthenticated))}
                   className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white border border-gray-200/60 hover:border-[#C93A30]/30 hover:shadow-xl hover:shadow-[#C93A30]/5 transition-all duration-300 group cursor-pointer text-center"
                 >
                   <div className="w-10 h-10 rounded-xl bg-[#FFF0EE] flex items-center justify-center text-[#C93A30] group-hover:scale-110 transition-transform duration-300">
                     <Users className="w-5 h-5" />
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-[#00142E] mt-3">Find Expert</span>
+                  <span className="text-xs sm:text-sm font-bold text-[#00142E] mt-3">Become Expert</span>
                   <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium mt-1">People</span>
                 </button>
               </div>

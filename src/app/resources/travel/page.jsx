@@ -299,7 +299,8 @@ export default function TravelPage() {
 
   const { data: publicTripsData } = useGetPublicTripsQuery({
     page: 1,
-    limit: 50
+    limit: 50,
+    country: getBackendCountryName(filters.country || activeCountry?.name)
   });
 
   const extractTripList = (raw) => {

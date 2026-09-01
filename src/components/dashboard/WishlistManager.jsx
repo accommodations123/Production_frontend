@@ -9,7 +9,6 @@ import { ProductCard } from '@/components/marketplace/ProductCard';
 import TripCard from '@/components/travel/TripCard';
 import { Loader2, Heart, ShoppingBag, Calendar, Home, Plane, Users, FileText, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { CommunityGroupCard } from '@/components/home/featured/CommunityGroupCard';
 import { PeopleCard } from '@/features/people/components/PeopleCard';
 import { cn } from "@/lib/utils";
 import { resolveImageUrl } from '@/lib/imageUtils';
@@ -252,7 +251,6 @@ export function WishlistManager() {
 
                   case 'expert':
                   case 'people':
-                  case 'community':
                     return <PeopleCard person={{ ...details, id: details.id || details._id }} />;
 
                   default:

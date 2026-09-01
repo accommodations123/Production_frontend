@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Star, Bookmark, ShieldCheck } from "lucide-react";
 import { Button } from "@/shared/ui/button";
-import { getCurrencySymbol } from "@/shared/utils/countryUtils";
+import { getCurrencySymbol, getCurrencyForCountry } from "@/shared/utils/countryUtils";
+import { useCountry } from "@/context/CountryContext";
 import { useToggleWishlistMutation, useCheckWishlistStatusQuery } from "@/store/api/wishlistApi";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 
 export default function PeopleCard({ person }) {
+  const { activeCountry } = useCountry();
   const { isAuthenticated } = useSelector((state) => state.auth || {});
   
   // Check wishlist status from API if authenticated
@@ -157,7 +159,7 @@ export default function PeopleCard({ person }) {
         <div>
           <span className="text-[9px] font-bold text-[#717171] uppercase tracking-wider block">Consultation Rate</span>
           <span className="text-slate-900 font-black text-base sm:text-lg">
-            {getCurrencySymbol(person?.pricing?.currency || person?.currency || person?.country)}{hourlyRate} <span className="text-[#717171] text-[10px] font-bold">/ hr</span>
+            {getCurrencySymbol((person?.country && person.country !== "Global") ? getCurrencyForCountry(person.country) : (person?.pricing?.currency && person.pricing.currency !== "INR") ? person.pricing.currency : (person?.currency && person.currency !== "INR") ? person.currency : (activeCountry?.currency || "USD"))}{hourlyRate} <span className="text-[#717171] text-[10px] font-bold">/ hr</span>
           </span>
         </div>
         <Link to={`/people/${person.id}`}>

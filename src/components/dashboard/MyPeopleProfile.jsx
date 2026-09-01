@@ -23,10 +23,12 @@ import {
 } from "@/store/api/peopleApi";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
-import { getCurrencySymbol } from "@/shared/utils/countryUtils";
+import { getCurrencySymbol, getCurrencyForCountry } from "@/shared/utils/countryUtils";
+import { useCountry } from "@/context/CountryContext";
 
 
 export function MyPeopleProfile() {
+  const { activeCountry } = useCountry();
   const navigate = useNavigate();
   const authState = useSelector((state) => state.auth || {});
   const rawUser = authState.user;
@@ -188,7 +190,7 @@ export function MyPeopleProfile() {
                   </span>
                   <span>•</span>
                   <span className="font-extrabold text-slate-900">
-                    {getCurrencySymbol((profile.pricing?.currency && profile.pricing.currency !== "USD") ? profile.pricing.currency : (profile.currency && profile.currency !== "USD") ? profile.currency : (profile.country || "India"))}{profile.pricing?.consultation ?? profile.hourlyRate ?? 0} / hr
+                    {getCurrencySymbol((profile.country && profile.country !== "Global") ? getCurrencyForCountry(profile.country) : (profile.pricing?.currency && profile.pricing.currency !== "INR") ? profile.pricing.currency : (profile.currency && profile.currency !== "INR") ? profile.currency : (activeCountry?.currency || "USD"))}{profile.pricing?.consultation ?? profile.hourlyRate ?? 0} / hr
                   </span>
                 </div>
               </div>

@@ -129,6 +129,17 @@ export default function SearchPage() {
                             Host: mergedHost,
                             host: mergedHost
                         };
+                    }).filter(item => {
+                        if (activeCountry?.name && activeCountry.name !== "Global" && activeCountry.name !== "All") {
+                            const cNorm = activeCountry.name.toLowerCase().trim();
+                            const itemC = (item.country || '').toLowerCase().trim();
+                            const itemAddr = (item.fullAddress || item.city || '').toLowerCase().trim();
+                            if (cNorm.includes('united states') || cNorm === 'usa' || cNorm === 'us') {
+                                return itemC.includes('united states') || itemC.includes('usa') || itemC.includes('us') || itemAddr.includes('usa') || itemAddr.includes('united states');
+                            }
+                            return itemC.includes(cNorm) || itemAddr.includes(cNorm);
+                        }
+                        return true;
                     });
                 } else {
                     if (allProperties) {

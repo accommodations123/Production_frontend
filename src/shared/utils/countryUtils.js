@@ -68,10 +68,12 @@ export function getCurrencySymbol(str) {
     // Direct currency code matching
     if (upper === "INR" || upper === "RS" || upper === "RUPEE" || upper === "RUPEES" || upper === "INDIA" || upper === "IN") return "₹";
     if (upper === "EUR" || upper === "EURO" || upper === "EUROS" || upper === "GERMANY" || upper === "FRANCE") return "€";
-    if (upper === "GBP" || upper === "POUND" || upper === "POUNDS" || upper === "UK") return "£";
-    if (upper === "USD" || upper === "DOLLAR" || upper === "DOLLARS" || upper === "US" || upper === "USA") return "$";
-    if (upper === "ZAR" || upper === "SOUTH AFRICA") return "R";
-    if (upper === "CAD" || upper === "AUD") return "$";
+    if (upper === "GBP" || upper === "POUND" || upper === "POUNDS" || upper === "UK" || upper === "UNITED KINGDOM" || upper === "GB") return "£";
+    if (upper === "USD" || upper === "DOLLAR" || upper === "DOLLARS" || upper === "US" || upper === "USA" || upper === "UNITED STATES" || upper === "UNITED STATES OF AMERICA") return "$";
+    if (upper === "ZAR" || upper === "SOUTH AFRICA" || upper === "ZA") return "R";
+    if (upper === "CAD" || upper === "CANADA" || upper === "AUD" || upper === "AUSTRALIA") return "$";
+    if (upper === "AED" || upper === "UAE" || upper === "UNITED ARAB EMIRATES") return "AED ";
+    if (upper === "SGD" || upper === "SINGAPORE") return "S$";
 
     const country =
         getCountryByName(str) ||

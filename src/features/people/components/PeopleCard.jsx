@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Star, Bookmark, ShieldCheck, UserPlus, UserCheck } from "lucide-react";
 import { Button } from "@/shared/ui/button";
-import { getCurrencySymbol } from "@/shared/utils/countryUtils";
+import { getCurrencySymbol, getCurrencyForCountry } from "@/shared/utils/countryUtils";
+import { useCountry } from "@/context/CountryContext";
 import { useToggleWishlistMutation, useCheckWishlistStatusQuery } from "@/store/api/wishlistApi";
 import { useToggleFollowMutation, useGetMyFollowingQuery, useGetExpertReviewsQuery } from "@/store/api/peopleApi";
 import { getCanonicalUserId, isSelfUser } from "@/shared/utils/userUtils";
@@ -10,6 +11,7 @@ import { useSelector } from "react-redux";
 import { toast } from "sonner";
 
 export function PeopleCard({ person }) {
+  const { activeCountry } = useCountry();
   const authState = useSelector((state) => state.auth || {});
   const rawUser = authState.user;
   const currentUser = rawUser?.user || rawUser?.data?.user || rawUser || {};
@@ -185,7 +187,24 @@ export function PeopleCard({ person }) {
         ? Number(person.pricing.consultation)
         : null;
 
-  const currency = person.currency || person.pricing?.currency || (country && country !== "Global" ? country : "INR");
+  const currency = useMemo(() => {
+    if (country && country !== "Global" && country !== "All") {
+      return getCurrencyForCountry(country);
+    }
+    if (person.pricing?.currency && person.pricing.currency !== "INR") {
+      return person.pricing.currency;
+    }
+    if (person.currency && person.currency !== "INR") {
+      return person.currency;
+    }
+    if (activeCountry?.name && activeCountry.name !== "Global" && activeCountry.name !== "All") {
+      return getCurrencyForCountry(activeCountry.name);
+    }
+    if (activeCountry?.currency) {
+      return activeCountry.currency;
+    }
+    return person.pricing?.currency || person.currency || "USD";
+  }, [country, person.pricing?.currency, person.currency, activeCountry]);
 
   const hasCustomAvatar = Boolean(person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image);
   const avatarUrl = person.avatar || person.avatar_url || person.profile_image || person.user?.profile_image;

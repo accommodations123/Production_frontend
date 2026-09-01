@@ -4,9 +4,12 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { Edit, Trash2, Eye, FileText, Video, AlertCircle, Wifi, Car, Utensils, Tv, Thermometer, Dumbbell, Bed, Clock, Lock, ImageOff } from "lucide-react"
+import { getCurrencySymbol, getCurrencyForCountry } from "@/shared/utils/countryUtils"
+import { useCountry } from "@/context/CountryContext"
 
 
 export function PropertyCard({ property, onDelete }) {
+    const { activeCountry } = useCountry()
     const [isDeleting, setIsDeleting] = useState(false)
     // const [timeLeft, setTimeLeft] = useState("") // Removed
 
@@ -80,7 +83,14 @@ export function PropertyCard({ property, onDelete }) {
     // Format price
     const formatPriceDisplay = (price) => {
         if (!price) return "Price on request";
-        return `₹${Number(price).toLocaleString()}`;
+        const symbol = getCurrencySymbol(
+            (property.country && property.country !== "Global")
+                ? getCurrencyForCountry(property.country)
+                : (property.currency && property.currency !== "INR")
+                    ? property.currency
+                    : (activeCountry?.currency || "USD")
+        );
+        return `${symbol}${Number(price).toLocaleString()}`;
     }
 
     const priceDisplay = property.price_per_month

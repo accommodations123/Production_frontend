@@ -6,18 +6,32 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, MapPin, Users, CreditCard, Smartphone, ShoppingBasket, Train, PhoneCall, Globe } from "lucide-react";
 import { COMMUNITY_DIRECTORY, DAILY_LIVING_GUIDES } from "@/lib/community-data";
+import { useCountry } from "@/context/CountryContext";
 
 export default function CommunityPage() {
+    const { activeCountry } = useCountry();
     const [searchTerm, setSearchTerm] = useState("");
     const [activeCategory, setActiveCategory] = useState("All");
 
     const categories = ["All", "Associations", "Student Groups", "Religious", "Media"];
 
-    const filteredDirectory = COMMUNITY_DIRECTORY.filter(item =>
-        (activeCategory === "All" || item.category === activeCategory) &&
-        (item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.location.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const filteredDirectory = COMMUNITY_DIRECTORY.filter(item => {
+        const matchesCategory = activeCategory === "All" || item.category === activeCategory;
+        const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.location.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        let matchesCountry = true;
+        if (activeCountry?.name && activeCountry.name !== "Global" && activeCountry.name !== "All") {
+            const cNorm = activeCountry.name.toLowerCase().trim();
+            const itemLoc = (item.location || '').toLowerCase().trim();
+            if (cNorm.includes('united states') || cNorm === 'usa' || cNorm === 'us') {
+                matchesCountry = itemLoc.includes('usa') || itemLoc.includes('united states') || itemLoc.includes('global');
+            } else {
+                matchesCountry = itemLoc.includes(cNorm) || itemLoc.includes('global');
+            }
+        }
+        return matchesCategory && matchesSearch && matchesCountry;
+    });
 
     return (
         <main className="min-h-screen bg-gray-50">
@@ -72,25 +86,31 @@ export default function CommunityPage() {
                             </div>
 
                             <div className="grid gap-4">
-                                {filteredDirectory.map(item => (
-                                    <div key={item.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="font-bold text-gray-900 text-lg">{item.name}</h3>
-                                                <Badge variant="secondary" className="text-xs font-normal bg-orange-50 text-orange-700">
-                                                    {item.category}
-                                                </Badge>
+                                {filteredDirectory.length > 0 ? (
+                                    filteredDirectory.map(item => (
+                                        <div key={item.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h3 className="font-bold text-gray-900 text-lg">{item.name}</h3>
+                                                    <Badge variant="secondary" className="text-xs font-normal bg-orange-50 text-orange-700">
+                                                        {item.category}
+                                                    </Badge>
+                                                </div>
+                                                <p className="text-sm text-gray-500 flex items-center gap-1 mb-2">
+                                                    <MapPin className="h-3 w-3" /> {item.location}
+                                                </p>
+                                                <p className="text-gray-600 text-sm">{item.description}</p>
                                             </div>
-                                            <p className="text-sm text-gray-500 flex items-center gap-1 mb-2">
-                                                <MapPin className="h-3 w-3" /> {item.location}
-                                            </p>
-                                            <p className="text-gray-600 text-sm">{item.description}</p>
+                                            <Button variant="outline" size="sm" className="text-orange-600 border-orange-200 hover:bg-orange-50 whitespace-nowrap">
+                                                Contact
+                                            </Button>
                                         </div>
-                                        <Button variant="outline" size="sm" className="text-orange-600 border-orange-200 hover:bg-orange-50 whitespace-nowrap">
-                                            Contact
-                                        </Button>
+                                    ))
+                                ) : (
+                                    <div className="bg-white rounded-xl p-8 text-center text-gray-500 border border-gray-100">
+                                        No community groups found for the selected filter or country.
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
 

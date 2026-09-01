@@ -39,7 +39,8 @@ import {
   FaWhatsapp
 } from "react-icons/fa6";
 import { Link, useNavigate } from "react-router-dom";
-import { getCurrencySymbol } from "@/shared/utils/countryUtils";
+import { getCurrencySymbol, getCurrencyForCountry } from "@/shared/utils/countryUtils";
+import { useCountry } from "@/context/CountryContext";
 import { PEOPLE_CATEGORIES } from "../data/categories";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
@@ -154,6 +155,7 @@ const CONTACT_PROVIDERS = [
 ];
 
 export default function BecomeExpert() {
+  const { activeCountry } = useCountry();
   const navigate = useNavigate();
   const { isAuthenticated, user: currentUser } = useSelector((state) => state.auth || {});
 
@@ -301,7 +303,7 @@ export default function BecomeExpert() {
           : (existingProfile.hourly_rate !== null && existingProfile.hourly_rate !== undefined && !isNaN(Number(existingProfile.hourly_rate)))
             ? Number(existingProfile.hourly_rate)
             : (existingProfile.pricing?.consultation ? Number(existingProfile.pricing.consultation) : 500),
-        currency: existingProfile.currency || existingProfile.pricing?.currency || "INR",
+        currency: existingProfile.currency || existingProfile.pricing?.currency || (existingProfile.country ? getCurrencyForCountry(existingProfile.country) : (activeCountry?.currency || "USD")),
         pricingType: existingProfile.pricingType || existingProfile.pricing?.type || "hourly",
         availability: typeof existingProfile.availability === "string" ? existingProfile.availability : "Available",
         accepting_clients: existingProfile.accepting_clients ?? true,
@@ -365,6 +367,16 @@ export default function BecomeExpert() {
         ];
     setStatesList(finalStates);
   }, [locationMod, selectedCountryObj?.isoCode, watchCountry]);
+
+  // Sync currency with country selection
+  useEffect(() => {
+    if (watchCountry) {
+      const countryCurr = getCurrencyForCountry(watchCountry);
+      if (countryCurr) {
+        setValue("currency", countryCurr);
+      }
+    }
+  }, [watchCountry, setValue]);
 
   // Populate cities when state changes
   useEffect(() => {
@@ -539,10 +551,10 @@ export default function BecomeExpert() {
         ] : (Array.isArray(existingProfile?.educations) ? existingProfile.educations : []),
         hourlyRate: !isNaN(Number(data.hourlyRate)) ? Number(data.hourlyRate) : null,
         hourly_rate: !isNaN(Number(data.hourlyRate)) ? Number(data.hourlyRate) : null,
-        currency: data.currency || existingProfile?.currency || "INR",
+        currency: data.currency || existingProfile?.currency || (data.country ? getCurrencyForCountry(data.country) : (activeCountry?.currency || "USD")),
         pricing: {
           consultation: !isNaN(Number(data.hourlyRate)) ? Number(data.hourlyRate) : null,
-          currency: data.currency || existingProfile?.currency || "INR",
+          currency: data.currency || existingProfile?.currency || (data.country ? getCurrencyForCountry(data.country) : (activeCountry?.currency || "USD")),
           type: data.pricingType || "hourly"
         },
         availability: data.availability || "Available",

@@ -174,11 +174,11 @@ export function Navbar({ minimal = false, onMenuClick }) {
             path: getHostPath('event', isAuthenticated)
         },
         {
-            id: 'group',
-            title: 'Start a Group',
-            description: 'Build a community of like-minded people.',
+            id: 'people',
+            title: 'Become an Expert',
+            description: 'Offer consultations and guidance.',
             icon: <Users className="h-5 w-5" />,
-            path: getHostPath('group', isAuthenticated)
+            path: getHostPath('people', isAuthenticated)
         },
         {
             id: 'travel',
