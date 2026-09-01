@@ -1468,8 +1468,178 @@ export async function executeSupabaseRequest(args) {
             }
         }
 
-        // ── 8. CAREER & JOBS ────────────────────────────────────────
-        if (cleanUrl.startsWith('career') || cleanUrl.startsWith('jobs')) {
+        // ── 8. CAREER, JOBS & APPLICATIONS ──────────────────────────
+        if (cleanUrl.startsWith('career') || cleanUrl.startsWith('jobs') || cleanUrl.startsWith('applications')) {
+            const userObj = await getCurrentUserObject()
+            const currentUserId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
+
+            // 1. Submit Job Application: POST career/applications or POST applications or POST career/apply
+            if ((cleanUrl.includes('application') || cleanUrl.endsWith('/apply')) && method === 'POST') {
+                if (!currentUserId) {
+                    return { error: { status: 401, data: { message: 'Please sign in to submit a job application' } } }
+                }
+
+                let payload = {}
+                let resumeUrl = ''
+
+                if (body instanceof FormData) {
+                    for (const [key, value] of body.entries()) {
+                        if (value instanceof File) {
+                            if (key === 'resume' || key === 'resume_file' || key === 'file') {
+                                try {
+                                    resumeUrl = await uploadToSupabaseStorage(value, 'documents')
+                                } catch (uploadErr) {
+                                    console.warn('Resume upload fallback:', uploadErr)
+                                    resumeUrl = `https://storage.mock/resumes/${value.name}`
+                                }
+                            }
+                        } else {
+                            payload[key] = value
+                        }
+                    }
+                } else {
+                    payload = { ...(body || {}) }
+                }
+
+                const jobId = payload.job_id || payload.jobId || ''
+                let jobInfo = null
+
+                if (jobId) {
+                    try {
+                        const { data: dbJob } = await supabase.from('jobs').select('*').eq('id', jobId).maybeSingle()
+                        if (dbJob) {
+                            jobInfo = {
+                                id: dbJob.id,
+                                _id: dbJob.id,
+                                title: dbJob.title || 'Job Position',
+                                company: dbJob.company || dbJob.company_name || 'NextKinLife Partner',
+                                location: dbJob.location || dbJob.city || 'Remote',
+                                type: dbJob.employment_type || dbJob.job_type || 'Full-time',
+                                employment_type: dbJob.employment_type || dbJob.job_type || 'Full-time',
+                                work_style: dbJob.work_style || 'On-site',
+                                workStyle: dbJob.work_style || 'On-site'
+                            }
+                        }
+                    } catch (jobErr) {
+                        console.warn('Could not fetch job from db:', jobErr)
+                    }
+                }
+
+                if (!jobInfo) {
+                    jobInfo = {
+                        id: jobId || `job_${Date.now()}`,
+                        _id: jobId || `job_${Date.now()}`,
+                        title: payload.job_title || payload.jobTitle || 'Technology Professional',
+                        company: payload.company || payload.company_name || 'NextKinLife Partner',
+                        location: payload.current_location || payload.location || 'Remote',
+                        type: payload.employment_type || payload.job_type || 'Full-time',
+                        employment_type: payload.employment_type || payload.job_type || 'Full-time',
+                        work_style: payload.work_style || 'On-site',
+                        workStyle: payload.work_style || 'On-site'
+                    }
+                }
+
+                // Get current user profile
+                const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
+                let profileMeta = {}
+                if (profile?.street_address && (profile.street_address.startsWith('{') || profile.street_address.startsWith('['))) {
+                    try { profileMeta = JSON.parse(profile.street_address) } catch {}
+                }
+                profileMeta.job_applications = Array.isArray(profileMeta.job_applications) ? profileMeta.job_applications : []
+
+                const applicationId = `app_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
+                const newApplication = {
+                    id: applicationId,
+                    _id: applicationId,
+                    user_id: currentUserId,
+                    userId: currentUserId,
+                    job_id: jobId,
+                    jobId: jobId,
+                    full_name: payload.full_name || profile?.name || profile?.full_name || userObj?.user_metadata?.full_name || 'Applicant',
+                    email: payload.email || profile?.email || userObj?.email || '',
+                    phone: payload.phone || profile?.phone || userObj?.phone || '',
+                    current_location: payload.current_location || '',
+                    linkedin_url: payload.linkedin_url || '',
+                    work_authorization: payload.work_authorization || '',
+                    years_of_experience: payload.years_of_experience || '',
+                    resume_url: resumeUrl || payload.resume_url || '',
+                    status: 'submitted',
+                    created_at: new Date().toISOString(),
+                    createdAt: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    job: jobInfo
+                }
+
+                // Save into user profile metadata
+                profileMeta.job_applications.unshift(newApplication)
+                await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', currentUserId)
+
+                // Also try inserting into job_applications table if exists
+                try {
+                    await supabase.from('job_applications').insert({
+                        id: applicationId,
+                        user_id: currentUserId,
+                        job_id: jobId,
+                        full_name: newApplication.full_name,
+                        email: newApplication.email,
+                        phone: newApplication.phone,
+                        resume_url: newApplication.resume_url,
+                        status: 'submitted'
+                    })
+                } catch {}
+
+                // Save to localStorage as resilient client backup
+                try {
+                    const localApps = JSON.parse(localStorage.getItem(`nxt_job_applications_${currentUserId}`) || '[]')
+                    localApps.unshift(newApplication)
+                    localStorage.setItem(`nxt_job_applications_${currentUserId}`, JSON.stringify(localApps))
+                } catch {}
+
+                return {
+                    data: {
+                        success: true,
+                        message: 'Application submitted successfully',
+                        data: newApplication,
+                        application: newApplication
+                    }
+                }
+            }
+
+            // 2. Get User's Applications: GET career/applications/me or GET career/applications or GET applications/me
+            if (cleanUrl.includes('application') && method === 'GET') {
+                if (!currentUserId) {
+                    return { data: { applications: [], data: [], count: 0, total: 0, totalPages: 1 } }
+                }
+
+                const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
+                let profileMeta = {}
+                if (profile?.street_address && (profile.street_address.startsWith('{') || profile.street_address.startsWith('['))) {
+                    try { profileMeta = JSON.parse(profile.street_address) } catch {}
+                }
+                let applications = Array.isArray(profileMeta.job_applications) ? profileMeta.job_applications : []
+
+                // Fallback to localStorage if profile has none
+                if (applications.length === 0) {
+                    try {
+                        const local = localStorage.getItem(`nxt_job_applications_${currentUserId}`) || localStorage.getItem('nxt_job_applications')
+                        if (local) applications = JSON.parse(local)
+                    } catch {}
+                }
+
+                return {
+                    data: {
+                        applications: applications,
+                        data: applications,
+                        count: applications.length,
+                        total: applications.length,
+                        page: parseInt(queryParams.page) || 1,
+                        limit: parseInt(queryParams.limit) || 10,
+                        totalPages: Math.ceil(applications.length / (parseInt(queryParams.limit) || 10)) || 1
+                    }
+                }
+            }
+
+            // 3. Create Job (Admin / Employer): POST career/create or POST jobs/create or POST jobs
             if ((cleanUrl === 'career/create' || cleanUrl === 'jobs/create' || cleanUrl === 'jobs') && method === 'POST') {
                 let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'jobs') : { ...(body || {}) }
                 payload.status = payload.status || 'active'
@@ -1478,8 +1648,19 @@ export async function executeSupabaseRequest(args) {
                 if (error) throw error
                 return { data: { job: data, success: true } }
             }
+
+            // 4. Get Single Job: GET career/jobs/:id or GET jobs/:id
+            if ((cleanUrl.startsWith('career/jobs/') || cleanUrl.startsWith('jobs/')) && cleanUrl.split('/').length >= 2 && method === 'GET') {
+                const jobId = cleanUrl.split('/').pop()
+                if (jobId && jobId !== 'jobs' && jobId !== 'career') {
+                    const { data } = await supabase.from('jobs').select('*').eq('id', jobId).maybeSingle()
+                    return { data: { job: data || null, data } }
+                }
+            }
+
+            // 5. Get All Jobs: GET career/jobs or GET jobs
             const { data } = await supabase.from('jobs').select('*').order('created_at', { ascending: false })
-            return { data: { jobs: data || [] } }
+            return { data: { jobs: data || [], data: data || [] } }
         }
 
         // ── 8. WISHLIST ─────────────────────────────────────────────
