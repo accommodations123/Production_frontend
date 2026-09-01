@@ -48,11 +48,9 @@ const TRAVEL_TRIP_COLUMNS = new Set([
 ]);
 
 const STAY_REQUEST_COLUMNS = new Set([
-    'id', 'title', 'description', 'status', 'is_approved', 'currency', 'city', 'state',
-    'country', 'images', 'photos', 'user_id', 'user_name', 'username', 'email', 'phone', 'guests', 'budget',
-    'check_in', 'check_out', 'room_type', 'stayType', 'stay_type', 'furnishing',
-    'seekerName', 'seeker_name', 'name', 'whatsappNumber', 'whatsapp', 'linkedin',
-    'instagram', 'facebook', 'created_at', 'updated_at'
+    'id', 'user_id', 'user_name', 'username', 'title', 'description',
+    'budget', 'currency', 'city', 'country', 'phone', 'email',
+    'status', 'is_approved', 'created_at', 'updated_at'
 ]);
 
 const JOB_COLUMNS = new Set([
@@ -557,6 +555,34 @@ export async function parseFormDataWithUploads(formData, folder = 'uploads') {
     }
 
     return parsed
+}
+
+export async function enrichStayRequests(requests) {
+    if (!requests) return [];
+    const list = Array.isArray(requests) ? requests : [requests];
+    const baseEnriched = await enrichWithProfiles(list.filter(Boolean), 'user_id');
+    return baseEnriched.map(item => {
+        let meta = {};
+        if (item.title && typeof item.title === 'string' && item.title.startsWith('{')) {
+            try {
+                meta = JSON.parse(item.title);
+            } catch {}
+        }
+        const resolvedTitle = meta.displayTitle || (item.title && !item.title.startsWith('{') ? item.title : 'Looking for Accommodation');
+        return {
+            ...item,
+            title: resolvedTitle,
+            seekerName: meta.seekerName || item.user_name || item.Host?.full_name || item.host?.full_name || item.name || 'Stay Seeker',
+            state: meta.state || item.state || '',
+            stayType: meta.stayType || item.stay_type || 'Long Term',
+            furnishing: meta.furnishing || item.furnishing || 'Furnished',
+            whatsappNumber: meta.whatsappNumber || item.whatsapp || item.phone || '',
+            whatsapp: meta.whatsappNumber || item.whatsapp || item.phone || '',
+            linkedin: meta.linkedin || item.linkedin || '',
+            instagram: meta.instagram || item.instagram || '',
+            facebook: meta.facebook || item.facebook || ''
+        };
+    });
 }
 
 /**
@@ -1179,25 +1205,41 @@ export async function executeSupabaseRequest(args) {
                 const userObj = await getCurrentUserObject()
                 const userId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
                 let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'stay_requests') : { ...(body || {}) }
-                payload.user_id = userId || payload.user_id || payload.host_id || null
-                payload.user_name = userObj?.full_name || userObj?.name || payload.seekerName || payload.seeker_name || 'Stay Seeker'
-                payload.username = userObj?.email?.split('@')[0] || payload.username || ''
-                payload.seeker_name = payload.user_name
-                payload.seekerName = payload.user_name
-                payload.status = payload.status || 'pending'
-                payload.is_approved = payload.is_approved !== undefined ? payload.is_approved : false
+                
+                const meta = {
+                    displayTitle: payload.title || 'Looking for Accommodation',
+                    seekerName: payload.seekerName || payload.seeker_name || userObj?.full_name || userObj?.name || 'Stay Seeker',
+                    state: payload.state || '',
+                    stayType: payload.stayType || payload.stay_type || 'Long Term',
+                    furnishing: payload.furnishing || 'Furnished',
+                    whatsappNumber: payload.whatsappNumber || payload.whatsapp || payload.phone || '',
+                    linkedin: payload.linkedin || '',
+                    instagram: payload.instagram || '',
+                    facebook: payload.facebook || ''
+                };
 
-                if (payload.stayType && !payload.stay_type) payload.stay_type = payload.stayType
-                if (payload.whatsappNumber && !payload.whatsapp) payload.whatsapp = payload.whatsappNumber
-                if (payload.whatsapp && !payload.whatsappNumber) payload.whatsappNumber = payload.whatsapp
+                const clean = {
+                    user_id: userId || payload.user_id || payload.host_id || null,
+                    user_name: meta.seekerName,
+                    username: userObj?.email?.split('@')[0] || payload.username || '',
+                    title: JSON.stringify(meta),
+                    description: typeof payload.description === 'string' ? payload.description : '',
+                    budget: Number(payload.budget || 0),
+                    currency: payload.currency || 'USD',
+                    city: payload.city || '',
+                    country: payload.country || '',
+                    phone: payload.phone || meta.whatsappNumber || '',
+                    email: payload.email || userObj?.email || '',
+                    status: payload.status || 'pending',
+                    is_approved: payload.is_approved !== undefined ? payload.is_approved : false
+                };
 
-                const clean = sanitizePayload(payload, STAY_REQUEST_COLUMNS)
-                const { data, error } = await resilientInsert('stay_requests', clean)
+                const { data, error } = await supabase.from('stay_requests').insert(clean).select().maybeSingle()
                 if (error) {
                     console.error('Supabase stay_requests insert error:', error)
                     throw error
                 }
-                const enriched = await enrichWithProfiles(data ? [data] : [], 'user_id')
+                const enriched = await enrichStayRequests(data ? [data] : [])
                 const single = enriched[0] || data
                 return { data: { request: single, data: single, success: true } }
             }
@@ -1208,7 +1250,7 @@ export async function executeSupabaseRequest(args) {
                 let q = supabase.from('stay_requests').select('*').order('created_at', { ascending: false })
                 if (userId) q = q.eq('user_id', userId)
                 const { data } = await q
-                const enriched = await enrichWithProfiles(data || [], 'user_id')
+                const enriched = await enrichStayRequests(data || [])
                 return { data: { requests: enriched, data: enriched, total: enriched.length } }
             }
 
@@ -1216,7 +1258,7 @@ export async function executeSupabaseRequest(args) {
             const singleMatch = cleanUrl.match(/^(?:stay-request|stay-requests)\/(?:request\/)?([^/]+)$/)
             if (singleMatch && method === 'GET' && !['create', 'post', 'search', 'me', 'all', 'approved', 'pending', 'rejected'].includes(singleMatch[1])) {
                 const { data } = await supabase.from('stay_requests').select('*').eq('id', singleMatch[1]).maybeSingle()
-                const enriched = await enrichWithProfiles(data ? [data] : [], 'user_id')
+                const enriched = await enrichStayRequests(data ? [data] : [])
                 return { data: { request: enriched[0] || data, data: enriched[0] || data } }
             }
 
@@ -1244,7 +1286,7 @@ export async function executeSupabaseRequest(args) {
 
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data } = await query
-            const enriched = await enrichWithProfiles(data || [], 'user_id')
+            const enriched = await enrichStayRequests(data || [])
             return { data: { requests: enriched, data: enriched, total: enriched.length } }
         }
 

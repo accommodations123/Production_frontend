@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { usePagination } from "@/hooks/usePagination"
 import { Pagination } from "@/components/ui/Pagination"
 import { useCountry } from "@/context/CountryContext"
+import { normalizeCountryName } from "@/shared/utils/countryUtils"
 
 const BENEFITS = [
     { icon: TrendingUp, title: "Career Growth", desc: "Consulting career pathways" },
@@ -79,21 +80,134 @@ export default function CareerPage() {
     // ─── FETCH JOBS FROM BACKEND API ────────────────────────────────
     const { data: apiJobsResponse, isLoading, isError, refetch } = useGetJobsQuery(queryParams)
 
-    // Normalize jobs array from response and filter by active country
+    // Filter and sort jobs based on search, active country, and all filter categories
     const jobs = useMemo(() => {
         const rawJobs = apiJobsResponse?.jobs || apiJobsResponse?.data || apiJobsResponse
         const list = Array.isArray(rawJobs) ? rawJobs : []
 
-        if (!activeCountry?.name) return list
-
-        const selectedCountryName = activeCountry.name.toLowerCase().trim()
-        const selectedCountryCode = (activeCountry.code || "").toLowerCase().trim()
-
         return list.filter(job => {
-            const jobLocation = (job.location || "").toLowerCase().trim()
-            return jobLocation === selectedCountryName || jobLocation === selectedCountryCode
-        })
-    }, [apiJobsResponse, activeCountry])
+            // 1. Active Country Matching
+            if (activeCountry?.name && activeCountry.name !== "All" && activeCountry.name !== "Global") {
+                const normSelected = normalizeCountryName(activeCountry.name).toLowerCase();
+                const jobCountry = normalizeCountryName(job.country || "").toLowerCase();
+                const jobLoc = (job.location || "").toLowerCase();
+                const countryMatch = jobCountry.includes(normSelected) || 
+                                     normSelected.includes(jobCountry) || 
+                                     jobLoc.includes(normSelected) ||
+                                     jobLoc.includes((activeCountry.code || "").toLowerCase()) ||
+                                     jobLoc.includes("remote") ||
+                                     jobLoc.includes("nationwide");
+                if (jobCountry && !countryMatch) {
+                    return false;
+                }
+            }
+
+            // 2. Keyword Search Query
+            if (searchQuery.trim()) {
+                const q = searchQuery.toLowerCase().trim();
+                const titleMatch = (job.title || "").toLowerCase().includes(q);
+                const descMatch = (job.description || "").toLowerCase().includes(q);
+                const clientMatch = (job.clientName || "").toLowerCase().includes(q);
+                const vendorMatch = (job.vendorName || "").toLowerCase().includes(q);
+                const companyMatch = (job.company || "").toLowerCase().includes(q);
+                const locationMatch = (job.location || "").toLowerCase().includes(q);
+                const skillsMatch = Array.isArray(job.skills) && job.skills.some(s => String(s).toLowerCase().includes(q));
+                if (!titleMatch && !descMatch && !clientMatch && !vendorMatch && !companyMatch && !locationMatch && !skillsMatch) {
+                    return false;
+                }
+            }
+
+            // 3. Position Type Filter (e.g. "C2C", "W2", "Contract", "Full Time")
+            if (selectedFilters.positionType.length > 0) {
+                const jobType = (job.positionType || job.type || "").toLowerCase();
+                const matchesPosition = selectedFilters.positionType.some(filterType => {
+                    const normFilter = filterType.toLowerCase().replace(/[\s-_]/g, "");
+                    const normJobType = jobType.replace(/[\s-_]/g, "");
+                    return normJobType.includes(normFilter) || normFilter.includes(normJobType);
+                });
+                if (!matchesPosition) return false;
+            }
+
+            // 4. Work Mode Filter (e.g. "Remote", "Hybrid", "Onsite")
+            if (selectedFilters.workMode.length > 0) {
+                const jobWork = (job.workStyle || job.work_style || "").toLowerCase().replace(/[\s-_]/g, "");
+                const matchesWork = selectedFilters.workMode.some(filterMode => {
+                    const normFilter = filterMode.toLowerCase().replace(/[\s-_]/g, "");
+                    return jobWork.includes(normFilter) || normFilter.includes(jobWork);
+                });
+                if (!matchesWork) return false;
+            }
+
+            // 5. Experience Filter (e.g. "0–3 Years", "4–7 Years", "8+ Years")
+            if (selectedFilters.experience.length > 0) {
+                const jobExp = (job.experience || job.experience_level || "").toLowerCase();
+                const matchesExp = selectedFilters.experience.some(filterExp => {
+                    const cleanFilter = filterExp.toLowerCase().replace(/–/g, "-");
+                    if (cleanFilter.includes("0-3") || cleanFilter.includes("entry") || cleanFilter.includes("junior")) {
+                        return jobExp.includes("0-3") || jobExp.includes("entry") || jobExp.includes("junior") || jobExp.includes("1") || jobExp.includes("2") || jobExp.includes("3");
+                    }
+                    if (cleanFilter.includes("4-7") || cleanFilter.includes("mid")) {
+                        return jobExp.includes("4-7") || jobExp.includes("mid") || jobExp.includes("4") || jobExp.includes("5") || jobExp.includes("6") || jobExp.includes("7");
+                    }
+                    if (cleanFilter.includes("8+") || cleanFilter.includes("senior") || cleanFilter.includes("lead")) {
+                        return jobExp.includes("8+") || jobExp.includes("senior") || jobExp.includes("lead") || jobExp.includes("8") || jobExp.includes("9") || jobExp.includes("10");
+                    }
+                    return jobExp.includes(cleanFilter);
+                });
+                if (!matchesExp) return false;
+            }
+
+            // 6. Pay Type Filter (e.g. "Hourly", "Salary")
+            if (selectedFilters.payType.length > 0) {
+                const jobPay = (job.payType || job.pay_type || "").toLowerCase();
+                const matchesPay = selectedFilters.payType.some(filterPay => {
+                    const normFilter = filterPay.toLowerCase();
+                    return jobPay.includes(normFilter) || (normFilter === "hourly" && jobPay.includes("hr")) || (normFilter === "salary" && (jobPay.includes("yr") || jobPay.includes("annual")));
+                });
+                if (!matchesPay) return false;
+            }
+
+            // 7. State Filter
+            if (selectedFilters.state.trim()) {
+                const filterState = selectedFilters.state.toLowerCase().trim();
+                const jobState = (job.state || "").toLowerCase();
+                const jobLoc = (job.location || "").toLowerCase();
+                if (!jobState.includes(filterState) && !jobLoc.includes(filterState)) {
+                    return false;
+                }
+            }
+
+            // 8. City Filter
+            if (selectedFilters.city.trim()) {
+                const filterCity = selectedFilters.city.toLowerCase().trim();
+                const jobCity = (job.city || "").toLowerCase();
+                const jobLoc = (job.location || "").toLowerCase();
+                if (!jobCity.includes(filterCity) && !jobLoc.includes(filterCity)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }).sort((a, b) => {
+            if (selectedFilters.sort === "salary-high") {
+                const priceA = Number(a.payMax || a.payMin || a.salary_max || 0);
+                const priceB = Number(b.payMax || b.payMin || b.salary_max || 0);
+                return priceB - priceA;
+            }
+            if (selectedFilters.sort === "salary-low") {
+                const priceA = Number(a.payMin || a.payMax || a.salary_min || 0);
+                const priceB = Number(b.payMin || b.payMax || b.salary_min || 0);
+                return priceA - priceB;
+            }
+            if (selectedFilters.sort === "title-asc") {
+                return (a.title || "").localeCompare(b.title || "");
+            }
+            // default "newest"
+            const dateA = new Date(a.postedDate || a.createdAt || a.created_at || 0);
+            const dateB = new Date(b.postedDate || b.createdAt || b.created_at || 0);
+            return dateB - dateA;
+        });
+    }, [apiJobsResponse, activeCountry, searchQuery, selectedFilters])
 
     // ─── PAGINATION ─────────────────────────────────────────────────
     const {
