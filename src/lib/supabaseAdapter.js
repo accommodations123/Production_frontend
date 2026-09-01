@@ -48,9 +48,11 @@ const TRAVEL_TRIP_COLUMNS = new Set([
 ]);
 
 const STAY_REQUEST_COLUMNS = new Set([
-    'id', 'title', 'description', 'status', 'is_approved', 'currency', 'city',
-    'country', 'images', 'photos', 'user_id', 'email', 'phone', 'guests', 'budget',
-    'check_in', 'check_out', 'room_type', 'created_at', 'updated_at'
+    'id', 'title', 'description', 'status', 'is_approved', 'currency', 'city', 'state',
+    'country', 'images', 'photos', 'user_id', 'user_name', 'username', 'email', 'phone', 'guests', 'budget',
+    'check_in', 'check_out', 'room_type', 'stayType', 'stay_type', 'furnishing',
+    'seekerName', 'seeker_name', 'name', 'whatsappNumber', 'whatsapp', 'linkedin',
+    'instagram', 'facebook', 'created_at', 'updated_at'
 ]);
 
 const JOB_COLUMNS = new Set([
@@ -68,6 +70,34 @@ function sanitizePayload(payload, allowedColumns) {
         }
     }
     return clean;
+}
+
+// Resilient insert helper that retries if non-existent columns are rejected by PostgREST
+async function resilientInsert(tableName, payload) {
+    let currentPayload = { ...payload };
+    const maxRetries = 10;
+    
+    for (let i = 0; i < maxRetries; i++) {
+        const { data, error } = await supabase.from(tableName).insert(currentPayload).select().maybeSingle();
+        if (!error) {
+            return { data, error: null };
+        }
+        
+        // Check if error is due to a missing column in PostgREST schema cache
+        const colMatch = error.message?.match(/Could not find the '([^']+)' column/) ||
+                         error.message?.match(/column "([^"]+)" of relation "[^"]+" does not exist/) ||
+                         error.message?.match(/column '([^']+)' of relation '[^']+' does not exist/) ||
+                         error.message?.match(/column ([^ ]+) does not exist/);
+                         
+        if (colMatch && colMatch[1] && currentPayload[colMatch[1]] !== undefined) {
+            const badCol = colMatch[1];
+            delete currentPayload[badCol];
+            continue;
+        }
+        
+        return { data: null, error };
+    }
+    return { data: null, error: new Error('Max retries exceeded during insert') };
 }
 
 // Helper to get active user object
@@ -1126,17 +1156,71 @@ export async function executeSupabaseRequest(args) {
         }
 
         // ── 5. STAY REQUESTS ────────────────────────────────────────
-        if (cleanUrl.startsWith('stay-request')) {
-            if (cleanUrl === 'stay-request/create' && method === 'POST') {
-                const userId = await getCurrentUserId()
-                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'stay_requests') : { ...(body || {}) }
-                payload.user_id = userId || payload.user_id || payload.host_id
-                payload.status = payload.status || 'pending'
-                const clean = sanitizePayload(payload, STAY_REQUEST_COLUMNS)
-                const { data, error } = await supabase.from('stay_requests').insert(clean).select().maybeSingle()
-                if (error) throw error
-                return { data: { request: data, success: true } }
+        if (cleanUrl.startsWith('stay-request') || cleanUrl.startsWith('stay-requests') || cleanUrl.startsWith('admin/stay-request') || cleanUrl.startsWith('admin/stay-requests') || cleanUrl.startsWith('admin/pending/pending-stay-request') || cleanUrl.startsWith('admin/approved/approved-stay-request') || cleanUrl.startsWith('admin/rejected/rejected-stay-request')) {
+            // Admin Actions (Mutations only)
+            if ((cleanUrl.includes('/approve/') || cleanUrl.endsWith('/approve')) && method !== 'GET') {
+                const id = cleanUrl.split('/').pop()
+                const { data } = await supabase.from('stay_requests').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
+                return { data: { success: true, request: data, message: 'Stay request approved' } }
             }
+            if ((cleanUrl.includes('/reject/') || cleanUrl.endsWith('/reject')) && method !== 'GET') {
+                const id = cleanUrl.split('/').pop()
+                const { data } = await supabase.from('stay_requests').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
+                return { data: { success: true, request: data, message: 'Stay request rejected' } }
+            }
+            if ((cleanUrl.includes('/delete/') || cleanUrl.endsWith('/delete')) && method === 'DELETE') {
+                const id = cleanUrl.split('/').pop()
+                await supabase.from('stay_requests').delete().eq('id', id)
+                return { data: { success: true } }
+            }
+
+            // Create Stay Request (POST)
+            if ((cleanUrl === 'stay-request' || cleanUrl === 'stay-requests' || cleanUrl === 'stay-request/create' || cleanUrl === 'stay-requests/create' || cleanUrl === 'stay-request/post') && method === 'POST') {
+                const userObj = await getCurrentUserObject()
+                const userId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'stay_requests') : { ...(body || {}) }
+                payload.user_id = userId || payload.user_id || payload.host_id || null
+                payload.user_name = userObj?.full_name || userObj?.name || payload.seekerName || payload.seeker_name || 'Stay Seeker'
+                payload.username = userObj?.email?.split('@')[0] || payload.username || ''
+                payload.seeker_name = payload.user_name
+                payload.seekerName = payload.user_name
+                payload.status = payload.status || 'pending'
+                payload.is_approved = payload.is_approved !== undefined ? payload.is_approved : false
+
+                if (payload.stayType && !payload.stay_type) payload.stay_type = payload.stayType
+                if (payload.whatsappNumber && !payload.whatsapp) payload.whatsapp = payload.whatsappNumber
+                if (payload.whatsapp && !payload.whatsappNumber) payload.whatsappNumber = payload.whatsapp
+
+                const clean = sanitizePayload(payload, STAY_REQUEST_COLUMNS)
+                const { data, error } = await resilientInsert('stay_requests', clean)
+                if (error) {
+                    console.error('Supabase stay_requests insert error:', error)
+                    throw error
+                }
+                const enriched = await enrichWithProfiles(data ? [data] : [], 'user_id')
+                const single = enriched[0] || data
+                return { data: { request: single, data: single, success: true } }
+            }
+
+            // My Stay Requests
+            if (cleanUrl === 'stay-request/me' || cleanUrl === 'stay-requests/me') {
+                const userId = await getCurrentUserId()
+                let q = supabase.from('stay_requests').select('*').order('created_at', { ascending: false })
+                if (userId) q = q.eq('user_id', userId)
+                const { data } = await q
+                const enriched = await enrichWithProfiles(data || [], 'user_id')
+                return { data: { requests: enriched, data: enriched, total: enriched.length } }
+            }
+
+            // Single Stay Request by ID
+            const singleMatch = cleanUrl.match(/^(?:stay-request|stay-requests)\/(?:request\/)?([^/]+)$/)
+            if (singleMatch && method === 'GET' && !['create', 'post', 'search', 'me', 'all', 'approved', 'pending', 'rejected'].includes(singleMatch[1])) {
+                const { data } = await supabase.from('stay_requests').select('*').eq('id', singleMatch[1]).maybeSingle()
+                const enriched = await enrichWithProfiles(data ? [data] : [], 'user_id')
+                return { data: { request: enriched[0] || data, data: enriched[0] || data } }
+            }
+
+            // List Stay Requests
             let query = supabase.from('stay_requests').select('*').order('created_at', { ascending: false })
             if (cleanUrl.includes('pending')) {
                 query = query.eq('status', 'pending')
@@ -1158,9 +1242,10 @@ export async function executeSupabaseRequest(args) {
                 }
             }
 
+            if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data } = await query
             const enriched = await enrichWithProfiles(data || [], 'user_id')
-            return { data: { requests: enriched, total: enriched.length } }
+            return { data: { requests: enriched, data: enriched, total: enriched.length } }
         }
 
         // ── 6. PROFILES / HOST / USER ──────────────────────────────
