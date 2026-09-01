@@ -286,7 +286,7 @@ export function PeopleCard({ person }) {
           
           <div className="border-x border-slate-200/60">
             <span className="text-[10px] text-[#717171] font-bold uppercase tracking-wider block">Experience</span>
-            <span className="text-xs font-bold text-slate-800 block mt-1">{experience || "—"}</span>
+            <span className="text-xs font-bold text-slate-800 block mt-1">{experienceDisplay || "—"}</span>
           </div>
 
           <div className="px-1">
