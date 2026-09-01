@@ -133,12 +133,16 @@ export function SocialQuickConnect({
       }
       try {
         setIsRequestedLocally(true);
+        const reqName = user?.name || user?.full_name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '') || user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+        const reqAvatar = user?.avatar || user?.avatar_url || user?.profile_image || user?.user_metadata?.avatar_url || '';
         await sendReq({
           targetUserId: ownerId,
           targetName: ownerName || "Owner",
           itemId,
           itemTitle: itemTitle || "Listing",
           itemType,
+          requesterName: reqName,
+          requesterAvatar: reqAvatar,
           requesterPhone: user?.phone || "",
           requesterEmail: user?.email || ""
         }).unwrap();
@@ -333,12 +337,16 @@ export function SellerContactButtons({
         return;
       }
       try {
+        const reqName = user?.name || user?.full_name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '') || user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+        const reqAvatar = user?.avatar || user?.avatar_url || user?.profile_image || user?.user_metadata?.avatar_url || '';
         await sendReq({
           targetUserId: ownerId,
           targetName: ownerName || "Seller",
           itemId,
           itemTitle: itemTitle || "Listing",
           itemType,
+          requesterName: reqName,
+          requesterAvatar: reqAvatar,
           requesterPhone: user?.phone || "",
           requesterEmail: user?.email || ""
         }).unwrap();

@@ -1647,6 +1647,15 @@ export async function executeSupabaseRequest(args) {
             const userObj = await getCurrentUserObject()
             const currentUserId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
 
+            // Helper to format email to readable human name
+            const formatNameFromEmail = (email) => {
+                if (!email || typeof email !== 'string' || !email.includes('@')) return ''
+                const handle = email.split('@')[0]
+                const parts = handle.replace(/[^a-zA-Z]+/g, ' ').trim().split(/\s+/).filter(Boolean)
+                if (parts.length === 0) return ''
+                return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ')
+            }
+
             // 1. Send Connection Request: POST connection-requests
             if ((cleanUrl === 'connection-requests' || cleanUrl === 'connections') && method === 'POST') {
                 if (!currentUserId) {
@@ -1665,17 +1674,6 @@ export async function executeSupabaseRequest(args) {
                 const itemId = body?.itemId || body?.item_id || ''
                 const itemTitle = body?.itemTitle || body?.item_title || ''
                 const itemType = body?.itemType || body?.item_type || 'accommodations'
-                const requesterName = userObj?.name || userObj?.full_name || body?.requesterName || 'Community Member'
-                const requesterEmail = userObj?.email || body?.requesterEmail || ''
-                const requesterPhone = userObj?.phone || body?.requesterPhone || ''
-
-                // Get target user profile
-                const { data: targetProfile } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle()
-                let targetMeta = {}
-                if (targetProfile?.street_address && (targetProfile.street_address.startsWith('{') || targetProfile.street_address.startsWith('['))) {
-                    try { targetMeta = JSON.parse(targetProfile.street_address) } catch {}
-                }
-                targetMeta.incoming_requests = Array.isArray(targetMeta.incoming_requests) ? targetMeta.incoming_requests : []
 
                 // Get current user profile
                 const { data: currentProfile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
@@ -1684,6 +1682,33 @@ export async function executeSupabaseRequest(args) {
                     try { currentMeta = JSON.parse(currentProfile.street_address) } catch {}
                 }
                 currentMeta.outgoing_requests = Array.isArray(currentMeta.outgoing_requests) ? currentMeta.outgoing_requests : []
+
+                const requesterEmail = body?.requesterEmail || currentProfile?.email || userObj?.email || ''
+                const requesterPhone = body?.requesterPhone || currentProfile?.phone || userObj?.phone || userObj?.user_metadata?.phone || ''
+                const requesterAvatar = body?.requesterAvatar || currentProfile?.avatar_url || currentProfile?.profile_image || userObj?.user_metadata?.avatar_url || ''
+
+                const rawRequesterName = (body?.requesterName || '').trim()
+                const isGenericGivenName = !rawRequesterName || /^(community\s*member|user\d*|guest|null|undefined)$/i.test(rawRequesterName)
+
+                const requesterName = (!isGenericGivenName ? rawRequesterName : '') ||
+                    currentProfile?.name ||
+                    currentProfile?.full_name ||
+                    (currentProfile?.firstName ? `${currentProfile.firstName} ${currentProfile?.lastName || ''}`.trim() : '') ||
+                    userObj?.user_metadata?.full_name ||
+                    userObj?.user_metadata?.name ||
+                    (userObj?.user_metadata?.first_name ? `${userObj.user_metadata.first_name} ${userObj.user_metadata?.last_name || ''}`.trim() : '') ||
+                    userObj?.name ||
+                    userObj?.full_name ||
+                    (requesterEmail ? formatNameFromEmail(requesterEmail) : '') ||
+                    'Community Member'
+
+                // Get target user profile
+                const { data: targetProfile } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle()
+                let targetMeta = {}
+                if (targetProfile?.street_address && (targetProfile.street_address.startsWith('{') || targetProfile.street_address.startsWith('['))) {
+                    try { targetMeta = JSON.parse(targetProfile.street_address) } catch {}
+                }
+                targetMeta.incoming_requests = Array.isArray(targetMeta.incoming_requests) ? targetMeta.incoming_requests : []
 
                 const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
                 const newRequest = {
@@ -1697,6 +1722,8 @@ export async function executeSupabaseRequest(args) {
                     requesterEmail: requesterEmail,
                     requester_phone: requesterPhone,
                     requesterPhone: requesterPhone,
+                    requester_avatar: requesterAvatar,
+                    requesterAvatar: requesterAvatar,
                     target_user_id: targetUserId,
                     targetUserId: targetUserId,
                     target_name: body?.targetName || targetProfile?.name || targetProfile?.full_name || 'Host',
@@ -1754,6 +1781,59 @@ export async function executeSupabaseRequest(args) {
                     try { meta = JSON.parse(profile.street_address) } catch {}
                 }
                 const incoming = Array.isArray(meta.incoming_requests) ? meta.incoming_requests : []
+
+                // Enrich incoming requests with requester profile details
+                const reqUserIds = [...new Set(incoming.map(r => r.requesterId || r.requester_id).filter(Boolean))]
+                if (reqUserIds.length > 0) {
+                    try {
+                        const { data: reqProfiles } = await supabase
+                            .from('profiles')
+                            .select('id, name, full_name, firstName, lastName, email, phone, avatar_url, profile_image, occupation, headline, city, country')
+                            .in('id', reqUserIds)
+
+                        if (reqProfiles && Array.isArray(reqProfiles)) {
+                            const profileMap = new Map(reqProfiles.map(p => [String(p.id), p]))
+                            incoming.forEach(r => {
+                                const reqId = String(r.requesterId || r.requester_id || '')
+                                const p = profileMap.get(reqId)
+                                if (p) {
+                                    const profName = p.name || p.full_name || (p.firstName ? `${p.firstName} ${p.lastName || ''}`.trim() : '')
+                                    if (profName) {
+                                        r.requesterName = profName
+                                        r.requester_name = profName
+                                    }
+                                    if (p.avatar_url || p.profile_image) {
+                                        r.requesterAvatar = p.avatar_url || p.profile_image
+                                        r.requester_avatar = r.requesterAvatar
+                                    }
+                                    if (p.email && !r.requesterEmail) {
+                                        r.requesterEmail = p.email
+                                        r.requester_email = p.email
+                                    }
+                                    if (p.phone && !r.requesterPhone) {
+                                        r.requesterPhone = p.phone
+                                        r.requester_phone = p.phone
+                                    }
+                                    r.requesterHeadline = p.occupation || p.headline || ''
+                                    r.requesterLocation = [p.city, p.country].filter(Boolean).join(', ')
+                                }
+
+                                const email = r.requesterEmail || r.requester_email || p?.email
+                                const isGenericName = !r.requesterName || /^(community\s*member|user\d*|guest|null|undefined)$/i.test((r.requesterName || '').trim())
+                                if (isGenericName && email) {
+                                    const derived = formatNameFromEmail(email)
+                                    if (derived) {
+                                        r.requesterName = derived
+                                        r.requester_name = derived
+                                    }
+                                }
+                            })
+                        }
+                    } catch (enrichErr) {
+                        console.warn('Could not enrich incoming connection requests:', enrichErr)
+                    }
+                }
+
                 return {
                     data: {
                         data: incoming,

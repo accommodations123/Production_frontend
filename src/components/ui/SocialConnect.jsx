@@ -133,14 +133,18 @@ export const SocialQuickConnect = ({
       }
       try {
         setIsRequestedLocally(true);
+        const reqName = user?.name || user?.full_name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '') || localUser?.name || localUser?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+        const reqAvatar = user?.avatar || user?.avatar_url || user?.profile_image || localUser?.avatar || localUser?.profile_image || user?.user_metadata?.avatar_url || '';
         await sendReq({
           targetUserId: ownerId,
           targetName: ownerName || "Owner",
           itemId,
           itemTitle: itemTitle || "Listing",
           itemType,
-          requesterPhone: user?.phone || "",
-          requesterEmail: user?.email || ""
+          requesterName: reqName,
+          requesterAvatar: reqAvatar,
+          requesterPhone: user?.phone || localUser?.phone || "",
+          requesterEmail: user?.email || localUser?.email || ""
         }).unwrap();
         toast.success(`Connection request sent to ${ownerName || "the owner"}!`);
       } catch (err) {
@@ -330,14 +334,18 @@ export const SellerContactButtons = ({
       }
       try {
         setIsRequestedLocally(true);
+        const reqName = user?.name || user?.full_name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '') || localUser?.name || localUser?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+        const reqAvatar = user?.avatar || user?.avatar_url || user?.profile_image || localUser?.avatar || localUser?.profile_image || user?.user_metadata?.avatar_url || '';
         await sendReq({
           targetUserId: ownerId,
           targetName: ownerName || "Seller",
           itemId,
           itemTitle: itemTitle || "Listing",
           itemType,
-          requesterPhone: user?.phone || "",
-          requesterEmail: user?.email || ""
+          requesterName: reqName,
+          requesterAvatar: reqAvatar,
+          requesterPhone: user?.phone || localUser?.phone || "",
+          requesterEmail: user?.email || localUser?.email || ""
         }).unwrap();
         toast.success(`Connection request sent to ${ownerName || "the seller"}!`);
       } catch (err) {
@@ -499,14 +507,18 @@ export const HostDetailSocials = ({ socials, className = "", ownerId = null, own
       }
       try {
         setIsRequestedLocally(true);
+        const reqName = user?.name || user?.full_name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : '') || localUser?.name || localUser?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+        const reqAvatar = user?.avatar || user?.avatar_url || user?.profile_image || localUser?.avatar || localUser?.profile_image || user?.user_metadata?.avatar_url || '';
         await sendReq({
           targetUserId: ownerId,
           targetName: ownerName || "Host",
           itemId: itemId || ownerId,
           itemTitle: ownerName || "Host Profile",
           itemType: "accommodations",
-          requesterPhone: user?.phone || "",
-          requesterEmail: user?.email || ""
+          requesterName: reqName,
+          requesterAvatar: reqAvatar,
+          requesterPhone: user?.phone || localUser?.phone || "",
+          requesterEmail: user?.email || localUser?.email || ""
         }).unwrap();
         toast.success(`Connection request sent to ${ownerName || "the host"}!`);
       } catch (err) {
