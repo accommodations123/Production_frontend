@@ -218,6 +218,8 @@ export function useHostCreation() {
                 country: activeCountry,
                 hostCountry: activeCountry.name,
                 currency: activeCountry.currency || "INR",
+                phoneCode: prev.phoneCode && prev.phoneCode !== "+91" ? prev.phoneCode : (activeCountry.phoneCode || (activeCountry.code === "US" ? "+1" : "+91")),
+                phoneIso: prev.phoneIso && prev.phoneIso !== "IN" ? prev.phoneIso : (activeCountry.code || "US"),
                 ...(countryChanged ? {
                     address: "",
                     city: "",

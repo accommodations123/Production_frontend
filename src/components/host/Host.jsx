@@ -12,6 +12,7 @@ import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
 import { extractUsername } from "@/lib/socialUtils";
 import { useAuth } from "@/shared/hooks/useAuth";
+import { useCountry } from "@/context/CountryContext";
 
 // Helper to split phone number
 // Known country codes (most common first)
@@ -87,6 +88,7 @@ export default function HostOnboardingForm() {
 
   // Using auth hook
   const { user: currentUser, isAuthenticated, loading: isAuthLoading } = useAuth();
+  const { activeCountry } = useCountry();
   const { data: userData } = useGetMeQuery();
   const [saveHost, { isLoading: isSubmitLoading, isError, error }] = useSaveHostMutation();
 
@@ -94,7 +96,21 @@ export default function HostOnboardingForm() {
     skip: !isAuthenticated && !userData
   });
 
-  // Pre-fill user data when available
+  // Pre-fill user data and active country prefix when available
+  useEffect(() => {
+    if (activeCountry) {
+      const defPrefix = activeCountry.phoneCode || (activeCountry.code === "US" ? "+1" : "+91");
+      const defIso = activeCountry.code || "US";
+      setFormData(prev => ({
+        ...prev,
+        phonePrefix: prev.phonePrefix === "+91" && defPrefix !== "+91" ? defPrefix : (prev.phonePrefix || defPrefix),
+        phoneIso: prev.phoneIso === "IN" && defIso !== "IN" ? defIso : (prev.phoneIso || defIso),
+        whatsappPrefix: prev.whatsappPrefix === "+91" && defPrefix !== "+91" ? defPrefix : (prev.whatsappPrefix || defPrefix),
+        whatsappIso: prev.whatsappIso === "IN" && defIso !== "IN" ? defIso : (prev.whatsappIso || defIso),
+      }));
+    }
+  }, [activeCountry]);
+
   useEffect(() => {
     if (currentUser) {
       setFormData(prev => ({

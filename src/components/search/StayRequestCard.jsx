@@ -8,17 +8,18 @@ export function StayRequestCard({ request }) {
 
   if (!request) return null;
 
-  const seekerName = request.seekerName || request.name || request.Host?.full_name || request.host?.full_name || "Stay Seeker";
-  const userImage = request.profile_image || request.avatar || request.Host?.User?.profile_image || request.host?.User?.profile_image || "";
+  const seekerName = request.seekerName || request.name || request.Host?.full_name || request.host?.full_name || request.User?.name || "";
+  const userImage = request.profile_image || request.avatar || request.Host?.User?.profile_image || request.host?.User?.profile_image || request.User?.profile_image || "";
   const city = request.city || request.location || "";
+  const state = request.state || "";
   const country = request.country || "";
-  const locationString = city && country ? `${city}, ${country}` : city || country || "Any location";
-  const stayType = request.stayType || request.stay_type || "Long Term";
-  const furnishing = request.furnishing || "Furnished";
-  const title = request.title || "Looking for Accommodation";
-  const description = request.description || "Looking for a comfortable stay with essential amenities.";
+  const locationString = [city, state, country].filter(Boolean).join(", ");
+  const stayType = request.stayType || request.stay_type || "";
+  const furnishing = request.furnishing || "";
+  const title = request.title || "";
+  const description = request.description || "";
   const budget = Number(request.budget || request.price || request.price_per_month || 0);
-  const currency = request.currency || "INR";
+  const currency = request.currency || "";
 
   const isVerified = Boolean(request.isVerified || request.verified || request.Host?.verified || request.host?.verified);
 
@@ -112,9 +113,11 @@ export function StayRequestCard({ request }) {
               <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-[#CB2A26] transition-colors truncate">
                 {seekerName}
               </h3>
-              <p className="text-xs font-semibold text-[#CB2A26] truncate mt-0.5">
-                {title}
-              </p>
+              {title && (
+                <p className="text-xs font-semibold text-[#CB2A26] truncate mt-0.5">
+                  {title}
+                </p>
+              )}
             </div>
           </div>
 
@@ -130,26 +133,34 @@ export function StayRequestCard({ request }) {
 
         {/* Feature Tags / Badges Row */}
         <div className="flex flex-wrap gap-2 my-3">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100/80 text-slate-700 text-xs font-semibold border border-slate-200/50">
-            <MapPin className="w-3.5 h-3.5 text-[#CB2A26] shrink-0" />
-            <span className="truncate max-w-[140px]">{locationString}</span>
-          </span>
+          {locationString && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100/80 text-slate-700 text-xs font-semibold border border-slate-200/50">
+              <MapPin className="w-3.5 h-3.5 text-[#CB2A26] shrink-0" />
+              <span className="truncate max-w-[140px]">{locationString}</span>
+            </span>
+          )}
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100/80 text-slate-700 text-xs font-semibold border border-slate-200/50">
-            <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-            <span>{stayType}</span>
-          </span>
+          {stayType && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100/80 text-slate-700 text-xs font-semibold border border-slate-200/50">
+              <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              <span>{stayType}</span>
+            </span>
+          )}
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100/80 text-slate-700 text-xs font-semibold border border-slate-200/50">
-            <Home className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-            <span>{furnishing}</span>
-          </span>
+          {furnishing && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100/80 text-slate-700 text-xs font-semibold border border-slate-200/50">
+              <Home className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span>{furnishing}</span>
+            </span>
+          )}
         </div>
 
         {/* Description Body */}
-        <p className="text-slate-600 text-xs sm:text-sm line-clamp-3 leading-relaxed my-3 font-normal">
-          {description}
-        </p>
+        {description && (
+          <p className="text-slate-600 text-xs sm:text-sm line-clamp-3 leading-relaxed my-3 font-normal">
+            {description}
+          </p>
+        )}
       </div>
 
       {/* Footer Action Bar */}

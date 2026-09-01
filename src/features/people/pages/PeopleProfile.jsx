@@ -231,6 +231,25 @@ export default function PeopleProfile() {
   const serverConnStatus = connectionStatusResponse?.status || connectionStatusResponse?.data?.status || "none";
   const connStatus = isOwnProfile ? "accepted" : (isConnectionRequestedLocally ? "pending" : serverConnStatus);
 
+  const currency = useMemo(() => {
+    if (person?.country && person.country !== "Global" && person.country !== "All") {
+      return getCurrencyForCountry(person.country);
+    }
+    if (person?.pricing?.currency && person.pricing.currency !== "INR") {
+      return person.pricing.currency;
+    }
+    if (person?.currency && person.currency !== "INR") {
+      return person.currency;
+    }
+    if (activeCountry?.name && activeCountry.name !== "Global" && activeCountry.name !== "All") {
+      return getCurrencyForCountry(activeCountry.name);
+    }
+    if (activeCountry?.currency) {
+      return activeCountry.currency;
+    }
+    return person?.pricing?.currency || person?.currency || "USD";
+  }, [person?.country, person?.pricing?.currency, person?.currency, activeCountry]);
+
   const handleMessageAction = async () => {
     if (!isAuthenticated) {
       toast.error("Please sign in to send a connection request.");
@@ -345,24 +364,6 @@ export default function PeopleProfile() {
   const coverImage = person.cover_image || "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop&q=80";
   const rawHourly = person.pricing?.consultation ?? person.hourlyRate ?? person.hourly_rate ?? null;
   const hourlyRate = (rawHourly !== null && rawHourly !== undefined && !isNaN(Number(rawHourly)) && Number(rawHourly) > 0) ? Number(rawHourly) : null;
-  const currency = useMemo(() => {
-    if (person?.country && person.country !== "Global" && person.country !== "All") {
-      return getCurrencyForCountry(person.country);
-    }
-    if (person?.pricing?.currency && person.pricing.currency !== "INR") {
-      return person.pricing.currency;
-    }
-    if (person?.currency && person.currency !== "INR") {
-      return person.currency;
-    }
-    if (activeCountry?.name && activeCountry.name !== "Global" && activeCountry.name !== "All") {
-      return getCurrencyForCountry(activeCountry.name);
-    }
-    if (activeCountry?.currency) {
-      return activeCountry.currency;
-    }
-    return person?.pricing?.currency || person?.currency || "USD";
-  }, [person?.country, person?.pricing?.currency, person?.currency, activeCountry]);
   const skills = Array.isArray(person.skills) && person.skills.length > 0
     ? person.skills
     : (profession !== "Expert Advisor" ? profession.split(/[,|•/]/).map(s => s.trim()).filter(Boolean) : ["Consulting", "Support", "Advisor"]);

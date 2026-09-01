@@ -120,6 +120,9 @@ export default function PostStayRequestPage() {
 
   const initialCurrency = activeCountry?.currency || getCurrencyForCountry(activeCountry?.name || activeCountry?.code) || "INR";
 
+  const defaultPhonePrefix = activeCountry?.phoneCode || (activeCountry?.code === "US" ? "+1" : "+91");
+  const defaultIso = activeCountry?.code || (activeCountry?.phoneCode === "+1" ? "US" : "IN");
+
   const [form, setForm] = useState({
     title: "",
     country: activeCountry?.name || "",
@@ -132,9 +135,11 @@ export default function PostStayRequestPage() {
     description: "",
     seekerName: currentUser?.fullName || currentUser?.name || "",
     email: currentUser?.email || "",
-    phonePrefix: "+91",
+    phonePrefix: defaultPhonePrefix,
+    phoneIso: defaultIso,
     phoneNumber: currentUser?.phone || "",
-    whatsappPrefix: "+91",
+    whatsappPrefix: defaultPhonePrefix,
+    whatsappIso: defaultIso,
     whatsappNumber: currentUser?.phone || "",
     linkedin: "",
     instagram: ""
@@ -189,10 +194,16 @@ export default function PostStayRequestPage() {
     // Set selected country if none is selected yet or matching initial navbar country
     if (!selectedCountry) {
       setSelectedCountry(targetCountry);
+      const currentPhoneCode = activeCountry?.phoneCode || (activeCountry?.code === "US" ? "+1" : "+91");
+      const currentIso = activeCountry?.code || (activeCountry?.phoneCode === "+1" ? "US" : "IN");
       setForm((prev) => ({
         ...prev,
         country: targetCountry.name,
         currency: prev.currency || derivedCurrency,
+        phonePrefix: prev.phonePrefix === "+91" && currentPhoneCode !== "+91" ? currentPhoneCode : (prev.phonePrefix || currentPhoneCode),
+        phoneIso: prev.phoneIso === "IN" && currentIso !== "IN" ? currentIso : (prev.phoneIso || currentIso),
+        whatsappPrefix: prev.whatsappPrefix === "+91" && currentPhoneCode !== "+91" ? currentPhoneCode : (prev.whatsappPrefix || currentPhoneCode),
+        whatsappIso: prev.whatsappIso === "IN" && currentIso !== "IN" ? currentIso : (prev.whatsappIso || currentIso),
       }));
 
       const activeStateObj = locationMod?.State || locationMod?.default?.State;
@@ -793,7 +804,8 @@ export default function PostStayRequestPage() {
                   <div className="flex gap-2">
                     <CountryCodeSelect
                       value={form.whatsappPrefix}
-                      onChange={(code) => setForm((prev) => ({ ...prev, whatsappPrefix: code }))}
+                      isoCode={form.whatsappIso}
+                      onChange={(code, iso) => setForm((prev) => ({ ...prev, whatsappPrefix: code, whatsappIso: iso }))}
                     />
                     <input
                       type="tel"
@@ -813,7 +825,8 @@ export default function PostStayRequestPage() {
                   <div className="flex gap-2">
                     <CountryCodeSelect
                       value={form.phonePrefix}
-                      onChange={(code) => setForm((prev) => ({ ...prev, phonePrefix: code }))}
+                      isoCode={form.phoneIso}
+                      onChange={(code, iso) => setForm((prev) => ({ ...prev, phonePrefix: code, phoneIso: iso }))}
                     />
                     <input
                       type="tel"
