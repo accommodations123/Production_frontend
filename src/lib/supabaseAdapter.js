@@ -1596,7 +1596,7 @@ export async function executeSupabaseRequest(args) {
                 // Save into user profile metadata
                 await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', currentUserId)
 
-                // Also try inserting/updating into job_applications table if exists
+                // Insert/upsert directly into job_applications table in Supabase
                 try {
                     await supabase.from('job_applications').upsert({
                         id: applicationId,
@@ -1606,11 +1606,14 @@ export async function executeSupabaseRequest(args) {
                         email: newApplication.email,
                         phone: newApplication.phone,
                         resume_url: newApplication.resume_url,
-                        status: 'submitted'
+                        status: 'submitted',
+                        created_at: newApplication.created_at
                     })
-                } catch {}
+                } catch (tableErr) {
+                    console.warn('job_applications table upsert note:', tableErr)
+                }
 
-                // Save to localStorage as resilient client backup
+                // Synchronize localStorage
                 try {
                     localStorage.setItem(`nxt_job_applications_${currentUserId}`, JSON.stringify(profileMeta.job_applications))
                 } catch {}
@@ -1631,22 +1634,88 @@ export async function executeSupabaseRequest(args) {
                     return { data: { applications: [], data: [], count: 0, total: 0, totalPages: 1 } }
                 }
 
-                const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
-                let profileMeta = {}
-                if (profile?.street_address && (profile.street_address.startsWith('{') || profile.street_address.startsWith('['))) {
-                    try { profileMeta = JSON.parse(profile.street_address) } catch {}
-                }
-                let applications = Array.isArray(profileMeta.job_applications) ? profileMeta.job_applications : []
+                let applications = []
+                let isAuthoritativeDbSuccess = false
 
-                // Fallback to localStorage if profile has none
-                if (applications.length === 0) {
-                    try {
-                        const local = localStorage.getItem(`nxt_job_applications_${currentUserId}`) || localStorage.getItem('nxt_job_applications')
-                        if (local) applications = JSON.parse(local)
-                    } catch {}
+                // 1. Direct query to live Supabase job_applications table
+                try {
+                    const { data: dbApps, error: dbErr } = await supabase
+                        .from('job_applications')
+                        .select('*')
+                        .eq('user_id', currentUserId)
+                        .order('created_at', { ascending: false })
+
+                    if (!dbErr && Array.isArray(dbApps)) {
+                        isAuthoritativeDbSuccess = true
+                        applications = dbApps
+
+                        // If rows exist, enrich with live job details from Supabase jobs table
+                        if (applications.length > 0) {
+                            const jobIds = [...new Set(applications.map(a => a.job_id).filter(Boolean))]
+                            let jobsMap = {}
+                            if (jobIds.length > 0) {
+                                const { data: dbJobs } = await supabase.from('jobs').select('*').in('id', jobIds)
+                                if (dbJobs) {
+                                    dbJobs.forEach(j => { jobsMap[j.id] = j })
+                                }
+                            }
+
+                            applications = applications.map(app => {
+                                const job = jobsMap[app.job_id] || app.job || null
+                                return {
+                                    ...app,
+                                    id: app.id || app._id,
+                                    _id: app.id || app._id,
+                                    createdAt: app.created_at || app.createdAt,
+                                    job: job ? {
+                                        id: job.id,
+                                        _id: job.id,
+                                        title: job.title || 'Job Position',
+                                        company: job.company || job.company_name || 'NextKinLife Partner',
+                                        location: job.location || job.city || 'Remote',
+                                        type: job.employment_type || job.job_type || 'Full-time',
+                                        employment_type: job.employment_type || job.job_type || 'Full-time',
+                                        work_style: job.work_style || 'On-site',
+                                        workStyle: job.work_style || 'On-site'
+                                    } : null
+                                }
+                            })
+                        }
+                    }
+                } catch (err) {
+                    console.warn('job_applications table query fallback:', err)
                 }
 
-                // Deduplicate applications by job position / ID to guarantee clean, non-duplicate list
+                // 2. If job_applications table does not exist, query user profile metadata and validate against live jobs table
+                if (!isAuthoritativeDbSuccess) {
+                    const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
+                    let profileMeta = {}
+                    if (profile?.street_address && (profile.street_address.startsWith('{') || profile.street_address.startsWith('['))) {
+                        try { profileMeta = JSON.parse(profile.street_address) } catch {}
+                    }
+                    applications = Array.isArray(profileMeta.job_applications) ? profileMeta.job_applications : []
+                }
+
+                // 3. Verify applications against live Supabase jobs table: if jobs were removed from Supabase, prune them!
+                try {
+                    const { data: liveJobs, error: liveJobsErr } = await supabase.from('jobs').select('id')
+                    if (!liveJobsErr && Array.isArray(liveJobs)) {
+                        const validJobIdSet = new Set(liveJobs.map(j => String(j.id)))
+                        // If all jobs in Supabase were deleted (0 jobs in table), filter out mock/orphan job applications
+                        if (liveJobs.length === 0) {
+                            applications = []
+                        } else {
+                            applications = applications.filter(app => {
+                                const jId = String(app.job_id || app.jobId || app.job?.id || app.job?._id || '')
+                                return !jId || validJobIdSet.has(jId)
+                            })
+                        }
+                    }
+                } catch (jErr) {
+                    console.warn('Live jobs validation note:', jErr)
+                }
+
+                // Deduplicate applications
                 const seenJobIds = new Set()
                 const uniqueApplications = []
                 for (const app of applications) {
@@ -1658,13 +1727,17 @@ export async function executeSupabaseRequest(args) {
                 }
                 applications = uniqueApplications
 
-                // Clean up profile in database if duplicates were stripped
-                if (Array.isArray(profileMeta.job_applications) && profileMeta.job_applications.length !== uniqueApplications.length) {
-                    profileMeta.job_applications = uniqueApplications
-                    try {
-                        await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', currentUserId)
-                    } catch {}
-                }
+                // Synchronize profile metadata and localStorage with the live state
+                try {
+                    const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
+                    let profileMeta = {}
+                    if (profile?.street_address && (profile.street_address.startsWith('{') || profile.street_address.startsWith('['))) {
+                        try { profileMeta = JSON.parse(profile.street_address) } catch {}
+                    }
+                    profileMeta.job_applications = applications
+                    await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', currentUserId)
+                    localStorage.setItem(`nxt_job_applications_${currentUserId}`, JSON.stringify(applications))
+                } catch {}
 
                 return {
                     data: {
