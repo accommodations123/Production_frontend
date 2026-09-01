@@ -1547,7 +1547,15 @@ export async function executeSupabaseRequest(args) {
                 }
                 profileMeta.job_applications = Array.isArray(profileMeta.job_applications) ? profileMeta.job_applications : []
 
-                const applicationId = `app_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
+                // Check for existing application for this specific job to prevent duplicate entries
+                const existingIdx = profileMeta.job_applications.findIndex(a => 
+                    (jobId && (String(a.job_id || a.jobId) === String(jobId) || String(a.job?.id || a.job?._id) === String(jobId)))
+                )
+
+                const applicationId = existingIdx >= 0 && (profileMeta.job_applications[existingIdx].id || profileMeta.job_applications[existingIdx]._id)
+                    ? (profileMeta.job_applications[existingIdx].id || profileMeta.job_applications[existingIdx]._id)
+                    : `app_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
+
                 const newApplication = {
                     id: applicationId,
                     _id: applicationId,
@@ -1564,19 +1572,33 @@ export async function executeSupabaseRequest(args) {
                     years_of_experience: payload.years_of_experience || '',
                     resume_url: resumeUrl || payload.resume_url || '',
                     status: 'submitted',
-                    created_at: new Date().toISOString(),
-                    createdAt: new Date().toISOString(),
+                    created_at: existingIdx >= 0 ? (profileMeta.job_applications[existingIdx].created_at || profileMeta.job_applications[existingIdx].createdAt || new Date().toISOString()) : new Date().toISOString(),
+                    createdAt: existingIdx >= 0 ? (profileMeta.job_applications[existingIdx].createdAt || profileMeta.job_applications[existingIdx].created_at || new Date().toISOString()) : new Date().toISOString(),
                     updated_at: new Date().toISOString(),
                     job: jobInfo
                 }
 
+                if (existingIdx >= 0) {
+                    profileMeta.job_applications[existingIdx] = { ...profileMeta.job_applications[existingIdx], ...newApplication }
+                } else {
+                    profileMeta.job_applications.unshift(newApplication)
+                }
+
+                // Clean all duplicates in stored profileMeta
+                const seenKeys = new Set()
+                profileMeta.job_applications = profileMeta.job_applications.filter(a => {
+                    const key = String(a.job_id || a.jobId || a.job?.id || a.id || a._id)
+                    if (seenKeys.has(key)) return false
+                    seenKeys.add(key)
+                    return true
+                })
+
                 // Save into user profile metadata
-                profileMeta.job_applications.unshift(newApplication)
                 await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', currentUserId)
 
-                // Also try inserting into job_applications table if exists
+                // Also try inserting/updating into job_applications table if exists
                 try {
-                    await supabase.from('job_applications').insert({
+                    await supabase.from('job_applications').upsert({
                         id: applicationId,
                         user_id: currentUserId,
                         job_id: jobId,
@@ -1590,9 +1612,7 @@ export async function executeSupabaseRequest(args) {
 
                 // Save to localStorage as resilient client backup
                 try {
-                    const localApps = JSON.parse(localStorage.getItem(`nxt_job_applications_${currentUserId}`) || '[]')
-                    localApps.unshift(newApplication)
-                    localStorage.setItem(`nxt_job_applications_${currentUserId}`, JSON.stringify(localApps))
+                    localStorage.setItem(`nxt_job_applications_${currentUserId}`, JSON.stringify(profileMeta.job_applications))
                 } catch {}
 
                 return {
@@ -1623,6 +1643,26 @@ export async function executeSupabaseRequest(args) {
                     try {
                         const local = localStorage.getItem(`nxt_job_applications_${currentUserId}`) || localStorage.getItem('nxt_job_applications')
                         if (local) applications = JSON.parse(local)
+                    } catch {}
+                }
+
+                // Deduplicate applications by job position / ID to guarantee clean, non-duplicate list
+                const seenJobIds = new Set()
+                const uniqueApplications = []
+                for (const app of applications) {
+                    const jKey = String(app.job_id || app.jobId || app.job?.id || app.job?._id || app.id || app._id)
+                    if (!seenJobIds.has(jKey)) {
+                        seenJobIds.add(jKey)
+                        uniqueApplications.push(app)
+                    }
+                }
+                applications = uniqueApplications
+
+                // Clean up profile in database if duplicates were stripped
+                if (Array.isArray(profileMeta.job_applications) && profileMeta.job_applications.length !== uniqueApplications.length) {
+                    profileMeta.job_applications = uniqueApplications
+                    try {
+                        await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', currentUserId)
                     } catch {}
                 }
 

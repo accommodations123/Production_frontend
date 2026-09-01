@@ -103,8 +103,11 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
     };
 
     const { isAuthenticated } = useAuth();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const onSubmit = async (data) => {
+        if (isSubmitting || isLoading) return;
+
         if (!isAuthenticated) {
             toast.error("Please login to apply for jobs");
             navigate('/login', { state: { from: window.location.pathname } });
@@ -114,6 +117,8 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
             toast.error("Please upload your resume");
             return;
         }
+
+        setIsSubmitting(true);
 
         const formData = new FormData();
         formData.append('job_id', jobId);
@@ -137,8 +142,9 @@ export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCan
             setTimeout(() => {
                 if (onSuccess) onSuccess();
                 navigate('/account-v2?tab=applications');
-            }, 2000);
+            }, 1500);
         } catch (error) {
+            setIsSubmitting(false);
             console.error("Application submission error:", error);
             toast.error(error?.data?.message || "Failed to submit application. Please try again.");
         }

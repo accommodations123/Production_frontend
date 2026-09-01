@@ -57,7 +57,17 @@ const formatDate = (dateStr) => {
 
 export function MyApplications() {
   const { data, isLoading, error, refetch } = useGetMyApplicationsQuery({});
-  const applications = data?.applications || [];
+  const rawApps = data?.applications || [];
+  
+  const applications = useMemo(() => {
+    const seen = new Set();
+    return rawApps.filter((app) => {
+      const key = String(app.job_id || app.jobId || app.job?.id || app.job?._id || app.id || app._id);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [rawApps]);
 
   // Pagination
   const {
