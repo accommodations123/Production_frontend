@@ -45,6 +45,7 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
         const type = (job?.positionType || job?.type || '').toLowerCase();
         if (type.includes('c2c')) return 'bg-purple-50 text-purple-700 border-purple-200';
         if (type.includes('w2')) return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+        if (type.includes('part')) return 'bg-sky-50 text-sky-700 border-sky-200';
         if (type.includes('contract')) return 'bg-cyan-50 text-cyan-700 border-cyan-200';
         return 'bg-blue-50 text-blue-700 border-blue-200';
     }, [job?.positionType, job?.type]);

@@ -89,16 +89,22 @@ export default function CareerPage() {
             // 1. Active Country Matching
             if (activeCountry?.name && activeCountry.name !== "All" && activeCountry.name !== "Global") {
                 const normSelected = normalizeCountryName(activeCountry.name).toLowerCase();
+                const selectedCode = (activeCountry.code || "").toLowerCase();
                 const jobCountry = normalizeCountryName(job.country || "").toLowerCase();
                 const jobLoc = (job.location || "").toLowerCase();
-                const countryMatch = jobCountry.includes(normSelected) || 
-                                     normSelected.includes(jobCountry) || 
-                                     jobLoc.includes(normSelected) ||
-                                     jobLoc.includes((activeCountry.code || "").toLowerCase()) ||
-                                     jobLoc.includes("remote") ||
-                                     jobLoc.includes("nationwide");
-                if (jobCountry && !countryMatch) {
-                    return false;
+
+                const isUSASelected = normSelected.includes('united states') || normSelected === 'usa' || normSelected === 'us' || selectedCode === 'us';
+                const isJobUSA = jobCountry.includes('united states') || jobCountry === 'usa' || jobCountry === 'us' || 
+                                 jobLoc.includes('united states') || jobLoc.includes('usa') || jobLoc.includes('america');
+
+                if (isUSASelected) {
+                    if (!isJobUSA && jobCountry && !jobCountry.includes('united states')) return false;
+                    if (!isJobUSA && jobLoc && !jobLoc.includes('united states') && !jobLoc.includes('usa')) return false;
+                } else {
+                    if (isJobUSA) return false;
+                    const matchesCurrent = (jobCountry && (jobCountry.includes(normSelected) || normSelected.includes(jobCountry))) ||
+                                           (jobLoc && (jobLoc.includes(normSelected) || (selectedCode && jobLoc.includes(selectedCode))));
+                    if (!matchesCurrent) return false;
                 }
             }
 
@@ -301,7 +307,7 @@ export default function CareerPage() {
             {/* Position Type Filter */}
             <FilterSection
                 title="Position Type"
-                options={["C2C", "W2", "Contract", "Full Time"]}
+                options={["C2C", "W2", "Contract", "Full Time", "Part Time"]}
                 selected={selectedFilters.positionType}
                 onChange={(val) => toggleFilter('positionType', val)}
             />

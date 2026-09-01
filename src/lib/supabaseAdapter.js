@@ -1899,7 +1899,17 @@ export async function executeSupabaseRequest(args) {
             }
 
             // 5. Get All Jobs: GET career/jobs or GET jobs
-            const { data } = await supabase.from('jobs').select('*').order('created_at', { ascending: false })
+            let query = supabase.from('jobs').select('*').order('created_at', { ascending: false })
+            const jobCountryParam = queryParams.country || queryParams.country_name || queryParams.countryName
+            if (jobCountryParam && jobCountryParam.toLowerCase() !== 'all' && jobCountryParam.toLowerCase() !== 'global') {
+                const norm = normalizeCountryName(jobCountryParam)
+                if (norm === 'United States of America' || jobCountryParam.toLowerCase() === 'usa' || jobCountryParam.toLowerCase() === 'us' || jobCountryParam.toLowerCase() === 'united states') {
+                    query = query.or('location.ilike.%United States%,location.ilike.%USA%,location.ilike.%US%,location.ilike.%America%')
+                } else {
+                    query = query.or(`location.ilike.%${jobCountryParam}%,location.ilike.%${norm}%`)
+                }
+            }
+            const { data } = await query
             return { data: { jobs: data || [], data: data || [] } }
         }
 
