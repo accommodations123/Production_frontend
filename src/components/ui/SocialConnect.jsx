@@ -60,6 +60,21 @@ export const SocialQuickConnect = ({
 
   const [isRequestedLocally, setIsRequestedLocally] = useState(false);
 
+  const isPersistedLocally = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("nxt_outgoing_requests");
+      if (!raw) return false;
+      const list = JSON.parse(raw);
+      if (!Array.isArray(list)) return false;
+      return list.some(r => 
+        String(r.targetUserId) === String(ownerId) && 
+        (!itemId || !r.itemId || String(r.itemId) === String(itemId))
+      );
+    } catch {
+      return false;
+    }
+  }, [ownerId, itemId]);
+
   const { data: statusRes } = useGetConnectionStatusQuery(
     itemId ? { targetUserId: ownerId, itemId, itemType } : ownerId,
     {
@@ -70,7 +85,8 @@ export const SocialQuickConnect = ({
   );
   const [sendReq, { isLoading: isSending }] = useSendConnectionRequestMutation();
 
-  const connStatus = isOwner ? "accepted" : (isRequestedLocally ? "pending" : (statusRes?.status || statusRes?.data?.status || "none"));
+  const serverStatus = statusRes?.status || statusRes?.data?.status || (statusRes?.data?.isConnected ? "accepted" : null);
+  const connStatus = isOwner ? "accepted" : (serverStatus && serverStatus !== "none" ? serverStatus : (isRequestedLocally || isPersistedLocally ? "pending" : "none"));
   const isConnected = isOwner || connStatus === "accepted";
 
   // Effective social channels from owner profile or accepted connection request data
@@ -146,6 +162,12 @@ export const SocialQuickConnect = ({
           requesterPhone: user?.phone || localUser?.phone || "",
           requesterEmail: user?.email || localUser?.email || ""
         }).unwrap();
+        try {
+          const raw = localStorage.getItem("nxt_outgoing_requests");
+          const list = raw ? JSON.parse(raw) : [];
+          list.push({ targetUserId: String(ownerId), itemId: String(itemId || ''), itemType, status: 'pending', timestamp: Date.now() });
+          localStorage.setItem("nxt_outgoing_requests", JSON.stringify(list));
+        } catch {}
         toast.success(`Connection request sent to ${ownerName || "the owner"}!`);
       } catch (err) {
         setIsRequestedLocally(false);

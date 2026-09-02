@@ -21,10 +21,13 @@ export const connectionService = {
     },
 
     async getConnectionStatus(params) {
+        const formattedParams = typeof params === 'string'
+            ? { targetUserId: params }
+            : (params || {});
         const res = await executeSupabaseRequest({
             url: 'connection-request/status',
             method: 'GET',
-            params,
+            params: formattedParams,
         });
         if (res.error) throw new Error(res.error.error || 'Failed to fetch connection status');
         return res.data;

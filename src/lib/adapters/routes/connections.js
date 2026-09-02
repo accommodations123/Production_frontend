@@ -254,9 +254,15 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
             }
 
             // 4. Get Connection Status: GET connection-requests/status/:targetUserId or connection-request/status
-            if (cleanUrl.startsWith('connection-requests/status') || cleanUrl.startsWith('connection-request/status') || cleanUrl.startsWith('connections/status')) {
-                const targetUserId = cleanUrl.split('/')[2] || queryParams?.targetUserId;
-                const itemId = queryParams?.itemId || '';
+            if (cleanUrl.startsWith('connection-requests/status') || cleanUrl.startsWith('connection-request/status') || cleanUrl.startsWith('connections/status') || cleanUrl === 'connection-status') {
+                const parts = cleanUrl.split('/');
+                const targetUserId = (parts.length > 2 ? parts[2] : null) || 
+                                     queryParams?.targetUserId || 
+                                     queryParams?.target_user_id || 
+                                     queryParams?.userId || 
+                                     queryParams?.ownerId || 
+                                     queryParams?.owner_id;
+                const itemId = queryParams?.itemId || queryParams?.item_id || '';
 
                 if (!targetUserId || !currentUserId) {
                     return { data: { status: 'none', isConnected: false, isOwner: false } };
@@ -273,20 +279,30 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                     try { myMeta = JSON.parse(myProfile.street_address) } catch {}
                 }
                 const outgoing = Array.isArray(myMeta.outgoing_requests) ? myMeta.outgoing_requests : [];
-                const matched = outgoing.find(r => 
+
+                // Also check target's incoming_requests (dual-sided sync)
+                const { data: targetProfile } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle();
+                let targetMeta = {};
+                if (targetProfile?.street_address && (targetProfile.street_address.startsWith('{') || targetProfile.street_address.startsWith('['))) {
+                    try { targetMeta = JSON.parse(targetProfile.street_address) } catch {}
+                }
+                const incoming = Array.isArray(targetMeta.incoming_requests) ? targetMeta.incoming_requests : [];
+
+                const matchedOutgoing = outgoing.find(r => 
                     String(r.targetUserId || r.target_user_id) === String(targetUserId) &&
                     (!itemId || !r.itemId || !r.item_id || String(r.itemId || r.item_id) === String(itemId))
                 );
 
-                let currentStatus = matched ? matched.status : 'none';
+                const matchedIncoming = incoming.find(r => 
+                    String(r.requesterId || r.requester_id) === String(currentUserId) &&
+                    (!itemId || !r.itemId || !r.item_id || String(r.itemId || r.item_id) === String(itemId))
+                );
 
-                // Check if target user profile has real social contacts to unlock on accepted
+                const matched = matchedOutgoing || matchedIncoming;
+                let currentStatus = matched ? (matched.status || 'pending') : 'none';
+
+                // If status is accepted, unlock target user's real social contacts
                 if (currentStatus === 'accepted') {
-                    const { data: targetProfile } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle();
-                    let targetMeta = {};
-                    if (targetProfile?.street_address && (targetProfile.street_address.startsWith('{') || targetProfile.street_address.startsWith('['))) {
-                        try { targetMeta = JSON.parse(targetProfile.street_address) } catch {}
-                    }
                     return {
                         data: {
                             status: 'accepted',
