@@ -36,6 +36,8 @@ export {
     parseFormDataWithUploads
 } from './adapters/storageUtils';
 
+import { parseFormDataWithUploads } from './adapters/storageUtils';
+
 // Route Handlers
 import { handlePropertiesRoute } from './adapters/routes/properties';
 import { handleEventsRoute } from './adapters/routes/events';
