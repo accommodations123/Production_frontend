@@ -267,11 +267,70 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                                 return (
                                                                     <li key={index} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
                                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0" />
-                                                                        <span className="break-words w-full">{cleanBenefit}</span>
+                                                                         <span className="break-words w-full">{cleanBenefit}</span>
                                                                     </li>
                                                                 );
                                                             })}
                                                         </ul>
+                                                    </div>
+                                                )}
+
+                                                {/* Skills Breakdown */}
+                                                {((job.structured_skills && (job.structured_skills.primary?.length > 0 || job.structured_skills.secondary?.length > 0 || job.structured_skills.nice_to_have?.length > 0)) || (Array.isArray(job.skills) && job.skills.length > 0)) && (
+                                                    <div className="space-y-4">
+                                                        <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                                                            <Award className="h-4 w-4 text-[#CB2A25]" />
+                                                            Skills & Technologies
+                                                        </h4>
+                                                        
+                                                        {job.structured_skills?.primary?.length > 0 && (
+                                                            <div>
+                                                                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Primary Skills</p>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {job.structured_skills.primary.map((skill, idx) => (
+                                                                        <span key={idx} className="px-3 py-1 rounded-lg bg-[#CB2A25]/10 text-[#CB2A25] text-xs font-bold border border-[#CB2A25]/20">
+                                                                            {skill}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {job.structured_skills?.secondary?.length > 0 && (
+                                                            <div>
+                                                                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Secondary Skills</p>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {job.structured_skills.secondary.map((skill, idx) => (
+                                                                        <span key={idx} className="px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold border border-blue-200">
+                                                                            {skill}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {job.structured_skills?.nice_to_have?.length > 0 && (
+                                                            <div>
+                                                                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Nice to Have</p>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {job.structured_skills.nice_to_have.map((skill, idx) => (
+                                                                        <span key={idx} className="px-3 py-1 rounded-lg bg-gray-100 text-gray-700 text-xs font-medium border border-gray-200">
+                                                                            {skill}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {(!job.structured_skills?.primary?.length && !job.structured_skills?.secondary?.length) && Array.isArray(job.skills) && job.skills.length > 0 && (
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {job.skills.map((skill, idx) => (
+                                                                    <span key={idx} className="px-3 py-1 rounded-lg bg-[#CB2A25]/5 text-[#CB2A25] text-xs font-bold border border-[#CB2A25]/15">
+                                                                        {skill}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -286,8 +345,14 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                     <div className="space-y-3.5 text-xs font-semibold text-gray-600">
                                                         <div className="flex justify-between items-center gap-2">
                                                             <span className="text-gray-400">Position Type</span>
-                                                            <span className="text-gray-900 font-bold">{job.positionType || job.type || 'C2C'}</span>
+                                                            <span className="text-gray-900 font-bold">{job.positionType || job.employment_type || job.job_type || job.type || 'C2C'}</span>
                                                         </div>
+                                                        {job.department && (
+                                                            <div className="flex justify-between items-center gap-2">
+                                                                <span className="text-gray-400">Department</span>
+                                                                <span className="text-gray-900 font-bold truncate max-w-[150px]">{job.department}</span>
+                                                            </div>
+                                                        )}
                                                         <div className="flex justify-between items-center gap-2">
                                                             <span className="text-gray-400">Client Name</span>
                                                             <span className="text-gray-900 font-bold truncate max-w-[150px]">{job.clientName || 'N/A'}</span>
@@ -302,19 +367,19 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
                                                             <span className="text-gray-400">Work Mode</span>
-                                                            <span className="text-gray-900 font-bold">{job.workStyle || 'Remote'}</span>
+                                                            <span className="text-gray-900 font-bold">{job.workStyle || job.work_style || job.workMode || 'Remote'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
                                                             <span className="text-gray-400">Experience</span>
-                                                            <span className="text-gray-900 font-bold">{job.experience || '8+ Years'}</span>
+                                                            <span className="text-gray-900 font-bold">{job.experience || job.experience_level || '8+ Years'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
                                                             <span className="text-gray-400">Duration</span>
-                                                            <span className="text-gray-900 font-bold">{job.duration || '12+ Months'}</span>
+                                                            <span className="text-gray-900 font-bold">{job.duration || job.contract_duration || '12+ Months'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
                                                             <span className="text-gray-400">Salary Range</span>
-                                                            <span className="text-emerald-700 font-bold">{job.salary || 'Competitive'}</span>
+                                                            <span className="text-emerald-700 font-bold">{job.salary || job.salaryRange || job.salary_range || 'Competitive'}</span>
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
                                                             <span className="text-gray-400">Visa Status</span>
@@ -324,7 +389,7 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                                         </div>
                                                         <div className="flex justify-between items-center gap-2">
                                                             <span className="text-gray-400">Start Date</span>
-                                                            <span className="text-gray-900 font-bold">{job.startDate ? formatUTCDate(job.startDate) : 'Immediate'}</span>
+                                                            <span className="text-gray-900 font-bold">{job.startDate || job.start_date || 'Immediate'}</span>
                                                         </div>
                                                     </div>
                                                 </div>

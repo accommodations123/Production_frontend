@@ -46,9 +46,17 @@ export const STAY_REQUEST_COLUMNS = new Set([
 ]);
 
 export const JOB_COLUMNS = new Set([
-    'id', 'title', 'description', 'status', 'currency', 'location', 'job_type',
-    'experience_level', 'salary_min', 'salary_max', 'requirements', 'skills',
-    'responsibilities', 'created_at', 'updated_at'
+    'id', '_id', 'title', 'job_title', 'company', 'company_name', 'client_name', 'clientName',
+    'vendor_name', 'vendorName', 'department', 'category', 'work_style', 'workplace_type',
+    'workMode', 'location', 'country', 'state', 'state_name', 'city', 'employment_type',
+    'position_type', 'job_type', 'contract_duration', 'duration', 'start_date', 'startDate',
+    'experience_level', 'experience', 'visa_status', 'visaStatus', 'pay_type', 'payType',
+    'salary_range', 'salaryRange', 'salary_min', 'pay_min', 'salary_max', 'pay_max',
+    'currency', 'currencySymbol', 'description', 'requirements', 'responsibilities',
+    'benefits', 'preferred_skills', 'skills', 'recruiter_name', 'recruiterName',
+    'recruiter_email', 'recruiterEmail', 'recruiter_phone', 'recruiterPhone',
+    'recruiter_linkedin', 'recruiterLinkedin', 'company_linkedin', 'companyLinkedin',
+    'status', 'created_at', 'updated_at'
 ]);
 
 export function sanitizePayload(payload, allowedColumns) {

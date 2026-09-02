@@ -43,7 +43,10 @@ export default function CareerPage() {
         positionType: [],
         workMode: [],
         experience: [],
+        visaStatus: [],
         payType: [],
+        department: [],
+        duration: [],
         state: "",
         city: "",
         sort: "newest"
@@ -69,6 +72,9 @@ export default function CareerPage() {
             positionType: selectedFilters.positionType.join(","),
             workMode: selectedFilters.workMode.join(","),
             experience: selectedFilters.experience.join(","),
+            visaStatus: selectedFilters.visaStatus.join(","),
+            department: selectedFilters.department.join(","),
+            duration: selectedFilters.duration.join(","),
             payType: selectedFilters.payType.join(","),
             state: selectedFilters.state,
             city: selectedFilters.city,
@@ -86,11 +92,17 @@ export default function CareerPage() {
         const list = Array.isArray(rawJobs) ? rawJobs : []
 
         return list.filter(job => {
+            // 0. Public visibility status filter
+            const jobStatus = (job.status || 'active').toLowerCase();
+            if (jobStatus !== 'active' && jobStatus !== 'open') {
+                return false;
+            }
+
             // 1. Active Country Matching
             if (activeCountry?.name && activeCountry.name !== "All" && activeCountry.name !== "Global") {
                 const normSelected = normalizeCountryName(activeCountry.name).toLowerCase();
                 const selectedCode = (activeCountry.code || "").toLowerCase();
-                const jobCountry = normalizeCountryName(job.country || "").toLowerCase();
+                const jobCountry = normalizeCountryName(job.country || job.location || "").toLowerCase();
                 const jobLoc = (job.location || "").toLowerCase();
 
                 const isUSASelected = normSelected.includes('united states') || normSelected === 'usa' || normSelected === 'us' || selectedCode === 'us';
@@ -111,32 +123,36 @@ export default function CareerPage() {
             // 2. Keyword Search Query
             if (searchQuery.trim()) {
                 const q = searchQuery.toLowerCase().trim();
-                const titleMatch = (job.title || "").toLowerCase().includes(q);
+                const titleMatch = (job.title || job.job_title || "").toLowerCase().includes(q);
                 const descMatch = (job.description || "").toLowerCase().includes(q);
-                const clientMatch = (job.clientName || "").toLowerCase().includes(q);
-                const vendorMatch = (job.vendorName || "").toLowerCase().includes(q);
-                const companyMatch = (job.company || "").toLowerCase().includes(q);
-                const locationMatch = (job.location || "").toLowerCase().includes(q);
+                const clientMatch = (job.clientName || job.client_name || "").toLowerCase().includes(q);
+                const vendorMatch = (job.vendorName || job.vendor_name || "").toLowerCase().includes(q);
+                const companyMatch = (job.company || job.company_name || "").toLowerCase().includes(q);
+                const deptMatch = (job.department || job.category || "").toLowerCase().includes(q);
+                const locationMatch = (job.location || job.country || "").toLowerCase().includes(q);
                 const skillsMatch = Array.isArray(job.skills) && job.skills.some(s => String(s).toLowerCase().includes(q));
-                if (!titleMatch && !descMatch && !clientMatch && !vendorMatch && !companyMatch && !locationMatch && !skillsMatch) {
+                if (!titleMatch && !descMatch && !clientMatch && !vendorMatch && !companyMatch && !deptMatch && !locationMatch && !skillsMatch) {
                     return false;
                 }
             }
 
-            // 3. Position Type Filter (e.g. "C2C", "W2", "Contract", "Full Time")
+            // 3. Position Type Filter (e.g. "C2C (Corp-to-Corp)", "W2", "Contract", "Full Time", "Part Time", "Contract to Hire")
             if (selectedFilters.positionType.length > 0) {
-                const jobType = (job.positionType || job.type || "").toLowerCase();
+                const jobType = (job.positionType || job.employment_type || job.job_type || job.type || "").toLowerCase();
                 const matchesPosition = selectedFilters.positionType.some(filterType => {
-                    const normFilter = filterType.toLowerCase().replace(/[\s-_]/g, "");
-                    const normJobType = jobType.replace(/[\s-_]/g, "");
-                    return normJobType.includes(normFilter) || normFilter.includes(normJobType);
+                    const normFilter = filterType.toLowerCase().replace(/[\s-_()]/g, "");
+                    const normJobType = jobType.replace(/[\s-_()]/g, "");
+                    return normJobType.includes(normFilter) || normFilter.includes(normJobType) ||
+                           (filterType.toLowerCase().includes("c2c") && jobType.includes("c2c")) ||
+                           (filterType.toLowerCase().includes("w2") && jobType.includes("w2")) ||
+                           (filterType.toLowerCase().includes("contract to hire") && (jobType.includes("c2h") || jobType.includes("contract to hire")));
                 });
                 if (!matchesPosition) return false;
             }
 
             // 4. Work Mode Filter (e.g. "Remote", "Hybrid", "Onsite")
             if (selectedFilters.workMode.length > 0) {
-                const jobWork = (job.workStyle || job.work_style || "").toLowerCase().replace(/[\s-_]/g, "");
+                const jobWork = (job.workStyle || job.work_style || job.workMode || "").toLowerCase().replace(/[\s-_]/g, "");
                 const matchesWork = selectedFilters.workMode.some(filterMode => {
                     const normFilter = filterMode.toLowerCase().replace(/[\s-_]/g, "");
                     return jobWork.includes(normFilter) || normFilter.includes(jobWork);
@@ -144,7 +160,7 @@ export default function CareerPage() {
                 if (!matchesWork) return false;
             }
 
-            // 5. Experience Filter (e.g. "0–3 Years", "4–7 Years", "8+ Years")
+            // 5. Experience Filter (e.g. "0-3 Years", "4-7 Years", "8+ Years", "Senior", "Lead")
             if (selectedFilters.experience.length > 0) {
                 const jobExp = (job.experience || job.experience_level || "").toLowerCase();
                 const matchesExp = selectedFilters.experience.some(filterExp => {
@@ -158,12 +174,53 @@ export default function CareerPage() {
                     if (cleanFilter.includes("8+") || cleanFilter.includes("senior") || cleanFilter.includes("lead")) {
                         return jobExp.includes("8+") || jobExp.includes("senior") || jobExp.includes("lead") || jobExp.includes("8") || jobExp.includes("9") || jobExp.includes("10");
                     }
+                    if (cleanFilter.includes("lead")) {
+                        return jobExp.includes("lead") || jobExp.includes("principal") || jobExp.includes("staff");
+                    }
                     return jobExp.includes(cleanFilter);
                 });
                 if (!matchesExp) return false;
             }
 
-            // 6. Pay Type Filter (e.g. "Hourly", "Salary")
+            // 6. Visa Authorization Filter (e.g. "USC", "GC", "H1B", "OPT", "CPT", "All Authorizations")
+            if (selectedFilters.visaStatus.length > 0) {
+                let jobVisas = [];
+                if (Array.isArray(job.visaStatus)) jobVisas = job.visaStatus;
+                else if (Array.isArray(job.visa_status)) jobVisas = job.visa_status;
+                else {
+                    const vStr = String(job.visaStatus || job.visa_status || job.work_authorization || '');
+                    jobVisas = vStr.split(/[,/]/).map(v => v.trim()).filter(Boolean);
+                }
+                const jobVisasLower = jobVisas.map(v => v.toLowerCase());
+                const matchesVisa = selectedFilters.visaStatus.some(filterVisa => {
+                    const fLow = filterVisa.toLowerCase();
+                    if (fLow.includes("all")) return true;
+                    return jobVisasLower.some(jv => jv.includes(fLow) || fLow.includes(jv) || jv.includes("all"));
+                });
+                if (!matchesVisa) return false;
+            }
+
+            // 7. Department / Category Filter
+            if (selectedFilters.department.length > 0) {
+                const jobDept = (job.department || job.category || "").toLowerCase();
+                const matchesDept = selectedFilters.department.some(filterDept => {
+                    const fLow = filterDept.toLowerCase();
+                    return jobDept.includes(fLow) || fLow.includes(jobDept);
+                });
+                if (!matchesDept) return false;
+            }
+
+            // 8. Contract Duration Filter
+            if (selectedFilters.duration.length > 0) {
+                const jobDur = (job.duration || job.contract_duration || "").toLowerCase();
+                const matchesDur = selectedFilters.duration.some(filterDur => {
+                    const fLow = filterDur.toLowerCase();
+                    return jobDur.includes(fLow) || fLow.includes(jobDur);
+                });
+                if (!matchesDur) return false;
+            }
+
+            // 9. Pay Type Filter (e.g. "Hourly", "Salary")
             if (selectedFilters.payType.length > 0) {
                 const jobPay = (job.payType || job.pay_type || "").toLowerCase();
                 const matchesPay = selectedFilters.payType.some(filterPay => {
@@ -173,17 +230,17 @@ export default function CareerPage() {
                 if (!matchesPay) return false;
             }
 
-            // 7. State Filter
+            // 10. State Filter
             if (selectedFilters.state.trim()) {
                 const filterState = selectedFilters.state.toLowerCase().trim();
-                const jobState = (job.state || "").toLowerCase();
+                const jobState = (job.state || job.state_name || "").toLowerCase();
                 const jobLoc = (job.location || "").toLowerCase();
                 if (!jobState.includes(filterState) && !jobLoc.includes(filterState)) {
                     return false;
                 }
             }
 
-            // 8. City Filter
+            // 11. City Filter
             if (selectedFilters.city.trim()) {
                 const filterCity = selectedFilters.city.toLowerCase().trim();
                 const jobCity = (job.city || "").toLowerCase();
@@ -226,7 +283,7 @@ export default function CareerPage() {
     // ─── FILTER HANDLERS ────────────────────────────────────────────
     const toggleFilter = (category, value) => {
         setSelectedFilters(prev => {
-            const current = prev[category]
+            const current = prev[category] || []
             const updated = current.includes(value)
                 ? current.filter(item => item !== value)
                 : [...current, value]
@@ -243,7 +300,10 @@ export default function CareerPage() {
             positionType: [],
             workMode: [],
             experience: [],
+            visaStatus: [],
             payType: [],
+            department: [],
+            duration: [],
             state: "",
             city: "",
             sort: "newest"
@@ -277,10 +337,13 @@ export default function CareerPage() {
 
     const activeFilterCount = useMemo(() => {
         let count = 0
-        count += selectedFilters.positionType.length
-        count += selectedFilters.workMode.length
-        count += selectedFilters.experience.length
-        count += selectedFilters.payType.length
+        count += (selectedFilters.positionType || []).length
+        count += (selectedFilters.workMode || []).length
+        count += (selectedFilters.experience || []).length
+        count += (selectedFilters.visaStatus || []).length
+        count += (selectedFilters.department || []).length
+        count += (selectedFilters.duration || []).length
+        count += (selectedFilters.payType || []).length
         if (selectedFilters.state) count += 1
         if (selectedFilters.city) count += 1
         return count
@@ -296,7 +359,7 @@ export default function CareerPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Keyword, skill, title..."
+                        placeholder="Keyword, skill, client, vendor..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full h-10 pl-9 pr-4 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/5 outline-none transition-all text-xs font-semibold"
@@ -307,7 +370,7 @@ export default function CareerPage() {
             {/* Position Type Filter */}
             <FilterSection
                 title="Position Type"
-                options={["C2C", "W2", "Contract", "Full Time", "Part Time"]}
+                options={["C2C (Corp-to-Corp)", "W2", "Contract", "Full Time", "Part Time", "Contract to Hire"]}
                 selected={selectedFilters.positionType}
                 onChange={(val) => toggleFilter('positionType', val)}
             />
@@ -322,15 +385,39 @@ export default function CareerPage() {
 
             {/* Experience Filter */}
             <FilterSection
-                title="Experience"
-                options={["0–3 Years", "4–7 Years", "8+ Years"]}
+                title="Experience Level"
+                options={["0-3 Years", "4-7 Years", "8+ Years", "Senior", "Lead"]}
                 selected={selectedFilters.experience}
                 onChange={(val) => toggleFilter('experience', val)}
             />
 
+            {/* Visa Authorization Filter */}
+            <FilterSection
+                title="Visa Authorization"
+                options={["USC", "GC", "H1B", "OPT", "CPT", "All Authorizations"]}
+                selected={selectedFilters.visaStatus}
+                onChange={(val) => toggleFilter('visaStatus', val)}
+            />
+
+            {/* Department / Category Filter */}
+            <FilterSection
+                title="Department"
+                options={["Engineering", "Data & AI", "Cloud & DevOps", "Design", "Product", "Quality Assurance", "Cybersecurity", "Management"]}
+                selected={selectedFilters.department}
+                onChange={(val) => toggleFilter('department', val)}
+            />
+
+            {/* Contract Duration Filter */}
+            <FilterSection
+                title="Contract Duration"
+                options={["12+ Months", "Long Term", "6 Months", "3-6 Months", "Full Time"]}
+                selected={selectedFilters.duration}
+                onChange={(val) => toggleFilter('duration', val)}
+            />
+
             {/* Pay Type Filter */}
             <FilterSection
-                title="Pay Type"
+                title="Pay Frequency"
                 options={["Hourly", "Salary"]}
                 selected={selectedFilters.payType}
                 onChange={(val) => toggleFilter('payType', val)}
@@ -344,7 +431,7 @@ export default function CareerPage() {
                     <label className="text-[10px] font-bold text-gray-500 uppercase">State</label>
                     <input
                         type="text"
-                        placeholder="e.g. Texas"
+                        placeholder="e.g. Texas, California"
                         value={selectedFilters.state}
                         onChange={(e) => handleFilterTextChange('state', e.target.value)}
                         className="w-full h-10 px-3.5 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/5 outline-none text-xs font-semibold"
@@ -355,14 +442,13 @@ export default function CareerPage() {
                     <label className="text-[10px] font-bold text-gray-500 uppercase">City</label>
                     <input
                         type="text"
-                        placeholder="e.g. Dallas"
+                        placeholder="e.g. Dallas, Austin"
                         value={selectedFilters.city}
                         onChange={(e) => handleFilterTextChange('city', e.target.value)}
                         className="w-full h-10 px-3.5 rounded-xl border border-gray-200 focus:border-[#CB2A25] focus:ring-4 focus:ring-[#CB2A25]/5 outline-none text-xs font-semibold"
                     />
                 </div>
             </div>
-        </div>
     )
 
     return (

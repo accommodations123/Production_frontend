@@ -293,11 +293,12 @@ export async function handleCareerRoute({ cleanUrl, method, body, queryParams })
             // 3. Create Job (Admin / Employer): POST career/create or POST jobs/create or POST jobs
             if ((cleanUrl === 'career/create' || cleanUrl === 'jobs/create' || cleanUrl === 'jobs') && method === 'POST') {
                 let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'jobs') : { ...(body || {}) }
-                payload.status = payload.status || 'active'
+                payload.status = payload.status || 'Active'
                 const clean = sanitizePayload(payload, JOB_COLUMNS)
                 const { data, error } = await supabase.from('jobs').insert(clean).select().maybeSingle()
                 if (error) throw error
-                return { data: { job: data, success: true } }
+                const formatted = formatJobRecord(data)
+                return { data: { job: formatted, data: formatted, success: true } }
             }
 
             // 4. Get Single Job: GET career/jobs/:id or GET jobs/:id
@@ -305,7 +306,8 @@ export async function handleCareerRoute({ cleanUrl, method, body, queryParams })
                 const jobId = cleanUrl.split('/').pop()
                 if (jobId && jobId !== 'jobs' && jobId !== 'career') {
                     const { data } = await supabase.from('jobs').select('*').eq('id', jobId).maybeSingle()
-                    return { data: { job: data || null, data } }
+                    const formatted = data ? formatJobRecord(data) : null
+                    return { data: { job: formatted, data: formatted } }
                 }
             }
 
@@ -321,6 +323,173 @@ export async function handleCareerRoute({ cleanUrl, method, body, queryParams })
                 }
             }
             const { data } = await query
-            return { data: { jobs: data || [], data: data || [] } }
+            const formattedJobs = Array.isArray(data) ? data.map(formatJobRecord) : []
+            return { data: { jobs: formattedJobs, data: formattedJobs, count: formattedJobs.length } }
         }
+}
+
+export function formatJobRecord(raw) {
+    if (!raw || typeof raw !== 'object') return raw;
+
+    // Parse JSON skills if stored as JSON string or object
+    let parsedSkills = [];
+    let structuredSkills = { primary: [], secondary: [], nice_to_have: [] };
+    if (raw.skills) {
+        if (typeof raw.skills === 'string') {
+            try {
+                const parsed = JSON.parse(raw.skills);
+                if (Array.isArray(parsed)) {
+                    parsedSkills = parsed;
+                } else if (parsed && typeof parsed === 'object') {
+                    structuredSkills = { ...structuredSkills, ...parsed };
+                    parsedSkills = [
+                        ...(Array.isArray(parsed.primary) ? parsed.primary : []),
+                        ...(Array.isArray(parsed.secondary) ? parsed.secondary : []),
+                        ...(Array.isArray(parsed.nice_to_have) ? parsed.nice_to_have : [])
+                    ];
+                }
+            } catch {
+                parsedSkills = raw.skills.split(',').map(s => s.trim()).filter(Boolean);
+            }
+        } else if (Array.isArray(raw.skills)) {
+            parsedSkills = raw.skills;
+        } else if (raw.skills && typeof raw.skills === 'object') {
+            structuredSkills = { ...structuredSkills, ...raw.skills };
+            parsedSkills = [
+                ...(Array.isArray(raw.skills.primary) ? raw.skills.primary : []),
+                ...(Array.isArray(raw.skills.secondary) ? raw.skills.secondary : []),
+                ...(Array.isArray(raw.skills.nice_to_have) ? raw.skills.nice_to_have : [])
+            ];
+        }
+    }
+
+    // Helper for array fields (requirements, responsibilities, benefits, preferred_skills)
+    const parseArrayField = (val) => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        if (typeof val === 'string') {
+            try {
+                const parsed = JSON.parse(val);
+                if (Array.isArray(parsed)) return parsed;
+            } catch {}
+            return val.split('\n').map(s => s.replace(/^[-•*]\s*/, '').trim()).filter(Boolean);
+        }
+        return [];
+    };
+
+    // Visa status array
+    let parsedVisa = [];
+    const rawVisa = raw.visa_status || raw.visaStatus || raw.work_authorization || '';
+    if (Array.isArray(rawVisa)) {
+        parsedVisa = rawVisa;
+    } else if (typeof rawVisa === 'string' && rawVisa.trim()) {
+        parsedVisa = rawVisa.split(/[,/]/).map(v => v.trim()).filter(Boolean);
+    }
+
+    // Salary formatting
+    const currency = raw.currency || raw.currencySymbol || '$';
+    const payMin = raw.salary_min ?? raw.pay_min ?? raw.payMin ?? null;
+    const payMax = raw.salary_max ?? raw.pay_max ?? raw.payMax ?? null;
+    const payType = raw.pay_type || raw.payType || 'hourly';
+    let formattedSalary = raw.salary_range || raw.salaryRange || raw.salary || '';
+    if (!formattedSalary && (payMin !== null || payMax !== null)) {
+        const symbol = currency === 'USD' ? '$' : (currency === 'INR' ? '₹' : (currency === 'EUR' ? '€' : (currency === 'GBP' ? '£' : currency)));
+        const unit = String(payType).toLowerCase().includes('hr') || String(payType).toLowerCase().includes('hour') ? '/ hr' : '/ yr';
+        if (payMin && payMax) {
+            formattedSalary = `${symbol}${payMin} - ${symbol}${payMax} ${unit}`;
+        } else if (payMin) {
+            formattedSalary = `${symbol}${payMin}+ ${unit}`;
+        } else if (payMax) {
+            formattedSalary = `Up to ${symbol}${payMax} ${unit}`;
+        }
+    }
+    if (!formattedSalary) {
+        formattedSalary = 'Competitive';
+    }
+
+    const title = raw.title || raw.job_title || 'Position';
+    const company = raw.company || raw.company_name || 'NextKinLife LLC';
+    const clientName = raw.client_name || raw.clientName || 'N/A';
+    const vendorName = raw.vendor_name || raw.vendorName || company;
+    const department = raw.department || raw.category || 'Engineering';
+    const workStyle = raw.work_style || raw.workplace_type || raw.workMode || 'remote';
+    const location = raw.location || raw.country || 'United States of America';
+    const state = raw.state || raw.state_name || '';
+    const city = raw.city || '';
+    const positionType = raw.employment_type || raw.position_type || raw.job_type || 'Contract';
+    const duration = raw.contract_duration || raw.duration || '12+ Months';
+    const startDate = raw.start_date || raw.startDate || 'Immediate';
+    const experience = raw.experience_level || raw.experience || '8+ Years';
+
+    return {
+        ...raw,
+        id: raw.id || raw._id,
+        _id: raw.id || raw._id,
+        title,
+        job_title: title,
+        company,
+        company_name: company,
+        client_name: clientName,
+        clientName,
+        vendor_name: vendorName,
+        vendorName,
+        department,
+        category: department,
+        work_style: workStyle,
+        workplace_type: workStyle,
+        workMode: workStyle,
+        workStyle,
+        location,
+        country: location,
+        state,
+        state_name: state,
+        city,
+        employment_type: positionType,
+        position_type: positionType,
+        job_type: positionType,
+        positionType,
+        type: positionType,
+        contract_duration: duration,
+        duration,
+        start_date: startDate,
+        startDate,
+        experience_level: experience,
+        experience,
+        visa_status: parsedVisa,
+        visaStatus: parsedVisa,
+        pay_type: payType,
+        payType,
+        salary_range: formattedSalary,
+        salaryRange: formattedSalary,
+        salary: formattedSalary,
+        salary_min: payMin,
+        pay_min: payMin,
+        payMin,
+        salary_max: payMax,
+        pay_max: payMax,
+        payMax,
+        currency,
+        currencySymbol: currency,
+        description: raw.description || '',
+        requirements: parseArrayField(raw.requirements),
+        responsibilities: parseArrayField(raw.responsibilities),
+        benefits: parseArrayField(raw.benefits),
+        preferred_skills: parseArrayField(raw.preferred_skills),
+        skills: parsedSkills,
+        structured_skills: structuredSkills,
+        recruiter_name: raw.recruiter_name || raw.recruiterName || '',
+        recruiterName: raw.recruiter_name || raw.recruiterName || '',
+        recruiter_email: raw.recruiter_email || raw.recruiterEmail || '',
+        recruiterEmail: raw.recruiter_email || raw.recruiterEmail || '',
+        recruiter_phone: raw.recruiter_phone || raw.recruiterPhone || '',
+        recruiterPhone: raw.recruiter_phone || raw.recruiterPhone || '',
+        recruiter_linkedin: raw.recruiter_linkedin || raw.recruiterLinkedin || '',
+        recruiterLinkedin: raw.recruiter_linkedin || raw.recruiterLinkedin || '',
+        company_linkedin: raw.company_linkedin || raw.companyLinkedin || '',
+        companyLinkedin: raw.company_linkedin || raw.companyLinkedin || '',
+        status: raw.status || 'Active',
+        created_at: raw.created_at || new Date().toISOString(),
+        updated_at: raw.updated_at || new Date().toISOString(),
+        postedDate: raw.created_at || new Date().toISOString()
+    };
 }

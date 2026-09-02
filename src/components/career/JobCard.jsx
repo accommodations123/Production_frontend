@@ -1,25 +1,27 @@
 import React, { useState, useMemo } from "react"
-import { MapPin, Briefcase, Banknote, Clock, Building, Wifi, Sparkles, User, Calendar, ShieldCheck } from "lucide-react"
+import { MapPin, Briefcase, Banknote, Clock, Building, Wifi, Sparkles, User, Calendar, ShieldCheck, Tag, CalendarClock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply }) {
-    const [imageError, setImageError] = useState(false)
-
     // Fallback initials or logo
-    const companyInitial = job?.vendorName ? job.vendorName.charAt(0).toUpperCase() : 'N'
+    const companyInitial = job?.vendorName 
+        ? job.vendorName.charAt(0).toUpperCase() 
+        : (job?.company ? job.company.charAt(0).toUpperCase() : 'N');
 
     // Visa badges
     const visaList = useMemo(() => {
         if (Array.isArray(job?.visaStatus)) return job.visaStatus;
-        if (typeof job?.visaStatus === 'string') {
-            return job.visaStatus.split('/').map(v => v.trim()).filter(Boolean);
+        if (Array.isArray(job?.visa_status)) return job.visa_status;
+        const str = job?.visaStatus || job?.visa_status || '';
+        if (typeof str === 'string' && str.trim()) {
+            return str.split(/[,/]/).map(v => v.trim()).filter(Boolean);
         }
         return [];
-    }, [job?.visaStatus]);
+    }, [job?.visaStatus, job?.visa_status]);
 
     // Color indicators for work mode
     const workModeConfig = useMemo(() => {
-        const mode = (job?.workStyle || '').toLowerCase().trim();
+        const mode = (job?.workStyle || job?.work_style || job?.workMode || '').toLowerCase().trim();
         if (mode === 'remote') {
             return {
                 bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -36,24 +38,42 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
         return {
             bg: 'bg-amber-50 text-amber-700 border-amber-200',
             icon: Building,
-            label: job?.workStyle || 'On-site'
+            label: job?.workStyle || job?.work_style || job?.workMode || 'Onsite'
         };
-    }, [job?.workStyle]);
+    }, [job?.workStyle, job?.work_style, job?.workMode]);
 
     // Position type styling
     const positionTypeClass = useMemo(() => {
-        const type = (job?.positionType || job?.type || '').toLowerCase();
+        const type = (job?.positionType || job?.employment_type || job?.job_type || job?.type || '').toLowerCase();
         if (type.includes('c2c')) return 'bg-purple-50 text-purple-700 border-purple-200';
         if (type.includes('w2')) return 'bg-indigo-50 text-indigo-700 border-indigo-200';
         if (type.includes('part')) return 'bg-sky-50 text-sky-700 border-sky-200';
+        if (type.includes('contract to hire') || type.includes('c2h')) return 'bg-rose-50 text-rose-700 border-rose-200';
         if (type.includes('contract')) return 'bg-cyan-50 text-cyan-700 border-cyan-200';
         return 'bg-blue-50 text-blue-700 border-blue-200';
-    }, [job?.positionType, job?.type]);
+    }, [job?.positionType, job?.employment_type, job?.job_type, job?.type]);
+
+    // Format location display
+    const locationDisplay = useMemo(() => {
+        const parts = [];
+        if (job?.city) parts.push(job.city);
+        if (job?.state || job?.state_name) parts.push(job.state || job.state_name);
+        if (job?.location || job?.country) parts.push(job.location || job.country);
+        return parts.length > 0 ? parts.join(', ') : 'Remote';
+    }, [job?.city, job?.state, job?.state_name, job?.location, job?.country]);
+
+    const displayTitle = job?.title || job?.job_title || 'Position';
+    const displayCompany = job?.company || job?.company_name || 'NextKinLife LLC';
+    const displayClient = job?.clientName || job?.client_name;
+    const displayVendor = job?.vendorName || job?.vendor_name || displayCompany;
+    const displayDepartment = job?.department || job?.category;
+    const displayExperience = job?.experience || job?.experience_level || '0-3 Years';
+    const displayDuration = job?.duration || job?.contract_duration || '12+ Months';
+    const displayStartDate = job?.startDate || job?.start_date;
+    const displaySalary = job?.salary || job?.salaryRange || job?.salary_range || 'Competitive';
 
     return (
         <div className="group relative bg-white rounded-2xl border border-gray-100 hover:border-[#CB2A25]/20 transition-all duration-300 hover:shadow-xl hover:shadow-[#CB2A25]/5 overflow-hidden flex flex-col justify-between">
-
-
             <div className="p-6 flex-1">
                 {/* Title and Top Metas */}
                 <div className="flex items-start gap-4 mb-4">
@@ -61,19 +81,27 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
                         {companyInitial}
                     </div>
                     <div className="min-w-0 flex-1">
-                        <h3 className="text-base font-bold text-gray-900 group-hover:text-[#CB2A25] transition-colors duration-200 line-clamp-1">
-                            {job?.title || 'Senior Developer'}
-                        </h3>
+                        <div className="flex items-center justify-between gap-2">
+                            <h3 className="text-base font-bold text-gray-900 group-hover:text-[#CB2A25] transition-colors duration-200 line-clamp-1">
+                                {displayTitle}
+                            </h3>
+                        </div>
                         
                         {/* Client & Vendor details */}
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-gray-500 font-medium">
-                            {job?.clientName && (
+                            {displayClient && displayClient !== 'N/A' && (
                                 <>
-                                    <span className="text-gray-900">Client: {job.clientName}</span>
+                                    <span className="text-gray-900 font-semibold">Client: {displayClient}</span>
                                     <span className="text-gray-300">•</span>
                                 </>
                             )}
-                            <span>Vendor: {job?.vendorName || 'NextKinLife LLC'}</span>
+                            <span>Vendor: {displayVendor}</span>
+                            {displayDepartment && (
+                                <>
+                                    <span className="text-gray-300">•</span>
+                                    <span className="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded text-[10px] font-semibold">{displayDepartment}</span>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -82,7 +110,7 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
                 <div className="flex flex-wrap gap-1.5 mb-4">
                     {/* Position Type Badge */}
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border ${positionTypeClass}`}>
-                        {job?.positionType || job?.type || 'Contract'}
+                        {job?.positionType || job?.employment_type || job?.job_type || job?.type || 'Contract'}
                     </span>
 
                     {/* Work Mode Badge */}
@@ -102,35 +130,41 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
 
                 {/* Structured Metadata Grid */}
                 <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 py-3 border-t border-b border-gray-50 mb-4 text-xs font-medium text-gray-600">
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0" title={locationDisplay}>
                         <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
-                        <span className="truncate">{job?.location || 'Remote'}</span>
+                        <span className="truncate">{locationDisplay}</span>
                     </div>
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0" title={`Experience: ${displayExperience}`}>
                         <Briefcase className="h-4 w-4 text-gray-400 shrink-0" />
-                        <span className="truncate">{job?.experience || '8+ Years'}</span>
+                        <span className="truncate">{displayExperience}</span>
                     </div>
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0" title={`Duration: ${displayDuration}`}>
                         <Clock className="h-4 w-4 text-gray-400 shrink-0" />
-                        <span className="truncate">{job?.duration || '12+ Months'}</span>
+                        <span className="truncate">{displayDuration}</span>
                     </div>
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0" title={`Pay: ${displaySalary}`}>
                         <Banknote className="h-4 w-4 text-emerald-500 shrink-0" />
-                        <span className="truncate font-semibold text-gray-900">{job?.salary || 'Competitive'}</span>
+                        <span className="truncate font-semibold text-gray-900">{displaySalary}</span>
                     </div>
+                    {displayStartDate && (
+                        <div className="flex items-center gap-2 min-w-0 col-span-2 text-slate-500" title={`Start Date: ${displayStartDate}`}>
+                            <CalendarClock className="h-4 w-4 text-blue-500 shrink-0" />
+                            <span className="truncate">Start: <span className="font-semibold text-slate-700">{displayStartDate}</span></span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Skills Preview */}
                 {Array.isArray(job?.skills) && job.skills.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
-                        {job.skills.slice(0, 3).map((skill, idx) => (
+                        {job.skills.slice(0, 4).map((skill, idx) => (
                             <span key={idx} className="px-2 py-0.5 rounded bg-[#CB2A25]/5 text-[#CB2A25] text-[10px] font-medium border border-[#CB2A25]/10">
                                 {skill}
                             </span>
                         ))}
-                        {job.skills.length > 3 && (
+                        {job.skills.length > 4 && (
                             <span className="px-2 py-0.5 rounded bg-gray-50 text-gray-500 text-[10px] font-medium">
-                                +{job.skills.length - 3} more
+                                +{job.skills.length - 4} more
                             </span>
                         )}
                     </div>
@@ -141,7 +175,7 @@ export const JobCard = React.memo(function JobCard({ job, onViewDetails, onApply
             <div className="px-6 pb-6 pt-2 border-t border-gray-50 flex flex-col gap-3 xs:flex-row xs:items-center xs:justify-between bg-gray-50/50">
                 <span className="text-[10px] text-gray-400 flex items-center gap-1 font-medium">
                     <Calendar className="h-3 w-3" />
-                    {job?.posted || '2 Days Ago'}
+                    {job?.posted || 'Active'}
                 </span>
                 
                 <div className="flex items-center gap-2 w-full xs:w-auto justify-end xs:justify-start">
