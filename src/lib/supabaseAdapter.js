@@ -83,6 +83,13 @@ export async function executeSupabaseRequest(args) {
     try {
         let response;
 
+        // 0. GENERIC FILE UPLOADS
+        if ((cleanUrl === 'upload' || cleanUrl.startsWith('upload/') || cleanUrl.endsWith('/upload')) && method === 'POST') {
+            const uploaded = body instanceof FormData ? await parseFormDataWithUploads(body, 'uploads') : {};
+            const urls = uploaded.images || (uploaded.url ? [uploaded.url] : (uploaded.avatar ? [uploaded.avatar] : (uploaded.file ? [uploaded.file] : [])));
+            return { data: { urls, url: urls[0] || null, data: { urls, url: urls[0] || null }, success: true } };
+        }
+
         // 1. PROPERTIES / ACCOMMODATIONS
         response = await handlePropertiesRoute(context);
         if (response !== undefined) return response;

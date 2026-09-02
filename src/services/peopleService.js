@@ -97,12 +97,12 @@ export const peopleService = {
 
     async uploadFile(formData) {
         const res = await executeSupabaseRequest({
-            url: 'upload',
+            url: 'people/upload',
             method: 'POST',
             body: formData,
         });
-        if (res.error) throw new Error(res.error.error || 'Failed to upload file');
-        return res.data;
+        if (res?.error) throw new Error(res.error.message || res.error.error || 'Failed to upload file');
+        return res?.data || { urls: [], url: null };
     },
 
     async reportProfile(data) {

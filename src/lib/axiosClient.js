@@ -36,7 +36,7 @@ export const axiosClient = axios.create({
                 headers: config.headers
             });
 
-            if (result.error) {
+            if (result && result.error) {
                 const error = new Error(result.error.message || result.error.error || 'Request failed');
                 error.config = config;
                 error.response = {
@@ -50,7 +50,7 @@ export const axiosClient = axios.create({
             }
 
             return {
-                data: result.data,
+                data: result ? result.data : {},
                 status: 200,
                 statusText: 'OK',
                 headers: {},
