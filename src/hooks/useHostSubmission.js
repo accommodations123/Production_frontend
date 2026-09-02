@@ -87,19 +87,25 @@ export function useHostSubmission({
             await updatePropertyRules({ id: propertyId, rules: finalRules }).unwrap();
         }
 
-        // Filter for NEW images only (those with a file object)
-        const newImages = formData.images.filter(img => img.file);
-        if (newImages.length > 0) {
-            for (const img of newImages) {
+        // Filter for NEW images only (files or objects with file)
+        const rawImages = Array.isArray(formData.images) ? formData.images : (formData.images ? [formData.images] : []);
+        const filesToUpload = [];
+        for (const img of rawImages) {
+            const file = img?.file || (img instanceof File || img instanceof Blob ? img : null);
+            if (file) filesToUpload.push(file);
+        }
+
+        if (filesToUpload.length > 0) {
+            for (const file of filesToUpload) {
                 const photoFd = new FormData();
                 try {
-                    const compressed = await compressImage(img.file);
+                    const compressed = await compressImage(file);
                     photoFd.append('photo', compressed);
                 } catch (err) {
                     console.error("Failed to compress image, using original:", err);
-                    photoFd.append('photo', img.file);
+                    photoFd.append('photo', file);
                 }
-                await updatePropertyMedia({ id: propertyId, formData: photoFd }).unwrap();
+                await updatePropertyMedia({ id: propertyId, formData: photoFd, data: photoFd }).unwrap();
             }
         }
 

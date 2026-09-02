@@ -16,19 +16,22 @@ export function setLocalWishlist(userId, list) {
     } catch {}
 }
 
-// ── Parse Form Data with Supabase Uploads ──────────────────────────
 export async function parseFormDataWithUploads(formData, folder = 'uploads') {
     const parsed = {};
     const uploadPromises = [];
 
     for (const [key, value] of formData.entries()) {
-        if (value instanceof File && value.size > 0) {
+        if ((value instanceof File || value instanceof Blob) && value.size > 0) {
             uploadPromises.push(
                 uploadToSupabaseStorage(value, folder).then(url => {
-                    if (key.endsWith('[]') || key === 'images' || key === 'photos' || key === 'galleryImages') {
+                    if (key.endsWith('[]') || key === 'images' || key === 'photos' || key === 'galleryImages' || key === 'photo') {
                         const cleanKey = key.replace('[]', '');
                         parsed[cleanKey] = parsed[cleanKey] || [];
-                        parsed[cleanKey].push(url);
+                        if (Array.isArray(parsed[cleanKey])) {
+                            parsed[cleanKey].push(url);
+                        } else {
+                            parsed[cleanKey] = [parsed[cleanKey], url];
+                        }
                     } else {
                         parsed[key] = url;
                     }

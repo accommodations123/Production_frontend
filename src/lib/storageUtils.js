@@ -11,7 +11,12 @@ export async function uploadToSupabaseStorage(file, folder = 'uploads', bucket =
     if (!file) return null;
     if (!supabase) throw new Error('Supabase client not initialized');
 
-    const fileExt = file.name ? file.name.split('.').pop() : 'jpg';
+    let fileExt = 'jpg';
+    if (file.name && file.name.includes('.')) {
+        fileExt = file.name.split('.').pop();
+    } else if (file.type) {
+        fileExt = file.type.split('/').pop().replace('jpeg', 'jpg');
+    }
     let userId = null;
     try {
         const stored = localStorage.getItem('user');
