@@ -65,23 +65,10 @@ export async function handlePeopleRoute({ cleanUrl, method, body, queryParams })
                 payload.occupation = payload.occupation || payload.profession
                 payload.profile_image = payload.avatar || payload.profile_image || payload.avatar_url
                 payload.avatar_url = payload.profile_image
-                // Preserve approval status for existing profiles
-                if (payload.id) {
-                    const { data: existingProf } = await supabase.from('profiles').select('status, is_approved').eq('id', payload.id).maybeSingle();
-                    if (existingProf?.status === 'approved' || existingProf?.is_approved === true) {
-                        payload.status = 'approved';
-                        payload.is_approved = true;
-                        payload.is_verified = true;
-                    } else {
-                        payload.status = payload.status || 'pending';
-                        payload.is_approved = payload.is_approved ?? false;
-                        payload.is_verified = payload.is_verified ?? false;
-                    }
-                } else {
-                    payload.status = 'pending';
-                    payload.is_approved = false;
-                    payload.is_verified = false;
-                }
+                // Always require admin approval on creation or re-edit
+                payload.status = 'pending';
+                payload.is_approved = false;
+                payload.is_verified = false;
                 payload.role = payload.role || 'expert';
 
                 // Fetch existing street_address to preserve reviews and connections on update
@@ -122,6 +109,16 @@ export async function handlePeopleRoute({ cleanUrl, method, body, queryParams })
                 }
                 const saved = data || cleanProfile;
                 const formatted = formatPersonProfile(saved);
+
+                await createInAppAndEmailNotification({
+                    userId: payload.id || userId,
+                    userEmail: payload.email || userObj?.email,
+                    title: '📝 Advisor Profile Under Review',
+                    message: `Your professional profile details for "${payload.full_name || payload.name || 'Advisor'}" have been submitted and are pending admin review before going live in the directory.`,
+                    type: 'submission',
+                    link: `/people/become`
+                });
+
                 return { data: { profile: formatted, data: formatted, success: true } };
             }
 
