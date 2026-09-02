@@ -1,24 +1,28 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { MapPin, Users, Bed, ShieldCheck, ShieldAlert, Bath } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, Users, Bed, ShieldCheck, ShieldAlert, Bath, Home } from 'lucide-react';
 import { VerificationBadge } from '@/components/ui/VerificationBadge';
 import { SocialQuickConnect } from '@/components/ui/SocialConnect';
 import { useCountry } from '@/context/CountryContext';
 import { toast } from 'sonner';
 import WishlistButton from '@/components/ui/WishlistButton';
-import { resolveImageUrl } from '@/lib/imageUtils';
+import { resolveImageUrl, normalizeImages } from '@/lib/imageUtils';
 
 export const CardContainer = ({ children, linkTo, className = "" }) => {
-    const navigate = (e) => {
-        // Ignore clicks on buttons/icons
-        if (e.target.closest("button")) return;
+    const navigate = useNavigate();
 
-        window.location.href = linkTo;
+    const handleClick = (e) => {
+        // Ignore clicks on buttons/icons/links
+        if (e.target.closest("button") || e.target.closest("a")) return;
+
+        if (linkTo) {
+            navigate(linkTo);
+        }
     };
 
     return (
         <div
-            onClick={navigate}
+            onClick={handleClick}
             className={`group block h-full cursor-pointer select-none focus:outline-none`}
         >
             <div className={`bg-white rounded-[1.5rem] border border-[#E5E7EB] hover:border-[#CB2A25]/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden relative ${className}`}>
@@ -31,6 +35,7 @@ export const CardContainer = ({ children, linkTo, className = "" }) => {
 export const PropertyCard = React.memo(({ property }) => {
     const { formatPrice } = useCountry();
     const [isImageLoaded, setIsImageLoaded] = useState(false);
+    const [imageError, setImageError] = useState(false);
 
     if (!property) return null;
 
@@ -38,6 +43,21 @@ export const PropertyCard = React.memo(({ property }) => {
     const getValidImageUrl = (imagePath) => {
         return resolveImageUrl(imagePath);
     };
+
+    const resolvedImage = useMemo(() => {
+        if (!property) return null;
+        const normalized = normalizeImages([
+            property.photos,
+            property.images,
+            property.image,
+            property.banner_image,
+            property.banner,
+            property.photo,
+            property.property_images,
+            property.pictures
+        ]);
+        return normalized[0] || null;
+    }, [property]);
 
     // Safely get property data
     const propertyData = {
@@ -49,9 +69,7 @@ export const PropertyCard = React.memo(({ property }) => {
                 : (property.property_type ? property.property_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : "Stay"),
         location: property.city || property.location?.city || property.address || "Location Info",
         hostPreference: property.host_preference || "",
-        image: getValidImageUrl((Array.isArray(property.photos) && property.photos.length > 0)
-            ? property.photos[0]
-            : (property.image || property.property_images?.[0])),
+        image: resolvedImage,
         isVerified: property.status === 'approved',
         status: property.status || 'pending',
         rating: property.rating || property.Host?.rating || property.host?.rating || 0,
@@ -121,23 +139,22 @@ export const PropertyCard = React.memo(({ property }) => {
         <CardContainer key={propertyData.id} linkTo={`/rooms/${propertyData.id}`}>
             {/* Image Section */}
             <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden bg-slate-100 flex items-center justify-center">
-                {propertyData.image ? (
+                {propertyData.image && !imageError ? (
                     <img
                         src={propertyData.image}
                         alt={propertyData.title}
-                        className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${isImageLoaded ? 'opacity-100' : 'opacity-90'}`}
                         onLoad={() => setIsImageLoaded(true)}
-                        onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'%3E%3C/path%3E%3Cpolyline points='9 22 9 12 15 12 15 22'%3E%3C/polyline%3E%3C/svg%3E";
-                            e.target.className = "w-1/2 h-1/2 object-contain mx-auto my-auto opacity-50";
-                            setIsImageLoaded(true);
+                        onError={() => {
+                            setImageError(true);
+                            setIsImageLoaded(false);
                         }}
                         loading="lazy"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-                        <MapPin className="w-12 h-12 text-slate-400/60" />
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-400 select-none">
+                        <Home className="w-12 h-12 stroke-[1.25] text-slate-300 mb-1" />
+                        <span className="text-[11px] font-bold text-slate-400 tracking-wider uppercase">No Image Uploaded</span>
                     </div>
                 )}
 

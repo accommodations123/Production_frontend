@@ -63,18 +63,35 @@ export function normalizeImages(raw, fallback = null) {
     if (Array.isArray(raw)) {
         list = raw;
     } else if (typeof raw === 'string') {
-        const trimmed = raw.trim();
-        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        let trimmed = raw.trim();
+        // Handle double-escaped or quoted strings
+        if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
             try {
-                const parsed = JSON.parse(trimmed);
-                if (Array.isArray(parsed)) list = parsed;
-            } catch {
+                const unquoted = JSON.parse(trimmed);
+                if (typeof unquoted === 'string') trimmed = unquoted.trim();
+                else if (Array.isArray(unquoted)) list = unquoted;
+            } catch {}
+        }
+        if (list.length === 0) {
+            if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                try {
+                    const parsed = JSON.parse(trimmed);
+                    if (Array.isArray(parsed)) list = parsed;
+                } catch {
+                    const matches = trimmed.match(/https?:\/\/[^\s"',\]]+/g);
+                    if (matches && matches.length > 0) {
+                        list = matches;
+                    } else {
+                        list = [trimmed];
+                    }
+                }
+            } else if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:') || trimmed.startsWith('blob:') || trimmed.startsWith('/')) {
+                list = [trimmed];
+            } else if (trimmed.includes(',')) {
+                list = trimmed.split(',').map(s => s.trim()).filter(Boolean);
+            } else if (trimmed) {
                 list = [trimmed];
             }
-        } else if (trimmed.includes(',')) {
-            list = trimmed.split(',').map(s => s.trim()).filter(Boolean);
-        } else if (trimmed) {
-            list = [trimmed];
         }
     } else if (typeof raw === 'object') {
         if (Array.isArray(raw.images)) list = raw.images;
@@ -82,8 +99,24 @@ export function normalizeImages(raw, fallback = null) {
         else if (raw.url || raw.src) list = [raw.url || raw.src];
     }
 
-    const resolved = list
-        .map(item => resolveImageUrl(typeof item === 'string' ? item : item?.url || item?.src || null))
+    const flatList = list.flat(Infinity);
+
+    const resolved = flatList
+        .map(item => {
+            if (!item) return null;
+            if (typeof item === 'string') {
+                const str = item.trim().replace(/^["']|["']$/g, '');
+                if (!str || str === '[]' || str === 'null' || str === 'undefined') return null;
+                if (str.startsWith('[') && str.endsWith(']')) {
+                    try {
+                        const inner = JSON.parse(str);
+                        if (Array.isArray(inner) && inner[0]) return resolveImageUrl(inner[0]);
+                    } catch {}
+                }
+                return resolveImageUrl(str);
+            }
+            return resolveImageUrl(item?.url || item?.src || item?.image || item?.photo || null);
+        })
         .filter(Boolean);
 
     if (resolved.length === 0 && fallback) {

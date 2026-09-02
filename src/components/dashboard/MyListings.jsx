@@ -274,7 +274,7 @@ const ListingItemCard = ({ item, onDelete }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const photos = Array.isArray(item.photos) ? item.photos : [];
-  const thumbnail = photos[0] || item.banner_image || item.image || "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80";
+  const thumbnail = photos[0] || item.images?.[0] || item.banner_image || item.image || null;
   const label = item.property_type || "Stay";
   const city = item.city || item.location || "Flexible";
 
@@ -305,12 +305,19 @@ const ListingItemCard = ({ item, onDelete }) => {
       "group bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
     )}>
       {/* Visual Thumbnail */}
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-gray-50">
-        <img 
-          src={thumbnail} 
-          alt={item.title} 
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103" 
-        />
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-gray-50 flex items-center justify-center">
+        {thumbnail ? (
+          <img 
+            src={thumbnail} 
+            alt={item.title} 
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103" 
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-400 select-none">
+            <Home className="w-10 h-10 stroke-[1.25] text-slate-300 mb-1" />
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">No Image Uploaded</span>
+          </div>
+        )}
         
         {/* Status Badge overlayed */}
         <span className={cn("absolute top-3.5 right-3.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md", statusObj.class)}>

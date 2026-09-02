@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { normalizeImages } from "@/lib/imageUtils";
 import { HostDetailSocials } from '@/components/ui/SocialConnect';
 
 
@@ -97,7 +98,15 @@ export default function RoomPage() {
         };
 
         const amenities = Array.isArray(p.amenities) ? p.amenities : [];
-        const photos = Array.isArray(p.photos) && p.photos.length > 0 ? p.photos : [];
+        const photos = normalizeImages([
+            ...(Array.isArray(p.photos) ? p.photos : (p.photos ? [p.photos] : [])),
+            ...(Array.isArray(p.images) ? p.images : (p.images ? [p.images] : [])),
+            p.image,
+            p.banner_image,
+            p.banner,
+            p.photo,
+            ...(Array.isArray(p.property_images) ? p.property_images : (p.property_images ? [p.property_images] : []))
+        ].filter(Boolean));
 
         // Amenity Categorization
         const amenityIcons = {

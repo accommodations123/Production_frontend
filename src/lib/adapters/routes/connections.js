@@ -1,54 +1,55 @@
 import { supabase } from '@/lib/supabaseClient';
 import { getCurrentUserId, getCurrentUserObject } from '../userUtils';
+import { createInAppAndEmailNotification } from '../notificationUtils';
 
 export async function handleConnectionsRoute({ cleanUrl, method, body, queryParams }) {
         // ── 9. CONNECTION REQUESTS ───────────────────────────────────
-        if (cleanUrl.startsWith('connection-requests') || cleanUrl.startsWith('connections')) {
-            const userObj = await getCurrentUserObject()
-            const currentUserId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
+        if (cleanUrl.startsWith('connection-request') || cleanUrl.startsWith('connection-requests') || cleanUrl.startsWith('connections') || cleanUrl.startsWith('connection')) {
+            const userObj = await getCurrentUserObject();
+            const currentUserId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId();
 
             // Helper to format email to readable human name
             const formatNameFromEmail = (email) => {
-                if (!email || typeof email !== 'string' || !email.includes('@')) return ''
-                const handle = email.split('@')[0]
-                const parts = handle.replace(/[^a-zA-Z]+/g, ' ').trim().split(/\s+/).filter(Boolean)
-                if (parts.length === 0) return ''
-                return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ')
-            }
+                if (!email || typeof email !== 'string' || !email.includes('@')) return '';
+                const handle = email.split('@')[0];
+                const parts = handle.replace(/[^a-zA-Z]+/g, ' ').trim().split(/\s+/).filter(Boolean);
+                if (parts.length === 0) return '';
+                return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
+            };
 
-            // 1. Send Connection Request: POST connection-requests
-            if ((cleanUrl === 'connection-requests' || cleanUrl === 'connections') && method === 'POST') {
+            // 1. Send Connection Request: POST connection-requests, connection-request/send, connections/send, etc.
+            if ((cleanUrl === 'connection-requests' || cleanUrl === 'connections' || cleanUrl === 'connection-request/send' || cleanUrl === 'connection-requests/send' || cleanUrl === 'connection-request' || cleanUrl === 'connections/send') && method === 'POST') {
                 if (!currentUserId) {
-                    return { error: { status: 401, data: { message: 'Authentication required' } } }
+                    return { error: { status: 401, data: { message: 'Authentication required' } } };
                 }
 
-                const targetUserId = body?.targetUserId || body?.target_user_id || body?.recipient_id || body?.owner_id
+                const targetUserId = body?.targetUserId || body?.target_user_id || body?.recipient_id || body?.owner_id;
                 if (!targetUserId) {
-                    return { error: { status: 400, data: { message: 'Target user ID is required' } } }
+                    return { error: { status: 400, data: { message: 'Target user ID is required' } } };
                 }
 
                 if (String(currentUserId) === String(targetUserId)) {
-                    return { error: { status: 400, data: { message: 'Cannot connect with yourself' } } }
+                    return { error: { status: 400, data: { message: 'Cannot connect with yourself' } } };
                 }
 
-                const itemId = body?.itemId || body?.item_id || ''
-                const itemTitle = body?.itemTitle || body?.item_title || ''
-                const itemType = body?.itemType || body?.item_type || 'accommodations'
+                const itemId = body?.itemId || body?.item_id || '';
+                const itemTitle = body?.itemTitle || body?.item_title || '';
+                const itemType = body?.itemType || body?.item_type || 'accommodations';
 
                 // Get current user profile
-                const { data: currentProfile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
-                let currentMeta = {}
+                const { data: currentProfile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle();
+                let currentMeta = {};
                 if (currentProfile?.street_address && (currentProfile.street_address.startsWith('{') || currentProfile.street_address.startsWith('['))) {
                     try { currentMeta = JSON.parse(currentProfile.street_address) } catch {}
                 }
-                currentMeta.outgoing_requests = Array.isArray(currentMeta.outgoing_requests) ? currentMeta.outgoing_requests : []
+                currentMeta.outgoing_requests = Array.isArray(currentMeta.outgoing_requests) ? currentMeta.outgoing_requests : [];
 
-                const requesterEmail = body?.requesterEmail || currentProfile?.email || userObj?.email || ''
-                const requesterPhone = body?.requesterPhone || currentProfile?.phone || userObj?.phone || userObj?.user_metadata?.phone || ''
-                const requesterAvatar = body?.requesterAvatar || currentProfile?.avatar_url || currentProfile?.profile_image || userObj?.user_metadata?.avatar_url || ''
+                const requesterEmail = body?.requesterEmail || currentProfile?.email || userObj?.email || '';
+                const requesterPhone = body?.requesterPhone || currentProfile?.phone || userObj?.phone || userObj?.user_metadata?.phone || '';
+                const requesterAvatar = body?.requesterAvatar || currentProfile?.avatar_url || currentProfile?.profile_image || userObj?.user_metadata?.avatar_url || '';
 
-                const rawRequesterName = (body?.requesterName || '').trim()
-                const isGenericGivenName = !rawRequesterName || /^(community\s*member|user\d*|guest|null|undefined)$/i.test(rawRequesterName)
+                const rawRequesterName = (body?.requesterName || '').trim();
+                const isGenericGivenName = !rawRequesterName || /^(community\s*member|user\d*|guest|null|undefined)$/i.test(rawRequesterName);
 
                 const requesterName = (!isGenericGivenName ? rawRequesterName : '') ||
                     currentProfile?.name ||
@@ -60,17 +61,17 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                     userObj?.name ||
                     userObj?.full_name ||
                     (requesterEmail ? formatNameFromEmail(requesterEmail) : '') ||
-                    'Community Member'
+                    'Community Member';
 
                 // Get target user profile
-                const { data: targetProfile } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle()
-                let targetMeta = {}
+                const { data: targetProfile } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle();
+                let targetMeta = {};
                 if (targetProfile?.street_address && (targetProfile.street_address.startsWith('{') || targetProfile.street_address.startsWith('['))) {
                     try { targetMeta = JSON.parse(targetProfile.street_address) } catch {}
                 }
-                targetMeta.incoming_requests = Array.isArray(targetMeta.incoming_requests) ? targetMeta.incoming_requests : []
+                targetMeta.incoming_requests = Array.isArray(targetMeta.incoming_requests) ? targetMeta.incoming_requests : [];
 
-                const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
+                const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
                 const newRequest = {
                     id: requestId,
                     requestId: requestId,
@@ -97,100 +98,110 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                     status: 'pending',
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
-                }
+                };
 
                 // Deduplicate/Update existing
                 const existingIdx = targetMeta.incoming_requests.findIndex(r => 
                     String(r.requesterId || r.requester_id) === String(currentUserId) &&
                     (!itemId || String(r.itemId || r.item_id) === String(itemId))
-                )
+                );
                 if (existingIdx >= 0) {
-                    targetMeta.incoming_requests[existingIdx] = { ...targetMeta.incoming_requests[existingIdx], ...newRequest, status: 'pending', updated_at: new Date().toISOString() }
+                    targetMeta.incoming_requests[existingIdx] = { ...targetMeta.incoming_requests[existingIdx], ...newRequest, status: 'pending', updated_at: new Date().toISOString() };
                 } else {
-                    targetMeta.incoming_requests.unshift(newRequest)
+                    targetMeta.incoming_requests.unshift(newRequest);
                 }
 
                 const outIdx = currentMeta.outgoing_requests.findIndex(r => 
                     String(r.targetUserId || r.target_user_id) === String(targetUserId) &&
                     (!itemId || String(r.itemId || r.item_id) === String(itemId))
-                )
+                );
                 if (outIdx >= 0) {
-                    currentMeta.outgoing_requests[outIdx] = { ...currentMeta.outgoing_requests[outIdx], ...newRequest, status: 'pending', updated_at: new Date().toISOString() }
+                    currentMeta.outgoing_requests[outIdx] = { ...currentMeta.outgoing_requests[outIdx], ...newRequest, status: 'pending', updated_at: new Date().toISOString() };
                 } else {
-                    currentMeta.outgoing_requests.unshift(newRequest)
+                    currentMeta.outgoing_requests.unshift(newRequest);
                 }
 
                 // Save to database
                 await Promise.all([
                     supabase.from('profiles').update({ street_address: JSON.stringify(targetMeta) }).eq('id', targetUserId),
                     supabase.from('profiles').update({ street_address: JSON.stringify(currentMeta) }).eq('id', currentUserId)
-                ])
+                ]);
 
-                return { data: { success: true, message: 'Connection request sent successfully', data: newRequest } }
+                // Trigger in-app notification & simulated email to the owner
+                await createInAppAndEmailNotification({
+                    userId: targetUserId,
+                    userEmail: targetProfile?.email,
+                    title: '🤝 New Connection Request!',
+                    message: `${requesterName} sent you a connection request for "${itemTitle || 'your listing'}".`,
+                    type: 'connection_request',
+                    link: '/account-v2?tab=requests'
+                });
+
+                return { data: { success: true, message: 'Connection request sent successfully', data: newRequest } };
             }
 
-            // 2. Get Incoming Connection Requests: GET connection-requests/incoming
-            if (cleanUrl.startsWith('connection-requests/incoming')) {
+            // 2. Get Incoming Connection Requests: GET connection-requests/incoming, connection-request/my-requests, etc.
+            if (cleanUrl.startsWith('connection-requests/incoming') || cleanUrl.startsWith('connection-request/my-requests') || cleanUrl.startsWith('connection-requests/my-requests') || cleanUrl.startsWith('connections/incoming') || cleanUrl === 'connection-request/incoming') {
                 if (!currentUserId) {
-                    return { data: { data: [], count: 0, totalPages: 1 } }
+                    return { data: { data: [], count: 0, totalPages: 1 } };
                 }
 
-                const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
-                let meta = {}
+                const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle();
+                let meta = {};
                 if (profile?.street_address && (profile.street_address.startsWith('{') || profile.street_address.startsWith('['))) {
                     try { meta = JSON.parse(profile.street_address) } catch {}
                 }
-                const incoming = Array.isArray(meta.incoming_requests) ? meta.incoming_requests : []
+                const incoming = Array.isArray(meta.incoming_requests) ? meta.incoming_requests : [];
 
                 // Enrich incoming requests with requester profile details
-                const reqUserIds = [...new Set(incoming.map(r => r.requesterId || r.requester_id).filter(Boolean))]
+                const reqUserIds = [...new Set(incoming.map(r => r.requesterId || r.requester_id).filter(Boolean))];
                 if (reqUserIds.length > 0) {
                     try {
                         const { data: reqProfiles } = await supabase
                             .from('profiles')
                             .select('id, name, full_name, firstName, lastName, email, phone, avatar_url, profile_image, occupation, headline, city, country')
-                            .in('id', reqUserIds)
+                            .in('id', reqUserIds);
 
                         if (reqProfiles && Array.isArray(reqProfiles)) {
-                            const profileMap = new Map(reqProfiles.map(p => [String(p.id), p]))
+                            const profileMap = new Map(reqProfiles.map(p => [String(p.id), p]));
                             incoming.forEach(r => {
-                                const reqId = String(r.requesterId || r.requester_id || '')
-                                const p = profileMap.get(reqId)
+                                const reqId = String(r.requesterId || r.requester_id || '');
+                                const p = profileMap.get(reqId);
                                 if (p) {
-                                    const profName = p.name || p.full_name || (p.firstName ? `${p.firstName} ${p.lastName || ''}`.trim() : '')
+                                    const profName = p.name || p.full_name || (p.firstName ? `${p.firstName} ${p.lastName || ''}`.trim() : '');
                                     if (profName) {
-                                        r.requesterName = profName
-                                        r.requester_name = profName
+                                        r.requesterName = profName;
+                                        r.requester_name = profName;
                                     }
                                     if (p.avatar_url || p.profile_image) {
-                                        r.requesterAvatar = p.avatar_url || p.profile_image
-                                        r.requester_avatar = r.requesterAvatar
+                                        r.requesterAvatar = p.avatar_url || p.profile_image;
+                                        r.requester_avatar = r.requesterAvatar;
                                     }
                                     if (p.email && !r.requesterEmail) {
-                                        r.requesterEmail = p.email
-                                        r.requester_email = p.email
+                                        r.requesterEmail = p.email;
+                                        r.requester_email = p.email;
                                     }
                                     if (p.phone && !r.requesterPhone) {
-                                        r.requesterPhone = p.phone
-                                        r.requester_phone = p.phone
+                                        r.requesterPhone = p.phone;
+                                        r.requester_phone = p.phone;
                                     }
-                                    r.requesterHeadline = p.occupation || p.headline || ''
-                                    r.requesterLocation = [p.city, p.country].filter(Boolean).join(', ')
+                                    r.requesterHeadline = p.occupation || p.headline || '';
+                                    r.requesterLocation = [p.city, p.country].filter(Boolean).join(', ');
                                 }
 
-                                const email = r.requesterEmail || r.requester_email || p?.email
-                                const isGenericName = !r.requesterName || /^(community\s*member|user\d*|guest|null|undefined)$/i.test((r.requesterName || '').trim())
+                                const email = r.requesterEmail || r.requester_email || p?.email;
+                                const isGenericName = !r.requesterName || /^(community\s*member|user\d*|guest|null|undefined)$/i.test((r.requesterName || '').trim());
                                 if (isGenericName && email) {
-                                    const derived = formatNameFromEmail(email)
+                                    const derived = formatNameFromEmail(email);
                                     if (derived) {
-                                        r.requesterName = derived
-                                        r.requester_name = derived
+                                        r.requesterName = derived;
+                                        r.requester_name = derived;
                                     }
                                 }
-                            })
+                            });
                         }
                     } catch (enrichErr) {
-                        console.warn('Could not enrich incoming connection requests:', enrichErr)
+                        console.warn('Could not enrich incoming connection requests:', enrichErr);
                     }
                 }
 
@@ -199,64 +210,64 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                         data: incoming,
                         count: incoming.length,
                         total: incoming.length,
-                        totalPages: Math.ceil(incoming.length / (parseInt(queryParams.limit) || 10)) || 1
+                        totalPages: Math.ceil(incoming.length / (parseInt(queryParams?.limit) || 10)) || 1
                     }
-                }
+                };
             }
 
             // 3. Get Outgoing Connection Requests: GET connection-requests/outgoing
-            if (cleanUrl.startsWith('connection-requests/outgoing')) {
+            if (cleanUrl.startsWith('connection-requests/outgoing') || cleanUrl.startsWith('connection-request/outgoing') || cleanUrl.startsWith('connections/outgoing')) {
                 if (!currentUserId) {
-                    return { data: { data: [], count: 0, totalPages: 1 } }
+                    return { data: { data: [], count: 0, totalPages: 1 } };
                 }
 
-                const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
-                let meta = {}
+                const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle();
+                let meta = {};
                 if (profile?.street_address && (profile.street_address.startsWith('{') || profile.street_address.startsWith('['))) {
                     try { meta = JSON.parse(profile.street_address) } catch {}
                 }
-                const outgoing = Array.isArray(meta.outgoing_requests) ? meta.outgoing_requests : []
+                const outgoing = Array.isArray(meta.outgoing_requests) ? meta.outgoing_requests : [];
                 return {
                     data: {
                         data: outgoing,
                         count: outgoing.length,
                         total: outgoing.length,
-                        totalPages: Math.ceil(outgoing.length / (parseInt(queryParams.limit) || 10)) || 1
+                        totalPages: Math.ceil(outgoing.length / (parseInt(queryParams?.limit) || 10)) || 1
                     }
-                }
+                };
             }
 
-            // 4. Get Connection Status: GET connection-requests/status/:targetUserId
-            if (cleanUrl.startsWith('connection-requests/status')) {
-                const targetUserId = cleanUrl.split('/')[2] || queryParams.targetUserId
-                const itemId = queryParams.itemId || ''
+            // 4. Get Connection Status: GET connection-requests/status/:targetUserId or connection-request/status
+            if (cleanUrl.startsWith('connection-requests/status') || cleanUrl.startsWith('connection-request/status') || cleanUrl.startsWith('connections/status')) {
+                const targetUserId = cleanUrl.split('/')[2] || queryParams?.targetUserId;
+                const itemId = queryParams?.itemId || '';
 
                 if (!targetUserId || !currentUserId) {
-                    return { data: { status: 'none', isConnected: false, isOwner: false } }
+                    return { data: { status: 'none', isConnected: false, isOwner: false } };
                 }
 
                 if (String(targetUserId) === String(currentUserId)) {
-                    return { data: { status: 'accepted', isConnected: true, isOwner: true } }
+                    return { data: { status: 'accepted', isConnected: true, isOwner: true } };
                 }
 
                 // Check requester's outgoing requests
-                const { data: myProfile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
-                let myMeta = {}
+                const { data: myProfile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle();
+                let myMeta = {};
                 if (myProfile?.street_address && (myProfile.street_address.startsWith('{') || myProfile.street_address.startsWith('['))) {
                     try { myMeta = JSON.parse(myProfile.street_address) } catch {}
                 }
-                const outgoing = Array.isArray(myMeta.outgoing_requests) ? myMeta.outgoing_requests : []
+                const outgoing = Array.isArray(myMeta.outgoing_requests) ? myMeta.outgoing_requests : [];
                 const matched = outgoing.find(r => 
                     String(r.targetUserId || r.target_user_id) === String(targetUserId) &&
                     (!itemId || !r.itemId || !r.item_id || String(r.itemId || r.item_id) === String(itemId))
-                )
+                );
 
-                let currentStatus = matched ? matched.status : 'none'
+                let currentStatus = matched ? matched.status : 'none';
 
                 // Check if target user profile has real social contacts to unlock on accepted
                 if (currentStatus === 'accepted') {
-                    const { data: targetProfile } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle()
-                    let targetMeta = {}
+                    const { data: targetProfile } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle();
+                    let targetMeta = {};
                     if (targetProfile?.street_address && (targetProfile.street_address.startsWith('{') || targetProfile.street_address.startsWith('['))) {
                         try { targetMeta = JSON.parse(targetProfile.street_address) } catch {}
                     }
@@ -276,7 +287,7 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                                 targetTwitter: targetProfile?.twitter || targetMeta?.twitter || ''
                             }
                         }
-                    }
+                    };
                 }
 
                 return {
@@ -286,75 +297,87 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                         isOwner: false,
                         data: { status: currentStatus }
                     }
-                }
+                };
             }
 
-            // 5. Accept / Decline Connection Request: PATCH or PUT connection-requests/:requestId/status
-            if (cleanUrl.match(/^connection-requests\/[^/]+\/status$/) && (method === 'PATCH' || method === 'PUT' || method === 'POST')) {
+            // 5. Accept / Decline Connection Request: PATCH or PUT connection-requests/:requestId/status or connection-request/:requestId/status
+            if (cleanUrl.includes('/status') && (method === 'PATCH' || method === 'PUT' || method === 'POST')) {
                 if (!currentUserId) {
-                    return { error: { status: 401, data: { message: 'Authentication required' } } }
+                    return { error: { status: 401, data: { message: 'Authentication required' } } };
                 }
 
-                const requestId = cleanUrl.split('/')[1]
-                const newStatus = (body?.status || body?.action || 'accepted').toLowerCase()
-                const finalStatus = (newStatus === 'accept' || newStatus === 'accepted') ? 'accepted' : 'rejected'
+                const parts = cleanUrl.split('/');
+                const requestId = parts[1] || parts[parts.indexOf('status') - 1];
+                const newStatus = (body?.status || body?.action || 'accepted').toLowerCase();
+                const finalStatus = (newStatus === 'accept' || newStatus === 'accepted') ? 'accepted' : 'rejected';
 
                 // Load receiver profile (current user)
-                const { data: myProfile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle()
-                let myMeta = {}
+                const { data: myProfile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle();
+                let myMeta = {};
                 if (myProfile?.street_address && (myProfile.street_address.startsWith('{') || myProfile.street_address.startsWith('['))) {
                     try { myMeta = JSON.parse(myProfile.street_address) } catch {}
                 }
-                myMeta.incoming_requests = Array.isArray(myMeta.incoming_requests) ? myMeta.incoming_requests : []
+                myMeta.incoming_requests = Array.isArray(myMeta.incoming_requests) ? myMeta.incoming_requests : [];
 
-                const reqIndex = myMeta.incoming_requests.findIndex(r => String(r.id || r.requestId) === String(requestId))
+                const reqIndex = myMeta.incoming_requests.findIndex(r => String(r.id || r.requestId) === String(requestId));
                 if (reqIndex < 0) {
-                    return { error: { status: 404, data: { message: 'Connection request not found' } } }
+                    return { error: { status: 404, data: { message: 'Connection request not found' } } };
                 }
 
-                const targetReq = myMeta.incoming_requests[reqIndex]
+                const targetReq = myMeta.incoming_requests[reqIndex];
                 // SECURITY CHECK: Current user must be the recipient!
                 if (String(targetReq.targetUserId || targetReq.target_user_id) !== String(currentUserId)) {
-                    return { error: { status: 403, data: { message: 'Unauthorized to update this request' } } }
+                    return { error: { status: 403, data: { message: 'Unauthorized to update this request' } } };
                 }
 
-                targetReq.status = finalStatus
-                targetReq.updated_at = new Date().toISOString()
-                myMeta.incoming_requests[reqIndex] = targetReq
+                targetReq.status = finalStatus;
+                targetReq.updated_at = new Date().toISOString();
+                myMeta.incoming_requests[reqIndex] = targetReq;
 
                 // Update requester's outgoing requests
-                const requesterId = targetReq.requesterId || targetReq.requester_id
-                const { data: reqProfile } = await supabase.from('profiles').select('*').eq('id', requesterId).maybeSingle()
-                let reqMeta = {}
+                const requesterId = targetReq.requesterId || targetReq.requester_id;
+                const { data: reqProfile } = await supabase.from('profiles').select('*').eq('id', requesterId).maybeSingle();
+                let reqMeta = {};
                 if (reqProfile?.street_address && (reqProfile.street_address.startsWith('{') || reqProfile.street_address.startsWith('['))) {
                     try { reqMeta = JSON.parse(reqProfile.street_address) } catch {}
                 }
-                reqMeta.outgoing_requests = Array.isArray(reqMeta.outgoing_requests) ? reqMeta.outgoing_requests : []
-                const outIdx = reqMeta.outgoing_requests.findIndex(r => String(r.id || r.requestId) === String(requestId) || (String(r.targetUserId || r.target_user_id) === String(currentUserId) && String(r.itemId || r.item_id) === String(targetReq.itemId || targetReq.item_id)))
+                reqMeta.outgoing_requests = Array.isArray(reqMeta.outgoing_requests) ? reqMeta.outgoing_requests : [];
+                const outIdx = reqMeta.outgoing_requests.findIndex(r => String(r.id || r.requestId) === String(requestId) || (String(r.targetUserId || r.target_user_id) === String(currentUserId) && String(r.itemId || r.item_id) === String(targetReq.itemId || targetReq.item_id)));
                 if (outIdx >= 0) {
-                    reqMeta.outgoing_requests[outIdx].status = finalStatus
-                    reqMeta.outgoing_requests[outIdx].updated_at = new Date().toISOString()
+                    reqMeta.outgoing_requests[outIdx].status = finalStatus;
+                    reqMeta.outgoing_requests[outIdx].updated_at = new Date().toISOString();
                 }
 
                 // If accepted, add to connections
                 if (finalStatus === 'accepted') {
-                    myMeta.connections = Array.isArray(myMeta.connections) ? myMeta.connections : []
+                    myMeta.connections = Array.isArray(myMeta.connections) ? myMeta.connections : [];
                     if (!myMeta.connections.some(c => String(c.userId || c.user_id) === String(requesterId))) {
-                        myMeta.connections.push({ userId: requesterId, user_id: requesterId, itemId: targetReq.itemId, item_id: targetReq.item_id, status: 'accepted', updated_at: new Date().toISOString() })
+                        myMeta.connections.push({ userId: requesterId, user_id: requesterId, itemId: targetReq.itemId, item_id: targetReq.item_id, status: 'accepted', updated_at: new Date().toISOString() });
                     }
 
-                    reqMeta.connections = Array.isArray(reqMeta.connections) ? reqMeta.connections : []
+                    reqMeta.connections = Array.isArray(reqMeta.connections) ? reqMeta.connections : [];
                     if (!reqMeta.connections.some(c => String(c.userId || c.user_id) === String(currentUserId))) {
-                        reqMeta.connections.push({ userId: currentUserId, user_id: currentUserId, itemId: targetReq.itemId, item_id: targetReq.item_id, status: 'accepted', updated_at: new Date().toISOString() })
+                        reqMeta.connections.push({ userId: currentUserId, user_id: currentUserId, itemId: targetReq.itemId, item_id: targetReq.item_id, status: 'accepted', updated_at: new Date().toISOString() });
                     }
+
+                    // Trigger notification & simulated email to the requester
+                    await createInAppAndEmailNotification({
+                        userId: requesterId,
+                        userEmail: targetReq.requesterEmail || reqProfile?.email,
+                        title: '🎉 Connection Request Accepted!',
+                        message: `Your connection request for "${targetReq.itemTitle || 'the listing'}" has been accepted! Contact details are now unlocked.`,
+                        type: 'connection_accepted',
+                        link: '/account-v2?tab=requests'
+                    });
                 }
 
                 await Promise.all([
                     supabase.from('profiles').update({ street_address: JSON.stringify(myMeta) }).eq('id', currentUserId),
                     supabase.from('profiles').update({ street_address: JSON.stringify(reqMeta) }).eq('id', requesterId)
-                ])
+                ]);
 
-                return { data: { success: true, message: `Request ${finalStatus}`, data: targetReq } }
+                return { data: { success: true, message: `Request ${finalStatus}`, data: targetReq } };
             }
         }
+        return null;
 }
