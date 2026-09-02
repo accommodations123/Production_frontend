@@ -449,6 +449,7 @@ export default function CareerPage() {
                     />
                 </div>
             </div>
+        </div>
     )
 
     return (
