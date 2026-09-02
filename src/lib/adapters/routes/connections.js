@@ -23,7 +23,27 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                     return { error: { status: 401, data: { message: 'Authentication required' } } };
                 }
 
-                const targetUserId = body?.targetUserId || body?.target_user_id || body?.recipient_id || body?.owner_id;
+                const itemId = body?.itemId || body?.item_id || '';
+                const itemTitle = body?.itemTitle || body?.item_title || '';
+                const itemType = body?.itemType || body?.item_type || 'accommodations';
+
+                let targetUserId = body?.targetUserId || body?.target_user_id || body?.recipient_id || body?.owner_id;
+                if (!targetUserId && itemId) {
+                    if (itemType === 'travel' || itemType === 'trips' || itemType === 'trip') {
+                        const { data: trip } = await supabase.from('travel_trips').select('host_id').eq('id', itemId).maybeSingle();
+                        if (trip?.host_id) targetUserId = trip.host_id;
+                    } else if (itemType === 'accommodations' || itemType === 'property' || itemType === 'properties') {
+                        const { data: prop } = await supabase.from('properties').select('host_id, user_id').eq('id', itemId).maybeSingle();
+                        if (prop?.host_id || prop?.user_id) targetUserId = prop.host_id || prop.user_id;
+                    } else if (itemType === 'buysell' || itemType === 'marketplace') {
+                        const { data: item } = await supabase.from('buy_sell').select('user_id').eq('id', itemId).maybeSingle();
+                        if (item?.user_id) targetUserId = item.user_id;
+                    } else if (itemType === 'events' || itemType === 'event') {
+                        const { data: ev } = await supabase.from('events').select('organizer_id, host_id').eq('id', itemId).maybeSingle();
+                        if (ev?.organizer_id || ev?.host_id) targetUserId = ev.organizer_id || ev.host_id;
+                    }
+                }
+
                 if (!targetUserId) {
                     return { error: { status: 400, data: { message: 'Target user ID is required' } } };
                 }
@@ -31,10 +51,6 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                 if (String(currentUserId) === String(targetUserId)) {
                     return { error: { status: 400, data: { message: 'Cannot connect with yourself' } } };
                 }
-
-                const itemId = body?.itemId || body?.item_id || '';
-                const itemTitle = body?.itemTitle || body?.item_title || '';
-                const itemType = body?.itemType || body?.item_type || 'accommodations';
 
                 // Get current user profile
                 const { data: currentProfile } = await supabase.from('profiles').select('*').eq('id', currentUserId).maybeSingle();

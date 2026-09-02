@@ -21,6 +21,7 @@ import { usePagination } from '@/hooks/usePagination';
 import { Pagination } from '@/components/ui/Pagination';
 import { StayRequestCard } from '@/components/search/StayRequestCard';
 import PostStayRequestModal from '@/components/search/PostStayRequestModal';
+import { normalizeImages } from '@/lib/imageUtils';
 
 export default function SearchPage() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -162,6 +163,16 @@ export default function SearchPage() {
                                 email: rawHost.email || rawHost.User?.email || property.email || ""
                             };
 
+                            const propPhotos = normalizeImages([
+                                property.photos,
+                                property.images,
+                                property.image,
+                                property.banner_image,
+                                property.banner,
+                                property.photo,
+                                property.property_images
+                            ]);
+
                             return {
                                 ...property,
                                 _id: property.id || property._id,
@@ -171,9 +182,9 @@ export default function SearchPage() {
                                 fullAddress: property.address || "",
                                 price: property.price_per_month || property.price_per_night || 0,
                                 currency: property.currency || 'INR',
-                                image: (property.photos && property.photos.length > 0)
-                                    ? property.photos[0]
-                                    : "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop",
+                                photos: propPhotos,
+                                images: propPhotos,
+                                image: propPhotos[0] || null,
                                 type: property.property_type || "Apartment",
                                 category: property.category || property.property_type || "Apartment",
                                 rating: Number(property.rating || property.avg_rating || 0),

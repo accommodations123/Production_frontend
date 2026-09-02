@@ -110,7 +110,9 @@ export const propertyService = {
         return res.data;
     },
 
-    async updatePropertyMedia({ id, data }) {
+    async updatePropertyMedia(params) {
+        const id = params?.id || (typeof params === 'string' ? params : null);
+        const data = params?.formData || params?.data || params?.body || params;
         const res = await executeSupabaseRequest({
             url: `property/media/${id}`,
             method: 'PUT',
@@ -120,7 +122,9 @@ export const propertyService = {
         return res.data;
     },
 
-    async updatePropertyVideo({ id, data }) {
+    async updatePropertyVideo(params) {
+        const id = params?.id || (typeof params === 'string' ? params : null);
+        const data = params?.formData || params?.data || params?.body || params;
         const res = await executeSupabaseRequest({
             url: `property/video/${id}`,
             method: 'PUT',

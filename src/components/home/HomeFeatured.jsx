@@ -226,10 +226,16 @@ const mapTripToPlan = (trip, currentUser = null) => {
 
   return {
     id: trip.id,
-    host_id: trip.host_id,
+    _id: trip.id,
+    host_id: trip.host_id || trip.user_id,
+    user_id: trip.host_id || trip.user_id,
     matches: trip.matches || [],
     user: {
+      id: trip.host_id || trip.user_id,
+      user_id: trip.host_id || trip.user_id,
       fullName: fullName,
+      full_name: fullName,
+      name: fullName,
       age: trip.age || trip.user?.age || trip.host?.age || "",
       gender: trip.gender || trip.user?.gender || trip.host?.gender || "",
       country: normalizeCountry(trip.user?.country || trip.host?.country || trip.from_country),

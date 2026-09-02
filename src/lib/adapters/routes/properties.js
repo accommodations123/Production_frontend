@@ -127,14 +127,15 @@ export async function handlePropertiesRoute({ cleanUrl, method, body, queryParam
 
                 // Photos / Media
                 if (cleanUrl.includes('media') || cleanUrl.includes('photos') || cleanUrl.includes('photo')) {
-                    const photoUrl = payload.photo || payload.photos || payload.image || payload.images;
-                    if (photoUrl) {
+                    const rawPhotos = payload.photo || payload.photos || payload.image || payload.images;
+                    if (rawPhotos) {
                         const { data: cur } = await supabase.from('properties').select('photos, images').eq('id', id).maybeSingle();
-                        const curPhotos = Array.isArray(cur?.photos) ? cur.photos : [];
-                        const curImages = Array.isArray(cur?.images) ? cur.images : [];
-                        const added = Array.isArray(photoUrl) ? photoUrl : [photoUrl];
-                        payload.photos = [...new Set([...curPhotos, ...added])];
-                        payload.images = [...new Set([...curImages, ...added])];
+                        const curPhotos = normalizeImages(cur?.photos || []);
+                        const curImages = normalizeImages(cur?.images || []);
+                        const newPhotos = normalizeImages(rawPhotos);
+                        const combined = [...new Set([...curPhotos, ...curImages, ...newPhotos])];
+                        payload.photos = combined;
+                        payload.images = combined;
                     }
                 }
 
