@@ -246,12 +246,19 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
 
   const splitPhone = (fullPhone, userCountry = "", defaultCode = "+91", defaultIso = "IN") => {
     if (!fullPhone) return { code: defaultCode, iso: defaultIso, number: "" };
-    const phoneStr = fullPhone.toString().trim();
+    let phoneStr = fullPhone.toString().trim();
+    
+    // Strip URL schemes like https://wa.me/, wa.me/, tel:, etc.
+    phoneStr = phoneStr.replace(/^https?:\/\/(?:www\.)?(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=|web\.whatsapp\.com\/send\?phone=)/i, "");
+    phoneStr = phoneStr.replace(/^wa\.me\//i, "");
+    phoneStr = phoneStr.replace(/^tel:/i, "");
+    phoneStr = phoneStr.replace(/[^0-9+]/g, "").trim();
+
     if (phoneStr.startsWith('+')) {
       const sortedCodes = [...KNOWN_CODES].sort((a, b) => b.length - a.length);
       for (const code of sortedCodes) {
         if (phoneStr.startsWith(code)) {
-          const number = phoneStr.slice(code.length).trim();
+          const number = phoneStr.slice(code.length).replace(/\D/g, "").trim();
           let iso = defaultIso;
           if (code === "+1") {
             const cleanC = (userCountry || "").toLowerCase().trim();
@@ -268,7 +275,18 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
         }
       }
     }
-    return { code: defaultCode, iso: defaultIso, number: phoneStr };
+
+    // If starts with 91 and 12 digits (India)
+    if (/^91\d{10}$/.test(phoneStr)) {
+      return { code: "+91", iso: "IN", number: phoneStr.slice(2) };
+    }
+    // If starts with 1 and 11 digits (USA/Canada)
+    if (/^1\d{10}$/.test(phoneStr)) {
+      const isCanada = (userCountry || "").toLowerCase().includes("canada");
+      return { code: "+1", iso: isCanada ? "CA" : "US", number: phoneStr.slice(1) };
+    }
+
+    return { code: defaultCode, iso: defaultIso, number: phoneStr.replace(/\D/g, "") };
   };
 
   useEffect(() => {
@@ -279,6 +297,8 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
         const userC = initialData.country || prev.country || activeCountry?.name || "";
         const parsedPhone = splitPhone(initialData.phone, userC, defaultCode, defaultIso);
         const parsedWhatsApp = splitPhone(initialData.whatsapp, userC, defaultCode, defaultIso);
+        const cleanFb = extractUsername('facebook', initialData.facebook || prev.facebook || "");
+        const cleanInsta = extractUsername('instagram', initialData.instagram || prev.instagram || "");
 
         return {
           ...prev,
@@ -295,8 +315,8 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
           whatsapp: parsedWhatsApp.number || "",
           whatsappCode: parsedWhatsApp.code,
           whatsappIso: parsedWhatsApp.iso,
-          facebook: initialData.facebook || prev.facebook || "",
-          instagram: initialData.instagram || prev.instagram || "",
+          facebook: cleanFb,
+          instagram: cleanInsta,
         };
       });
     }
@@ -317,7 +337,11 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let cleanVal = value;
+    if (name === 'facebook' || name === 'instagram') {
+      cleanVal = extractUsername(name, value);
+    }
+    setFormData(prev => ({ ...prev, [name]: cleanVal }));
   };
 
   const toggleEdit = async (section) => {
@@ -330,11 +354,15 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
       try {
         const cleanFb = extractUsername('facebook', formData.facebook);
         const cleanInsta = extractUsername('instagram', formData.instagram);
+        const cleanPhoneNum = (formData.phone || "").replace(/\D/g, "");
+        const cleanWhatsappNum = (formData.whatsapp || "").replace(/\D/g, "");
         
         setFormData(prev => ({
           ...prev,
           facebook: cleanFb,
-          instagram: cleanInsta
+          instagram: cleanInsta,
+          phone: cleanPhoneNum,
+          whatsapp: cleanWhatsappNum
         }));
 
         if (onUpdate) {
@@ -348,8 +376,8 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
             }
           });
 
-          const finalPhone = formData.phone ? `${formData.phoneCode}${formData.phone}` : "";
-          const finalWhatsapp = formData.whatsapp ? `${formData.whatsappCode}${formData.whatsapp}` : "";
+          const finalPhone = cleanPhoneNum ? `${formData.phoneCode} ${cleanPhoneNum}` : "";
+          const finalWhatsapp = cleanWhatsappNum ? `${formData.whatsappCode} ${cleanWhatsappNum}` : "";
 
           payload.append('phone', finalPhone);
           payload.append('whatsapp', finalWhatsapp);
@@ -393,7 +421,15 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
   }, [formData.zip, editStates.location]);
 
   const openSocialLink = (platform, value) => {
-    const url = getSocialUrl(platform, value);
+    let target = value;
+    if (platform === 'whatsapp') {
+      const code = formData.whatsappCode || "+91";
+      const num = (formData.whatsapp || "").replace(/\D/g, "") || (value || "").replace(/\D/g, "");
+      target = num ? `${code}${num}` : "";
+    } else {
+      target = extractUsername(platform, value);
+    }
+    const url = getSocialUrl(platform, target);
     if (url) window.open(url, '_blank');
   };
 

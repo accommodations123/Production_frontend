@@ -131,30 +131,34 @@ export const getSocialUrl = (platform, value) => {
 export const extractUsername = (platform, value) => {
   if (!value || typeof value !== "string") return "";
   let trimmed = value.trim();
+  if (!trimmed) return "";
   
-  // Remove leading @ or / or www. or http(s)://
-  trimmed = trimmed.replace(/^@/, "").replace(/^\//, "");
+  // Strip common URL schemes and prefixes
+  trimmed = trimmed.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/^@+/, "").replace(/^\/+/, "");
 
   try {
-    if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.includes(`${platform}.com`)) {
-      let urlStr = trimmed;
-      if (!urlStr.startsWith("http")) {
-        urlStr = "https://" + urlStr;
-      }
+    if (trimmed.includes("/") || trimmed.includes("?") || trimmed.includes("#")) {
+      const urlStr = "https://" + trimmed;
       const url = new URL(urlStr);
-      const parts = url.pathname.split("/").filter(Boolean);
-      if (parts.length > 0) {
-        return parts[0];
+      const pathSegments = url.pathname.split("/").filter(Boolean);
+      if (pathSegments.length > 0) {
+        let candidate = pathSegments[pathSegments.length - 1];
+        if (candidate === "profile.php" && url.searchParams.get("id")) {
+          return url.searchParams.get("id");
+        }
+        return candidate.replace(/^@+/, "");
       }
     }
   } catch (e) {
-    // Fall back if URL constructor fails
+    // Fall through to regex
   }
 
   // Regex fallback
-  const regex = new RegExp(`(?:${platform}\\.com)\\/([^/?#]+)`, "i");
+  const regex = new RegExp(`(?:${platform}\\.com\\/)?([^/?#]+)`, "i");
   const match = trimmed.match(regex);
-  if (match) return match[1];
+  if (match && match[1]) {
+    return match[1].replace(/^@+/, "");
+  }
 
   return trimmed;
 };
