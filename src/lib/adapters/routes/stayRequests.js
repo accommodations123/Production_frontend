@@ -4,8 +4,8 @@ import { getCurrentUserId, getCurrentUserObject } from '../userUtils';
 import { enrichStayRequests } from '../enrichmentUtils';
 import { parseFormDataWithUploads } from '../storageUtils';
 import { normalizeCountryName } from '@/shared/utils/countryUtils';
-
-import { createInAppAndEmailNotification } from '../notificationUtils';
+import { NOTIFICATION_TYPES } from '@/shared/constants/notificationTypes';
+import { createInAppAndEmailNotification, notifyAdminsOfUserSubmission } from '../notificationUtils';
 
 export async function handleStayRequestsRoute({ cleanUrl, method, body, queryParams }) {
         // ── 5. STAY REQUESTS ────────────────────────────────────────
@@ -17,11 +17,16 @@ export async function handleStayRequestsRoute({ cleanUrl, method, body, queryPar
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.user_id,
+                        recipientId: data.user_id,
                         userEmail: data.email || data.contact_email,
                         title: '🎉 Stay Request Approved!',
                         message: `Your stay request for "${data.location || data.city || 'Accommodation'}" has been approved by NextKinLife admin and is now live!`,
-                        type: 'approval',
-                        link: `/accommodations`
+                        type: NOTIFICATION_TYPES.STAY_REQUEST_APPROVED,
+                        entityType: 'stay_request',
+                        entityId: data.id || id,
+                        actionUrl: `/accommodations`,
+                        link: `/accommodations`,
+                        metadata: data
                     });
                 }
                 return { data: { success: true, request: data, message: 'Stay request approved' } }
@@ -32,11 +37,16 @@ export async function handleStayRequestsRoute({ cleanUrl, method, body, queryPar
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.user_id,
+                        recipientId: data.user_id,
                         userEmail: data.email || data.contact_email,
                         title: '⚠️ Stay Request Update',
                         message: `Your stay request requires revisions according to community guidelines.`,
-                        type: 'rejection',
-                        link: `/accommodations`
+                        type: NOTIFICATION_TYPES.STAY_REQUEST_REJECTED,
+                        entityType: 'stay_request',
+                        entityId: data.id || id,
+                        actionUrl: `/accommodations`,
+                        link: `/accommodations`,
+                        metadata: data
                     });
                 }
                 return { data: { success: true, request: data, message: 'Stay request rejected' } }
@@ -88,6 +98,21 @@ export async function handleStayRequestsRoute({ cleanUrl, method, body, queryPar
                 }
                 const enriched = await enrichStayRequests(data ? [data] : [])
                 const single = enriched[0] || data
+
+                await notifyAdminsOfUserSubmission({
+                    title: `🛏️ New Stay Request: ${meta.displayTitle || 'Looking for Accommodation'}`,
+                    message: `${meta.seekerName || 'User'} (${clean.email || 'N/A'}) posted a stay request in ${clean.city || clean.country || 'Location'} (Budget: ${clean.currency} ${clean.budget}).`,
+                    type: NOTIFICATION_TYPES.STAY_REQUEST_SUBMITTED,
+                    entityType: 'stay_request',
+                    entityId: data?.id,
+                    actionUrl: '/admin/stay-requests',
+                    link: '/admin/stay-requests',
+                    userId: clean.user_id,
+                    userEmail: clean.email,
+                    userName: meta.seekerName,
+                    metadata: single
+                });
+
                 return { data: { request: single, data: single, success: true } }
             }
 

@@ -5,8 +5,8 @@ import { formatPersonProfile } from '../enrichmentUtils';
 import { parseFormDataWithUploads } from '../storageUtils';
 import { uploadToSupabaseStorage } from '@/lib/storageUtils';
 import { normalizeCountryName } from '@/shared/utils/countryUtils';
-
-import { createInAppAndEmailNotification } from '../notificationUtils';
+import { NOTIFICATION_TYPES } from '@/shared/constants/notificationTypes';
+import { createInAppAndEmailNotification, notifyAdminsOfUserSubmission } from '../notificationUtils';
 
 export async function handlePeopleRoute({ cleanUrl, method, body, queryParams }) {
         // ── 7. PEOPLE / EXPERTS / PROFESSIONALS ─────────────────────
@@ -21,11 +21,16 @@ export async function handlePeopleRoute({ cleanUrl, method, body, queryParams })
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.id,
+                        recipientId: data.id,
                         userEmail: data.email,
                         title: '🎉 Advisor Profile Approved & Verified!',
                         message: `Congratulations! Your professional advisor profile has been approved by NextKinLife admin and is now live in the People directory.`,
-                        type: 'approval',
-                        link: `/people/${data.id || id}`
+                        type: NOTIFICATION_TYPES.EXPERT_APPROVED,
+                        entityType: 'expert',
+                        entityId: data.id || id,
+                        actionUrl: `/people/${data.id || id}`,
+                        link: `/people/${data.id || id}`,
+                        metadata: data
                     });
                 }
                 return { data: { success: true, profile: data ? formatPersonProfile(data) : null, message: 'Expert approved' } }
@@ -36,11 +41,16 @@ export async function handlePeopleRoute({ cleanUrl, method, body, queryParams })
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.id,
+                        recipientId: data.id,
                         userEmail: data.email,
                         title: '⚠️ Advisor Profile Update',
                         message: `Your professional advisor profile requires revisions according to community guidelines.`,
-                        type: 'rejection',
-                        link: `/people/become`
+                        type: NOTIFICATION_TYPES.EXPERT_REJECTED,
+                        entityType: 'expert',
+                        entityId: data.id || id,
+                        actionUrl: `/people/become`,
+                        link: `/people/become`,
+                        metadata: data
                     });
                 }
                 return { data: { success: true, profile: data ? formatPersonProfile(data) : null, message: 'Expert rejected' } }
@@ -112,11 +122,30 @@ export async function handlePeopleRoute({ cleanUrl, method, body, queryParams })
 
                 await createInAppAndEmailNotification({
                     userId: payload.id || userId,
+                    recipientId: payload.id || userId,
                     userEmail: payload.email || userObj?.email,
                     title: '📝 Advisor Profile Under Review',
                     message: `Your professional profile details for "${payload.full_name || payload.name || 'Advisor'}" have been submitted and are pending admin review before going live in the directory.`,
-                    type: 'submission',
-                    link: `/people/become`
+                    type: NOTIFICATION_TYPES.EXPERT_APPLICATION_SUBMITTED,
+                    entityType: 'expert',
+                    entityId: payload.id || userId,
+                    actionUrl: `/people/become`,
+                    link: `/people/become`,
+                    metadata: saved
+                });
+
+                await notifyAdminsOfUserSubmission({
+                    title: `👤 New Expert / Advisor Profile: ${payload.full_name || payload.name || 'Advisor'}`,
+                    message: `${payload.full_name || 'User'} (${payload.email || userObj?.email || 'N/A'}) submitted their professional profile (${payload.profession || payload.headline || 'Advisor'}) for review.`,
+                    type: NOTIFICATION_TYPES.EXPERT_APPLICATION_SUBMITTED,
+                    entityType: 'expert',
+                    entityId: payload.id || userId,
+                    actionUrl: '/admin/people',
+                    link: '/admin/people',
+                    userId: payload.id || userId,
+                    userEmail: payload.email || userObj?.email,
+                    userName: payload.full_name || payload.name,
+                    metadata: saved
                 });
 
                 return { data: { profile: formatted, data: formatted, success: true } };

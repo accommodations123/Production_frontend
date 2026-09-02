@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { getCurrentUserId, getCurrentUserObject } from '../userUtils';
+import { NOTIFICATION_TYPES } from '@/shared/constants/notificationTypes';
 import { createInAppAndEmailNotification } from '../notificationUtils';
 
 export async function handleConnectionsRoute({ cleanUrl, method, body, queryParams }) {
@@ -143,14 +144,27 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                     supabase.from('profiles').update({ street_address: JSON.stringify(currentMeta) }).eq('id', currentUserId)
                 ]);
 
-                // Trigger in-app notification & simulated email to the owner
+                // Trigger in-app notification & transactional email to the owner
                 await createInAppAndEmailNotification({
                     userId: targetUserId,
+                    recipientId: targetUserId,
+                    actorId: currentUserId,
                     userEmail: targetProfile?.email,
                     title: '🤝 New Connection Request!',
                     message: `${requesterName} sent you a connection request for "${itemTitle || 'your listing'}".`,
-                    type: 'connection_request',
-                    link: '/account-v2?tab=requests'
+                    type: NOTIFICATION_TYPES.CONNECTION_REQUEST_RECEIVED,
+                    entityType: itemType || 'connection',
+                    entityId: requestId,
+                    actionUrl: '/account-v2?tab=requests',
+                    link: '/account-v2?tab=requests',
+                    metadata: {
+                        requestId,
+                        requesterName,
+                        requesterEmail,
+                        itemTitle,
+                        itemType,
+                        itemId
+                    }
                 });
 
                 return { data: { success: true, message: 'Connection request sent successfully', data: newRequest } };
@@ -392,14 +406,20 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                         reqMeta.connections.push({ userId: currentUserId, user_id: currentUserId, itemId: targetReq.itemId, item_id: targetReq.item_id, status: 'accepted', updated_at: new Date().toISOString() });
                     }
 
-                    // Trigger notification & simulated email to the requester
+                    // Trigger notification & email to the requester
                     await createInAppAndEmailNotification({
                         userId: requesterId,
+                        recipientId: requesterId,
+                        actorId: currentUserId,
                         userEmail: targetReq.requesterEmail || reqProfile?.email,
                         title: '🎉 Connection Request Accepted!',
                         message: `Your connection request for "${targetReq.itemTitle || 'the listing'}" has been accepted! Contact details are now unlocked.`,
-                        type: 'connection_accepted',
-                        link: '/account-v2?tab=requests'
+                        type: NOTIFICATION_TYPES.CONNECTION_REQUEST_ACCEPTED,
+                        entityType: targetReq.itemType || 'connection',
+                        entityId: targetReq.id || targetReq.requestId,
+                        actionUrl: '/account-v2?tab=requests',
+                        link: '/account-v2?tab=requests',
+                        metadata: targetReq
                     });
                 }
 

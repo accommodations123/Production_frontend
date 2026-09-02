@@ -6,8 +6,8 @@ import { parseFormDataWithUploads } from '../storageUtils';
 import { uploadToSupabaseStorage } from '@/lib/storageUtils';
 import { normalizeImages } from '@/lib/imageUtils';
 import { normalizeCountryName, getCountryByName, getCountryByCode } from '@/shared/utils/countryUtils';
-
-import { createInAppAndEmailNotification } from '../notificationUtils';
+import { NOTIFICATION_TYPES } from '@/shared/constants/notificationTypes';
+import { createInAppAndEmailNotification, notifyAdminsOfUserSubmission } from '../notificationUtils';
 
 export async function handlePropertiesRoute({ cleanUrl, method, body, queryParams }) {
         // ── 1. PROPERTIES / ACCOMMODATIONS ─────────────────────────
@@ -19,11 +19,16 @@ export async function handlePropertiesRoute({ cleanUrl, method, body, queryParam
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.host_id || data.user_id,
+                        recipientId: data.host_id || data.user_id,
                         userEmail: data.host_email || data.email,
                         title: '🎉 Accommodation Approved & Verified!',
                         message: `Great news! Your space "${data.title || 'Accommodation'}" has been approved by NextKinLife admin and is now live and verified.`,
-                        type: 'approval',
-                        link: `/rooms/${data.id || id}`
+                        type: NOTIFICATION_TYPES.PROPERTY_APPROVED,
+                        entityType: 'property',
+                        entityId: data.id || id,
+                        actionUrl: `/rooms/${data.id || id}`,
+                        link: `/rooms/${data.id || id}`,
+                        metadata: data
                     });
                 }
                 return { data: { success: true, property: data, message: 'Property approved' } }
@@ -34,11 +39,16 @@ export async function handlePropertiesRoute({ cleanUrl, method, body, queryParam
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.host_id || data.user_id,
+                        recipientId: data.host_id || data.user_id,
                         userEmail: data.host_email || data.email,
                         title: '⚠️ Accommodation Listing Update',
                         message: `Your accommodation listing "${data.title || 'Accommodation'}" requires revisions according to community guidelines.`,
-                        type: 'rejection',
-                        link: `/account-v2?tab=listings`
+                        type: NOTIFICATION_TYPES.PROPERTY_REJECTED,
+                        entityType: 'property',
+                        entityId: data.id || id,
+                        actionUrl: `/account-v2?tab=listings`,
+                        link: `/account-v2?tab=listings`,
+                        metadata: data
                     });
                 }
                 return { data: { success: true, property: data, message: 'Property rejected' } }
@@ -94,6 +104,21 @@ export async function handlePropertiesRoute({ cleanUrl, method, body, queryParam
                 const clean = sanitizePayload(payload, PROPERTY_COLUMNS)
                 const { data, error } = await supabase.from('properties').insert(clean).select().maybeSingle()
                 if (error) throw error
+
+                await notifyAdminsOfUserSubmission({
+                    title: `🏡 New Accommodation Listed: ${data?.title || payload.title || 'Space'}`,
+                    message: `Host (${data?.email || data?.phone || 'Host'}) created a new listing in ${data?.city || data?.country || 'NextKinLife'}.`,
+                    type: NOTIFICATION_TYPES.PROPERTY_SUBMITTED,
+                    entityType: 'property',
+                    entityId: data?.id,
+                    actionUrl: `/admin/properties`,
+                    link: `/admin/properties`,
+                    userId: data?.host_id || data?.user_id,
+                    userEmail: data?.email,
+                    userName: data?.host_name || data?.hostName,
+                    metadata: data
+                });
+
                 return { data: { propertyId: data?.id, id: data?.id, data, property: data, success: true } }
             }
 
@@ -148,6 +173,23 @@ export async function handlePropertiesRoute({ cleanUrl, method, body, queryParam
                 const clean = sanitizePayload(payload, PROPERTY_COLUMNS)
                 const { data, error } = await supabase.from('properties').update(clean).eq('id', id).select().maybeSingle()
                 if (error) throw error
+
+                if (cleanUrl.includes('submit')) {
+                    await notifyAdminsOfUserSubmission({
+                        title: `🏡 Accommodation Submitted for Review: ${data?.title || 'Listing'}`,
+                        message: `Host (${data?.email || data?.phone || 'Host'}) submitted space "${data?.title || 'Accommodation'}" in ${data?.city || data?.country || 'NextKinLife'} for admin review.`,
+                        type: NOTIFICATION_TYPES.PROPERTY_SUBMITTED,
+                        entityType: 'property',
+                        entityId: data?.id,
+                        actionUrl: `/admin/properties`,
+                        link: `/admin/properties`,
+                        userId: data?.host_id || data?.user_id,
+                        userEmail: data?.email,
+                        userName: data?.host_name || data?.hostName,
+                        metadata: data
+                    });
+                }
+
                 return { data: { property: data, data, success: true } }
             }
 

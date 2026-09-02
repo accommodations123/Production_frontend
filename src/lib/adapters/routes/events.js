@@ -6,8 +6,8 @@ import { parseFormDataWithUploads } from '../storageUtils';
 import { uploadToSupabaseStorage } from '@/lib/storageUtils';
 import { normalizeImages } from '@/lib/imageUtils';
 import { normalizeCountryName, getCountryByName, getCountryByCode } from '@/shared/utils/countryUtils';
-
-import { createInAppAndEmailNotification } from '../notificationUtils';
+import { NOTIFICATION_TYPES } from '@/shared/constants/notificationTypes';
+import { createInAppAndEmailNotification, notifyAdminsOfUserSubmission } from '../notificationUtils';
 
 export async function handleEventsRoute({ cleanUrl, method, body, queryParams }) {
         // ── 2. EVENTS ───────────────────────────────────────────────
@@ -19,11 +19,16 @@ export async function handleEventsRoute({ cleanUrl, method, body, queryParams })
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.organizer_id || data.user_id || data.host_id,
+                        recipientId: data.organizer_id || data.user_id || data.host_id,
                         userEmail: data.organizer_email || data.email,
                         title: '🎉 Event Approved!',
                         message: `Your event "${data.title || 'Event'}" has been approved by NextKinLife admin and is now live!`,
-                        type: 'approval',
-                        link: `/events/${data.id || id}`
+                        type: NOTIFICATION_TYPES.EVENT_APPROVED,
+                        entityType: 'event',
+                        entityId: data.id || id,
+                        actionUrl: `/events/${data.id || id}`,
+                        link: `/events/${data.id || id}`,
+                        metadata: data
                     });
                 }
                 return { data: { success: true, event: data, message: 'Event approved' } }
@@ -34,11 +39,16 @@ export async function handleEventsRoute({ cleanUrl, method, body, queryParams })
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.organizer_id || data.user_id || data.host_id,
+                        recipientId: data.organizer_id || data.user_id || data.host_id,
                         userEmail: data.organizer_email || data.email,
                         title: '⚠️ Event Status Update',
                         message: `Your event "${data.title || 'Event'}" requires revisions according to community guidelines.`,
-                        type: 'rejection',
-                        link: `/account-v2?tab=events`
+                        type: NOTIFICATION_TYPES.EVENT_REJECTED,
+                        entityType: 'event',
+                        entityId: data.id || id,
+                        actionUrl: `/account-v2?tab=events`,
+                        link: `/account-v2?tab=events`,
+                        metadata: data
                     });
                 }
                 return { data: { success: true, event: data, message: 'Event rejected' } }
@@ -119,6 +129,21 @@ export async function handleEventsRoute({ cleanUrl, method, body, queryParams })
                 const clean = sanitizePayload(payload, EVENT_COLUMNS)
                 const { data, error } = await supabase.from('events').insert(clean).select().maybeSingle()
                 if (error) throw error
+
+                await notifyAdminsOfUserSubmission({
+                    title: `📅 New Community Event: ${data?.title || payload.title || 'Event'}`,
+                    message: `${payload.organizer_name || 'Organizer'} (${payload.organizer_email || 'N/A'}) created event "${data?.title || payload.title}" in ${data?.city || data?.country || 'Community'} for ${data?.start_date || 'upcoming'}.`,
+                    type: NOTIFICATION_TYPES.EVENT_SUBMITTED,
+                    entityType: 'event',
+                    entityId: data?.id,
+                    actionUrl: `/admin/events`,
+                    link: `/admin/events`,
+                    userId: userObj?.id || userObj?._id,
+                    userEmail: payload.organizer_email,
+                    userName: payload.organizer_name,
+                    metadata: data
+                });
+
                 return { data: { event: data, id: data?.id, success: true } }
             }
             if (cleanUrl.startsWith('events/media/')) {

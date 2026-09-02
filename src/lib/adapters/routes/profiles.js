@@ -4,8 +4,8 @@ import { getCurrentUserId, getCurrentUserObject } from '../userUtils';
 import { formatUserProfile } from '../enrichmentUtils';
 import { parseFormDataWithUploads } from '../storageUtils';
 import { uploadToSupabaseStorage } from '@/lib/storageUtils';
-
-import { createInAppAndEmailNotification } from '../notificationUtils';
+import { NOTIFICATION_TYPES } from '@/shared/constants/notificationTypes';
+import { createInAppAndEmailNotification, notifyAdminsOfUserSubmission } from '../notificationUtils';
 
 export async function handleProfilesRoute({ cleanUrl, method, body, queryParams }) {
         // ── 6. PROFILES / HOST / USER ──────────────────────────────
@@ -21,10 +21,14 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.id,
+                        recipientId: data.id,
                         userEmail: data.email,
                         title: '🎉 Host Application Approved!',
                         message: `Congratulations! Your Host Application has been approved by NextKinLife admin. You can now create and manage spaces, events, and trips!`,
-                        type: 'approval',
+                        type: NOTIFICATION_TYPES.HOST_APPROVED,
+                        entityType: 'host',
+                        entityId: data.id,
+                        actionUrl: `/account-v2`,
                         link: `/account-v2`
                     });
                 }
@@ -36,10 +40,14 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.id,
+                        recipientId: data.id,
                         userEmail: data.email,
                         title: '⚠️ Host Application Status Update',
                         message: `Your host application was reviewed by our moderation team and requires additional verification documents.`,
-                        type: 'rejection',
+                        type: NOTIFICATION_TYPES.HOST_REJECTED,
+                        entityType: 'host',
+                        entityId: data.id,
+                        actionUrl: `/hosts`,
                         link: `/hosts`
                     });
                 }
@@ -135,6 +143,22 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 const { data, error } = await supabase.from('profiles').upsert(cleanProfile).select().maybeSingle()
                 if (error) throw error
                 const formatted = formatUserProfile(data);
+
+                // Notify admin of new host verification submission
+                await notifyAdminsOfUserSubmission({
+                    title: `🛡️ New Host Verification Request: ${formatted?.full_name || formatted?.name || 'Applicant'}`,
+                    message: `${formatted?.full_name || 'User'} (${formatted?.email || 'N/A'}) submitted identity verification for host status in ${formatted?.city || formatted?.country || 'Community'}.`,
+                    type: NOTIFICATION_TYPES.HOST_APPLICATION_SUBMITTED,
+                    entityType: 'host',
+                    entityId: data?.id,
+                    actionUrl: '/admin/hosts',
+                    link: '/admin/hosts',
+                    userId: data?.id,
+                    userEmail: data?.email,
+                    userName: formatted?.full_name,
+                    metadata: formatted
+                });
+
                 return { data: { host: formatted, profile: formatted, user: formatted, success: true } }
             }
 

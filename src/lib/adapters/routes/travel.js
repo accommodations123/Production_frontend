@@ -4,8 +4,8 @@ import { getCurrentUserId, getCurrentUserObject } from '../userUtils';
 import { enrichTravelWithHostDetails } from '../enrichmentUtils';
 import { parseFormDataWithUploads } from '../storageUtils';
 import { normalizeCountryName } from '@/shared/utils/countryUtils';
-
-import { createInAppAndEmailNotification } from '../notificationUtils';
+import { NOTIFICATION_TYPES } from '@/shared/constants/notificationTypes';
+import { createInAppAndEmailNotification, notifyAdminsOfUserSubmission } from '../notificationUtils';
 
 export async function handleTravelRoute({ cleanUrl, method, body, queryParams }) {
         // ── 4. TRAVEL / TRIPS ───────────────────────────────────────
@@ -17,11 +17,16 @@ export async function handleTravelRoute({ cleanUrl, method, body, queryParams })
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.user_id || data.host_id,
+                        recipientId: data.user_id || data.host_id,
                         userEmail: data.email || data.contact_email,
                         title: '🎉 Travel Plan Approved!',
                         message: `Your travel plan "${data.title || data.destination || 'Trip'}" has been approved by NextKinLife admin and is now live!`,
-                        type: 'approval',
-                        link: `/travel`
+                        type: NOTIFICATION_TYPES.TRIP_APPROVED,
+                        entityType: 'trip',
+                        entityId: data.id || id,
+                        actionUrl: `/travel`,
+                        link: `/travel`,
+                        metadata: data
                     });
                 }
                 return { data: { success: true, trip: data, message: 'Trip approved' } }
@@ -32,11 +37,16 @@ export async function handleTravelRoute({ cleanUrl, method, body, queryParams })
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.user_id || data.host_id,
+                        recipientId: data.user_id || data.host_id,
                         userEmail: data.email || data.contact_email,
                         title: '⚠️ Travel Plan Update',
                         message: `Your travel plan "${data.title || data.destination || 'Trip'}" requires revisions according to community guidelines.`,
-                        type: 'rejection',
-                        link: `/account-v2?tab=trips`
+                        type: NOTIFICATION_TYPES.TRIP_REJECTED,
+                        entityType: 'trip',
+                        entityId: data.id || id,
+                        actionUrl: `/account-v2?tab=trips`,
+                        link: `/account-v2?tab=trips`,
+                        metadata: data
                     });
                 }
                 return { data: { success: true, trip: data, message: 'Trip rejected' } }
@@ -92,6 +102,21 @@ export async function handleTravelRoute({ cleanUrl, method, body, queryParams })
                 const { data, error } = await supabase.from('travel_trips').insert(clean).select().maybeSingle()
                 if (error) throw error
                 const enriched = await enrichTravelWithHostDetails(data)
+
+                await notifyAdminsOfUserSubmission({
+                    title: `🚗 New Travel Companion / Trip: ${originStr || 'Origin'} ➔ ${destStr || 'Destination'}`,
+                    message: `${payload.host_name || 'Traveler'} posted a travel companion request from ${originStr} to ${destStr} on ${payload.travel_date}.`,
+                    type: NOTIFICATION_TYPES.TRIP_SUBMITTED,
+                    entityType: 'trip',
+                    entityId: data?.id,
+                    actionUrl: '/admin/travel',
+                    link: '/admin/travel',
+                    userId: payload.host_id,
+                    userEmail: userObj?.email,
+                    userName: payload.host_name,
+                    metadata: enriched
+                });
+
                 return { data: { trip: enriched, results: [enriched], trips: [enriched], success: true } }
             }
 

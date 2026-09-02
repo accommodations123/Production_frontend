@@ -50,6 +50,7 @@ import { handleCareerRoute } from './adapters/routes/career';
 import { handleWishlistRoute } from './adapters/routes/wishlist';
 import { handleConnectionsRoute } from './adapters/routes/connections';
 import { handleNotificationsRoute } from './adapters/routes/notifications';
+import { handleContactRoute } from './adapters/routes/contact';
 
 /**
  * Route request cleanly to Supabase PostgREST tables & Auth
@@ -134,6 +135,10 @@ export async function executeSupabaseRequest(args) {
 
         // 11. NOTIFICATIONS
         response = await handleNotificationsRoute(context);
+        if (response !== undefined) return response;
+
+        // 12. CONTACT FORM SUBMISSIONS & ADMIN MESSAGES
+        response = await handleContactRoute(context);
         if (response !== undefined) return response;
 
         // Default empty response

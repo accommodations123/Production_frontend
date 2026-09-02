@@ -133,6 +133,19 @@ export default function App() {
                                 <Route path="/people/become" element={<BecomeExpert />} />
                                 <Route path="/people/:id" element={<PeopleProfile />} />
 
+                                {/* Admin route aliases */}
+                                <Route path="/admin" element={<Navigate to="/account-v2?tab=admin-notifications" replace />} />
+                                <Route path="/admin/notifications" element={<Navigate to="/account-v2?tab=admin-notifications" replace />} />
+                                <Route path="/admin/properties" element={<Navigate to="/accommodations" replace />} />
+                                <Route path="/admin/events" element={<Navigate to="/events" replace />} />
+                                <Route path="/admin/buysell" element={<Navigate to="/marketplace" replace />} />
+                                <Route path="/admin/hosts" element={<Navigate to="/hosts" replace />} />
+                                <Route path="/admin/stay-requests" element={<Navigate to="/accommodations" replace />} />
+                                <Route path="/admin/travel" element={<Navigate to="/travel" replace />} />
+                                <Route path="/admin/careers" element={<Navigate to="/career" replace />} />
+                                <Route path="/admin/messages" element={<Navigate to="/contact" replace />} />
+                                <Route path="/admin/people" element={<Navigate to="/people" replace />} />
+
                                 {/* Wildcard fallback to home */}
                                 <Route path="*" element={<Navigate to="/" replace />} />
                             </Routes>

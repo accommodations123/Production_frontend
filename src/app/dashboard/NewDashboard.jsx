@@ -20,6 +20,9 @@ import { MyBuySellListings } from "@/components/marketplace/MyBuySellListings";
 import { WishlistManager } from "@/components/dashboard/WishlistManager";
 import { MyPeopleProfile } from "@/components/dashboard/MyPeopleProfile";
 import { MyConnectionRequests } from "@/components/dashboard/MyConnectionRequests";
+import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
+import { AdminNotificationCenter } from "@/components/admin/AdminNotificationCenter";
+import { Bell } from "lucide-react";
 
 import {
   useGetHostProfileQuery,
@@ -155,8 +158,17 @@ export default function NewDashboard() {
      RENDER
   -------------------------------- */
   /* Mobile tab items for horizontal scroll bar */
+  const isAdminUser = Boolean(
+    reduxUser?.role === 'admin' ||
+    reduxUser?.role === 'super_admin' ||
+    currentUser?.role === 'admin' ||
+    currentUser?.role === 'super_admin'
+  );
+
   const mobileTabs = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    ...(isAdminUser ? [{ id: 'admin-notifications', label: 'Admin Alerts', icon: ShieldCheck }] : []),
     { id: 'personal', label: 'Profile', icon: User },
     { id: 'listings', label: 'Listings', icon: Home },
     { id: 'events', label: 'Events', icon: Calendar },
@@ -413,6 +425,9 @@ export default function NewDashboard() {
               isHost={!!hostProfile?.id}
             />
           )}
+
+          {activeTab === "notifications" && <NotificationCenter />}
+          {activeTab === "admin-notifications" && <AdminNotificationCenter />}
 
           {activeTab === "listings" && <MyListings />}
           {activeTab === "events" && <MyEvents />}

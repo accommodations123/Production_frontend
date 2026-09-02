@@ -6,8 +6,8 @@ import { parseFormDataWithUploads } from '../storageUtils';
 import { uploadToSupabaseStorage } from '@/lib/storageUtils';
 import { normalizeImages } from '@/lib/imageUtils';
 import { normalizeCountryName } from '@/shared/utils/countryUtils';
-
-import { createInAppAndEmailNotification } from '../notificationUtils';
+import { NOTIFICATION_TYPES } from '@/shared/constants/notificationTypes';
+import { createInAppAndEmailNotification, notifyAdminsOfUserSubmission } from '../notificationUtils';
 
 export async function handleMarketplaceRoute({ cleanUrl, method, body, queryParams }) {
         // ── 3. BUY & SELL / MARKETPLACE ─────────────────────────────
@@ -19,11 +19,16 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.user_id || data.seller_id,
+                        recipientId: data.user_id || data.seller_id,
                         userEmail: data.email || data.seller_email,
                         title: '🎉 Marketplace Item Approved!',
                         message: `Your marketplace listing "${data.title || 'Product'}" has been approved by NextKinLife admin and is now live!`,
-                        type: 'approval',
-                        link: `/marketplace`
+                        type: NOTIFICATION_TYPES.BUY_SELL_APPROVED,
+                        entityType: 'buy_sell',
+                        entityId: data.id || id,
+                        actionUrl: `/marketplace`,
+                        link: `/marketplace`,
+                        metadata: data
                     });
                 }
                 return { data: { success: true, listing: data } }
@@ -34,11 +39,16 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.user_id || data.seller_id,
+                        recipientId: data.user_id || data.seller_id,
                         userEmail: data.email || data.seller_email,
                         title: '⚠️ Marketplace Listing Update',
                         message: `Your marketplace listing "${data.title || 'Product'}" requires revisions according to community guidelines.`,
-                        type: 'rejection',
-                        link: `/account-v2?tab=buy-sell`
+                        type: NOTIFICATION_TYPES.BUY_SELL_REJECTED,
+                        entityType: 'buy_sell',
+                        entityId: data.id || id,
+                        actionUrl: `/account-v2?tab=buy-sell`,
+                        link: `/account-v2?tab=buy-sell`,
+                        metadata: data
                     });
                 }
                 return { data: { success: true, listing: data } }
@@ -87,6 +97,20 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
                 const clean = sanitizePayload(payload, BUY_SELL_COLUMNS)
                 const { data, error } = await supabase.from('buy_sell').insert(clean).select().maybeSingle()
                 if (error) throw error
+
+                await notifyAdminsOfUserSubmission({
+                    title: `🛍️ New Marketplace Item: ${data?.title || payload.title || 'Product'}`,
+                    message: `User posted "${data?.title || payload.title}" for sale (${data?.currency || 'INR'} ${data?.price || ''}) in ${data?.city || data?.country || 'Community'}.`,
+                    type: NOTIFICATION_TYPES.BUY_SELL_SUBMITTED,
+                    entityType: 'buy_sell',
+                    entityId: data?.id,
+                    actionUrl: '/admin/buysell',
+                    link: '/admin/buysell',
+                    userId: data?.user_id,
+                    userEmail: data?.email,
+                    metadata: data
+                });
+
                 return { data: { listing: data, success: true } }
             }
             if (cleanUrl.startsWith('buy-sell/update/') || (cleanUrl.startsWith('buy-sell/') && (method === 'PUT' || method === 'PATCH') && !cleanUrl.includes('sold'))) {

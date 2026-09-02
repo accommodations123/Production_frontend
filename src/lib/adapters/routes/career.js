@@ -4,6 +4,8 @@ import { getCurrentUserId, getCurrentUserObject } from '../userUtils';
 import { parseFormDataWithUploads } from '../storageUtils';
 import { uploadToSupabaseStorage } from '@/lib/storageUtils';
 import { normalizeCountryName } from '@/shared/utils/countryUtils';
+import { NOTIFICATION_TYPES } from '@/shared/constants/notificationTypes';
+import { createInAppAndEmailNotification, notifyAdminsOfUserSubmission } from '../notificationUtils';
 
 export async function handleCareerRoute({ cleanUrl, method, body, queryParams }) {
         // ── 8. CAREER, JOBS & APPLICATIONS ──────────────────────────
@@ -151,10 +153,35 @@ export async function handleCareerRoute({ cleanUrl, method, body, queryParams })
                     console.warn('job_applications table upsert note:', tableErr)
                 }
 
-                // Synchronize localStorage
-                try {
-                    localStorage.setItem(`nxt_job_applications_${currentUserId}`, JSON.stringify(profileMeta.job_applications))
-                } catch {}
+                // Send user confirmation
+                await createInAppAndEmailNotification({
+                    userId: currentUserId,
+                    recipientId: currentUserId,
+                    userEmail: newApplication.email,
+                    title: `💼 Application Submitted: ${jobInfo?.title || 'Job Opportunity'}`,
+                    message: `Your application for "${jobInfo?.title || 'Job Opportunity'}" has been submitted successfully to the recruiting team.`,
+                    type: NOTIFICATION_TYPES.JOB_APPLICATION_SUBMITTED,
+                    entityType: 'job_application',
+                    entityId: applicationId,
+                    actionUrl: '/account-v2?tab=applications',
+                    link: '/account-v2?tab=applications',
+                    metadata: newApplication
+                });
+
+                // Send admin notification
+                await notifyAdminsOfUserSubmission({
+                    title: `💼 New Job Application: ${jobInfo?.title || 'Job Position'}`,
+                    message: `${newApplication.full_name} (${newApplication.email}) applied for ${jobInfo?.title || 'Job Position'} (Vendor: ${jobInfo?.vendorName || 'NextKinLife'}).`,
+                    type: NOTIFICATION_TYPES.JOB_APPLICATION_SUBMITTED,
+                    entityType: 'job_application',
+                    entityId: applicationId,
+                    actionUrl: '/admin/careers',
+                    link: '/admin/careers',
+                    userId: currentUserId,
+                    userEmail: newApplication.email,
+                    userName: newApplication.full_name,
+                    metadata: newApplication
+                });
 
                 return {
                     data: {
