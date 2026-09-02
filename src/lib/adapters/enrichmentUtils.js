@@ -275,8 +275,9 @@ export function formatPersonProfile(p) {
         } catch {}
     }
 
-    const fullName = p.full_name || p.name || [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Expert Advisor';
-    const profession = p.profession || p.headline || p.occupation || 'Advisor';
+    const isExpert = Boolean(p.role === 'expert' || p.is_expert === true || p.is_advisor === true || p.expert_status || (p.category && p.bio));
+    const fullName = p.full_name || p.name || [p.firstName, p.lastName].filter(Boolean).join(' ') || (isExpert ? 'Expert Advisor' : 'User');
+    const profession = p.profession || p.headline || p.occupation || (isExpert ? 'Advisor' : '');
     const headline = p.headline || p.profession || p.occupation || '';
     const avatar = p.profile_image || p.avatar_url || p.image || null;
     const city = p.city || '';

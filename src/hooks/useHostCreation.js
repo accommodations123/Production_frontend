@@ -178,6 +178,22 @@ export function useHostCreation() {
     // Form State - Initialize with property type as default
     const [formData, setFormData] = useState(() => getFormDataStructure('property'));
 
+    // Synchronize defaults with user's selected country
+    useEffect(() => {
+        if (activeCountry && activeCountry.name && activeCountry.name !== "Global" && !editId) {
+            setFormData(prev => ({
+                ...prev,
+                country: prev.country === "India" ? activeCountry.name : prev.country,
+                hostCountry: prev.hostCountry === "India" ? activeCountry.name : prev.hostCountry,
+                phonePrefix: activeCountry.phoneCode || prev.phonePrefix,
+                phoneIso: activeCountry.code || prev.phoneIso,
+                whatsappPrefix: activeCountry.phoneCode || prev.whatsappPrefix,
+                whatsappIso: activeCountry.code || prev.whatsappIso,
+                currency: activeCountry.currency || prev.currency || "USD"
+            }));
+        }
+    }, [activeCountry, editId]);
+
     const [customAmenityInput, setCustomAmenityInput] = useState("");
     const [customRuleInput, setCustomRuleInput] = useState("");
 

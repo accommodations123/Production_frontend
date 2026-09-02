@@ -611,7 +611,7 @@ export default function HostOnboardingForm() {
                   </label>
                   <div className="flex gap-2">
                     <CountryCodeSelect
-                      value={formData.phonePrefix || "+91"}
+                      value={formData.phonePrefix}
                       isoCode={formData.phoneIso}
                       onChange={(code, iso) => setFormData(prev => ({ ...prev, phonePrefix: code, phoneIso: iso }))}
                       className="w-[110px]"
@@ -812,7 +812,7 @@ export default function HostOnboardingForm() {
                     </label>
                     <div className="flex gap-2">
                       <CountryCodeSelect
-                        value={formData.whatsappPrefix || "+91"}
+                        value={formData.whatsappPrefix}
                         isoCode={formData.whatsappIso}
                         onChange={(code, iso) => setFormData(prev => ({ ...prev, whatsappPrefix: code, whatsappIso: iso }))}
                         className="w-[110px]"

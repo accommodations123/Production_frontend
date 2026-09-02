@@ -4,11 +4,13 @@ import { cn } from '@/lib/utils';
 import { COUNTRIES } from '@/lib/mock-data';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useClickOutside } from '@/hooks/useClickOutside';
+import { useCountry } from '@/context/CountryContext';
 
 export const CountryCodeSelect = ({ value, onChange, className, isoCode }) => {
     const [isOpen, setIsOpen] = React.useState(false);
     const [search, setSearch] = React.useState("");
     const ref = useClickOutside(() => setIsOpen(false));
+    const { activeCountry } = useCountry();
 
     // Filter and Sort countries: A-Z
     const filteredCountries = React.useMemo(() => {
@@ -31,11 +33,28 @@ export const CountryCodeSelect = ({ value, onChange, className, isoCode }) => {
             );
             if (found) return found;
         }
-        if (value === "+1") {
-            return COUNTRIES.find(c => c.code === "US") || COUNTRIES.find(c => c.phoneCode === "+1");
+        if (value && value !== "+91") {
+            if (value === "+1") {
+                return (activeCountry?.code === "CA" || isoCode === "CA")
+                    ? COUNTRIES.find(c => c.code === "CA")
+                    : (COUNTRIES.find(c => c.code === "US") || COUNTRIES.find(c => c.phoneCode === "+1"));
+            }
+            const found = COUNTRIES.find(c => c.phoneCode === value);
+            if (found) return found;
         }
-        return COUNTRIES.find(c => c.phoneCode === value) || COUNTRIES.find(c => c.code === "IN");
-    }, [value, isoCode]);
+        if (activeCountry?.code && activeCountry.code !== "GLOBAL") {
+            const cleanActive = activeCountry.code.toUpperCase();
+            const foundActive = COUNTRIES.find(c => 
+                c.code?.toUpperCase() === cleanActive || 
+                c.name?.toLowerCase() === activeCountry.name?.toLowerCase()
+            );
+            if (foundActive) return foundActive;
+        }
+        if (value === "+91") {
+            return COUNTRIES.find(c => c.code === "IN");
+        }
+        return COUNTRIES.find(c => c.code === "US") || COUNTRIES.find(c => c.code === "IN") || COUNTRIES[0];
+    }, [value, isoCode, activeCountry]);
 
     return (
         <div className={cn("relative", className)} ref={ref}>

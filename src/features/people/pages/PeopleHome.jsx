@@ -110,6 +110,10 @@ export default function PeopleHome() {
   // Comprehensive filtering across search, category, country, city, experience, rating
   const filteredPeople = useMemo(() => {
     return peopleList.filter((p) => {
+      // 0. Only display admin-approved expert profiles in the public frontend directory
+      const isApproved = Boolean(p.status === 'approved' || p.is_approved === true || p.isApproved === true || p.is_verified === true);
+      if (!isApproved) return false;
+
       // 1. Search Query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();

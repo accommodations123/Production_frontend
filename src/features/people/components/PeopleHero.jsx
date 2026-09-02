@@ -8,9 +8,18 @@ export default function PeopleHero({ searchQuery, setSearchQuery, totalCount = 0
   const { isAuthenticated } = useSelector((state) => state.auth || {});
   const { data: myProfileRes } = useGetMyProfileQuery(undefined, { skip: !isAuthenticated });
   const existingProfile = myProfileRes?.profile || myProfileRes?.data || (myProfileRes?.id ? myProfileRes : null);
+  
+  // A user has an expert profile ONLY if they explicitly registered/applied as an expert advisor
   const hasProfile = Boolean(
+    isAuthenticated &&
     existingProfile &&
-    (existingProfile.role === 'expert' || existingProfile.profession || existingProfile.headline || (existingProfile.bio && existingProfile.bio.trim().length > 0))
+    (
+      existingProfile.role === 'expert' ||
+      existingProfile.is_expert === true ||
+      existingProfile.is_advisor === true ||
+      existingProfile.expert_status ||
+      (existingProfile.category && existingProfile.bio && existingProfile.bio.trim().length >= 10 && existingProfile.profession && existingProfile.profession !== 'Advisor')
+    )
   );
 
   return (

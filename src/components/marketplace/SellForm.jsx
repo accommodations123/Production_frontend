@@ -338,8 +338,8 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
   const [streetAddress, setStreetAddress] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [phoneCode, setPhoneCode] = useState("+91");
-  const [phoneIso, setPhoneIso] = useState("");
+  const [phoneCode, setPhoneCode] = useState(() => (globalActiveCountry?.phoneCode && globalActiveCountry.code !== "GLOBAL" ? globalActiveCountry.phoneCode : ""));
+  const [phoneIso, setPhoneIso] = useState(() => (globalActiveCountry?.code && globalActiveCountry.code !== "GLOBAL" ? globalActiveCountry.code : ""));
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
   const [condition, setCondition] = useState("");
@@ -359,6 +359,13 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
   const [citiesList, setCitiesList] = useState([]);
   const citiesFetched = useRef(false);
   const lastSyncedGlobalCountryRef = useRef(null);
+
+  useEffect(() => {
+    if (globalActiveCountry?.code && globalActiveCountry.code !== "GLOBAL" && !initialData) {
+      if (globalActiveCountry.phoneCode) setPhoneCode(globalActiveCountry.phoneCode);
+      if (globalActiveCountry.code) setPhoneIso(globalActiveCountry.code);
+    }
+  }, [globalActiveCountry, initialData]);
 
   useEffect(() => {
     let active = true;
@@ -1053,7 +1060,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
           <Label>Phone</Label>
           <div className="flex gap-2">
             <CountryCodeSelect
-              value={phoneCode || "+91"}
+              value={phoneCode}
               isoCode={phoneIso}
               onChange={(code, iso) => {
                 setPhoneCode(code);
