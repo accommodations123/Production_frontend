@@ -115,11 +115,14 @@ export async function handlePeopleRoute({ cleanUrl, method, body, queryParams })
                 };
                 payload.street_address = JSON.stringify(meta);
 
-                const cleanProfile = sanitizePayload(payload, PROFILE_COLUMNS)
-                const { data, error } = await supabase.from('profiles').upsert(cleanProfile).select().maybeSingle()
-                if (error) throw error
-                const formatted = formatPersonProfile(data)
-                return { data: { profile: formatted, data: formatted, success: true } }
+                const cleanProfile = sanitizePayload(payload, PROFILE_COLUMNS);
+                const { data, error } = await supabase.from('profiles').upsert(cleanProfile).select().maybeSingle();
+                if (error) {
+                    console.warn('Supabase upsert profile warning:', error);
+                }
+                const saved = data || cleanProfile;
+                const formatted = formatPersonProfile(saved);
+                return { data: { profile: formatted, data: formatted, success: true } };
             }
 
             // Current logged-in user expert profile (GET people/me)

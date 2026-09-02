@@ -493,8 +493,8 @@ export default function BecomeExpert() {
     }
 
     try {
-      let finalAvatarUrl = avatarPreview.startsWith("blob:") ? "" : avatarPreview;
-      let finalCoverUrl = coverPreview.startsWith("blob:") ? "" : coverPreview;
+      let finalAvatarUrl = (typeof avatarPreview === "string" && !avatarPreview.startsWith("blob:")) ? avatarPreview : "";
+      let finalCoverUrl = (typeof coverPreview === "string" && !coverPreview.startsWith("blob:")) ? coverPreview : "";
 
       if (avatarFile) {
         setUploadProgressText("Uploading profile photo...");
@@ -521,32 +521,41 @@ export default function BecomeExpert() {
 
       setUploadProgressText(isExisting ? "Updating and publishing profile..." : "Creating professional profile...");
 
+      const toCleanArray = (val) => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val.map(s => String(s || '').trim()).filter(Boolean);
+        if (typeof val === "string") return val.split(",").map(s => s.trim()).filter(Boolean);
+        return [];
+      };
+
+      const safeTrim = (val) => (typeof val === "string" ? val.trim() : undefined);
+
       const payload = {
-        name: data.name,
+        name: data.name || currentUser?.name || "Expert Advisor",
         profession: data.profession || "Advisor",
-        headline: data.headline?.trim() || undefined,
+        headline: safeTrim(data.headline),
         category: data.category,
-        bio: data.bio,
-        experience: data.experience?.trim() || undefined,
-        languages: data.languages ? data.languages.split(",").map((l) => l.trim()).filter(Boolean) : [],
-        skills: data.skills ? data.skills.split(",").map((s) => s.trim()).filter(Boolean) : [],
-        specializations: data.specializations ? data.specializations.split(",").map((s) => s.trim()).filter(Boolean) : [],
+        bio: data.bio || "",
+        experience: safeTrim(data.experience),
+        languages: toCleanArray(data.languages),
+        skills: toCleanArray(data.skills),
+        specializations: toCleanArray(data.specializations),
         country: data.country || "Global",
-        state: data.state?.trim() || undefined,
-        city: data.city,
-        timezone: data.timezone?.trim() || undefined,
+        state: safeTrim(data.state),
+        city: data.city || "",
+        timezone: safeTrim(data.timezone),
         avatar: finalAvatarUrl || undefined,
         cover_image: finalCoverUrl || undefined,
-        website: data.website?.trim() || undefined,
-        facebook: data.facebook?.trim() || undefined,
-        instagram: data.instagram?.trim() || undefined,
-        whatsapp: data.whatsapp?.trim() || undefined,
-        telegram: data.telegram?.trim() || undefined,
-        educations: data.education_degree?.trim() ? [
+        website: safeTrim(data.website),
+        facebook: safeTrim(data.facebook),
+        instagram: safeTrim(data.instagram),
+        whatsapp: safeTrim(data.whatsapp),
+        telegram: safeTrim(data.telegram),
+        educations: safeTrim(data.education_degree) ? [
           {
             degree: data.education_degree.trim(),
-            institution: data.education_school?.trim() || "University / Institute",
-            year: data.education_year?.trim() || ""
+            institution: safeTrim(data.education_school) || "University / Institute",
+            year: safeTrim(data.education_year) || ""
           }
         ] : (Array.isArray(existingProfile?.educations) ? existingProfile.educations : []),
         hourlyRate: !isNaN(Number(data.hourlyRate)) ? Number(data.hourlyRate) : null,
@@ -559,7 +568,7 @@ export default function BecomeExpert() {
         },
         availability: data.availability || "Available",
         accepting_clients: Boolean(data.accepting_clients),
-        response_time: data.response_time?.trim() || undefined,
+        response_time: safeTrim(data.response_time),
         status: "pending",
         is_approved: false,
         isApproved: false,
