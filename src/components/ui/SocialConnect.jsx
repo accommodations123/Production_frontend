@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { SiGmail } from "react-icons/si";
 import { FaWhatsapp, FaInstagram, FaFacebookF, FaXTwitter, FaUserPlus, FaClock } from "react-icons/fa6";
