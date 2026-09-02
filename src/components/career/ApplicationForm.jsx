@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { useApplyForJobMutation } from '@/store/api/hostApi';
+import { useApplyForJobMutation } from '@/hooks/data/useCareerHooks';
 import { toast } from 'sonner';
 import { Loader2, Upload, FileText, X, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';

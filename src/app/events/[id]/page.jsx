@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { useParams } from "react-router-dom"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { useGetEventByIdQuery, useJoinEventMutation, useLeaveEventMutation } from "@/store/api/hostApi"
+import { useGetEventByIdQuery, useJoinEventMutation, useLeaveEventMutation } from "@/hooks/data/useEventHooks"
 import { toast } from "sonner"
 import { resolveImageUrl, normalizeImages } from "@/lib/imageUtils"
 

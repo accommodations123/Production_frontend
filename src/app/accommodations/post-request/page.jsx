@@ -14,7 +14,7 @@ import {
   Mail
 } from "lucide-react";
 import { FaWhatsapp, FaLinkedin } from "react-icons/fa6";
-import { useCreateStayRequestMutation } from "@/store/api/stayRequestApi";
+import { useCreateStayRequestMutation } from "@/hooks/data/useStayRequestHooks";
 import { useAuth } from "@/shared/hooks/useAuth";
 import { loadLocationData } from "@/shared/utils/lazyLocationData";
 import SearchableDropdown from "@/shared/ui/SearchableDropdown";

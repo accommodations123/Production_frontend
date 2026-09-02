@@ -7,13 +7,13 @@ import {
 import WishlistButton from "@/components/ui/WishlistButton";
 import { Breadcrumb } from "@/shared/ui/Breadcrumb";
 import { useCountry } from "@/context/CountryContext";
-import { useGetBuySellByIdQuery, useGetBuySellListingsQuery } from "@/store/api/hostApi";
+import { useGetBuySellByIdQuery, useGetBuySellListingsQuery } from "@/hooks/data/useMarketplaceHooks";
 import { toast } from "sonner";
 import { useAuth } from "@/shared/hooks/useAuth";
 import {
   useGetConnectionStatusQuery,
   useSendConnectionRequestMutation
-} from "@/store/api/connectionApi";
+} from "@/hooks/data/useConnectionHooks";
 import { normalizeImages, resolveImageUrl } from "@/lib/imageUtils";
 
 const FALLBACK_IMAGE =

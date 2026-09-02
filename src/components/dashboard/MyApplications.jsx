@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { useGetMyApplicationsQuery } from "@/store/api/hostApi";
+import { useGetMyApplicationsQuery } from "@/hooks/data/useCareerHooks";
 import { 
   Briefcase, MapPin, Clock, Building, Loader2, FileText, 
   ExternalLink, ChevronRight, CheckCircle2, AlertCircle 

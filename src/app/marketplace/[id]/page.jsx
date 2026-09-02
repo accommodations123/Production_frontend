@@ -4,7 +4,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { useGetBuySellByIdQuery } from '@/store/api/hostApi';
+import { useGetBuySellByIdQuery } from '@/hooks/data/useMarketplaceHooks';
 import ProductDetailView from '@/components/marketplace/ProductDetailView';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';

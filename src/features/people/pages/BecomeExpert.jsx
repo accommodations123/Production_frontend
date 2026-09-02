@@ -52,7 +52,7 @@ import {
   usePublishProfileMutation,
   useUploadFileMutation,
   useGetMyProfileQuery
-} from "@/store/api/peopleApi";
+} from "@/hooks/data/usePeopleHooks";
 
 import { ProviderConnectCard } from "../components/ProviderConnectCard";
 import { ProviderConnectModal } from "../components/ProviderConnectModal";
@@ -560,11 +560,11 @@ export default function BecomeExpert() {
         availability: data.availability || "Available",
         accepting_clients: Boolean(data.accepting_clients),
         response_time: data.response_time?.trim() || undefined,
-        status: isExisting ? (existingProfile?.status || "pending") : "pending",
-        is_approved: isExisting ? Boolean(existingProfile?.is_approved) : false,
-        isApproved: isExisting ? Boolean(existingProfile?.is_approved) : false,
-        isPublished: isExisting ? Boolean(existingProfile?.is_published) : false,
-        is_published: isExisting ? Boolean(existingProfile?.is_published) : false,
+        status: "pending",
+        is_approved: false,
+        isApproved: false,
+        isPublished: false,
+        is_published: false,
         contact_preferences: {
           allow_website: Boolean(data.allow_website),
           allow_whatsapp: Boolean(data.allow_whatsapp),
@@ -600,27 +600,17 @@ export default function BecomeExpert() {
           newProfileId;
       }
 
-      // Also invoke publish mutation to ensure state is active
-      try {
-        setUploadProgressText("Publishing profile live...");
-        await publishProfile().unwrap();
-      } catch (pubErr) {
-        console.warn("Publish mutation response:", pubErr);
-      }
-
       setSuccess(true);
       setPublishedProfileId(newProfileId);
       if (isExisting) {
-        toast.success("Professional profile updated successfully.");
+        toast.success("Profile updated and submitted for admin review! It will appear once approved.");
       } else {
         toast.success("Profile submitted successfully! It is currently pending review and will be visible publicly once approved.");
       }
 
-      if (newProfileId) {
-        setTimeout(() => {
-          navigate(`/people/${newProfileId}`);
-        }, 1500);
-      }
+      setTimeout(() => {
+        navigate("/people");
+      }, 1200);
     } catch (err) {
       console.error("Save professional profile error:", err);
       toast.error(err?.data?.message || err?.message || "Failed to save and publish professional profile.");
@@ -658,12 +648,13 @@ export default function BecomeExpert() {
       {/* Top Banner Header (Matches Host & Sell creation pages) */}
       <div className="bg-[#00142E] text-white pt-24 pb-12 border-b border-slate-800">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
-          <Link
-            to="/people"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-all"
+          <button
+            type="button"
+            onClick={() => navigate("/people")}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Directory
-          </Link>
+          </button>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">

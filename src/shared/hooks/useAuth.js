@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { useGetMeQuery } from "@/store/api/authApi";
+import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
 
 export function useAuth() {
     const reduxUser = useSelector((state) => state.auth?.user);

@@ -3,7 +3,7 @@ import {
   useGetMyBuySellListingsQuery,
   useDeleteBuySellMutation,
   useMarkBuySellAsSoldMutation
-} from "@/store/api/hostApi";
+} from "@/hooks/data/useMarketplaceHooks";
 import { 
   Edit, Trash2, CheckCircle, AlertCircle, Plus, Eye, 
   MessageSquare, Heart, Tag, ChevronRight, Loader2 
@@ -61,9 +61,24 @@ export function MyBuySellListings() {
     toast.success("Listing updated successfully");
   };
 
+  const rawList = useMemo(() => {
+    if (Array.isArray(listings)) return listings;
+    if (listings && typeof listings === 'object') {
+      if (Array.isArray(listings.listings)) return listings.listings;
+      if (Array.isArray(listings.buy_sell)) return listings.buy_sell;
+      if (Array.isArray(listings.items)) return listings.items;
+      if (Array.isArray(listings.products)) return listings.products;
+      if (Array.isArray(listings.data?.listings)) return listings.data.listings;
+      if (Array.isArray(listings.data?.buy_sell)) return listings.data.buy_sell;
+      if (Array.isArray(listings.data?.items)) return listings.data.items;
+      if (Array.isArray(listings.data)) return listings.data;
+    }
+    return [];
+  }, [listings]);
+
   // Ensure listings have valid metrics and condition properties
   const enrichedListings = useMemo(() => {
-    return listings.map((item) => {
+    return rawList.map((item) => {
       return {
         ...item,
         views: item.views || 0,

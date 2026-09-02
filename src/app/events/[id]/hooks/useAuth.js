@@ -1,4 +1,4 @@
-import { useGetMeQuery } from "@/store/api/authApi";
+import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
 import { useSelector } from "react-redux";
 
 export const useAuth = () => {

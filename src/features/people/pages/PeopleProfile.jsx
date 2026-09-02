@@ -43,8 +43,7 @@ import { getCanonicalUserId, isSelfUser } from "@/shared/utils/userUtils";
 import {
   useGetConnectionStatusQuery,
   useSendConnectionRequestMutation
-} from "@/store/api/connectionApi";
-
+} from "@/hooks/data/useConnectionHooks";
 
 import {
   useGetPublicProfileQuery,
@@ -58,7 +57,7 @@ import {
   useToggleFollowMutation,
   useAddReviewMutation,
   useTrackAnalyticsEventMutation
-} from "@/store/api/peopleApi";
+} from "@/hooks/data/usePeopleHooks";
 
 export default function PeopleProfile() {
   const { id } = useParams();
@@ -408,12 +407,13 @@ export default function PeopleProfile() {
         
         {/* Top Breadcrumb Navigation */}
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <Link
-            to="/people"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-all"
+          <button
+            type="button"
+            onClick={() => navigate("/people")}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-all cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Directory
-          </Link>
+          </button>
         </div>
 
         {/* Owner Moderation Banner */}

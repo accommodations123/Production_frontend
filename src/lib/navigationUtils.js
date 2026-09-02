@@ -11,6 +11,8 @@ export const getHostPath = (type, isAuthenticated) => {
         case 'marketplace': return '/marketplace?action=sell';
         case 'people':
         case 'expert': return '/people/become';
+        case 'seeker_request':
+        case 'stay_request': return '/accommodations/post-request';
         default: return '/hosts';
     }
 };

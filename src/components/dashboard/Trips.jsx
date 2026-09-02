@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useGetMyTripsQuery, useLazySearchTripsQuery, useTravelMatchActionMutation } from '@/store/api/authApi';
-import { useGetHostProfileQuery } from "@/store/api/hostApi";
+import { useGetMyTripsQuery, useLazySearchTripsQuery, useTravelMatchActionMutation } from '@/hooks/data/useTravelHooks';
+import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks";
 import {
   Calendar, Clock, Plane, ArrowRight, UserPlus, Check, X,
   Smartphone, Loader2, MapPin, Users, Ticket, AlertCircle,

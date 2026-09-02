@@ -14,8 +14,8 @@ import { useClickOutside } from "@/hooks/useClickOutside"
 import { getSocket, disconnectSocket } from "@/lib/socket"
 import { useDispatch, useSelector } from "react-redux"
 import { logoutUser, fetchCurrentUser } from "@/store/slices/authSlice"
-import { useGetHostProfileQuery, hostApi } from "@/store/api/hostApi"
-import { authApi } from "@/store/api/authApi"
+import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks"
+import { invalidateTags } from "@/lib/supabase/eventBus"
 import { NotificationDropdown } from "@/components/common/NotificationDropdown"
 import { clearAuthCookie } from "@/shared/utils/cookieUtils"
 import { MobileSidebar } from './MobileSidebar'
@@ -92,8 +92,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
         disconnectSocket();
         clearAuthCookie();
 
-        dispatch(authApi.util.resetApiState());
-        dispatch(hostApi.util.resetApiState());
+        invalidateTags(['User', 'Host', 'Property', 'Event', 'Trips', 'Wishlist', 'Notification']);
         setIsMobileMenuOpen(false);
         navigate("/signin");
     };

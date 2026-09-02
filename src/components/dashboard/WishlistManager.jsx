@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useGetWishlistQuery } from '@/store/api/hostApi';
+import { useGetWishlistQuery } from '@/hooks/data/useWishlistHooks';
 import { PropertyCard } from '@/components/home/featured/PropertyCard';
 import { StayRequestCard } from '@/components/search/StayRequestCard';
 import { EventCard } from '@/app/events/components/EventCard';

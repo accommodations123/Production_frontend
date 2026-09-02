@@ -1,11 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { hostApi } from "@/store/api/hostApi";
-import { eventApi } from "@/store/api/eventApi";
-import { authApi } from "@/store/api/authApi";
+
 import { COUNTRIES } from "@/lib/mock-data";
 import axios from "axios";
+import { invalidateTags } from "@/hooks/data";
 
 const CountryContext = createContext(null);
 
@@ -71,12 +70,7 @@ export const CountryProvider = ({ children }) => {
             JSON.stringify(country)
           );
 
-          dispatch(
-            hostApi.util.invalidateTags(["Event", "Job"])
-          );
-          dispatch(
-            eventApi.util.invalidateTags(["Event"])
-          );
+          invalidateTags(["Event", "Job", "Property", "Accommodation", "Host", "BuySell", "Travel", "StayRequest", "People"]);
 
           return;
         }
@@ -107,15 +101,10 @@ export const CountryProvider = ({ children }) => {
       JSON.stringify(country)
     );
 
-    // Refetch event and job queries
-    dispatch(
-      hostApi.util.invalidateTags(["Event", "Job"])
-    );
-    dispatch(
-      eventApi.util.invalidateTags(["Event"])
-    );
+    // Refetch event, property, and domain queries
+    invalidateTags(["Event", "Job", "Property", "Accommodation", "Host", "BuySell", "Travel", "StayRequest", "People"]);
 
-  }, [dispatch]);
+  }, []);
 
   const formatPrice = useCallback((amount, customCurrency) => {
     if (amount === undefined || amount === null) return "";

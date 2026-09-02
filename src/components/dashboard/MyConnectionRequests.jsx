@@ -8,7 +8,7 @@ import { Button } from "@/shared/ui/button";
 import {
   useGetIncomingRequestsQuery,
   useUpdateRequestStatusMutation
-} from "@/store/api/connectionApi";
+} from "@/hooks/data/useConnectionHooks";
 
 const CATEGORY_CONFIG = {
   accommodations: { label: "Accommodation", icon: Home, emoji: "🏠", color: "bg-blue-50 text-blue-700 border-blue-200" },

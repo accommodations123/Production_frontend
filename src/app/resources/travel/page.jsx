@@ -8,9 +8,9 @@ import { useCountry } from "@/context/CountryContext";
 import {
   useGetMyTripsQuery,
   useGetPublicTripsQuery,
-  useLazySearchTripsQuery,
-  useGetHostProfileQuery
-} from "../../../store/api/hostApi";
+  useLazySearchTripsQuery
+} from "@/hooks/data/useTravelHooks";
+import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks";
 import { resolveImageUrl } from "@/lib/imageUtils";
 
 // Extracted Constants

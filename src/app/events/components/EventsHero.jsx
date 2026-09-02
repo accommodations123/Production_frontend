@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { HeroEventSlider } from "@/components/events/HeroEventSlider"
 import { getHostPath } from "@/lib/navigationUtils"
 
-import { useGetMeQuery } from "@/store/api/authApi"
+import { useGetMeQuery } from "@/hooks/data/useAuthHooks"
 
 export const EventsHero = memo(({ totalEvents, searchQuery, setSearchQuery, featuredEvents, isLoading }) => {
     // Robust Auth Check matching Navbar

@@ -15,12 +15,12 @@ import { normalizeCountryName } from '@/shared/utils/countryUtils';
 import {
   useGetApprovedPropertiesQuery,
   useGetAllPropertiesQuery,
-  useGetApprovedEventsQuery,
-  useGetBuySellListingsQuery,
-  useGetPublicTripsQuery
-} from '@/store/api/hostApi';
-import { useGetPublicStayRequestsQuery } from '@/store/api/stayRequestApi';
-import { useGetPublicProfilesQuery } from '@/store/api/peopleApi';
+} from '@/hooks/data/usePropertyHooks';
+import { useGetApprovedEventsQuery } from '@/hooks/data/useEventHooks';
+import { useGetBuySellListingsQuery } from '@/hooks/data/useMarketplaceHooks';
+import { useGetPublicTripsQuery } from '@/hooks/data/useTravelHooks';
+import { useGetPublicStayRequestsQuery } from '@/hooks/data/useStayRequestHooks';
+import { useGetPublicProfilesQuery } from '@/hooks/data/usePeopleHooks';
 import { useAuth } from '@/app/events/[id]/hooks/useAuth';
 
 // UI Components
@@ -297,9 +297,17 @@ const HomeFeatured = () => {
   });
 
   const displayedProperties = useMemo(() => {
-    if (!allProperties || !Array.isArray(allProperties)) return [];
+    let rawList = [];
+    if (Array.isArray(allProperties)) {
+      rawList = allProperties;
+    } else if (allProperties && typeof allProperties === 'object') {
+      if (Array.isArray(allProperties.properties)) rawList = allProperties.properties;
+      else if (Array.isArray(allProperties.data?.properties)) rawList = allProperties.data.properties;
+      else if (Array.isArray(allProperties.data)) rawList = allProperties.data;
+    }
+    if (rawList.length === 0) return [];
     
-    return allProperties.filter(property => {
+    return rawList.filter(property => {
       if (!activeCountry?.name || activeCountry.name === "Global" || activeCountry.name === "All") return true;
       const cNorm = activeCountry.name.toLowerCase().trim();
       const propCountry = (property.country || '').toLowerCase().trim();

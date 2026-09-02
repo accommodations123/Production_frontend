@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, FileText, MapPin, Loader2, Info } from "lucide-react";
-import { useCreateStayRequestMutation } from "@/store/api/stayRequestApi";
+import { useCreateStayRequestMutation } from "@/hooks/data/useStayRequestHooks";
 import { useAuth } from "@/shared/hooks/useAuth";
 import { useCountry } from "@/context/CountryContext";
 import { getCurrencyForCountry } from "@/shared/utils/countryUtils";

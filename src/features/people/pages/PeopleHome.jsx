@@ -9,7 +9,7 @@ import PeopleCard from "../components/PeopleCard";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { Button } from "@/shared/ui/button";
 import { Users, Sparkles, ChevronDown, Loader2 } from "lucide-react";
-import { useGetPublicProfilesQuery } from "@/store/api/peopleApi";
+import { useGetPublicProfilesQuery } from "@/hooks/data/usePeopleHooks";
 import { COUNTRIES } from "@/lib/mock-data";
 import { useCountry } from "@/context/CountryContext";
 

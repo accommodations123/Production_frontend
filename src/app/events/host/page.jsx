@@ -17,16 +17,21 @@ import { SuccessState } from "./components/SuccessState"
 
 // Hooks
 import { useHostEvent } from "./hooks/useHostEvent"
-import { useGetHostProfileQuery } from "@/store/api/hostApi"
-import { useGetMeQuery } from "@/store/api/authApi"
+import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks"
+import { useGetMeQuery } from "@/hooks/data/useAuthHooks"
 
 export default function HostEventPage() {
-  const { data: userData } = useGetMeQuery()
-  const { data: hostProfile, isLoading: isProfileLoading } = useGetHostProfileQuery(undefined, {
-    skip: !userData
+  const { data: userData, isLoading: isUserLoading } = useGetMeQuery()
+  const { data: hostProfile, isLoading: isProfileLoading, isFetching: isProfileFetching } = useGetHostProfileQuery(undefined, {
+    skip: !isUserLoading && !userData
   })
 
-  const isVerifiedHost = hostProfile?.status === 'approved' || hostProfile?.is_approved === true;
+  const isChecking = isUserLoading || isProfileLoading || isProfileFetching || (Boolean(userData) && hostProfile === undefined);
+
+  const isVerifiedHost = Boolean(
+    (hostProfile && (hostProfile.status === 'approved' || hostProfile.is_approved === true || hostProfile.role === 'host')) ||
+    (userData && (userData.status === 'approved' || userData.is_approved === true || userData.role === 'host'))
+  );
 
   const {
     step,
@@ -48,7 +53,7 @@ export default function HostEventPage() {
     isReadOnly
   } = useHostEvent()
 
-  if (isProfileLoading) {
+  if (isChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

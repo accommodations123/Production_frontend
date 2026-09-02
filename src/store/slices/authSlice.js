@@ -2,19 +2,9 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { axiosClient } from '../../lib/axiosClient';
 import { resolveImageUrl } from '../../lib/imageUtils';
 import { supabase } from '@/lib/supabase';
-import { authApi } from '@/store/api/authApi';
-import { peopleApi } from '@/store/api/peopleApi';
-import { connectionApi } from '@/store/api/connectionApi';
-import { propertyApi } from '@/store/api/propertyApi';
-import { marketplaceApi } from '@/store/api/marketplaceApi';
-import { eventApi } from '@/store/api/eventApi';
-import { travelApi } from '@/store/api/travelApi';
-import { wishlistApi } from '@/store/api/wishlistApi';
-import { hostApi } from '@/store/api/hostApi';
-import { notificationApi } from '@/store/api/notificationApi';
-import { stayRequestApi } from '@/store/api/stayRequestApi';
+import { invalidateTags } from '@/lib/supabase/eventBus';
 
-// Helper to purge all user-specific RTK Query caches & sensitive storage on auth boundaries
+// Helper to purge all user-specific caches & sensitive storage on auth boundaries
 export const purgeAllUserCaches = (dispatch) => {
     try {
         localStorage.removeItem("user");
@@ -28,19 +18,9 @@ export const purgeAllUserCaches = (dispatch) => {
     }
 
     try {
-        dispatch(authApi.util.resetApiState());
-        dispatch(peopleApi.util.resetApiState());
-        dispatch(connectionApi.util.resetApiState());
-        dispatch(propertyApi.util.resetApiState());
-        dispatch(marketplaceApi.util.resetApiState());
-        dispatch(eventApi.util.resetApiState());
-        dispatch(travelApi.util.resetApiState());
-        dispatch(wishlistApi.util.resetApiState());
-        dispatch(hostApi.util.resetApiState());
-        dispatch(notificationApi.util.resetApiState());
-        dispatch(stayRequestApi.util.resetApiState());
+        invalidateTags(['User', 'Property', 'Event', 'BuySell', 'Job', 'Trips', 'Notification', 'Wishlist', 'Host', 'Profile', 'StayRequests', 'ConnectionRequests']);
     } catch (e) {
-        console.warn("⚠️ API state reset warning during logout:", e);
+        console.warn("⚠️ API cache invalidation warning during logout:", e);
     }
 };
 
@@ -93,7 +73,9 @@ export const fetchCurrentUser = createAsyncThunk(
                     if (parsed && (parsed.id || parsed.email)) {
                         return { user: parsed };
                     }
-                } catch {}
+                } catch (parseError) {
+                    console.debug('Failed to parse cached user:', parseError);
+                }
             }
 
             // No active session found
@@ -106,7 +88,9 @@ export const fetchCurrentUser = createAsyncThunk(
                     if (parsed && (parsed.id || parsed.email)) {
                         return { user: parsed };
                     }
-                } catch {}
+                } catch (parseError) {
+                    console.debug('Failed to parse cached user on session error:', parseError);
+                }
             }
             return { user: null };
         }
@@ -127,8 +111,8 @@ export const loginUser = createAsyncThunk(
         try {
             purgeAllUserCaches(dispatch);
             const response = await axiosClient.post('login', credentials);
-            // Force RTK Query getMe subscribers to refetch with the new session
-            dispatch(authApi.util.invalidateTags(['User']));
+            // Force getMe subscribers to refetch with the new session
+            invalidateTags(['User']);
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Login failed');
@@ -202,7 +186,7 @@ export const verifyOtp = createAsyncThunk(
                 if (token) localStorage.setItem('token', token);
                 if (user) localStorage.setItem('user', JSON.stringify(user));
 
-                dispatch(authApi.util.invalidateTags(['User']));
+                invalidateTags(['User']);
                 return { user, session: data.session, token };
             }
 
@@ -214,7 +198,7 @@ export const verifyOtp = createAsyncThunk(
             if (user) {
                 localStorage.setItem('user', JSON.stringify(user));
             }
-            dispatch(authApi.util.invalidateTags(['User']));
+            invalidateTags(['User']);
             return formatted;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || error.message || 'Verification failed');

@@ -10,7 +10,7 @@ import {
   useGetMyEventsQuery, 
   useDeleteEventMutation, 
   useGetHostProfileQuery 
-} from "@/store/api/hostApi";
+} from "@/hooks/data/useHostHooks";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -31,8 +31,7 @@ export const MyEvents = () => {
     error,
     refetch,
   } = useGetMyEventsQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-    skip: !hostProfile
+    refetchOnMountOrArgChange: true
   });
 
   const [deleteEvent] = useDeleteEventMutation();
@@ -46,9 +45,19 @@ export const MyEvents = () => {
     return isExpiredUTC(dateStr, timeStr);
   };
 
+  const rawEventList = useMemo(() => {
+    if (Array.isArray(eventListings)) return eventListings;
+    if (eventListings && typeof eventListings === 'object') {
+      if (Array.isArray(eventListings.events)) return eventListings.events;
+      if (Array.isArray(eventListings.data?.events)) return eventListings.data.events;
+      if (Array.isArray(eventListings.data)) return eventListings.data;
+    }
+    return [];
+  }, [eventListings]);
+
   // Process Events
   const events = useMemo(() => {
-    return (eventListings || []).map(e => {
+    return rawEventList.map(e => {
       const id = e._id || e.id;
       const status = (e.status || "").toLowerCase();
       const isDeleted = e.is_deleted === true || status === "deleted";

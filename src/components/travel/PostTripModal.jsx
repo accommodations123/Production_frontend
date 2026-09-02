@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { X, Plane, User, MapPin, Clock, Loader2 } from "lucide-react";
-import { useCreateTripMutation, useGetHostProfileQuery } from "../../store/api/hostApi";
+import { useCreateTripMutation } from "@/hooks/data/useTravelHooks";
+import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks";
 import { useAuth } from "../../app/events/[id]/hooks/useAuth";
-import { useGetMeQuery } from "../../store/api/authApi";
+import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
 import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 
@@ -222,12 +223,18 @@ export default function PostTripModal({ onClose, onAdd }) {
         }
     };
 
-    const { data: userData } = useGetMeQuery();
-    const { data: hostProfile, isLoading: isProfileLoading } = useGetHostProfileQuery(undefined, {
-        skip: !userData
+    const { data: userData, isLoading: isUserLoading } = useGetMeQuery();
+    const { data: hostProfile, isLoading: isHostLoading, isFetching: isHostFetching } = useGetHostProfileQuery(undefined, {
+        skip: !isUserLoading && !userData
     });
 
-    const isVerifiedHost = hostProfile?.status === 'approved';
+    const isChecking = isUserLoading || isHostLoading || isHostFetching || (Boolean(userData) && hostProfile === undefined);
+
+    const isVerifiedHost = Boolean(
+        (hostProfile && (hostProfile.status === 'approved' || hostProfile.is_approved === true || hostProfile.role === 'host')) ||
+        (userData && (userData.status === 'approved' || userData.is_approved === true || userData.role === 'host')) ||
+        (currentUser && (currentUser.status === 'approved' || currentUser.is_approved === true || currentUser.role === 'host'))
+    );
 
     return (
         <AnimatePresence>
@@ -237,8 +244,21 @@ export default function PostTripModal({ onClose, onAdd }) {
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4 backdrop-blur-sm"
             >
+                {/* Checking State View */}
+                {isChecking && (
+                    <motion.div
+                        initial={{ scale: 0.95, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.95, opacity: 0 }}
+                        className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden p-8 text-center flex flex-col items-center justify-center gap-3"
+                    >
+                        <Loader2 className="w-8 h-8 animate-spin text-[#CB2A25]" />
+                        <p className="text-gray-600 text-sm font-medium">Verifying host permissions...</p>
+                    </motion.div>
+                )}
+
                 {/* Access Denied View */}
-                {!isProfileLoading && !isVerifiedHost && (
+                {!isChecking && !isVerifiedHost && (
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -246,7 +266,7 @@ export default function PostTripModal({ onClose, onAdd }) {
                         className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden p-6 text-center"
                     >
                         <div className="flex justify-end mb-2">
-                            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 cursor-pointer">
                                 <X size={24} />
                             </button>
                         </div>
@@ -266,7 +286,7 @@ export default function PostTripModal({ onClose, onAdd }) {
                 )}
 
                 {/* Normal Form View */}
-                {(isProfileLoading || isVerifiedHost) && (
+                {!isChecking && isVerifiedHost && (
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}

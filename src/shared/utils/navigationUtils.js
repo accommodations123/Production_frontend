@@ -7,9 +7,12 @@ export const getHostPath = (type, isAuthenticated) => {
     switch (type) {
         case 'property': return '/host/create';
         case 'event': return '/events/host';
-        case 'travel': return '/travel/create';
+        case 'travel': return '/travel';
         case 'marketplace': return '/marketplace?action=sell';
-        case 'seeker_request': return '/search/post-request';
+        case 'people':
+        case 'expert': return '/people/become';
+        case 'seeker_request':
+        case 'stay_request': return '/accommodations/post-request';
         default: return '/hosts';
     }
 };

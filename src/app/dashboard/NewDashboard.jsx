@@ -23,14 +23,14 @@ import { MyConnectionRequests } from "@/components/dashboard/MyConnectionRequest
 
 import {
   useGetHostProfileQuery,
-  useGetMyListingsQuery,
-  useGetMyEventsQuery,
   useUpdateHostMutation
-} from "@/store/api/hostApi";
+} from "@/hooks/data/useHostHooks";
+import { useGetMyListingsQuery } from "@/hooks/data/usePropertyHooks";
+import { useGetMyEventsQuery } from "@/hooks/data/useEventHooks";
 
 import { useDispatch, useSelector } from "react-redux";
 import { updateProfile, updateUserLocal } from "@/store/slices/authSlice";
-import { useGetMyTripsQuery } from "@/store/api/authApi";
+import { useGetMyTripsQuery } from "@/hooks/data/useTravelHooks";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 /* -------------------------------
@@ -69,13 +69,27 @@ export default function NewDashboard() {
   /* -------------------------------
      Other dashboard data
   -------------------------------- */
-  const { data: listings = [] } = useGetMyListingsQuery(undefined, { skip: !hostProfile });
-  const { data: events = [] } = useGetMyEventsQuery(undefined, { skip: !hostProfile });
+  const { data: listings } = useGetMyListingsQuery();
+  const { data: events } = useGetMyEventsQuery();
   const { data: tripsData } = useGetMyTripsQuery();
 
-  const propertiesCount = listings.length;
-  const eventsCount = events.length;
-  const tripsCount = tripsData?.trips?.length || 0;
+  const propertiesCount = useMemo(() => {
+    if (Array.isArray(listings)) return listings.length;
+    if (Array.isArray(listings?.properties)) return listings.properties.length;
+    if (Array.isArray(listings?.data?.properties)) return listings.data.properties.length;
+    if (Array.isArray(listings?.data)) return listings.data.length;
+    return 0;
+  }, [listings]);
+
+  const eventsCount = useMemo(() => {
+    if (Array.isArray(events)) return events.length;
+    if (Array.isArray(events?.events)) return events.events.length;
+    if (Array.isArray(events?.data?.events)) return events.data.events.length;
+    if (Array.isArray(events?.data)) return events.data.length;
+    return 0;
+  }, [events]);
+
+  const tripsCount = tripsData?.trips?.length || (Array.isArray(tripsData) ? tripsData.length : 0);
 
   /* -------------------------------
      FINAL merged user (SAFE)
@@ -154,6 +168,14 @@ export default function NewDashboard() {
     { id: 'wishlist', label: 'Wishlist', icon: Heart },
   ];
 
+  const isHostVerified = Boolean(
+    hostProfile?.status === "approved" ||
+    hostProfile?.is_approved === true ||
+    hostProfile?.role === "host" ||
+    reduxUser?.role === "host" ||
+    currentUser?.role === "host"
+  );
+
 
 
   return (
@@ -191,7 +213,7 @@ export default function NewDashboard() {
                   )}
                 </div>
                 {/* Verified icon badge */}
-                {hostProfile?.status === "approved" && (
+                {isHostVerified && (
                   <span className="absolute bottom-1 right-1 bg-blue-500 text-white p-1.5 rounded-full border-2 border-white shadow-md flex items-center justify-center" title="Verified Host">
                     <ShieldCheck className="w-4 h-4 fill-current" />
                   </span>
@@ -204,7 +226,7 @@ export default function NewDashboard() {
                   {currentUser?.full_name || currentUser?.name || "User"}
                 </h1>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1.5 text-xs text-gray-500 font-semibold">
-                  {hostProfile?.status === "approved" ? (
+                  {isHostVerified ? (
                     <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
                       <ShieldCheck className="w-3.5 h-3.5 fill-blue-100" />
                       Verified Host
@@ -364,7 +386,7 @@ export default function NewDashboard() {
 
                       <VerificationRow label="Email Address Verified" verified={!!currentUser?.email} icon={Mail} />
                       <VerificationRow label="Phone Number Verified" verified={!!currentUser?.phone} icon={Phone} />
-                      <VerificationRow label="Host Profile Approved" verified={hostProfile?.status === "approved"} icon={ShieldCheck} />
+                      <VerificationRow label="Host Profile Approved" verified={isHostVerified} icon={ShieldCheck} />
                     </div>
 
                     {/* Connected Socials widget */}

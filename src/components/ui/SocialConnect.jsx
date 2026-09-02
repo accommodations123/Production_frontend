@@ -7,7 +7,7 @@ import { useAuth } from "@/shared/hooks/useAuth";
 import {
   useGetConnectionStatusQuery,
   useSendConnectionRequestMutation
-} from "@/store/api/connectionApi";
+} from "@/hooks/data/useConnectionHooks";
 import { toast } from "sonner";
 
 /**

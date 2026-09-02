@@ -10,9 +10,8 @@ import {
     useMarkNotificationAsReadMutation,
     useMarkAllNotificationsAsReadMutation,
     useDeleteNotificationMutation,
-    useDeleteAllNotificationsMutation,
-    hostApi
-} from "@/store/api/hostApi";
+    useDeleteAllNotificationsMutation
+} from "@/hooks/data/useNotificationHooks";
 import { useDispatch } from "react-redux";
 import { useTimeAgo } from "../../hooks/useTimeAgo";
 import { 
@@ -22,7 +21,7 @@ import {
     removeNotification as removeLocalNotification
 } from "@/store/slices/notificationSlice";
 
-import { useGetMeQuery } from "@/store/api/authApi";
+import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
 
 export function NotificationDropdown({ minimal = false }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -43,27 +42,38 @@ export function NotificationDropdown({ minimal = false }) {
     const [deleteNotification] = useDeleteNotificationMutation();
     const [deleteAllNotifications] = useDeleteAllNotificationsMutation();
 
-    // Calculate unread count
-    const unreadCount = notifications.filter(n => !n.is_read).length;
+    // Safely derive notifications array
+    const notificationList = Array.isArray(notifications)
+        ? notifications
+        : (Array.isArray(notifications?.notifications) ? notifications.notifications : []);
 
-    // Socket Listener for real-time notifications
+    // Calculate unread count
+    const unreadCount = notificationList.filter(n => !n.is_read).length;
+
+    // Custom Event & Socket Listener for real-time notifications
     useEffect(() => {
+        const handleNewNotification = () => {
+            refetch();
+        };
+
+        window.addEventListener("nxt:new_notification", handleNewNotification);
+
         try {
             const socket = getSocket();
-
-            const handleNotification = (payload) => {
-                // Refetch notifications to get the latest data
-                refetch();
-            };
-
-            socket.on("notification", handleNotification);
-
-            return () => {
-                socket.off("notification", handleNotification);
-            };
+            if (socket) {
+                socket.on("notification", handleNewNotification);
+            }
         } catch (err) {
-            console.error("Socket not ready for notifications:", err);
+            console.warn("Socket notification listener note:", err);
         }
+
+        return () => {
+            window.removeEventListener("nxt:new_notification", handleNewNotification);
+            try {
+                const socket = getSocket();
+                if (socket) socket.off("notification", handleNewNotification);
+            } catch {}
+        };
     }, [refetch]);
 
     const handleMarkAsRead = async (id) => {
@@ -216,13 +226,13 @@ export function NotificationDropdown({ minimal = false }) {
                                     <div className="w-6 h-6 border-2 border-white/20 border-t-accent rounded-full animate-spin mx-auto mb-2" />
                                     Loading...
                                 </div>
-                            ) : notifications.length === 0 ? (
+                            ) : notificationList.length === 0 ? (
                                 <div className="py-8 text-center text-white/40 text-sm">
                                     <Bell className="w-8 h-8 mx-auto mb-2 opacity-20" />
                                     No new notifications
                                 </div>
                             ) : (
-                                notifications.map((notif) => (
+                                notificationList.map((notif) => (
                                     <NotificationItem
                                         key={notif.id}
                                         notif={notif}

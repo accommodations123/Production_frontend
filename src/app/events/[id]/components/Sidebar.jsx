@@ -8,7 +8,7 @@ import { getSocialUrl } from "@/shared/utils/socialUtils"
 import {
   useGetConnectionStatusQuery,
   useSendConnectionRequestMutation
-} from "@/store/api/connectionApi"
+} from "@/hooks/data/useConnectionHooks";
 
 export const Sidebar = memo(({ event }) => {
     const { user: currentUser } = useAuth();

@@ -1,5 +1,5 @@
-import { useSaveHostMutation, useGetHostProfileQuery } from "@/store/api/hostApi";
-import { useGetMeQuery } from "@/store/api/authApi";
+import { useSaveHostMutation, useGetHostProfileQuery } from "@/hooks/data/useHostHooks";
+import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
 import { useNavigate, Link } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -95,6 +95,14 @@ export default function HostOnboardingForm() {
   const { data: hostProfile, isLoading: isProfileLoading } = useGetHostProfileQuery(undefined, {
     skip: !isAuthenticated && !userData
   });
+
+  const isHostApproved = Boolean(
+    hostProfile?.status === "approved" ||
+    hostProfile?.is_approved === true ||
+    hostProfile?.role === "host" ||
+    currentUser?.role === "host" ||
+    userData?.role === "host"
+  );
 
   // Pre-fill user data and active country prefix when available
   useEffect(() => {
@@ -434,7 +442,7 @@ export default function HostOnboardingForm() {
           </div>
 
           {/* Approved Status Banner */}
-          {hostProfile?.status === "approved" && (
+          {isHostApproved && (
             <div className="bg-emerald-50 border-l-4 border-emerald-500 p-6 m-6 rounded-lg shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center">

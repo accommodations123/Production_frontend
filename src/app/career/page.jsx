@@ -7,7 +7,7 @@ import { Footer } from "@/components/layout/Footer"
 import { JobCard } from "@/components/career/JobCard"
 import { FilterSection } from "@/components/career/FilterSection"
 import { JobDetailsModal } from "@/components/career/JobDetailsModal"
-import { useGetJobsQuery } from "@/store/api/hostApi"
+import { useGetJobsQuery } from "@/hooks/data/useCareerHooks"
 import {
     Search, MapPin, Filter, X, Briefcase, Building, Globe,
     TrendingUp, Users, Coffee, Award, Shield, Zap, Target, Wifi,

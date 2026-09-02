@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Sparkles, Users, Search, UserCheck } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { useSelector } from "react-redux";
-import { useGetMyProfileQuery } from "@/store/api/peopleApi";
+import { useGetMyProfileQuery } from "@/hooks/data/usePeopleHooks";
 
 export default function PeopleHero({ searchQuery, setSearchQuery, totalCount = 0 }) {
   const { isAuthenticated } = useSelector((state) => state.auth || {});

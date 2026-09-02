@@ -2,7 +2,7 @@ import React, { useState, useEffect, memo } from "react"
 import { Link } from "react-router-dom"
 import { Star, EyeOff, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useGetEventReviewsQuery, useGetEventRatingQuery, useAddEventReviewMutation, useHideEventReviewMutation } from "@/store/api/hostApi"
+import { useGetEventReviewsQuery, useGetEventRatingQuery, useAddEventReviewMutation, useHideEventReviewMutation } from "@/hooks/data/useEventHooks"
 import { useAuth } from "../hooks/useAuth"
 import { toast } from "sonner"
 

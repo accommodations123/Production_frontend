@@ -20,7 +20,7 @@ import {
   useGetFollowingQuery,
   useToggleFollowMutation,
   useGetPublicProfilesQuery
-} from "@/store/api/peopleApi";
+} from "@/hooks/data/usePeopleHooks";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import { getCurrencySymbol, getCurrencyForCountry } from "@/shared/utils/countryUtils";

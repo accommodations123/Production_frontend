@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react"
 import { useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 import { hostEventService, compressImage } from "../services/hostEventService"
-import { useGetMyEventsQuery, useGetEventByIdQuery } from "@/store/api/hostApi"
+import { useGetMyEventsQuery, useGetEventByIdQuery } from "@/hooks/data/useEventHooks"
 
 // Helper to split phone number
 // Known country codes (most common first)

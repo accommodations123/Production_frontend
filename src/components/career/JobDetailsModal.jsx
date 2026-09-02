@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from 'framer-motion'
 import { ApplicationForm } from './ApplicationForm'
 import { toast } from "sonner"
-import { useGetJobByIdQuery } from "@/store/api/hostApi"
+import { useGetJobByIdQuery } from "@/hooks/data/useCareerHooks";
 import { Loader2 } from "lucide-react"
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/app/events/[id]/hooks/useAuth'

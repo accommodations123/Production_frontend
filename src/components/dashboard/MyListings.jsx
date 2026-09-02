@@ -10,7 +10,7 @@ import {
   useGetMyListingsQuery, 
   useDeletePropertyMutation, 
   useGetHostProfileQuery 
-} from "@/store/api/hostApi";
+} from "@/hooks/data/useHostHooks";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -44,9 +44,19 @@ export const MyListings = () => {
     return p.listing_expires_at && new Date(p.listing_expires_at).getTime() < Date.now();
   };
 
+  const rawListings = useMemo(() => {
+    if (Array.isArray(propertyListings)) return propertyListings;
+    if (propertyListings && typeof propertyListings === 'object') {
+      if (Array.isArray(propertyListings.properties)) return propertyListings.properties;
+      if (Array.isArray(propertyListings.data?.properties)) return propertyListings.data.properties;
+      if (Array.isArray(propertyListings.data)) return propertyListings.data;
+    }
+    return [];
+  }, [propertyListings]);
+
   // Process Properties
   const properties = useMemo(() => {
-    return (propertyListings || []).map(p => {
+    return rawListings.map(p => {
       const id = p._id || p.id;
       const status = (p.status || "").toLowerCase();
       const isDeleted = p.is_deleted === true || status === "deleted";
@@ -268,19 +278,23 @@ const ListingItemCard = ({ item, onDelete }) => {
   const label = item.property_type || "Stay";
   const city = item.city || item.location || "Flexible";
 
+  const isApproved = item.is_approved === true || item.status === "approved";
+
   // Status Configurations
   const getStatus = () => {
+    if (isApproved) {
+      return { text: "Verified", class: "bg-emerald-600 text-white" };
+    }
+    if (item.status === "pending" || item.calculatedStatus === "pending") {
+      return { text: "Unverified (Pending)", class: "bg-amber-500 text-white" };
+    }
     switch (item.calculatedStatus) {
-      case "active":
-        return { text: "Live", class: "bg-green-500 text-white" };
-      case "pending":
-        return { text: "Pending", class: "bg-yellow-500 text-white" };
       case "draft":
         return { text: "Draft", class: "bg-blue-500 text-white" };
       case "expired":
         return { text: "Expired", class: "bg-red-500 text-white" };
       default:
-        return { text: "Live", class: "bg-green-500 text-white" };
+        return { text: "Unverified", class: "bg-amber-500 text-white" };
     }
   };
 
@@ -326,26 +340,26 @@ const ListingItemCard = ({ item, onDelete }) => {
           {item.guests || 0} Guests · {item.bedrooms || 0} Beds · {item.bathrooms || 0} Baths
         </p>
 
-        {item.calculatedStatus === "active" && item.listing_expires_at && (
-          <p className="text-xs text-amber-600 font-semibold flex items-center gap-1.5 bg-amber-50/50 p-2 rounded-xl border border-amber-100/50 w-fit">
-            <Clock className="w-3.5 h-3.5 text-amber-600" />
-            <span>
-              {(() => {
-                const diffTime = new Date(item.listing_expires_at).getTime() - Date.now();
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                return diffDays > 0 
-                  ? `${diffDays} day${diffDays !== 1 ? 's' : ''} left` 
-                  : "Expiring today";
-              })()}
-            </span>
-          </p>
-        )}
-
-        {item.calculatedStatus === "expired" && item.listing_expires_at && (
-          <p className="text-xs text-rose-600 font-semibold flex items-center gap-1.5 bg-rose-50/50 p-2 rounded-xl border border-rose-100/50 w-fit">
-            <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-            <span>Expired on {new Date(item.listing_expires_at).toLocaleDateString()}</span>
-          </p>
+        {/* 15-Day Countdown Timer for Auto-Disabling */}
+        {item.calculatedStatus !== "deleted" && item.calculatedStatus !== "draft" && (
+          <div className="text-xs font-bold flex items-center gap-2 bg-gradient-to-r from-amber-50 to-orange-50/60 p-2.5 rounded-2xl border border-amber-200/70 text-amber-900 w-full shadow-2xs mt-1">
+            <Clock className="w-4 h-4 text-amber-600 shrink-0 animate-pulse" />
+            <div className="flex flex-col">
+              <span className="text-[11px] font-extrabold text-amber-950 flex items-center gap-1">
+                {(() => {
+                  const createdTime = item.created_at ? new Date(item.created_at).getTime() : Date.now();
+                  const expiryTime = item.listing_expires_at ? new Date(item.listing_expires_at).getTime() : createdTime + (15 * 24 * 60 * 60 * 1000);
+                  const diffMs = expiryTime - Date.now();
+                  if (diffMs <= 0) return "0d 0h (Expired / Auto-disabled)";
+                  const daysLeft = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                  const hoursLeft = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                  const minsLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                  return daysLeft > 0 ? `${daysLeft}d ${hoursLeft}h remaining` : `${hoursLeft}h ${minsLeft}m remaining`;
+                })()}
+              </span>
+              <span className="text-[9.5px] text-amber-700 font-semibold">15-Day Auto-Disable Countdown</span>
+            </div>
+          </div>
         )}
 
 

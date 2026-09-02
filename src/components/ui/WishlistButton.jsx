@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { Heart } from 'lucide-react';
-import { useCheckWishlistStatusQuery, useToggleWishlistMutation } from '../../store/api/hostApi';
-import { useGetMeQuery } from '../../store/api/authApi';
+import { useCheckWishlistStatusQuery, useToggleWishlistMutation } from '@/hooks/data/useWishlistHooks';
+import { useGetMeQuery } from '@/hooks/data/useAuthHooks';
 
 const WishlistButton = ({
     itemId,

@@ -15,13 +15,11 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch } from "react-redux";
 
-import {
-  useGetMeQuery,
-  authApi,
-} from "@/store/api/authApi";
+import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
 import { logoutUser } from "@/store/slices/authSlice";
 import { disconnectSocket } from "@/lib/socket";
-import { useGetHostProfileQuery, hostApi } from "@/store/api/hostApi";
+import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks";
+import { invalidateTags } from "@/lib/supabase/eventBus";
 import { clearAuthCookie } from "@/shared/utils/cookieUtils";
 
 import { cn } from "@/lib/utils";
@@ -96,8 +94,7 @@ export function MobileSidebar({ isOpen, onClose }) {
     disconnectSocket();
     clearAuthCookie();
 
-    dispatch(authApi.util.resetApiState());
-    dispatch(hostApi.util.resetApiState());
+    invalidateTags(['User', 'Host', 'Property', 'Event', 'Trips', 'Wishlist', 'Notification']);
     onClose();
     navigate("/signin");
   };

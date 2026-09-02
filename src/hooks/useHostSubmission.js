@@ -18,7 +18,7 @@ import {
     useCreateEventMutation,
     useCreateCommunityMutation,
     useCreateCommunityContributionMutation
-} from '@/store/api/hostApi';
+} from '@/hooks/data/useHostHooks';
 
 export function useHostSubmission({
     formData,

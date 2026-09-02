@@ -14,8 +14,9 @@ import {
   Loader2,
 
 } from "lucide-react";
-import { useCreateBuySellMutation, useUpdateBuySellMutation, useGetHostProfileQuery } from "@/store/api/hostApi";
-import { useGetMeQuery } from "@/store/api/authApi";
+import { useCreateBuySellMutation, useUpdateBuySellMutation } from "@/hooks/data/useMarketplaceHooks";
+import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks";
+import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
 import { cn } from "@/lib/utils";
 import { fetchAddressByPincode } from "@/lib/pincodeUtils";
 import { useEffect } from "react";
@@ -314,12 +315,17 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
   const [imagesToDelete, setImagesToDelete] = useState([]);
   const [dragActive, setDragActive] = useState(false);
 
-  const { data: userData } = useGetMeQuery();
-  const { data: hostProfile, isLoading: isProfileLoading } = useGetHostProfileQuery(undefined, {
-    skip: !userData
+  const { data: userData, isLoading: isUserLoading } = useGetMeQuery();
+  const { data: hostProfile, isLoading: isProfileLoading, isFetching: isProfileFetching } = useGetHostProfileQuery(undefined, {
+    skip: !isUserLoading && !userData
   });
 
-  const isVerifiedHost = hostProfile?.status === 'approved';
+  const isChecking = isUserLoading || isProfileLoading || isProfileFetching || (Boolean(userData) && hostProfile === undefined);
+
+  const isVerifiedHost = Boolean(
+    (hostProfile && (hostProfile.status === 'approved' || hostProfile.is_approved === true || hostProfile.role === 'host')) ||
+    (userData && (userData.status === 'approved' || userData.is_approved === true || userData.role === 'host'))
+  );
 
   // State
   const [title, setTitle] = useState("");
@@ -631,7 +637,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
 
 
   /* ================= RENDER ================= */
-  if (isProfileLoading) {
+  if (isChecking) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />

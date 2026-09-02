@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCountry } from '@/context/CountryContext';
-import { useSendOtpMutation, useVerifyOtpMutation } from '@/store/api/authApi';
+import { useSendOtpMutation, useVerifyOtpMutation } from '@/hooks/data/useAuthHooks';
 import { getTermsFor } from '@/lib/host-terms-data';
 import { fetchCurrentUser } from '@/store/slices/authSlice';
 import { useHostSubmission } from './useHostSubmission';
@@ -11,7 +11,7 @@ import {
     useGetHostProfileQuery,
     useGetPropertyByIdQuery,
     useGetMyListingsQuery
-} from '@/store/api/hostApi';
+} from '@/hooks/data/useHostHooks';
 
 export const STEPS = [
     { title: "Basics", description: "Title, type & capacity" },

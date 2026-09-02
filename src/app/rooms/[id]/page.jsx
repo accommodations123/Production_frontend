@@ -7,7 +7,7 @@ import { ContactModal } from "@/components/contact/ContactModal";
 import {
     MapPin, Star, Heart, Share2, ArrowLeft, CheckCircle,
     Bed, Bath, Users, Square, Wifi, Car, Utensils, Tv,
-    Wind, Droplets, Shield, Sparkles, Phone, MessageCircle,
+    Wind, Droplets, Shield, ShieldAlert, Sparkles, Phone, MessageCircle,
     ChevronLeft, ChevronRight, ShieldCheck, Mail,
     Home, Building, Key, Lock, Zap, Coffee, Dumbbell, Waves,
     Camera, Maximize2, Award, Crown, Thermometer, Wine,
@@ -16,7 +16,8 @@ import {
     Calendar, X
 } from "lucide-react";
 import WishlistButton from "@/components/ui/WishlistButton";
-import { useGetPropertyByIdQuery, useGetMyListingsQuery, useGetHostProfileQuery } from '@/store/api/hostApi';
+import { useGetPropertyByIdQuery, useGetMyListingsQuery } from '@/hooks/data/usePropertyHooks';
+import { useGetHostProfileQuery } from '@/hooks/data/useHostHooks';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -273,9 +274,13 @@ export default function RoomPage() {
                                         <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-medium hover:bg-slate-200">
                                             {listing.type}
                                         </Badge>
-                                        {listing.isVerified && (
+                                        {listing.isVerified ? (
                                             <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1 pl-1 pr-2 hover:bg-emerald-100">
                                                 <ShieldCheck className="w-3.5 h-3.5" /> Verified
+                                            </Badge>
+                                        ) : (
+                                            <Badge className="bg-amber-50 text-amber-700 border-amber-200 gap-1 pl-1 pr-2 hover:bg-amber-100">
+                                                <ShieldAlert className="w-3.5 h-3.5" /> Unverified
                                             </Badge>
                                         )}
                                         {/* Removed static rating/reviews display */}

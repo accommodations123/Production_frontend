@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useGetPublicTripsQuery, useGetMeQuery } from "@/store/api/authApi";
+import { useGetPublicTripsQuery } from "@/hooks/data/useTravelHooks";
+import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
 import { useCountry } from "@/context/CountryContext";
 import { Loader2, ExternalLink, MapPin, Calendar, MessageCircle, ShieldCheck, User } from 'lucide-react';
 import { SectionHeader } from '../home/featured/SectionHeader';

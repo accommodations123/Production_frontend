@@ -13,8 +13,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { getHostPath } from '@/lib/navigationUtils';
 
-import { useGetApprovedHostDetailsQuery, useGetAllPropertiesQuery } from '@/store/api/hostApi';
-import { useGetPublicStayRequestsQuery } from '@/store/api/stayRequestApi';
+import { useGetApprovedHostDetailsQuery } from '@/hooks/data/useHostHooks';
+import { useGetAllPropertiesQuery } from '@/hooks/data/usePropertyHooks';
+import { useGetPublicStayRequestsQuery } from '@/hooks/data/useStayRequestHooks';
 import { UserCheck, User } from 'lucide-react';
 import { usePagination } from '@/hooks/usePagination';
 import { Pagination } from '@/components/ui/Pagination';
@@ -142,8 +143,15 @@ export default function SearchPage() {
                         return true;
                     });
                 } else {
-                    if (allProperties) {
-                        baseItems = allProperties.map((property) => {
+                    let propList = [];
+                    if (Array.isArray(allProperties)) {
+                        propList = allProperties;
+                    } else if (allProperties && typeof allProperties === 'object') {
+                        if (Array.isArray(allProperties.properties)) propList = allProperties.properties;
+                        else if (Array.isArray(allProperties.data)) propList = allProperties.data;
+                    }
+                    if (propList.length > 0) {
+                        baseItems = propList.map((property) => {
                             const rawHost = property.Host || property.host || {};
                             const mergedHost = {
                                 ...rawHost,
@@ -170,8 +178,8 @@ export default function SearchPage() {
                                 category: property.category || property.property_type || "Apartment",
                                 rating: Number(property.rating || property.avg_rating || 0),
                                 reviews: Number(property.review_count || property.reviews_count || 0),
-                                isVerified: property.status === 'approved',
-                                status: property.status,
+                                isVerified: property.status === 'approved' || property.is_approved === true,
+                                status: property.status || 'pending',
                                 furnishing: property.furnishing || "Unfurnished",
                                 stayType: property.stay_type || "Flexible",
                                 tags: property.amenities || [],
@@ -179,7 +187,8 @@ export default function SearchPage() {
                                 host: mergedHost
                             };
                         }).filter(item => {
-                             const isVisible = item.status === 'approved';
+                             // Accommodations: show approved and unverified pending accommodations, exclude rejected
+                             const isVisible = item.status !== 'rejected';
                              const isActive = !item.is_expired;
                              const notExpired = !item.listing_expires_at || new Date(item.listing_expires_at) > new Date();
                              
