@@ -170,6 +170,87 @@ export async function createInAppAndEmailNotification({
 }
 
 /**
+ * Automatically sync any approved entities (Host, Space, Stay, etc.) into notifications
+ * for the user in case the admin panel approved directly without creating a notification record.
+ */
+async function autoSyncUserApprovals(targetUserId) {
+    if (!supabase || !targetUserId || !isUuid(targetUserId)) return;
+    try {
+        // 1. Host Verification Approval
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('id, full_name, email, role, status, is_approved, updated_at')
+            .eq('id', targetUserId)
+            .maybeSingle();
+
+        if (profile && (profile.status === 'approved' || profile.is_approved === true || profile.role === 'host')) {
+            const { data: existing } = await supabase
+                .from('notifications')
+                .select('id')
+                .eq('recipient_id', targetUserId)
+                .eq('type', 'HOST_APPROVED')
+                .limit(1);
+
+            if (!existing || existing.length === 0) {
+                await supabase.from('notifications').insert({
+                    recipient_id: targetUserId,
+                    actor_id: null,
+                    target_role: 'user',
+                    type: 'HOST_APPROVED',
+                    title: '🛡️ Host Identity Verified & Approved!',
+                    message: `Congratulations ${profile.full_name || 'Host'}! Your host identity verification has been approved by NextKinLife admin. You now have a verified host badge.`,
+                    entity_type: 'host',
+                    entity_id: targetUserId,
+                    action_url: '/account-v2',
+                    metadata: { id: targetUserId, role: 'host', verified: true },
+                    channel: 'both',
+                    is_read: false,
+                    created_at: profile.updated_at || new Date().toISOString()
+                });
+            }
+        }
+
+        // 2. Space / Accommodation Approvals
+        const { data: props } = await supabase
+            .from('properties')
+            .select('id, title, city, updated_at')
+            .eq('host_id', targetUserId)
+            .or('status.eq.approved,is_approved.eq.true');
+
+        if (props && props.length > 0) {
+            for (const p of props) {
+                const { data: existingProp } = await supabase
+                    .from('notifications')
+                    .select('id')
+                    .eq('recipient_id', targetUserId)
+                    .eq('entity_id', String(p.id))
+                    .eq('type', 'PROPERTY_APPROVED')
+                    .limit(1);
+
+                if (!existingProp || existingProp.length === 0) {
+                    await supabase.from('notifications').insert({
+                        recipient_id: targetUserId,
+                        target_role: 'user',
+                        type: 'PROPERTY_APPROVED',
+                        title: '🎉 Space Listing Approved!',
+                        message: `Your space "${p.title || 'Accommodation'}" has been approved by NextKinLife admin and is now live & verified.`,
+                        entity_type: 'property',
+                        entity_id: String(p.id),
+                        action_url: `/rooms/${p.id}`,
+                        metadata: { id: p.id, title: p.title, city: p.city },
+                        channel: 'both',
+                        is_read: false,
+                        created_at: p.updated_at || new Date().toISOString()
+                    });
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('Auto approval sync note:', e);
+    }
+}
+
+/**
  * Retrieve all notifications for the current active user
  */
 export async function getUserNotifications(userId, userEmail, queryParams = {}) {
@@ -179,6 +260,11 @@ export async function getUserNotifications(userId, userEmail, queryParams = {}) 
         const targetEmail = userEmail || currentUser?.email;
         const isAdmin = currentUser?.role === 'admin' || currentUser?.is_admin || queryParams?.role === 'admin';
         let notifications = [];
+
+        // Auto-sync any approvals made by admin
+        if (targetUserId) {
+            await autoSyncUserApprovals(targetUserId);
+        }
 
         // 1. Query Supabase notifications table if available
         if (supabase) {
