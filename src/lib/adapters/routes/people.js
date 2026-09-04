@@ -342,7 +342,7 @@ export async function handlePeopleRoute({ cleanUrl, method, body, queryParams })
             } else if (cleanUrl.includes('all')) {
                 query = query.neq('status', 'rejected')
             } else {
-                query = query.or('status.eq.approved,is_approved.eq.true')
+                query = query.or('status.eq.approved,is_approved.eq.true,role.eq.expert,status.eq.pending')
             }
 
             const peopleCountryParam = queryParams.country || queryParams.country_name || queryParams.countryName;
@@ -358,7 +358,29 @@ export async function handlePeopleRoute({ cleanUrl, method, body, queryParams })
             if (queryParams.limit) query = query.limit(Number(queryParams.limit))
             const { data, error } = await query
             if (error) throw error
-            const formattedList = (data || []).map(formatPersonProfile)
+
+            // Only show profiles who have actually submitted People / Advisor section details
+            const filteredData = (data || []).filter(p => {
+                if (!p) return false;
+                let meta = {};
+                if (p.street_address && (p.street_address.startsWith('{') || p.street_address.startsWith('['))) {
+                    try { meta = JSON.parse(p.street_address); } catch {}
+                } else if (p.address && (p.address.startsWith('{') || p.address.startsWith('['))) {
+                    try { meta = JSON.parse(p.address); } catch {}
+                }
+
+                const isExplicitExpert = p.role === 'expert' || p.is_expert === true || p.is_advisor === true;
+                const hasProfession = Boolean(p.profession && p.profession.trim() && p.profession.toLowerCase() !== 'user' && p.profession.toLowerCase() !== 'host');
+                const hasHeadline = Boolean(p.headline && p.headline.trim());
+                const hasBio = Boolean(meta.bio && meta.bio.trim()) || Boolean(p.bio && p.bio.trim());
+                const hasCategory = Boolean(meta.category && meta.category.trim()) || Boolean(p.category && p.category.trim());
+                const hasSkills = Array.isArray(meta.skills) && meta.skills.length > 0;
+                const hasHourlyRate = (meta.hourly_rate !== null && meta.hourly_rate !== undefined) || (p.hourly_rate !== null && p.hourly_rate !== undefined);
+
+                return isExplicitExpert || hasProfession || hasHeadline || hasBio || hasCategory || hasSkills || hasHourlyRate;
+            });
+
+            const formattedList = filteredData.map(formatPersonProfile)
 
             return {
                 data: {
