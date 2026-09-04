@@ -5,31 +5,59 @@ import {
     enrichPropertiesWithHostDetails,
     enrichEventsWithHostDetails,
     enrichBuySellWithHostDetails,
-    enrichTravelWithHostDetails
+    enrichTravelWithHostDetails,
+    enrichStayRequests,
+    formatPersonProfile
 } from '../enrichmentUtils';
 
 export async function handleWishlistRoute({ cleanUrl, method, body, queryParams }) {
         // ── 8. WISHLIST ─────────────────────────────────────────────
         if (cleanUrl.startsWith('wishlist')) {
             const userObj = await getCurrentUserObject()
-            const userId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
+            let userId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
             
-            if (!userId) {
-                return { data: { wishlist: [], items: [], total: 0, count: 0, isWishlisted: false, is_wishlisted: false, success: false } }
+            if (!userId && typeof window !== 'undefined') {
+                try {
+                    const rawUser = localStorage.getItem('user')
+                    if (rawUser) {
+                        const parsed = JSON.parse(rawUser)
+                        userId = parsed?.id || parsed?.user?.id || parsed?._id
+                    }
+                } catch {}
             }
 
             // Get current user profile
-            const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+            let profile = userObj?.street_address ? userObj : null
+            if (!profile && userId) {
+                const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+                profile = data
+            }
+
             let profileMeta = {}
             if (profile?.street_address && (profile.street_address.startsWith('{') || profile.street_address.startsWith('['))) {
                 try {
                     profileMeta = JSON.parse(profile.street_address)
                 } catch {}
             }
-            const localList = getLocalWishlist(userId)
-            let userWishlist = Array.isArray(profileMeta.wishlist) && profileMeta.wishlist.length > 0
-                ? profileMeta.wishlist
-                : (Array.isArray(localList) ? localList : [])
+
+            const localList = userId ? getLocalWishlist(userId) : []
+            const guestList = getLocalWishlist('guest')
+            const remoteList = Array.isArray(profileMeta.wishlist) ? profileMeta.wishlist : []
+
+            // Deduplicate items across remote and local lists
+            const wishlistMap = new Map()
+            for (const item of [...(Array.isArray(guestList) ? guestList : []), ...(Array.isArray(localList) ? localList : []), ...remoteList]) {
+                const itemIdStr = String(item.id || item.item_id || '')
+                if (itemIdStr) {
+                    wishlistMap.set(itemIdStr, {
+                        ...item,
+                        id: itemIdStr,
+                        item_id: itemIdStr,
+                        type: item.type || 'property'
+                    })
+                }
+            }
+            let userWishlist = Array.from(wishlistMap.values())
 
             const normalizeItemType = (t) => {
                 const clean = (t || '').toLowerCase().replace(/[-_\s]/g, '')
@@ -84,8 +112,12 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                 }
 
                 profileMeta.wishlist = userWishlist
-                setLocalWishlist(userId, userWishlist)
-                await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
+                if (userId) {
+                    setLocalWishlist(userId, userWishlist)
+                    await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
+                } else {
+                    setLocalWishlist('guest', userWishlist)
+                }
 
                 return { data: { success: true, isWishlisted: newSavedState, is_wishlisted: newSavedState, isSaved: newSavedState, saved: newSavedState } }
             }
@@ -102,8 +134,12 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                         created_at: new Date().toISOString()
                     })
                     profileMeta.wishlist = userWishlist
-                    setLocalWishlist(userId, userWishlist)
-                    await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
+                    if (userId) {
+                        setLocalWishlist(userId, userWishlist)
+                        await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
+                    } else {
+                        setLocalWishlist('guest', userWishlist)
+                    }
                 }
                 return { data: { success: true, isWishlisted: true, is_wishlisted: true } }
             }
@@ -121,8 +157,12 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                     return false
                 })
                 profileMeta.wishlist = userWishlist
-                setLocalWishlist(userId, userWishlist)
-                await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
+                if (userId) {
+                    setLocalWishlist(userId, userWishlist)
+                    await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
+                } else {
+                    setLocalWishlist('guest', userWishlist)
+                }
                 return { data: { success: true, isWishlisted: false, is_wishlisted: false } }
             }
 
@@ -149,11 +189,20 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                     } else if (t === 'trip') {
                         const { data } = await supabase.from('travel_trips').select('*').eq('id', wItem.id).maybeSingle()
                         details = data ? (await enrichTravelWithHostDetails(data)) : null
+                    } else if (t === 'stay-request') {
+                        const { data } = await supabase.from('stay_requests').select('*').eq('id', wItem.id).maybeSingle()
+                        details = data ? (await enrichStayRequests(data)) : null
                     } else if (t === 'expert') {
-                        const { data } = await supabase.from('profiles').select('*').eq('id', wItem.id).maybeSingle()
+                        let { data } = await supabase.from('profiles').select('*').eq('id', wItem.id).maybeSingle()
+                        if (!data) {
+                            const { data: byUser } = await supabase.from('profiles').select('*').eq('user_id', wItem.id).maybeSingle()
+                            data = byUser
+                        }
                         details = data ? formatPersonProfile(data) : null
                     }
-                } catch {}
+                } catch (enrichErr) {
+                    console.warn(`Error enriching wishlist item [${t}] ${wItem.id}:`, enrichErr)
+                }
 
                 return {
                     ...wItem,

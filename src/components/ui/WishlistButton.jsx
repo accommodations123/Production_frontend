@@ -4,18 +4,50 @@ import { Heart } from 'lucide-react';
 import { useCheckWishlistStatusQuery, useToggleWishlistMutation } from '@/hooks/data/useWishlistHooks';
 import { useAuth } from '@/hooks/useAuth';
 
-const WishlistButton = ({
+function isItemWishlistedInCache(id) {
+    if (typeof window === 'undefined' || !id) return false;
+    const idStr = String(id);
+    try {
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith('user_wishlist_')) {
+                const raw = localStorage.getItem(k);
+                if (raw && raw.includes(idStr)) {
+                    const list = JSON.parse(raw);
+                    if (Array.isArray(list) && list.some(item => String(item.id || item.item_id) === idStr)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        const rawUser = localStorage.getItem('user');
+        if (rawUser && rawUser.includes(idStr)) {
+            const parsed = JSON.parse(rawUser);
+            const street = parsed?.street_address || parsed?.user?.street_address;
+            if (street) {
+                const meta = typeof street === 'string' ? JSON.parse(street) : street;
+                if (Array.isArray(meta?.wishlist) && meta.wishlist.some(item => String(item.id || item.item_id) === idStr)) {
+                    return true;
+                }
+            }
+        }
+    } catch {}
+    return false;
+}
+
+export function WishlistButton({
     itemId,
     itemType,
     className = "",
     iconSize = 20,
     filledColor = "fill-[#CB2A25] text-[#CB2A25]",
     outlineColor = "text-white"
-}) => {
+}) {
     const { user } = useAuth();
-    const [isWishlisted, setIsWishlisted] = useState(false);
+    // Synchronously check local cache on mount so the red color is immediately present on page refresh
+    const [isWishlisted, setIsWishlisted] = useState(() => isItemWishlistedInCache(itemId));
 
-    // Skip query if no user or no ID
+    // Check wishlist status from server
     const { data } = useCheckWishlistStatusQuery(
         { type: itemType, id: itemId },
         { skip: !user || !itemId || !itemType }
@@ -41,9 +73,25 @@ const WishlistButton = ({
             return;
         }
 
-        // Optimistic update
-        const previousState = isWishlisted;
-        setIsWishlisted(!previousState);
+        const nextState = !isWishlisted;
+        setIsWishlisted(nextState);
+
+        // Optimistically update local cache so refresh immediately preserves the new state
+        try {
+            const uId = user.id || user.user_id || user._id;
+            const key = `user_wishlist_${uId || 'guest'}`;
+            const raw = localStorage.getItem(key);
+            let list = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(list)) list = [];
+            if (nextState) {
+                if (!list.some(i => String(i.id || i.item_id) === String(itemId))) {
+                    list.push({ id: itemId, item_id: itemId, type: itemType, created_at: new Date().toISOString() });
+                }
+            } else {
+                list = list.filter(i => String(i.id || i.item_id) !== String(itemId));
+            }
+            localStorage.setItem(key, JSON.stringify(list));
+        } catch {}
 
         try {
             const result = await toggleWishlist({
@@ -53,7 +101,7 @@ const WishlistButton = ({
                 itemType: itemType
             }).unwrap();
 
-            // Server truth
+            // Confirm server status
             const status = result?.isWishlisted ?? result?.is_wishlisted ?? result?.data?.isWishlisted ?? result?.data?.is_wishlisted ?? result?.isSaved ?? result?.saved;
             if (typeof status !== 'undefined') {
                 const isSaved = Boolean(status);
@@ -66,7 +114,7 @@ const WishlistButton = ({
             }
         } catch (error) {
             // Revert on error
-            setIsWishlisted(previousState);
+            setIsWishlisted(!nextState);
             console.error("Failed to toggle wishlist:", error);
             toast.error("Failed to update wishlist");
         }
@@ -87,7 +135,7 @@ const WishlistButton = ({
             />
         </button>
     );
-};
+}
 
 export default WishlistButton;
 

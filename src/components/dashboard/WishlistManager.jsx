@@ -14,16 +14,29 @@ import { cn } from "@/lib/utils";
 import { resolveImageUrl } from '@/lib/imageUtils';
 
 export function WishlistManager() {
-  const [activeTab, setActiveTab] = useState('property');
+  const [activeTab, setActiveTab] = useState('all');
   const [page, setPage] = useState(1);
 
+  // Fetch all saved items so all tabs and counts work seamlessly without redundant network calls
   const { data, isLoading, isFetching } = useGetWishlistQuery({
-    type: activeTab,
-    page,
-    limit: 20
+    type: 'all',
+    page: 1,
+    limit: 100
   });
 
+  const normalizeItemType = (t) => {
+    const clean = (t || '').toLowerCase().replace(/[-_\s]/g, '');
+    if (clean === 'buysell' || clean === 'marketplace' || clean === 'product') return 'buy-sell';
+    if (clean === 'property' || clean === 'stay' || clean === 'stays') return 'property';
+    if (clean === 'stayrequest' || clean === 'stayrequests') return 'stay-request';
+    if (clean === 'event' || clean === 'events') return 'event';
+    if (clean === 'trip' || clean === 'travel' || clean === 'traveltrip' || clean === 'trips') return 'trip';
+    if (clean === 'expert' || clean === 'people' || clean === 'profile' || clean === 'professional' || clean === 'experts') return 'expert';
+    return clean;
+  };
+
   const tabs = [
+    { id: 'all', label: 'All Items', icon: Heart },
     { id: 'property', label: 'Stays', icon: Home },
     { id: 'stay-request', label: 'Stay Requests', icon: FileText },
     { id: 'event', label: 'Events', icon: Calendar },
@@ -31,6 +44,25 @@ export function WishlistManager() {
     { id: 'trip', label: 'Travel Plans', icon: Plane },
     { id: 'expert', label: 'People', icon: Users },
   ];
+
+  const allWishlist = Array.isArray(data?.wishlist) ? data.wishlist : [];
+
+  // Compute live count per tab
+  const tabCounts = React.useMemo(() => {
+    const counts = { all: allWishlist.length };
+    for (const item of allWishlist) {
+      const norm = normalizeItemType(item.type);
+      counts[norm] = (counts[norm] || 0) + 1;
+    }
+    return counts;
+  }, [allWishlist]);
+
+  // Filter items matching active tab
+  const displayedItems = React.useMemo(() => {
+    if (activeTab === 'all') return allWishlist;
+    const targetNorm = normalizeItemType(activeTab);
+    return allWishlist.filter((item) => normalizeItemType(item.type) === targetNorm);
+  }, [allWishlist, activeTab]);
 
   const renderContent = () => {
     if (isLoading || isFetching) {
@@ -42,16 +74,16 @@ export function WishlistManager() {
       );
     }
 
-    if (!data?.wishlist || data.wishlist.length === 0) {
+    if (displayedItems.length === 0) {
       return (
         <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-[0_8px_30px_rgb(0,0,0,0.015)] space-y-6 max-w-xl mx-auto">
           <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto shadow-sm">
             <Heart className="w-9 h-9 text-rose-500 fill-rose-500 animate-pulse" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-bold text-gray-900">No Saved Items Yet</h3>
+            <h3 className="text-xl font-bold text-gray-900">No Saved Items Here</h3>
             <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
-              Explore stays, stay requests, marketplace products, travel match itineraries, and communities to save them to your custom collections.
+              Explore stays, stay requests, marketplace products, events, travel routes, and mentors to add them to your wishlists.
             </p>
           </div>
           <Link to="/" className="inline-block">
@@ -65,18 +97,18 @@ export function WishlistManager() {
 
     return (
       <div className={`grid gap-6 ${activeTab === 'trip' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} animate-in fade-in duration-300`}>
-        {data.wishlist.map((item) => {
+        {displayedItems.map((item) => {
           const details = item.details;
           if (!details) return null;
 
-          // Wrap individual cards in a custom container to overlay a red heart icon
+          const itemType = normalizeItemType(item.type || activeTab);
+
+          // Wrap individual cards in a custom container
           return (
             <div key={item.id || item._id} className="relative group">
               {(() => {
-                switch (activeTab) {
+                switch (itemType) {
                   case 'stay-request':
-                  case 'stay_request':
-                  case 'stay-requests':
                     return <StayRequestCard request={details} />;
 
                   case 'property':
@@ -250,7 +282,6 @@ export function WishlistManager() {
                     return <TripCard plan={normalizedTrip} isSelected={false} />;
 
                   case 'expert':
-                  case 'people':
                     return <PeopleCard person={{ ...details, id: details.id || details._id }} />;
 
                   default:
@@ -285,6 +316,7 @@ export function WishlistManager() {
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
+            const count = tabCounts[tab.id] || 0;
             return (
               <button
                 key={tab.id}
@@ -297,7 +329,13 @@ export function WishlistManager() {
                 )}
               >
                 <Icon size={14} className={isActive ? 'text-rose-400' : 'text-gray-400'} />
-                {tab.label}
+                <span>{tab.label}</span>
+                <span className={cn(
+                  "text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-0.5",
+                  isActive ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
+                )}>
+                  {count}
+                </span>
               </button>
             );
           })}
@@ -305,31 +343,9 @@ export function WishlistManager() {
 
         {/* Saved Items grid panel */}
         {renderContent()}
-
-        {/* Tab Pagination */}
-        {data?.pagination?.totalPages > 1 && (
-          <div className="mt-8 flex justify-center items-center gap-4 border-t border-gray-50 pt-5">
-            <button
-              disabled={page === 1}
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              className="px-4 py-2 border border-gray-200 rounded-xl font-bold text-xs disabled:opacity-50 hover:bg-gray-50 transition-all text-gray-600"
-            >
-              Previous
-            </button>
-            <span className="font-extrabold text-gray-400 text-xs uppercase tracking-wider">
-              Page {page} of {data.pagination.totalPages}
-            </span>
-            <button
-              disabled={page === data.pagination.totalPages}
-              onClick={() => setPage(p => p + 1)}
-              className="px-4 py-2 border border-gray-200 rounded-xl font-bold text-xs disabled:opacity-50 hover:bg-gray-50 transition-all text-gray-600"
-            >
-              Next
-            </button>
-          </div>
-        )}
       </div>
 
     </div>
   );
 }
+

@@ -13,6 +13,37 @@ import { getCanonicalUserId, isSelfUser } from "@/shared/utils/userUtils";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 
+function isPersonWishlistedInCache(id) {
+  if (typeof window === "undefined" || !id) return false;
+  const idStr = String(id);
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("user_wishlist_")) {
+        const raw = localStorage.getItem(k);
+        if (raw && raw.includes(idStr)) {
+          const list = JSON.parse(raw);
+          if (Array.isArray(list) && list.some((item) => String(item.id || item.item_id) === idStr)) {
+            return true;
+          }
+        }
+      }
+    }
+    const rawUser = localStorage.getItem("user");
+    if (rawUser && rawUser.includes(idStr)) {
+      const parsed = JSON.parse(rawUser);
+      const street = parsed?.street_address || parsed?.user?.street_address;
+      if (street) {
+        const meta = typeof street === "string" ? JSON.parse(street) : street;
+        if (Array.isArray(meta?.wishlist) && meta.wishlist.some((item) => String(item.id || item.item_id) === idStr)) {
+          return true;
+        }
+      }
+    }
+  } catch {}
+  return false;
+}
+
 export function PeopleCard({ person }) {
   const { activeCountry } = useCountry();
   const authState = useSelector((state) => state.auth || {});
@@ -72,18 +103,18 @@ export function PeopleCard({ person }) {
 
   const [toggleWishlist, { isLoading: isToggling }] = useToggleWishlistMutation();
   const [toggleFollowMutation, { isLoading: isFollowLoading }] = useToggleFollowMutation();
-  const [isSavedState, setIsSavedState] = useState(false);
-
-  const isSavedApi = Boolean(
-    statusData?.isWishlisted ?? statusData?.isSaved ?? statusData?.saved ?? statusData?.data?.isWishlisted
-  );
-  const isSaved = isSavedState || isSavedApi;
+  const [isSavedState, setIsSavedState] = useState(() => isPersonWishlistedInCache(person?.id));
 
   useEffect(() => {
     if (statusData) {
-      setIsSavedState(Boolean(statusData.isWishlisted ?? statusData.isSaved ?? statusData.saved ?? statusData.data?.isWishlisted));
+      const status = statusData.isWishlisted ?? statusData.isSaved ?? statusData.saved ?? statusData.data?.isWishlisted;
+      if (typeof status !== "undefined") {
+        setIsSavedState(Boolean(status));
+      }
     }
   }, [statusData]);
+
+  const isSaved = isSavedState;
 
   const handleSaveToggle = async (e) => {
     e.preventDefault();
@@ -94,12 +125,35 @@ export function PeopleCard({ person }) {
       return;
     }
 
+    const nextSaved = !isSavedState;
+    setIsSavedState(nextSaved);
+
+    // Optimistically update local cache so refresh immediately preserves the new state
+    try {
+      const uId = currentUserId || currentUser?.id || currentUser?._id;
+      const key = `user_wishlist_${uId || "guest"}`;
+      const raw = localStorage.getItem(key);
+      let list = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(list)) list = [];
+      if (nextSaved) {
+        if (!list.some((i) => String(i.id || i.item_id) === String(person.id))) {
+          list.push({ id: person.id, item_id: person.id, type: "expert", created_at: new Date().toISOString() });
+        }
+      } else {
+        list = list.filter((i) => String(i.id || i.item_id) !== String(person.id));
+      }
+      localStorage.setItem(key, JSON.stringify(list));
+    } catch {}
+
     try {
       const res = await toggleWishlist({ type: "expert", id: person.id }).unwrap();
-      const nextSaved = res?.isSaved ?? res?.saved ?? !isSavedState;
-      setIsSavedState(nextSaved);
+      const serverStatus = res?.isWishlisted ?? res?.is_wishlisted ?? res?.isSaved ?? res?.saved;
+      if (typeof serverStatus !== "undefined") {
+        setIsSavedState(Boolean(serverStatus));
+      }
       toast.success(nextSaved ? "Saved to your wishlist!" : "Removed from saved experts.");
     } catch (err) {
+      setIsSavedState(!nextSaved);
       toast.error("Failed to update wishlist.");
     }
   };
