@@ -223,6 +223,16 @@ export async function getUserNotifications(userId, userEmail, queryParams = {}) 
                         read: n.is_read,
                         createdAt: n.created_at
                     }));
+
+                    // Cache to localStorage for instant UI response
+                    if (typeof window !== 'undefined') {
+                        try {
+                            if (targetUserId) {
+                                localStorage.setItem(`nxt_notifications_${targetUserId}`, JSON.stringify(notifications));
+                            }
+                            localStorage.setItem('nxt_notifications', JSON.stringify(notifications));
+                        } catch {}
+                    }
                 }
             } catch (err) {
                 console.warn('Supabase notifications query note:', err);
@@ -230,12 +240,39 @@ export async function getUserNotifications(userId, userEmail, queryParams = {}) 
         }
 
         // 2. Load from local cache if database returned 0
-        if (notifications.length === 0 && targetUserId) {
+        if (notifications.length === 0 && typeof window !== 'undefined') {
             try {
-                const stored = localStorage.getItem(`nxt_notifications_${targetUserId}`);
-                if (stored) {
-                    const parsed = JSON.parse(stored);
-                    if (Array.isArray(parsed)) notifications = parsed;
+                // Check target user's key
+                if (targetUserId) {
+                    const stored = localStorage.getItem(`nxt_notifications_${targetUserId}`);
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        if (Array.isArray(parsed) && parsed.length > 0) notifications = parsed;
+                    }
+                }
+                // Check generic fallback key
+                if (notifications.length === 0) {
+                    const generic = localStorage.getItem('nxt_notifications');
+                    if (generic) {
+                        const parsed = JSON.parse(generic);
+                        if (Array.isArray(parsed) && parsed.length > 0) notifications = parsed;
+                    }
+                }
+                // Fallback: check any nxt_notifications_* keys in localStorage
+                if (notifications.length === 0) {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && k.startsWith('nxt_notifications_')) {
+                            const raw = localStorage.getItem(k);
+                            try {
+                                const parsed = JSON.parse(raw);
+                                if (Array.isArray(parsed) && parsed.length > 0) {
+                                    notifications = parsed;
+                                    break;
+                                }
+                            } catch {}
+                        }
+                    }
                 }
             } catch {}
         }
@@ -277,9 +314,12 @@ export async function getUserNotifications(userId, userEmail, queryParams = {}) 
                 createdAt: new Date().toISOString()
             };
             notifications = [welcomeNotif];
-            if (targetUserId) {
+            if (typeof window !== 'undefined') {
                 try {
-                    localStorage.setItem(`nxt_notifications_${targetUserId}`, JSON.stringify(notifications));
+                    if (targetUserId) {
+                        localStorage.setItem(`nxt_notifications_${targetUserId}`, JSON.stringify(notifications));
+                    }
+                    localStorage.setItem('nxt_notifications', JSON.stringify(notifications));
                 } catch {}
             }
         }

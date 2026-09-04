@@ -2,21 +2,26 @@ import { supabase } from '@/lib/supabaseClient';
 
 export async function getCurrentUserObject() {
     try {
+        let storedUser = null;
+        if (typeof window !== 'undefined') {
+            try {
+                const stored = localStorage.getItem('user');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    storedUser = parsed?.user || parsed;
+                }
+            } catch {}
+        }
+
         let authUser = null;
         if (supabase) {
-            const { data } = await supabase.auth.getSession();
-            if (data?.session?.user) authUser = data.session.user;
-        }
-        let storedUser = null;
-        const stored = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-        if (stored) {
             try {
-                const parsed = JSON.parse(stored);
-                storedUser = parsed?.user || parsed;
+                const { data } = await supabase.auth.getSession();
+                if (data?.session?.user) authUser = data.session.user;
             } catch {}
         }
         
-        const mergedId = authUser?.id || storedUser?.id || storedUser?.user_id;
+        const mergedId = storedUser?.id || storedUser?.user_id || authUser?.id;
         if (mergedId && supabase) {
             try {
                 const { data: profile } = await supabase.from('profiles').select('*').eq('id', mergedId).maybeSingle();
@@ -25,7 +30,7 @@ export async function getCurrentUserObject() {
                 }
             } catch {}
         }
-        return authUser || storedUser || null;
+        return storedUser || authUser || null;
     } catch {
         return null;
     }

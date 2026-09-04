@@ -39,7 +39,7 @@ export function NotificationDropdown({ minimal = false }) {
     const userId = userData?.id || userData?._id || userData?.user?.id;
 
     // Fetch notifications from API
-    const { data: notifications = [], isLoading, refetch } = useGetNotificationsQuery(undefined, {
+    const { data: notifications = [], isLoading, refetch } = useGetNotificationsQuery(userId ? { userId } : undefined, {
         skip: !isAuthenticated
     });
     const [markAsRead] = useMarkNotificationAsReadMutation();

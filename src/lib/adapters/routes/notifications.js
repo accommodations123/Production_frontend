@@ -64,7 +64,9 @@ export async function handleNotificationsRoute({ cleanUrl, method, body, queryPa
         }
 
         // Get notifications: GET admin/notifications OR GET notifications
-        const result = isAdmin ? await getAdminNotifications(queryParams) : await getUserNotifications(undefined, undefined, queryParams);
+        const result = isAdmin 
+            ? await getAdminNotifications(queryParams) 
+            : await getUserNotifications(queryParams?.userId || queryParams?.user_id, queryParams?.email, queryParams);
         return { 
             data: { 
                 notifications: result.notifications, 

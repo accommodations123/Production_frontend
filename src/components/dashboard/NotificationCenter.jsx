@@ -34,7 +34,7 @@ export function NotificationCenter() {
     const { data: userData } = useGetMeQuery();
     const userId = userData?.id || userData?._id || userData?.user?.id;
 
-    const { data: notifications = [], isLoading, isFetching, refetch } = useGetNotificationsQuery();
+    const { data: notifications = [], isLoading, isFetching, refetch } = useGetNotificationsQuery(userId ? { userId } : undefined);
     const [markAsRead] = useMarkNotificationAsReadMutation();
     const [markAllAsRead] = useMarkAllNotificationsAsReadMutation();
     const [deleteNotification] = useDeleteNotificationMutation();
