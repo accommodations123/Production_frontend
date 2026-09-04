@@ -9,6 +9,8 @@ export const HostPhoto = React.memo(({ host }) => {
         if (!host) return null;
 
         const photoFields = [
+            'profile_image',
+            'avatar_url',
             'selfie_photo',
             'selfiePhoto',
             'profile_photo',

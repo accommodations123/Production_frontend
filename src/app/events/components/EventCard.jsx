@@ -115,11 +115,11 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                         )}
                     </div>
 
-                    <div className="absolute top-3 right-3 flex gap-2 z-10">
+                    <div className="absolute top-3 right-3 flex gap-2 z-20 pointer-events-auto">
                         <WishlistButton
                             itemId={event.id || event._id}
                             itemType="event"
-                            className="w-8 h-8 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/40"
+                            className="w-8 h-8 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center transition-all shadow-md"
                             iconSize={15}
                             outlineColor="text-white"
                         />
@@ -178,7 +178,7 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                     <div className="flex gap-2 pt-2">
                         {isExpired ? (
                             <Button
-                                onClick={() => onViewDetails(event.id)}
+                                onClick={() => typeof onViewDetails === 'function' ? onViewDetails(event.id) : (window.location.href = `/events/${event.id}`)}
                                 variant="outline"
                                 className="flex-1 text-xs sm:text-sm gap-1.5"
                             >
@@ -187,7 +187,7 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                             </Button>
                         ) : (
                             <Button
-                                onClick={() => onViewDetails(event.id)}
+                                onClick={() => typeof onViewDetails === 'function' ? onViewDetails(event.id) : (window.location.href = `/events/${event.id}`)}
                                 variant="accent"
                                 className="flex-1 text-xs sm:text-sm font-semibold"
                             >

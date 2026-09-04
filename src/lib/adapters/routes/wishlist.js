@@ -26,17 +26,21 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                 } catch {}
             }
 
-            // Get current user profile
-            let profile = userObj?.street_address ? userObj : null
-            if (!profile && userId) {
-                const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
-                profile = data
-            }
-
+            // Always fetch genuine profile street_address JSON directly from Supabase DB to guarantee real wishlist metadata
             let profileMeta = {}
-            if (profile?.street_address && (profile.street_address.startsWith('{') || profile.street_address.startsWith('['))) {
+            if (userId) {
                 try {
-                    profileMeta = JSON.parse(profile.street_address)
+                    const { data: dbProfile } = await supabase.from('profiles').select('street_address').eq('id', userId).maybeSingle()
+                    if (dbProfile?.street_address && typeof dbProfile.street_address === 'string' && (dbProfile.street_address.startsWith('{') || dbProfile.street_address.startsWith('['))) {
+                        profileMeta = JSON.parse(dbProfile.street_address)
+                    }
+                } catch (e) {
+                    console.warn('Failed to fetch profile street_address:', e)
+                }
+            }
+            if ((!profileMeta.wishlist || !Array.isArray(profileMeta.wishlist)) && userObj?.street_address && typeof userObj.street_address === 'string' && (userObj.street_address.startsWith('{') || userObj.street_address.startsWith('['))) {
+                try {
+                    profileMeta = JSON.parse(userObj.street_address)
                 } catch {}
             }
 
@@ -78,7 +82,7 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                 const targetNorm = normalizeItemType(typeParam)
                 const isSaved = userWishlist.some(i => 
                     (String(i.id) === String(idParam) || String(i.item_id) === String(idParam)) &&
-                    (!targetNorm || normalizeItemType(i.type) === targetNorm)
+                    (!targetNorm || !i.type || normalizeItemType(i.type) === targetNorm || String(i.id) === String(idParam))
                 )
                 return { data: { isWishlisted: Boolean(isSaved), is_wishlisted: Boolean(isSaved), isSaved: Boolean(isSaved), saved: Boolean(isSaved), success: true } }
             }
@@ -93,8 +97,7 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                 }
 
                 const existsIndex = userWishlist.findIndex(i => 
-                    (String(i.id) === String(targetId) || String(i.item_id) === String(targetId)) &&
-                    (!targetType || normalizeItemType(i.type) === targetType)
+                    String(i.id) === String(targetId) || String(i.item_id) === String(targetId)
                 )
                 let newSavedState = false
                 
@@ -112,11 +115,10 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                 }
 
                 profileMeta.wishlist = userWishlist
+                setLocalWishlist('guest', userWishlist)
                 if (userId) {
                     setLocalWishlist(userId, userWishlist)
                     await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
-                } else {
-                    setLocalWishlist('guest', userWishlist)
                 }
 
                 return { data: { success: true, isWishlisted: newSavedState, is_wishlisted: newSavedState, isSaved: newSavedState, saved: newSavedState } }
@@ -126,7 +128,7 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
             if (cleanUrl.includes('add') && method === 'POST') {
                 const targetId = body?.id || body?.itemId || body?.item_id
                 const targetType = normalizeItemType(body?.type || body?.itemType || 'property')
-                if (targetId && !userWishlist.some(i => (String(i.id) === String(targetId) || String(i.item_id) === String(targetId)) && normalizeItemType(i.type) === targetType)) {
+                if (targetId && !userWishlist.some(i => String(i.id) === String(targetId) || String(i.item_id) === String(targetId))) {
                     userWishlist.push({
                         id: targetId,
                         item_id: targetId,
@@ -134,11 +136,10 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                         created_at: new Date().toISOString()
                     })
                     profileMeta.wishlist = userWishlist
+                    setLocalWishlist('guest', userWishlist)
                     if (userId) {
                         setLocalWishlist(userId, userWishlist)
                         await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
-                    } else {
-                        setLocalWishlist('guest', userWishlist)
                     }
                 }
                 return { data: { success: true, isWishlisted: true, is_wishlisted: true } }
@@ -148,20 +149,15 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
             if (method === 'DELETE' || (cleanUrl.startsWith('wishlist/') && !['wishlist', 'wishlist/all'].includes(cleanUrl))) {
                 const parts = cleanUrl.split('/')
                 const targetId = parts.length > 2 ? parts[parts.length - 1] : parts[1]
-                const typeParam = parts.length > 2 ? parts[1] : null
-                const targetNorm = typeParam ? normalizeItemType(typeParam) : null
                 userWishlist = userWishlist.filter(i => {
                     const idMatch = String(i.id) === String(targetId) || String(i.item_id) === String(targetId)
-                    if (!idMatch) return true
-                    if (targetNorm && normalizeItemType(i.type) !== targetNorm) return true
-                    return false
+                    return !idMatch
                 })
                 profileMeta.wishlist = userWishlist
+                setLocalWishlist('guest', userWishlist)
                 if (userId) {
                     setLocalWishlist(userId, userWishlist)
                     await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
-                } else {
-                    setLocalWishlist('guest', userWishlist)
                 }
                 return { data: { success: true, isWishlisted: false, is_wishlisted: false } }
             }

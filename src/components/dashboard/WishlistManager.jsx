@@ -137,16 +137,17 @@ export function WishlistManager() {
                   case 'event':
                     const normalizedEvent = {
                       ...details,
-                      id: details.id || details._id,
-                      title: details.title || details.event_name,
+                      id: details.id || details._id || item.id,
+                      title: details.title || details.event_name || "Event",
                       image: details.image || details.banner_image || (details.gallery_images?.[0]) || "",
+                      banner_image: details.banner_image || details.image || (details.gallery_images?.[0]) || "",
                       date: details.date || details.start_date,
                       host: {
                         ...(details.host || details.Host || details.creator || {}),
                         full_name: details.hostName || details.host?.full_name || details.creator?.full_name || "Organizer",
-                        profile_photo: details.host?.profile_photo || details.Host?.profile_photo || details.creator?.profile_photo,
-                        avatar: details.host?.avatar || details.Host?.avatar,
-                        image: details.host?.image || details.Host?.image
+                        profile_photo: details.host?.profile_photo || details.Host?.profile_photo || details.creator?.profile_photo || details.host?.profile_image,
+                        avatar: details.host?.avatar || details.Host?.avatar || details.host?.avatar_url,
+                        image: details.host?.image || details.Host?.image || details.host?.profile_image
                       },
                       organizer: details.organizer || details.hostName || details.host?.full_name || "Organizer",
                       city: details.city || details.location?.city || "TBA",

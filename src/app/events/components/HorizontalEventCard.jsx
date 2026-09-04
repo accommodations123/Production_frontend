@@ -96,15 +96,14 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
                             </span>
                         )}
                     </div>
-                    <div className="absolute top-3 right-3 flex gap-2">
+                    <div className="absolute top-3 right-3 flex gap-2 z-20 pointer-events-auto">
                         <WishlistButton
                             itemId={event.id || event._id}
                             itemType="event"
-                            className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30"
+                            className="w-8 h-8 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center transition-all shadow-md"
                             iconSize={16}
                             outlineColor="text-white"
                         />
-
                     </div>
                     {event.price && (
                         <div className="absolute bottom-3 left-3">
@@ -174,7 +173,7 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
                     <div className="flex gap-2">
                         {isExpired ? (
                             <Button
-                                onClick={() => onViewDetails(event.id)}
+                                onClick={() => typeof onViewDetails === 'function' ? onViewDetails(event.id) : (window.location.href = `/events/${event.id}`)}
                                 variant="outline"
                                 className="flex-1 border-gray-300 text-gray-500 rounded-lg h-9 text-xs font-medium transition-all duration-200"
                             >
@@ -183,7 +182,7 @@ export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {
                             </Button>
                         ) : (
                             <Button
-                                onClick={() => onViewDetails(event.id)}
+                                onClick={() => typeof onViewDetails === 'function' ? onViewDetails(event.id) : (window.location.href = `/events/${event.id}`)}
                                 className="flex-1 bg-[#C93A30] hover:bg-[#b02e25] text-white rounded-lg h-9 text-xs font-medium transition-all duration-200"
                             >
                                 View Details
