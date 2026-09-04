@@ -103,7 +103,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
   };
   const postedDate = getPostedDateDisplay();
 
-  const isVerified = product.status === "active" || product.status === "approved";
+  const isVerified = product.status?.toLowerCase() === "active" || product.status?.toLowerCase() === "approved";
 
   return (
     <CardContainer onClick={handleCardClick}>

@@ -32,7 +32,7 @@ export const buySellService = {
             method: 'GET',
         });
         if (res.error) throw new Error(res.error.error || 'Failed to fetch listing');
-        return res.data;
+        return res.data?.listing || res.data?.item || res.data?.data || res.data;
     },
 
     async getMyBuySellListings() {

@@ -9,7 +9,7 @@ import { createInAppAndEmailNotification, notifyAdminsOfUserSubmission } from '.
 
 export async function handleProfilesRoute({ cleanUrl, method, body, queryParams }) {
         // ── 6. PROFILES / HOST / USER ──────────────────────────────
-        if (cleanUrl.startsWith('host') || cleanUrl.startsWith('profiles') || cleanUrl.startsWith('user') || cleanUrl.startsWith('admin/approved/approved-host') || cleanUrl.startsWith('admin/pending/pending-host') || cleanUrl.startsWith('admin/rejected/rejected-host') || cleanUrl === 'auth/me' || cleanUrl === 'auth/user') {
+        if (cleanUrl.startsWith('host') || cleanUrl.startsWith('profiles') || cleanUrl.startsWith('user') || cleanUrl.startsWith('admin/approved/approved-host') || cleanUrl.startsWith('admin/pending/pending-host') || cleanUrl.startsWith('admin/rejected/rejected-host') || cleanUrl === 'auth/me' || cleanUrl === 'auth/user' || cleanUrl.includes('update-profile') || cleanUrl.startsWith('otp/')) {
             const userObj = await getCurrentUserObject()
             const userId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
             const userEmail = userObj?.email || userObj?.user?.email
@@ -103,7 +103,65 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 return { data: { host: formattedProfile, user: formattedProfile, profile: formattedProfile, data: formattedProfile } }
             }
 
-            // Host application submission by user -> status: 'pending', is_approved: false
+            // Standard User Profile Update (e.g. from PersonalInfo via authSlice or user service)
+            if ((cleanUrl.includes('update-profile') || cleanUrl === 'user/update' || cleanUrl === 'profiles/update' || cleanUrl === 'user/profile/update' || (cleanUrl.startsWith('user') && (method === 'PUT' || method === 'PATCH' || method === 'POST'))) && !cleanUrl.includes('approve') && !cleanUrl.includes('reject')) {
+                let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'profiles') : { ...(body || {}) };
+                if (payload.name && !payload.full_name) payload.full_name = payload.name;
+                if (payload.full_name && !payload.name) payload.name = payload.full_name;
+                if (payload.userId && !payload.id) payload.id = payload.userId;
+                if (payload.user_id && !payload.id) payload.id = payload.user_id;
+
+                const targetId = payload.id || userId;
+                let existingMeta = {};
+                let existingProfile = null;
+                if (targetId) {
+                    const { data: existProf } = await supabase.from('profiles').select('*').eq('id', targetId).maybeSingle();
+                    existingProfile = existProf;
+                } else if (userEmail) {
+                    const { data: existProf } = await supabase.from('profiles').select('*').eq('email', userEmail).maybeSingle();
+                    existingProfile = existProf;
+                }
+
+                if (existingProfile?.street_address && (existingProfile.street_address.startsWith('{') || existingProfile.street_address.startsWith('['))) {
+                    try { existingMeta = JSON.parse(existingProfile.street_address); } catch {}
+                }
+
+                const physicalAddress = payload.address !== undefined ? payload.address : payload.street_address;
+                if (Object.keys(existingMeta).length > 0) {
+                    if (physicalAddress !== undefined) {
+                        existingMeta.address = physicalAddress;
+                        existingMeta.street_address = physicalAddress;
+                    }
+                    payload.street_address = JSON.stringify(existingMeta);
+                } else if (physicalAddress !== undefined) {
+                    payload.street_address = physicalAddress;
+                }
+
+                payload.id = targetId || existingProfile?.id;
+                if (existingProfile?.role) payload.role = existingProfile.role;
+                if (existingProfile?.status) payload.status = existingProfile.status;
+                if (existingProfile?.is_approved !== undefined) payload.is_approved = existingProfile.is_approved;
+
+                const cleanProfile = sanitizePayload(payload, PROFILE_COLUMNS);
+                const { data, error } = await supabase.from('profiles').upsert(cleanProfile).select().maybeSingle();
+                if (error) throw error;
+                const formatted = formatUserProfile(data);
+
+                try {
+                    if (payload.full_name || payload.name) {
+                        await supabase.auth.updateUser({
+                            data: {
+                                full_name: payload.full_name || payload.name,
+                                name: payload.full_name || payload.name
+                            }
+                        });
+                    }
+                } catch {}
+
+                return { data: { user: formatted, profile: formatted, host: formatted, success: true } };
+            }
+
+            // Host application submission by user
             if ((cleanUrl === 'host/save' || cleanUrl === 'host/update' || cleanUrl.startsWith('host/update/')) && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
                 const id = cleanUrl.split('/').pop() || userId
                 let payload = body instanceof FormData ? await parseFormDataWithUploads(body, 'profiles') : { ...(body || {}) }
@@ -112,19 +170,30 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 if (payload.userId && !payload.id) payload.id = payload.userId;
                 if (payload.user_id && !payload.id) payload.id = payload.user_id;
                 if (payload.name && !payload.full_name) payload.full_name = payload.name;
+                if (payload.full_name && !payload.name) payload.name = payload.full_name;
 
                 payload.id = (id && id !== 'save' && id !== 'update') ? id : (userId || payload.id);
-                payload.status = payload.status || 'pending'
-                payload.is_approved = false
-                payload.role = payload.role || 'user'
 
-                // Check existing street_address to preserve JSON metadata if present
+                // Check existing profile to preserve approval status if host is already approved
                 let existingMeta = {};
+                let isAlreadyApproved = false;
                 if (payload.id) {
-                    const { data: existProf } = await supabase.from('profiles').select('street_address').eq('id', payload.id).maybeSingle();
+                    const { data: existProf } = await supabase.from('profiles').select('*').eq('id', payload.id).maybeSingle();
+                    if (existProf?.is_approved || existProf?.status === 'approved') {
+                        isAlreadyApproved = true;
+                        payload.status = existProf.status || 'approved';
+                        payload.is_approved = true;
+                        payload.role = existProf.role || 'host';
+                    }
                     if (existProf?.street_address && (existProf.street_address.startsWith('{') || existProf.street_address.startsWith('['))) {
                         try { existingMeta = JSON.parse(existProf.street_address); } catch {}
                     }
+                }
+
+                if (!isAlreadyApproved) {
+                    payload.status = payload.status || 'pending';
+                    payload.is_approved = false;
+                    payload.role = payload.role || 'user';
                 }
 
                 const physicalAddress = payload.address || payload.street_address;
@@ -144,20 +213,22 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 if (error) throw error
                 const formatted = formatUserProfile(data);
 
-                // Notify admin of new host verification submission
-                await notifyAdminsOfUserSubmission({
-                    title: `🛡️ New Host Verification Request: ${formatted?.full_name || formatted?.name || 'Applicant'}`,
-                    message: `${formatted?.full_name || 'User'} (${formatted?.email || 'N/A'}) submitted identity verification for host status in ${formatted?.city || formatted?.country || 'Community'}.`,
-                    type: NOTIFICATION_TYPES.HOST_APPLICATION_SUBMITTED,
-                    entityType: 'host',
-                    entityId: data?.id,
-                    actionUrl: '/admin/hosts',
-                    link: '/admin/hosts',
-                    userId: data?.id,
-                    userEmail: data?.email,
-                    userName: formatted?.full_name,
-                    metadata: formatted
-                });
+                // Notify admin only for new host applications (not profile edits by approved hosts)
+                if (!isAlreadyApproved) {
+                    await notifyAdminsOfUserSubmission({
+                        title: `🛡️ New Host Verification Request: ${formatted?.full_name || formatted?.name || 'Applicant'}`,
+                        message: `${formatted?.full_name || 'User'} (${formatted?.email || 'N/A'}) submitted identity verification for host status in ${formatted?.city || formatted?.country || 'Community'}.`,
+                        type: NOTIFICATION_TYPES.HOST_APPLICATION_SUBMITTED,
+                        entityType: 'host',
+                        entityId: data?.id,
+                        actionUrl: '/admin/hosts',
+                        link: '/admin/hosts',
+                        userId: data?.id,
+                        userEmail: data?.email,
+                        userName: formatted?.full_name,
+                        metadata: formatted
+                    });
+                }
 
                 return { data: { host: formatted, profile: formatted, user: formatted, success: true } }
             }

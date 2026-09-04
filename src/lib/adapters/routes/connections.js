@@ -8,6 +8,7 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
         if (cleanUrl.startsWith('connection-request') || cleanUrl.startsWith('connection-requests') || cleanUrl.startsWith('connections') || cleanUrl.startsWith('connection')) {
             const userObj = await getCurrentUserObject();
             const currentUserId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId();
+            const isUuid = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str.trim());
 
             // Helper to format email to readable human name
             const formatNameFromEmail = (email) => {
@@ -40,9 +41,36 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                         const { data: item } = await supabase.from('buy_sell').select('user_id').eq('id', itemId).maybeSingle();
                         if (item?.user_id) targetUserId = item.user_id;
                     } else if (itemType === 'events' || itemType === 'event') {
-                        const { data: ev } = await supabase.from('events').select('organizer_id, host_id').eq('id', itemId).maybeSingle();
-                        if (ev?.organizer_id || ev?.host_id) targetUserId = ev.organizer_id || ev.host_id;
+                        const { data: ev } = await supabase.from('events').select('*').eq('id', itemId).maybeSingle();
+                        if (ev?.organizer_email) {
+                            const { data: prof } = await supabase.from('profiles').select('id').ilike('email', ev.organizer_email.trim()).maybeSingle();
+                            if (prof?.id) targetUserId = prof.id;
+                        }
+                        if (!targetUserId && ev?.organizer_name) {
+                            const { data: prof } = await supabase.from('profiles').select('id').ilike('full_name', ev.organizer_name.trim()).maybeSingle();
+                            if (prof?.id) targetUserId = prof.id;
+                        }
+                        if (!targetUserId && ev?.user_id && isUuid(ev.user_id)) {
+                            targetUserId = ev.user_id;
+                        }
+                        if (!targetUserId && ev?.host_id && isUuid(ev.host_id)) {
+                            targetUserId = ev.host_id;
+                        }
                     }
+                }
+
+                if (!targetUserId && (body?.targetEmail || body?.target_email)) {
+                    const email = (body.targetEmail || body.target_email).trim();
+                    const { data: prof } = await supabase.from('profiles').select('id').ilike('email', email).maybeSingle();
+                    if (prof?.id) targetUserId = prof.id;
+                }
+                if (!targetUserId && (body?.targetName || body?.target_name)) {
+                    const name = (body.targetName || body.target_name).trim();
+                    const { data: prof } = await supabase.from('profiles').select('id').ilike('full_name', name).maybeSingle();
+                    if (prof?.id) targetUserId = prof.id;
+                }
+                if (!targetUserId && itemId) {
+                    targetUserId = `host_${itemType}_${itemId}`;
                 }
 
                 if (!targetUserId) {
@@ -80,11 +108,15 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                     (requesterEmail ? formatNameFromEmail(requesterEmail) : '') ||
                     'Community Member';
 
-                // Get target user profile
-                const { data: targetProfile } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle();
+                // Get target user profile safely
+                let targetProfile = null;
                 let targetMeta = {};
-                if (targetProfile?.street_address && (targetProfile.street_address.startsWith('{') || targetProfile.street_address.startsWith('['))) {
-                    try { targetMeta = JSON.parse(targetProfile.street_address) } catch {}
+                if (isUuid(targetUserId)) {
+                    const { data: tp } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle();
+                    targetProfile = tp;
+                    if (targetProfile?.street_address && (targetProfile.street_address.startsWith('{') || targetProfile.street_address.startsWith('['))) {
+                        try { targetMeta = JSON.parse(targetProfile.street_address) } catch {}
+                    }
                 }
                 targetMeta.incoming_requests = Array.isArray(targetMeta.incoming_requests) ? targetMeta.incoming_requests : [];
 
@@ -139,33 +171,38 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                 }
 
                 // Save to database
-                await Promise.all([
-                    supabase.from('profiles').update({ street_address: JSON.stringify(targetMeta) }).eq('id', targetUserId),
+                const updates = [
                     supabase.from('profiles').update({ street_address: JSON.stringify(currentMeta) }).eq('id', currentUserId)
-                ]);
+                ];
+                if (targetProfile?.id && isUuid(targetProfile.id)) {
+                    updates.push(supabase.from('profiles').update({ street_address: JSON.stringify(targetMeta) }).eq('id', targetProfile.id));
+                }
+                await Promise.all(updates);
 
                 // Trigger in-app notification & transactional email to the owner
-                await createInAppAndEmailNotification({
-                    userId: targetUserId,
-                    recipientId: targetUserId,
-                    actorId: currentUserId,
-                    userEmail: targetProfile?.email,
-                    title: '🤝 New Connection Request!',
-                    message: `${requesterName} sent you a connection request for "${itemTitle || 'your listing'}".`,
-                    type: NOTIFICATION_TYPES.CONNECTION_REQUEST_RECEIVED,
-                    entityType: itemType || 'connection',
-                    entityId: requestId,
-                    actionUrl: '/account-v2?tab=requests',
-                    link: '/account-v2?tab=requests',
-                    metadata: {
-                        requestId,
-                        requesterName,
-                        requesterEmail,
-                        itemTitle,
-                        itemType,
-                        itemId
-                    }
-                });
+                if (targetProfile?.id) {
+                    await createInAppAndEmailNotification({
+                        userId: targetProfile.id,
+                        recipientId: targetProfile.id,
+                        actorId: currentUserId,
+                        userEmail: targetProfile?.email,
+                        title: '🤝 New Connection Request!',
+                        message: `${requesterName} sent you a connection request for "${itemTitle || 'your listing'}".`,
+                        type: NOTIFICATION_TYPES.CONNECTION_REQUEST_RECEIVED,
+                        entityType: itemType || 'connection',
+                        entityId: requestId,
+                        actionUrl: '/account-v2?tab=requests',
+                        link: '/account-v2?tab=requests',
+                        metadata: {
+                            requestId,
+                            requesterName,
+                            requesterEmail,
+                            itemTitle,
+                            itemType,
+                            itemId
+                        }
+                    });
+                }
 
                 return { data: { success: true, message: 'Connection request sent successfully', data: newRequest } };
             }
@@ -278,11 +315,11 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                                      queryParams?.owner_id;
                 const itemId = queryParams?.itemId || queryParams?.item_id || '';
 
-                if (!targetUserId || !currentUserId) {
+                if ((!targetUserId && !itemId) || !currentUserId) {
                     return { data: { status: 'none', isConnected: false, isOwner: false } };
                 }
 
-                if (String(targetUserId) === String(currentUserId)) {
+                if (targetUserId && String(targetUserId) === String(currentUserId)) {
                     return { data: { status: 'accepted', isConnected: true, isOwner: true } };
                 }
 
@@ -294,17 +331,21 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                 }
                 const outgoing = Array.isArray(myMeta.outgoing_requests) ? myMeta.outgoing_requests : [];
 
-                // Also check target's incoming_requests (dual-sided sync)
-                const { data: targetProfile } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle();
+                // Also check target's incoming_requests safely (dual-sided sync)
+                let targetProfile = null;
                 let targetMeta = {};
-                if (targetProfile?.street_address && (targetProfile.street_address.startsWith('{') || targetProfile.street_address.startsWith('['))) {
-                    try { targetMeta = JSON.parse(targetProfile.street_address) } catch {}
+                if (isUuid(targetUserId)) {
+                    const { data: tp } = await supabase.from('profiles').select('*').eq('id', targetUserId).maybeSingle();
+                    targetProfile = tp;
+                    if (targetProfile?.street_address && (targetProfile.street_address.startsWith('{') || targetProfile.street_address.startsWith('['))) {
+                        try { targetMeta = JSON.parse(targetProfile.street_address) } catch {}
+                    }
                 }
                 const incoming = Array.isArray(targetMeta.incoming_requests) ? targetMeta.incoming_requests : [];
 
                 const matchedOutgoing = outgoing.find(r => 
-                    String(r.targetUserId || r.target_user_id) === String(targetUserId) &&
-                    (!itemId || !r.itemId || !r.item_id || String(r.itemId || r.item_id) === String(itemId))
+                    (itemId && (String(r.itemId || r.item_id) === String(itemId))) ||
+                    (targetUserId && String(r.targetUserId || r.target_user_id) === String(targetUserId) && (!itemId || !r.itemId || !r.item_id || String(r.itemId || r.item_id) === String(itemId)))
                 );
 
                 const matchedIncoming = incoming.find(r => 

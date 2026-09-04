@@ -15,7 +15,7 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
             // Admin Actions (Mutations only)
             if ((cleanUrl.includes('/approve/') || cleanUrl.endsWith('/approve')) && method !== 'GET') {
                 const id = cleanUrl.split('/').pop()
-                const { data } = await supabase.from('buy_sell').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
+                const { data } = await supabase.from('buy_sell').update({ status: 'approved' }).eq('id', id).select().maybeSingle()
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.user_id || data.seller_id,
@@ -35,7 +35,7 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
             }
             if ((cleanUrl.includes('/reject/') || cleanUrl.endsWith('/reject')) && method !== 'GET') {
                 const id = cleanUrl.split('/').pop()
-                const { data } = await supabase.from('buy_sell').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
+                const { data } = await supabase.from('buy_sell').update({ status: 'rejected' }).eq('id', id).select().maybeSingle()
                 if (data) {
                     await createInAppAndEmailNotification({
                         userId: data.user_id || data.seller_id,
@@ -153,16 +153,16 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
             } else if (cleanUrl.includes('all')) {
                 query = query.neq('status', 'rejected')
             } else {
-                query = query.eq('status', 'approved')
+                query = query.in('status', ['approved', 'active', 'accepted', 'Approved', 'Active'])
             }
 
             const buySellCountryParam = queryParams.country || queryParams.country_name || queryParams.countryName;
             if (buySellCountryParam && buySellCountryParam.toLowerCase() !== 'all' && buySellCountryParam.toLowerCase() !== 'global') {
                 const norm = normalizeCountryName(buySellCountryParam);
                 if (norm === 'United States of America' || buySellCountryParam.toLowerCase() === 'usa' || buySellCountryParam.toLowerCase() === 'us' || buySellCountryParam.toLowerCase() === 'united states') {
-                    query = query.in('country', ['United States of America', 'United States', 'USA', 'US']);
+                    query = query.or('country.in.("United States of America","United States","USA","US"),country.is.null');
                 } else {
-                    query = query.or(`country.ilike.%${buySellCountryParam}%,country.ilike.%${norm}%`);
+                    query = query.or(`country.ilike.%${buySellCountryParam}%,country.ilike.%${norm}%,country.is.null`);
                 }
             }
 

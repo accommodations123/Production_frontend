@@ -47,13 +47,15 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
   const [imgError, setImgError] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
 
-  const targetId = initialProduct?.id || initialProduct?._id;
-  const { data: fetchedProduct } = useGetBuySellByIdQuery(
+  const baseProduct = initialProduct?.listing || initialProduct?.item || initialProduct?.data || initialProduct || {};
+  const targetId = baseProduct?.id || baseProduct?._id;
+  const { data: fetchedRaw } = useGetBuySellByIdQuery(
     targetId,
     { skip: !targetId }
   );
 
-  const raw = fetchedProduct || initialProduct || {};
+  const fetchedProduct = fetchedRaw?.listing || fetchedRaw?.item || fetchedRaw?.data || fetchedRaw;
+  const raw = fetchedProduct || baseProduct;
 
   const { user: currentUser } = useAuth();
   const currentUserId = currentUser?.id || currentUser?.user_id;
@@ -73,8 +75,8 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
 
   const product = {
     ...raw,
-    sellerName: raw.sellerName || raw.name || "Seller",
-    sellerPhone: raw.sellerPhone || raw.phone,
+    sellerName: raw.sellerName || raw.seller_name || raw.name || "Seller",
+    sellerPhone: raw.sellerPhone || raw.phone || raw.seller_phone,
     sellerEmail: raw.sellerEmail || raw.email || raw.seller_email,
     sellerInstagram: raw.sellerInstagram || raw.instagram || raw.seller_instagram,
     sellerFacebook: raw.sellerFacebook || raw.facebook || raw.seller_facebook || raw.Host?.facebook || raw.host?.facebook,
@@ -109,7 +111,7 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
   const responseRate = product.response_rate || product.responseRate;
   const responseTime = product.response_time || product.responseTime;
   const languages = Array.isArray(product.languages) ? product.languages.join(", ") : product.languages;
-  const isVerified = product.status === "active" || product.status === "approved";
+  const isVerified = product.status?.toLowerCase() === "active" || product.status?.toLowerCase() === "approved";
   const sellerAvatarUrl = product.sellerImage || product.sellerAvatar || product.avatar || product.Host?.avatar || product.host?.avatar || product.Host?.image || product.host?.image || null;
 
   const specs = [
@@ -128,13 +130,17 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
     ["Negotiable", product.negotiable ? "Yes" : "No"],
   ].filter(Boolean);
 
-  // Related listings in the same category
+  // Related listings in the same category or marketplace
   const { data: relatedRaw } = useGetBuySellListingsQuery(
-    { category: product.category, country: product.country },
-    { skip: !product.category }
+    product.category ? { category: product.category, country: product.country } : { country: product.country }
   );
-  const related = (relatedRaw || [])
-    .filter((p) => (p.id || p._id) !== (product.id || product._id) && p.title)
+  const rawRelatedList = Array.isArray(relatedRaw) ? relatedRaw : (relatedRaw?.listings || relatedRaw?.items || relatedRaw?.data || []);
+  const related = rawRelatedList
+    .filter((p) => {
+      const pId = p.id || p._id;
+      const currentId = product.id || product._id;
+      return pId && (!currentId || String(pId) !== String(currentId)) && (p.title || p.name);
+    })
     .slice(0, 3);
 
   const descLong = (product.description || "").length > 240;

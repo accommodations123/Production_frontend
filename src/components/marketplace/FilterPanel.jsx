@@ -18,9 +18,18 @@ export function FilterPanel({ filters, onChange }) {
     { label: "All", value: "" },
     { label: "Furniture", value: "Furniture" },
     { label: "Electronics", value: "Electronics" },
+    { label: "Vehicles", value: "Vehicles" },
+    { label: "Mobile Phones", value: "Mobile Phones" },
+    { label: "Laptops & Computers", value: "Laptops & Computers" },
     { label: "Home & Garden", value: "Home & Garden" },
-    { label: "Clothing", value: "Clothing" },
-    { label: "Other", value: "Other" },
+    { label: "Kitchen & Appliances", value: "Kitchen & Appliances" },
+    { label: "Books & Study Materials", value: "Books & Study Materials" },
+    { label: "Clothing & Accessories", value: "Clothing & Accessories" },
+    { label: "Sports & Fitness", value: "Sports & Fitness" },
+    { label: "Baby & Kids", value: "Baby & Kids" },
+    { label: "Tickets & Events", value: "Tickets & Events" },
+    { label: "Services", value: "Services" },
+    { label: "Others", value: "Other" },
   ];
 
   const [isOpen, setIsOpen] = useState(false);

@@ -25,7 +25,8 @@ export const Sidebar = memo(({ event }) => {
         event?.host_id ||
         event?.user_id ||
         host?.User?.id ||
-        host?.User?.user_id;
+        host?.User?.user_id ||
+        (event?.id ? `host_event_${event.id}` : undefined);
 
     const currentItemId = event?.id || event?._id;
     const { data: statusRes } = useGetConnectionStatusQuery(
@@ -87,6 +88,7 @@ export const Sidebar = memo(({ event }) => {
             await sendReq({
                 targetUserId: hostUserId,
                 targetName: hostName,
+                targetEmail: displayHostEmail || host?.email || event?.organizer_email || "",
                 itemId: event?.id || event?._id,
                 itemTitle: event?.title || "Event",
                 itemType: "events",

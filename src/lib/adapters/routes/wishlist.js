@@ -26,7 +26,10 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                     profileMeta = JSON.parse(profile.street_address)
                 } catch {}
             }
-            let userWishlist = Array.isArray(profileMeta.wishlist) ? profileMeta.wishlist : []
+            const localList = getLocalWishlist(userId)
+            let userWishlist = Array.isArray(profileMeta.wishlist) && profileMeta.wishlist.length > 0
+                ? profileMeta.wishlist
+                : (Array.isArray(localList) ? localList : [])
 
             const normalizeItemType = (t) => {
                 const clean = (t || '').toLowerCase().replace(/[-_\s]/g, '')
@@ -81,6 +84,7 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                 }
 
                 profileMeta.wishlist = userWishlist
+                setLocalWishlist(userId, userWishlist)
                 await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
 
                 return { data: { success: true, isWishlisted: newSavedState, is_wishlisted: newSavedState, isSaved: newSavedState, saved: newSavedState } }
@@ -98,6 +102,7 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                         created_at: new Date().toISOString()
                     })
                     profileMeta.wishlist = userWishlist
+                    setLocalWishlist(userId, userWishlist)
                     await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
                 }
                 return { data: { success: true, isWishlisted: true, is_wishlisted: true } }
@@ -116,6 +121,7 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                     return false
                 })
                 profileMeta.wishlist = userWishlist
+                setLocalWishlist(userId, userWishlist)
                 await supabase.from('profiles').update({ street_address: JSON.stringify(profileMeta) }).eq('id', userId)
                 return { data: { success: true, isWishlisted: false, is_wishlisted: false } }
             }

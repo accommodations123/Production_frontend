@@ -22,7 +22,9 @@ export default function ProductDetailsPage() {
         );
     }
 
-    if (!rawProduct) {
+    const product = rawProduct?.listing || rawProduct?.item || rawProduct?.data || rawProduct;
+
+    if (!product || (!product.title && !product.name)) {
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col justify-between">
                 <Navbar />
@@ -40,7 +42,7 @@ export default function ProductDetailsPage() {
         <div className="min-h-screen flex flex-col bg-[#FAFBFD] font-sans">
             <Navbar />
             <div className="pt-20 flex-1">
-                <ProductDetailView product={rawProduct} onBack={() => navigate('/marketplace')} />
+                <ProductDetailView product={product} onBack={() => navigate('/marketplace')} />
             </div>
             <Footer />
         </div>

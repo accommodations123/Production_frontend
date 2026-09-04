@@ -29,8 +29,11 @@ export default function EventDetailsPage() {
         if (!apiEvent) return null
         const raw = apiEvent.event || apiEvent.data || apiEvent
         const hostObj = raw.Host || raw.host || raw.User || raw.user || null
-        const hostName = hostObj?.full_name || hostObj?.name || hostObj?.User?.full_name || raw.organizer || raw.hostName || "Host"
+        const hostId = hostObj?.id || hostObj?.user_id || raw.host_id || raw.host_user_id || raw.user_id || raw.organizer_id || (raw.id ? `host_event_${raw.id}` : undefined)
+        const hostName = hostObj?.full_name || hostObj?.name || hostObj?.User?.full_name || raw.organizer || raw.hostName || raw.organizer_name || "Host"
         const hostPhoto = resolveImageUrl(hostObj?.profile_image || hostObj?.selfie_photo || hostObj?.avatar || hostObj?.User?.profile_image || null)
+        const hostPhone = hostObj?.phone || hostObj?.whatsapp || hostObj?.User?.phone || raw.phone || ""
+        const hostEmail = hostObj?.email || hostObj?.User?.email || raw.organizer_email || ""
 
         const locationStr = raw.location || 
             (raw.city && raw.country ? `${raw.city}, ${raw.country}` : raw.city || raw.street_address || raw.venue_name || raw.address || "Location TBA")
@@ -66,16 +69,33 @@ export default function EventDetailsPage() {
             schedule: Array.isArray(raw.schedule) ? raw.schedule : [],
             facilities: Array.isArray(raw.facilities) ? raw.facilities : [],
             accessibilityFeatures: Array.isArray(raw.accessibility_features) ? raw.accessibility_features : [],
-            host: hostObj
-                ? {
-                    full_name: hostName,
-                    selfie_photo: hostPhoto,
-                    profile_image: hostPhoto,
-                    phone: hostObj.phone || hostObj.whatsapp || hostObj.User?.phone,
-                    email: hostObj.email || hostObj.User?.email,
-                    status: hostObj.status
-                }
-                : null,
+            host: {
+                id: hostId,
+                user_id: hostId,
+                full_name: hostName,
+                name: hostName,
+                selfie_photo: hostPhoto,
+                profile_image: hostPhoto,
+                phone: hostPhone,
+                email: hostEmail,
+                status: hostObj?.status || 'approved'
+            },
+            Host: {
+                id: hostId,
+                user_id: hostId,
+                full_name: hostName,
+                name: hostName,
+                selfie_photo: hostPhoto,
+                profile_image: hostPhoto,
+                phone: hostPhone,
+                email: hostEmail,
+                status: hostObj?.status || 'approved'
+            },
+            host_id: hostId,
+            host_user_id: hostId,
+            user_id: hostId,
+            organizer_name: hostName,
+            organizer_email: hostEmail,
             event_mode: raw.event_mode || "offline",
             event_url: raw.event_url || "",
             online_instructions: raw.online_instructions || "",
@@ -88,10 +108,19 @@ export default function EventDetailsPage() {
     const [isRegistered, setIsRegistered] = useState(false)
     const [prevEvent, setPrevEvent] = useState(null)
 
+    const { user } = useAuth()
+
     // Sync isRegistered inline during render when event data changes
     if (event !== prevEvent) {
         setPrevEvent(event)
-        setIsRegistered(!!event?.is_registered)
+        const localRegs = (() => {
+            try {
+                const currentId = user?.id || user?.user_id;
+                return JSON.parse(localStorage.getItem(`nxt_event_registrations_${currentId}`) || '[]');
+            } catch { return []; }
+        })();
+        const registered = Boolean(event?.is_registered || (event?.id && localRegs.includes(String(event.id))));
+        setIsRegistered(registered)
     }
 
     const [activeTab, setActiveTab] = useState("overview")
@@ -120,8 +149,6 @@ export default function EventDetailsPage() {
 
     const [joinEvent, { isLoading: isJoining }] = useJoinEventMutation()
     const [leaveEvent, { isLoading: isLeaving }] = useLeaveEventMutation()
-
-    const { user } = useAuth()
 
     // Syncing of isRegistered is handled inline during render above
 
@@ -164,6 +191,20 @@ export default function EventDetailsPage() {
 
             await joinEvent(event.id).unwrap()
 
+            const currentId = user?.id || user?.user_id
+            if (currentId && event?.id) {
+                try {
+                    const storageKey = `nxt_event_registrations_${currentId}`
+                    const currentRegs = JSON.parse(localStorage.getItem(storageKey) || '[]')
+                    if (!currentRegs.includes(String(event.id))) {
+                        currentRegs.push(String(event.id))
+                        localStorage.setItem(storageKey, JSON.stringify(currentRegs))
+                    }
+                } catch (e) {
+                    console.error('Error saving local registration:', e)
+                }
+            }
+
             setIsRegistered(true)
             setRegistrationSuccess('Successfully registered for event!')
             toast.success('Successfully registered for event!')
@@ -173,6 +214,17 @@ export default function EventDetailsPage() {
             const msg = error?.data?.message || error.message || 'Failed to register for event.'
 
             if (msg.includes('already joined')) {
+                const currentId = user?.id || user?.user_id
+                if (currentId && event?.id) {
+                    try {
+                        const storageKey = `nxt_event_registrations_${currentId}`
+                        const currentRegs = JSON.parse(localStorage.getItem(storageKey) || '[]')
+                        if (!currentRegs.includes(String(event.id))) {
+                            currentRegs.push(String(event.id))
+                            localStorage.setItem(storageKey, JSON.stringify(currentRegs))
+                        }
+                    } catch {}
+                }
                 setIsRegistered(true)
                 setRegistrationSuccess('You are already registered for this event.')
                 toast.info('You are already registered for this event.')
@@ -198,6 +250,18 @@ export default function EventDetailsPage() {
             setRegistrationSuccess('')
 
             await leaveEvent(event.id).unwrap()
+
+            const currentId = user?.id || user?.user_id
+            if (currentId && event?.id) {
+                try {
+                    const storageKey = `nxt_event_registrations_${currentId}`
+                    const currentRegs = JSON.parse(localStorage.getItem(storageKey) || '[]')
+                    const filtered = currentRegs.filter(id => String(id) !== String(event.id))
+                    localStorage.setItem(storageKey, JSON.stringify(filtered))
+                } catch (e) {
+                    console.error('Error removing local registration:', e)
+                }
+            }
 
             setIsRegistered(false)
             setRegistrationSuccess('Successfully left the event.')

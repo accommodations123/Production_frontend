@@ -345,11 +345,6 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
   };
 
   const toggleEdit = async (section) => {
-    if (!isHost) {
-      toast.error("You're not a host");
-      navigate("/hosts");
-      return;
-    }
     if (editStates[section]) {
       try {
         const cleanFb = extractUsername('facebook', formData.facebook);
@@ -383,6 +378,9 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
           payload.append('whatsapp', finalWhatsapp);
           payload.append('zip_code', formData.zip);
           payload.append('street_address', formData.address);
+          if (formData.full_name) {
+            payload.append('name', formData.full_name);
+          }
 
           await onUpdate(payload);
         }

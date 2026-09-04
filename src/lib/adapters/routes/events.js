@@ -73,15 +73,49 @@ export async function handleEventsRoute({ cleanUrl, method, body, queryParams })
                 return { data: { events: enriched, data: enriched } }
             }
             if (cleanUrl.endsWith('/join') && method === 'POST') {
-                const id = cleanUrl.split('/')[1]
+                const parts = cleanUrl.split('/')
+                const id = parts[1] === 'join' ? parts[0] : parts[1]
+                const userId = await getCurrentUserId()
                 const { data: cur } = await supabase.from('events').select('attendees_count').eq('id', id).maybeSingle()
                 await supabase.from('events').update({ attendees_count: (cur?.attendees_count || 0) + 1 }).eq('id', id)
+
+                if (userId) {
+                    try {
+                        const { data: prof } = await supabase.from('profiles').select('street_address').eq('id', userId).maybeSingle()
+                        let meta = {}
+                        try { meta = JSON.parse(prof?.street_address || '{}') } catch {}
+                        meta.event_registrations = Array.isArray(meta.event_registrations) ? meta.event_registrations : []
+                        if (!meta.event_registrations.includes(String(id))) {
+                            meta.event_registrations.push(String(id))
+                        }
+                        await supabase.from('profiles').update({ street_address: JSON.stringify(meta) }).eq('id', userId)
+                    } catch (e) {
+                        console.warn('Error saving event registration metadata:', e)
+                    }
+                }
+
                 return { data: { success: true, is_registered: true } }
             }
             if (cleanUrl.endsWith('/leave') && method === 'POST') {
-                const id = cleanUrl.split('/')[1]
+                const parts = cleanUrl.split('/')
+                const id = parts[1] === 'leave' ? parts[0] : parts[1]
+                const userId = await getCurrentUserId()
                 const { data: cur } = await supabase.from('events').select('attendees_count').eq('id', id).maybeSingle()
                 await supabase.from('events').update({ attendees_count: Math.max(0, (cur?.attendees_count || 1) - 1) }).eq('id', id)
+
+                if (userId) {
+                    try {
+                        const { data: prof } = await supabase.from('profiles').select('street_address').eq('id', userId).maybeSingle()
+                        let meta = {}
+                        try { meta = JSON.parse(prof?.street_address || '{}') } catch {}
+                        meta.event_registrations = Array.isArray(meta.event_registrations) ? meta.event_registrations : []
+                        meta.event_registrations = meta.event_registrations.filter(eventId => String(eventId) !== String(id))
+                        await supabase.from('profiles').update({ street_address: JSON.stringify(meta) }).eq('id', userId)
+                    } catch (e) {
+                        console.warn('Error updating event leave metadata:', e)
+                    }
+                }
+
                 return { data: { success: true, is_registered: false } }
             }
             if (cleanUrl.includes('reviews')) {
@@ -195,8 +229,23 @@ export async function handleEventsRoute({ cleanUrl, method, body, queryParams })
             // Single Item: matches /events/get/:id or /events/:id
             const eventSingleMatch = cleanUrl.match(/^(?:events\/get|events|event)\/([^/]+)$/)
             if (eventSingleMatch && method === 'GET' && !['get', 'all', 'approved', 'pending', 'rejected', 'my-events', 'my-listings', 'host', 'search'].includes(eventSingleMatch[1])) {
-                const { data } = await supabase.from('events').select('*').eq('id', eventSingleMatch[1]).maybeSingle()
-                return { data: { event: await enrichEventsWithHostDetails(data), is_registered: false } }
+                const eventId = eventSingleMatch[1]
+                const { data } = await supabase.from('events').select('*').eq('id', eventId).maybeSingle()
+                const userId = await getCurrentUserId()
+                let isRegistered = false
+                if (userId) {
+                    try {
+                        const { data: prof } = await supabase.from('profiles').select('street_address').eq('id', userId).maybeSingle()
+                        let meta = {}
+                        try { meta = JSON.parse(prof?.street_address || '{}') } catch {}
+                        const regs = Array.isArray(meta.event_registrations) ? meta.event_registrations : []
+                        isRegistered = regs.includes(String(eventId))
+                    } catch (e) {
+                        console.warn('Error checking event registration status:', e)
+                    }
+                }
+                const enriched = await enrichEventsWithHostDetails(data)
+                return { data: { event: enriched, is_registered: isRegistered } }
             }
 
             // Public List

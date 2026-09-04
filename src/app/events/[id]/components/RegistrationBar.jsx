@@ -114,24 +114,38 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
                                 <CheckCircle className="h-4 w-4 text-emerald-300" />
                                 <span>You are Hosting this Event</span>
                             </div>
+                        ) : isRegistered ? (
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 bg-emerald-500 text-white font-bold py-2.5 px-5 rounded-full shadow-lg text-sm border border-emerald-400/50">
+                                    <CheckCircle className="h-4 w-4 text-white" />
+                                    <span>Registered</span>
+                                </div>
+                                <Button
+                                    onClick={handleLeave}
+                                    disabled={isLoading}
+                                    variant="outline"
+                                    className="bg-white/10 hover:bg-red-500 hover:text-white text-white border-white/30 font-semibold py-2.5 px-4 rounded-full text-xs transition-all shadow-md"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin mr-1.5"></div>
+                                            Leaving...
+                                        </>
+                                    ) : (
+                                        "Leave Event"
+                                    )}
+                                </Button>
+                            </div>
                         ) : (
                             <Button
-                                onClick={isRegistered ? handleLeave : handleRegister}
+                                onClick={handleRegister}
                                 disabled={isLoading}
-                                className={`font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-xl ${isRegistered
-                                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                                    : 'bg-white text-accent hover:bg-gray-100'
-                                    } ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                className="font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-xl bg-white text-accent hover:bg-gray-100 disabled:opacity-70 disabled:cursor-not-allowed"
                             >
                                 {isLoading ? (
                                     <>
                                         <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
                                         Processing...
-                                    </>
-                                ) : isRegistered ? (
-                                    <>
-                                        <CheckCircle className="h-4 w-4 mr-2" />
-                                        Leave Event
                                     </>
                                 ) : (
                                     <>
@@ -169,24 +183,31 @@ export const RegistrationBar = memo(({ isRegistered, handleRegister, handleLeave
                                 <CheckCircle className="h-4 w-4 text-emerald-600" />
                                 <span>You are Hosting this Event</span>
                             </div>
+                        ) : isRegistered ? (
+                            <div className="flex items-center gap-2 w-full">
+                                <div className="flex-1 flex items-center justify-center gap-2 bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-full text-xs shadow-sm">
+                                    <CheckCircle className="h-4 w-4 text-white" />
+                                    <span>Registered</span>
+                                </div>
+                                <Button
+                                    onClick={handleLeave}
+                                    disabled={isLoading}
+                                    variant="outline"
+                                    className="py-2.5 px-4 rounded-full text-xs text-red-600 border-red-200 hover:bg-red-50 font-semibold"
+                                >
+                                    {isLoading ? "Leaving..." : "Leave"}
+                                </Button>
+                            </div>
                         ) : (
                             <Button
-                                onClick={isRegistered ? handleLeave : handleRegister}
+                                onClick={handleRegister}
                                 disabled={isLoading}
-                                className={`w-full font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-lg ${isRegistered
-                                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                                    : 'bg-accent text-white hover:bg-accent/90'
-                                    } ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                className="w-full font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-lg bg-accent text-white hover:bg-accent/90 disabled:opacity-70 disabled:cursor-not-allowed"
                             >
                                 {isLoading ? (
                                     <>
                                         <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
                                         Processing...
-                                    </>
-                                ) : isRegistered ? (
-                                    <>
-                                        <CheckCircle className="h-4 w-4 mr-2" />
-                                        Leave Event
                                     </>
                                 ) : (
                                     <>

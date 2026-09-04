@@ -44,12 +44,31 @@ export async function enrichWithProfiles(items, idKey = 'host_id') {
         }
     }
 
+    const nameMap = new Map()
+    const names = [...new Set(array.map(item => item?.organizer_name || item?.host_name || item?.hostName).filter(Boolean))]
+    if (names.length > 0) {
+        try {
+            const { data: nameProfiles } = await supabase.from('profiles').select('*').in('full_name', names)
+            if (nameProfiles && Array.isArray(nameProfiles)) {
+                for (const u of nameProfiles) {
+                    if (u.id) userMap.set(u.id, u)
+                    if (u.full_name) nameMap.set(u.full_name.toLowerCase(), u)
+                    if (u.name) nameMap.set(u.name.toLowerCase(), u)
+                }
+            }
+        } catch (err) {
+            console.warn('Error fetching profiles by name:', err)
+        }
+    }
+
     const enriched = array.map(item => {
         if (!item) return item
         const host = (item[idKey] ? userMap.get(item[idKey]) : null) ||
                      (item.user_id ? userMap.get(item.user_id) : null) ||
                      (item.created_by ? userMap.get(item.created_by) : null) ||
-                     (item.organizer_email ? emailMap.get(item.organizer_email.toLowerCase()) : null)
+                     (item.organizer_email ? emailMap.get(item.organizer_email.toLowerCase()) : null) ||
+                     (item.organizer_name ? nameMap.get(item.organizer_name.toLowerCase()) : null) ||
+                     (item.host_name ? nameMap.get(item.host_name.toLowerCase()) : null)
 
         const hostFullName = host?.full_name || host?.name || [host?.first_name, host?.last_name].filter(Boolean).join(' ') || item.host_name || item.hostName || item.organizer_name || item.organizer || "Host"
         const hostPhone = host?.phone || host?.whatsapp || item.phone || null
@@ -66,8 +85,12 @@ export async function enrichWithProfiles(items, idKey = 'host_id') {
             delete cleanHost.block_reason
         }
 
+        const fallbackHostId = host?.id || item[idKey] || item.user_id || item.created_by || item.organizer_id || (item.id ? `host_event_${item.id}` : 'host_unknown')
+
         const hostObj = cleanHost ? {
             ...cleanHost,
+            id: cleanHost.id || fallbackHostId,
+            user_id: cleanHost.id || fallbackHostId,
             full_name: hostFullName,
             name: hostFullName,
             phone: hostPhone,
@@ -76,8 +99,14 @@ export async function enrichWithProfiles(items, idKey = 'host_id') {
             avatar_url: hostImg,
             is_approved: hostIsApproved,
             status: hostStatus,
-            User: cleanHost
+            User: {
+                ...cleanHost,
+                id: cleanHost.id || fallbackHostId,
+                user_id: cleanHost.id || fallbackHostId,
+            }
         } : {
+            id: fallbackHostId,
+            user_id: fallbackHostId,
             full_name: hostFullName,
             name: hostFullName,
             phone: hostPhone,
@@ -87,6 +116,8 @@ export async function enrichWithProfiles(items, idKey = 'host_id') {
             is_approved: true,
             status: 'approved',
             User: {
+                id: fallbackHostId,
+                user_id: fallbackHostId,
                 full_name: hostFullName,
                 name: hostFullName,
                 email: hostEmail,
@@ -102,6 +133,9 @@ export async function enrichWithProfiles(items, idKey = 'host_id') {
 
         return {
             ...item,
+            host_id: fallbackHostId,
+            host_user_id: fallbackHostId,
+            user_id: item.user_id || fallbackHostId,
             photos: cleanPhotos.length > 0 ? cleanPhotos : (item.photos || []),
             images: cleanEventImages.length > 0 ? cleanEventImages : (cleanBuySellImages.length > 0 ? cleanBuySellImages : (item.images || [])),
             banner_image: cleanBanner || item.banner_image || null,

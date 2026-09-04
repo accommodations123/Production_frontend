@@ -64,8 +64,9 @@ export function AdminNotificationCenter() {
         { id: 'unread', label: 'Unread', count: unreadCount },
         { id: 'property', label: 'Spaces', count: notifList.filter(n => n.type === NOTIFICATION_TYPES.PROPERTY_SUBMITTED || n.entity_type === 'property').length },
         { id: 'event', label: 'Events', count: notifList.filter(n => n.type === NOTIFICATION_TYPES.EVENT_SUBMITTED || n.entity_type === 'event').length },
-        { id: 'marketplace', label: 'Marketplace', count: notifList.filter(n => n.type === NOTIFICATION_TYPES.MARKETPLACE_SUBMITTED || n.entity_type === 'marketplace' || n.entity_type === 'buysell').length },
+        { id: 'marketplace', label: 'Marketplace', count: notifList.filter(n => n.type === NOTIFICATION_TYPES.BUY_SELL_SUBMITTED || n.type === NOTIFICATION_TYPES.MARKETPLACE_SUBMITTED || n.entity_type === 'marketplace' || n.entity_type === 'buysell').length },
         { id: 'host', label: 'Host Verifications', count: notifList.filter(n => n.type === NOTIFICATION_TYPES.HOST_APPLICATION_SUBMITTED || n.entity_type === 'host').length },
+        { id: 'career', label: 'Careers', count: notifList.filter(n => n.type === NOTIFICATION_TYPES.JOB_APPLICATION_SUBMITTED || n.entity_type === 'job_application' || n.entity_type === 'career').length },
         { id: 'expert', label: 'Experts', count: notifList.filter(n => n.type === NOTIFICATION_TYPES.EXPERT_APPLICATION_SUBMITTED || n.entity_type === 'expert').length },
         { id: 'travel', label: 'Travel Plans', count: notifList.filter(n => n.type === NOTIFICATION_TYPES.TRAVEL_PLAN_CREATED || n.entity_type === 'travel').length },
         { id: 'contact', label: 'Inquiries', count: notifList.filter(n => n.type === NOTIFICATION_TYPES.CONTACT_INQUIRY_RECEIVED || n.entity_type === 'contact').length },
@@ -78,8 +79,9 @@ export function AdminNotificationCenter() {
                 selectedCategory === 'unread' ? (!n.is_read && !n.read) :
                 selectedCategory === 'property' ? (n.type === NOTIFICATION_TYPES.PROPERTY_SUBMITTED || n.entity_type === 'property') :
                 selectedCategory === 'event' ? (n.type === NOTIFICATION_TYPES.EVENT_SUBMITTED || n.entity_type === 'event') :
-                selectedCategory === 'marketplace' ? (n.type === NOTIFICATION_TYPES.MARKETPLACE_SUBMITTED || n.entity_type === 'marketplace' || n.entity_type === 'buysell') :
+                selectedCategory === 'marketplace' ? (n.type === NOTIFICATION_TYPES.BUY_SELL_SUBMITTED || n.type === NOTIFICATION_TYPES.MARKETPLACE_SUBMITTED || n.entity_type === 'marketplace' || n.entity_type === 'buysell') :
                 selectedCategory === 'host' ? (n.type === NOTIFICATION_TYPES.HOST_APPLICATION_SUBMITTED || n.entity_type === 'host') :
+                selectedCategory === 'career' ? (n.type === NOTIFICATION_TYPES.JOB_APPLICATION_SUBMITTED || n.entity_type === 'job_application' || n.entity_type === 'career') :
                 selectedCategory === 'expert' ? (n.type === NOTIFICATION_TYPES.EXPERT_APPLICATION_SUBMITTED || n.entity_type === 'expert') :
                 selectedCategory === 'travel' ? (n.type === NOTIFICATION_TYPES.TRAVEL_PLAN_CREATED || n.entity_type === 'travel') :
                 selectedCategory === 'contact' ? (n.type === NOTIFICATION_TYPES.CONTACT_INQUIRY_RECEIVED || n.entity_type === 'contact') : true;
@@ -130,7 +132,7 @@ export function AdminNotificationCenter() {
             navigate('/admin', { state: { tab: 'properties', highlightId: entityId } });
         } else if (type === NOTIFICATION_TYPES.EVENT_SUBMITTED || entity === 'event') {
             navigate('/admin', { state: { tab: 'events', highlightId: entityId } });
-        } else if (type === NOTIFICATION_TYPES.MARKETPLACE_SUBMITTED || entity === 'marketplace' || entity === 'buysell') {
+        } else if (type === NOTIFICATION_TYPES.BUY_SELL_SUBMITTED || type === NOTIFICATION_TYPES.MARKETPLACE_SUBMITTED || entity === 'marketplace' || entity === 'buysell') {
             navigate('/admin', { state: { tab: 'buysell', highlightId: entityId } });
         } else if (type === NOTIFICATION_TYPES.HOST_APPLICATION_SUBMITTED || entity === 'host') {
             navigate('/admin', { state: { tab: 'hosts', highlightId: entityId } });
@@ -140,6 +142,8 @@ export function AdminNotificationCenter() {
             navigate('/admin', { state: { tab: 'travel', highlightId: entityId } });
         } else if (type === NOTIFICATION_TYPES.CONTACT_INQUIRY_RECEIVED || entity === 'contact') {
             navigate('/admin', { state: { tab: 'contacts', highlightId: entityId } });
+        } else if (type === NOTIFICATION_TYPES.JOB_APPLICATION_SUBMITTED || entity === 'job_application' || entity === 'career') {
+            navigate('/career');
         } else {
             navigate('/admin');
         }
@@ -155,7 +159,7 @@ export function AdminNotificationCenter() {
         if (type === NOTIFICATION_TYPES.EVENT_SUBMITTED || entity === 'event') {
             return <Calendar className="w-4 h-4 text-indigo-600" />;
         }
-        if (type === NOTIFICATION_TYPES.MARKETPLACE_SUBMITTED || entity === 'marketplace' || entity === 'buysell') {
+        if (type === NOTIFICATION_TYPES.BUY_SELL_SUBMITTED || type === NOTIFICATION_TYPES.MARKETPLACE_SUBMITTED || entity === 'marketplace' || entity === 'buysell') {
             return <ShoppingBag className="w-4 h-4 text-amber-600" />;
         }
         if (type === NOTIFICATION_TYPES.HOST_APPLICATION_SUBMITTED || entity === 'host') {
@@ -170,7 +174,7 @@ export function AdminNotificationCenter() {
         if (type === NOTIFICATION_TYPES.CONTACT_INQUIRY_RECEIVED || entity === 'contact') {
             return <Mail className="w-4 h-4 text-teal-600" />;
         }
-        if (type === NOTIFICATION_TYPES.JOB_APPLICATION_SUBMITTED || entity === 'job_application') {
+        if (type === NOTIFICATION_TYPES.JOB_APPLICATION_SUBMITTED || entity === 'job_application' || entity === 'career') {
             return <Briefcase className="w-4 h-4 text-blue-600" />;
         }
         return <AlertCircle className="w-4 h-4 text-muted-foreground" />;

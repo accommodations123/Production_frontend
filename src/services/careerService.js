@@ -21,11 +21,15 @@ export const careerService = {
         return res.data;
     },
 
-    async applyForJob({ jobId, data }) {
+    async applyForJob(payload) {
+        const isObjectWithData = payload && typeof payload === 'object' && !(payload instanceof FormData) && ('data' in payload || 'jobId' in payload);
+        const jobId = isObjectWithData ? payload.jobId : (payload instanceof FormData ? payload.get('job_id') || payload.get('jobId') : payload?.job_id || payload?.jobId);
+        const body = isObjectWithData ? payload.data : payload;
+
         const res = await executeSupabaseRequest({
-            url: `career/jobs/${jobId}/apply`,
+            url: jobId ? `career/jobs/${jobId}/apply` : 'career/apply',
             method: 'POST',
-            body: data,
+            body: body,
         });
         if (res.error) throw new Error(res.error.error || 'Failed to apply for job');
         return res.data;

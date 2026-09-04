@@ -41,7 +41,9 @@ export async function handleCareerRoute({ cleanUrl, method, body, queryParams })
                     payload = { ...(body || {}) }
                 }
 
-                const jobId = payload.job_id || payload.jobId || ''
+                const urlParts = cleanUrl.split('/');
+                const urlJobId = (urlParts.length >= 3 && urlParts[0] === 'career' && urlParts[1] === 'jobs') ? urlParts[2] : '';
+                const jobId = payload.job_id || payload.jobId || urlJobId || '';
                 let jobInfo = null
 
                 if (jobId) {
@@ -138,19 +140,39 @@ export async function handleCareerRoute({ cleanUrl, method, body, queryParams })
 
                 // Insert/upsert directly into job_applications table in Supabase
                 try {
-                    await supabase.from('job_applications').upsert({
-                        id: applicationId,
-                        user_id: currentUserId,
-                        job_id: jobId,
-                        full_name: newApplication.full_name,
-                        email: newApplication.email,
-                        phone: newApplication.phone,
-                        resume_url: newApplication.resume_url,
-                        status: 'submitted',
-                        created_at: newApplication.created_at
-                    })
+                    const isUuid = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+                    const validJobId = isUuid(jobId) ? jobId : (isUuid(jobInfo?.id) ? jobInfo.id : null);
+
+                    const dbPayload = {
+                        applicant_name: newApplication.full_name || profile?.name || 'Applicant',
+                        name: newApplication.full_name || profile?.name || 'Applicant',
+                        email: newApplication.email || profile?.email || '',
+                        phone: newApplication.phone || profile?.phone || '',
+                        resume_url: newApplication.resume_url || null,
+                        linkedin_url: newApplication.linkedin_url || null,
+                        experience_years: parseFloat(newApplication.years_of_experience) || null,
+                        status: 'Pending',
+                        source: 'NextKinLife Portal',
+                        notes: jobInfo?.title ? `Position: ${jobInfo.title}` : null
+                    };
+                    if (validJobId) {
+                        dbPayload.job_id = validJobId;
+                    }
+
+                    const { data: dbInserted, error: insertError } = await supabase
+                        .from('job_applications')
+                        .insert(dbPayload)
+                        .select()
+                        .maybeSingle();
+
+                    if (!insertError && dbInserted?.id) {
+                        newApplication.id = dbInserted.id;
+                        newApplication._id = dbInserted.id;
+                    } else if (insertError) {
+                        console.warn('job_applications table insert note:', insertError.message);
+                    }
                 } catch (tableErr) {
-                    console.warn('job_applications table upsert note:', tableErr)
+                    console.warn('job_applications table insert exception:', tableErr);
                 }
 
                 // Send user confirmation
@@ -204,11 +226,12 @@ export async function handleCareerRoute({ cleanUrl, method, body, queryParams })
 
                 // 1. Direct query to live Supabase job_applications table
                 try {
-                    const { data: dbApps, error: dbErr } = await supabase
-                        .from('job_applications')
-                        .select('*')
-                        .eq('user_id', currentUserId)
-                        .order('created_at', { ascending: false })
+                    const userEmail = userObj?.email || userObj?.user?.email;
+                    let query = supabase.from('job_applications').select('*, jobs:job_id(*)').order('created_at', { ascending: false });
+                    if (userEmail) {
+                        query = query.eq('email', userEmail);
+                    }
+                    const { data: dbApps, error: dbErr } = await query;
 
                     if (!dbErr && Array.isArray(dbApps)) {
                         isAuthoritativeDbSuccess = true
@@ -266,15 +289,8 @@ export async function handleCareerRoute({ cleanUrl, method, body, queryParams })
                     const { data: liveJobs, error: liveJobsErr } = await supabase.from('jobs').select('id')
                     if (!liveJobsErr && Array.isArray(liveJobs)) {
                         const validJobIdSet = new Set(liveJobs.map(j => String(j.id)))
-                        // If all jobs in Supabase were deleted (0 jobs in table), filter out mock/orphan job applications
-                        if (liveJobs.length === 0) {
-                            applications = []
-                        } else {
-                            applications = applications.filter(app => {
-                                const jId = String(app.job_id || app.jobId || app.job?.id || app.job?._id || '')
-                                return !jId || validJobIdSet.has(jId)
-                            })
-                        }
+                        // Preserve all user applications even if job is archived or external
+                        applications = applications.filter(Boolean);
                     }
                 } catch (jErr) {
                     console.warn('Live jobs validation note:', jErr)

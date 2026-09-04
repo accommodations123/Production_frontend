@@ -29,9 +29,10 @@ export const PROPERTY_COLUMNS = new Set([
 ]);
 
 export const BUY_SELL_COLUMNS = new Set([
-    'id', 'title', 'name', 'description', 'category', 'status', 'price', 'currency',
+    'id', 'title', 'name', 'description', 'category', 'subcategory', 'status', 'price', 'currency',
     'city', 'country', 'zip_code', 'images', 'user_id', 'email', 'phone', 'whatsapp',
-    'condition', 'created_at', 'updated_at'
+    'seller_name', 'seller_email', 'seller_phone', 'seller_whatsapp', 'seller_instagram', 'seller_facebook',
+    'condition', 'rejection_reason', 'created_at', 'updated_at'
 ]);
 
 export const TRAVEL_TRIP_COLUMNS = new Set([

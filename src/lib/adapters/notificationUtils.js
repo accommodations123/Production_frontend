@@ -6,6 +6,7 @@ import { sendEmailNotification } from '../notifications/emailService';
 // In-memory deduplication cache: `${recipientId}_${type}_${entityId}` -> timestamp
 const deduplicationCache = new Map();
 const DEDUP_WINDOW_MS = 5000; // 5 seconds deduplication window
+const isUuid = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str.trim());
 
 /**
  * Creates and stores an in-app notification + triggers transactional email dispatch
@@ -92,9 +93,9 @@ export async function createInAppAndEmailNotification({
         if (supabase) {
             try {
                 const dbPayload = {
-                    id: newNotif.id,
-                    recipient_id: newNotif.recipient_id,
-                    actor_id: newNotif.actor_id,
+                    id: String(newNotif.id),
+                    recipient_id: isUuid(newNotif.recipient_id) ? newNotif.recipient_id : null,
+                    actor_id: isUuid(newNotif.actor_id) ? newNotif.actor_id : null,
                     target_role: newNotif.target_role,
                     type: newNotif.type,
                     title: newNotif.title,
@@ -173,18 +174,38 @@ export async function createInAppAndEmailNotification({
  */
 export async function getUserNotifications(userId, userEmail, queryParams = {}) {
     try {
-        const targetUserId = userId || (await getCurrentUserId());
+        const currentUser = await getCurrentUserObject();
+        const targetUserId = userId || currentUser?.id || currentUser?.user_id || (await getCurrentUserId());
+        const targetEmail = userEmail || currentUser?.email;
+        const isAdmin = currentUser?.role === 'admin' || currentUser?.is_admin || queryParams?.role === 'admin';
         let notifications = [];
 
         // 1. Query Supabase notifications table if available
-        if (targetUserId && supabase) {
+        if (supabase) {
             try {
                 let query = supabase
                     .from('notifications')
                     .select('*')
-                    .or(`recipient_id.eq.${targetUserId},target_role.eq.all`)
                     .order('created_at', { ascending: false })
                     .limit(parseInt(queryParams?.limit) || 50);
+
+                if (targetUserId && isUuid(targetUserId)) {
+                    if (isAdmin) {
+                        query = query.or(`recipient_id.eq.${targetUserId},actor_id.eq.${targetUserId},target_role.eq.all,target_role.eq.admin`);
+                    } else {
+                        query = query.or(`recipient_id.eq.${targetUserId},actor_id.eq.${targetUserId},target_role.eq.all`);
+                    }
+                } else if (targetEmail) {
+                    if (isAdmin) {
+                        query = query.or(`target_role.eq.all,target_role.eq.admin,target_role.eq.user`);
+                    } else {
+                        query = query.or(`target_role.eq.all,target_role.eq.user`);
+                    }
+                } else if (isAdmin) {
+                    query = query.or('target_role.eq.all,target_role.eq.user,target_role.eq.admin');
+                } else {
+                    query = query.or('target_role.eq.all,target_role.eq.user');
+                }
 
                 if (queryParams?.unreadOnly === 'true' || queryParams?.status === 'unread') {
                     query = query.eq('is_read', false);
@@ -197,7 +218,7 @@ export async function getUserNotifications(userId, userEmail, queryParams = {}) 
                 if (!dbErr && Array.isArray(dbNotifs) && dbNotifs.length > 0) {
                     notifications = dbNotifs.map(n => ({
                         ...n,
-                        userId: n.recipient_id,
+                        userId: n.recipient_id || n.actor_id,
                         link: n.action_url,
                         read: n.is_read,
                         createdAt: n.created_at
@@ -341,10 +362,12 @@ export async function markAllNotificationsRead() {
         // 1. Update Supabase notifications table
         if (userId && supabase) {
             try {
-                await supabase
-                    .from('notifications')
-                    .update({ is_read: true, read_at: nowIso })
-                    .eq('recipient_id', userId);
+                if (isUuid(userId)) {
+                    await supabase
+                        .from('notifications')
+                        .update({ is_read: true, read_at: nowIso })
+                        .or(`recipient_id.eq.${userId},actor_id.eq.${userId}`);
+                }
             } catch {}
         }
 
@@ -432,7 +455,9 @@ export async function deleteAllNotificationsItems() {
 
         if (userId && supabase) {
             try {
-                await supabase.from('notifications').delete().eq('recipient_id', userId);
+                if (isUuid(userId)) {
+                    await supabase.from('notifications').delete().or(`recipient_id.eq.${userId},actor_id.eq.${userId}`);
+                }
             } catch {}
         }
 
@@ -532,9 +557,9 @@ export async function notifyAdminsOfUserSubmission({
         if (supabase) {
             try {
                 await supabase.from('notifications').insert({
-                    id: adminNotif.id,
+                    id: String(adminNotif.id),
                     recipient_id: null,
-                    actor_id: adminNotif.actor_id,
+                    actor_id: isUuid(adminNotif.actor_id) ? adminNotif.actor_id : null,
                     target_role: NOTIFICATION_TARGET_ROLES.ADMIN,
                     title: adminNotif.title,
                     message: adminNotif.message,

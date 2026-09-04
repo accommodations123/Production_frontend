@@ -124,11 +124,7 @@ export default function App() {
                                 <Route path="/resources/travel" element={<TravelCommunity />} />
                                 <Route path="/privacy" element={<PrivacyPage />} />
                                 <Route path="/terms" element={<TermsPage />} />
-                                <Route path="/wishlist" element={
-                                    <HostGuard>
-                                        <WishlistPage />
-                                    </HostGuard>
-                                } />
+                                <Route path="/wishlist" element={<WishlistPage />} />
                                 <Route path="/people" element={<PeopleHome />} />
                                 <Route path="/people/become" element={<BecomeExpert />} />
                                 <Route path="/people/:id" element={<PeopleProfile />} />

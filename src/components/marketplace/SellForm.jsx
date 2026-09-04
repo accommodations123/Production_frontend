@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useCreateBuySellMutation, useUpdateBuySellMutation } from "@/hooks/data/useMarketplaceHooks";
 import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks";
-import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { fetchAddressByPincode } from "@/lib/pincodeUtils";
 import { useEffect } from "react";
@@ -162,7 +162,8 @@ const CATEGORY_MAP = {
     "Home Services",
     "Other"
   ],
-  Other: ["Other"]
+  Other: ["Other", "Others", "General"],
+  Others: ["Others", "Other", "General"]
 };
 
 /* =========================================================
@@ -315,13 +316,12 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
   const [imagesToDelete, setImagesToDelete] = useState([]);
   const [dragActive, setDragActive] = useState(false);
 
-  const { data: userData, isLoading: isUserLoading } = useGetMeQuery();
+  const { user: userData, isAuthenticated, loading: isUserLoading } = useAuth();
   const { data: hostProfile, isLoading: isProfileLoading, isFetching: isProfileFetching } = useGetHostProfileQuery(undefined, {
     skip: !isUserLoading && !userData
   });
 
   const isChecking = isUserLoading;
-  const isAuthenticated = Boolean(userData);
 
   // State
   const [title, setTitle] = useState("");
@@ -556,17 +556,18 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setValidationError("");
+    const isOtherCat = category === "Other" || category === "Others";
+    const effectiveSubcategory = subcategory || (isOtherCat ? "Other" : "");
 
     // Client-side validation
-    if (!title || !price || !description || !country || !state || !city || !streetAddress || !name || !phone || !category || !subcategory || !condition) {
+    if (!title || !price || !description || !country || !state || !city || !streetAddress || !name || !phone || !category || !effectiveSubcategory || !condition) {
       setValidationError("Please fill in all required fields (Category, Subcategory, Condition, Address, Name, Phone, etc.)");
       return;
     }
 
     // Prevent invalid subcategory selection outside the selected category
-    const validSubs = CATEGORY_MAP[category] || ["Other"];
-    if (!validSubs.includes(subcategory)) {
+    const validSubs = CATEGORY_MAP[category] || ["Other", "Others"];
+    if (!isOtherCat && !validSubs.includes(effectiveSubcategory)) {
       setValidationError(`Invalid subcategory selected for category "${category}".`);
       return;
     }
@@ -586,7 +587,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
     appendIfExists(formData, "street_address", streetAddress);
 
     appendIfExists(formData, "category", category);
-    appendIfExists(formData, "subcategory", subcategory);
+    appendIfExists(formData, "subcategory", effectiveSubcategory);
     appendIfExists(formData, "condition", condition);
 
     if (category === "Vehicles") {
@@ -795,7 +796,11 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
               <Select value={category} onChange={(e) => {
                 const newCat = e.target.value;
                 setCategory(newCat);
-                setSubcategory("");
+                if (newCat === "Other" || newCat === "Others") {
+                  setSubcategory("Other");
+                } else {
+                  setSubcategory("");
+                }
               }}>
                 <option value="">Select Category</option>
                 {Object.keys(CATEGORY_MAP).map((catName) => (

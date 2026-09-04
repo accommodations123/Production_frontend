@@ -1,20 +1,33 @@
 import { supabase } from '@/lib/supabaseClient';
 
-// Helper to get active user object
 export async function getCurrentUserObject() {
     try {
+        let authUser = null;
         if (supabase) {
-            const { data } = await supabase.auth.getSession()
-            if (data?.session?.user) return data.session.user
+            const { data } = await supabase.auth.getSession();
+            if (data?.session?.user) authUser = data.session.user;
         }
-        const stored = localStorage.getItem('user')
+        let storedUser = null;
+        const stored = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
         if (stored) {
-            const parsed = JSON.parse(stored)
-            return parsed?.user || parsed
+            try {
+                const parsed = JSON.parse(stored);
+                storedUser = parsed?.user || parsed;
+            } catch {}
         }
-        return null
+        
+        const mergedId = authUser?.id || storedUser?.id || storedUser?.user_id;
+        if (mergedId && supabase) {
+            try {
+                const { data: profile } = await supabase.from('profiles').select('*').eq('id', mergedId).maybeSingle();
+                if (profile) {
+                    return { ...authUser, ...storedUser, ...profile };
+                }
+            } catch {}
+        }
+        return authUser || storedUser || null;
     } catch {
-        return null
+        return null;
     }
 }
 

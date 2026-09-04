@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { Heart } from 'lucide-react';
 import { useCheckWishlistStatusQuery, useToggleWishlistMutation } from '@/hooks/data/useWishlistHooks';
-import { useGetMeQuery } from '@/hooks/data/useAuthHooks';
+import { useAuth } from '@/hooks/useAuth';
 
 const WishlistButton = ({
     itemId,
@@ -12,8 +12,7 @@ const WishlistButton = ({
     filledColor = "fill-[#CB2A25] text-[#CB2A25]",
     outlineColor = "text-white"
 }) => {
-    const { data: userData } = useGetMeQuery();
-    const user = userData?.user || userData;
+    const { user } = useAuth();
     const [isWishlisted, setIsWishlisted] = useState(false);
 
     // Skip query if no user or no ID
@@ -73,6 +72,8 @@ const WishlistButton = ({
         }
     };
 
+    const resolvedFilledColor = (filledColor && !filledColor.includes("accent")) ? filledColor : "fill-[#CB2A25] text-[#CB2A25]";
+
     return (
         <button
             onClick={handleToggle}
@@ -82,7 +83,7 @@ const WishlistButton = ({
         >
             <Heart
                 size={iconSize}
-                className={`${isWishlisted ? (filledColor || "fill-[#CB2A25] text-[#CB2A25]") : (outlineColor || "text-white")} drop-shadow-md transition-colors duration-300`}
+                className={`${isWishlisted ? resolvedFilledColor : (outlineColor || "text-white")} drop-shadow-md transition-colors duration-300`}
             />
         </button>
     );

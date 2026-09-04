@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useGetBuySellListingsQuery, useGetBuySellByIdQuery } from "@/hooks/data/useMarketplaceHooks";
 import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks";
-import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { usePagination } from "@/hooks/usePagination";
 import { Pagination } from "@/components/ui/Pagination";
@@ -126,14 +126,10 @@ export default function MarketplacePage() {
   };
 
   const navigate = useNavigate();
-  const { data: user } = useGetMeQuery();
+  const { user, isAuthenticated } = useAuth();
   const { data: hostProfile } = useGetHostProfileQuery(undefined, { skip: !user });
 
   const handleTabChange = (tab) => {
-    if (tab === 'sell' && !user) {
-      navigate('/signin?redirect=/marketplace?action=sell');
-      return;
-    }
     setActiveTab(tab);
     const nextParams = new URLSearchParams(searchParams);
     if (tab === 'sell') {
@@ -177,9 +173,14 @@ export default function MarketplacePage() {
 
       // 2. Category Filter
       if (filters.category && filters.category !== "All" && filters.category !== "") {
-        const itemCat = (item.category || "").toLowerCase();
-        const filterCat = filters.category.toLowerCase();
-        if (itemCat !== filterCat && !itemCat.includes(filterCat)) {
+        const itemCat = (item.category || "").toLowerCase().trim();
+        const filterCat = filters.category.toLowerCase().trim();
+        const isOtherFilter = filterCat === "other" || filterCat === "others";
+        const isOtherItem = itemCat === "other" || itemCat === "others";
+
+        if (isOtherFilter) {
+          if (!isOtherItem) return false;
+        } else if (itemCat !== filterCat && !itemCat.includes(filterCat) && !filterCat.includes(itemCat)) {
           return false;
         }
       }
@@ -208,8 +209,10 @@ export default function MarketplacePage() {
       if (filters.state && filters.state !== "All States" && filters.state !== "ALL_STATES") {
         const itemState = (item.state || "").toLowerCase();
         const filterState = filters.state.toLowerCase();
-        if (itemState !== filterState && !itemState.includes(filterState)) {
-          return false;
+        if (itemState) {
+          if (itemState !== filterState && !itemState.includes(filterState)) {
+            return false;
+          }
         }
       }
 
@@ -217,7 +220,7 @@ export default function MarketplacePage() {
       if (filters.city && filters.city !== "All Cities") {
         const itemCity = (item.city || item.location || "").toLowerCase();
         const filterCity = filters.city.toLowerCase();
-        if (itemCity !== filterCity && !itemCity.includes(filterCity)) {
+        if (itemCity && itemCity !== filterCity && !itemCity.includes(filterCity)) {
           return false;
         }
       }
