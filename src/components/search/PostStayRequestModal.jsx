@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
-import { X, FileText, MapPin, Loader2, Info } from "lucide-react";
+import { FileText, MapPin, Loader2, Info } from "lucide-react";
 import { useCreateStayRequestMutation } from "@/hooks/data/useStayRequestHooks";
-import { useAuth } from "@/shared/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useCountry } from "@/context/CountryContext";
 import { getCurrencyForCountry } from "@/shared/utils/countryUtils";
 import { loadLocationData } from "@/shared/utils/lazyLocationData";
-import SearchableDropdown from "@/shared/ui/SearchableDropdown";
+import SearchableDropdown from "@/components/ui/SearchableDropdown";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 const CURRENCY_OPTIONS = [
@@ -250,27 +254,18 @@ export default function PostStayRequestModal({ onClose, onAdd }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-[#00162D]/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto animate-[fadeIn_0.2s_ease-out]">
-      <div className="bg-white rounded-3xl w-full max-w-2xl shadow-xl overflow-hidden flex flex-col my-8 animate-[scaleUp_0.15s_ease-out] text-left">
-        
+    <Dialog open={true} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-2xl p-0 overflow-hidden flex flex-col rounded-2xl bg-card border-border">
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+        <div className="p-6 border-b border-border flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-extrabold text-[#00142E] flex items-center gap-2">
-              <FileText className="text-[#CB2A26] w-5 h-5" /> Post Stay Request
-            </h2>
-            <p className="text-xs text-slate-500 mt-1 font-medium">
+            <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
+              <FileText className="text-accent w-5 h-5" /> Post Stay Request
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground mt-1">
               Looking for a stay? Let hosts in your target city find you.
-            </p>
+            </DialogDescription>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" />
-          </button>
         </div>
 
         {/* Form Body */}
@@ -428,32 +423,27 @@ export default function PostStayRequestModal({ onClose, onAdd }) {
         </div>
 
         {/* Footer Actions */}
-        <div className="bg-slate-50 px-6 py-4 border-t border-gray-100 flex justify-end gap-3 shrink-0">
-          <button
+        <div className="bg-muted/30 px-6 py-4 border-t border-border flex justify-end gap-3 shrink-0">
+          <Button
             type="button"
+            variant="outline"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl font-bold text-xs text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer"
+            className="text-xs font-semibold"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-[#CB2A26] hover:bg-[#A9221F] disabled:opacity-50 transition-all flex items-center gap-2 cursor-pointer"
+            variant="accent"
+            isLoading={isSubmitting}
+            className="text-xs font-semibold"
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 size={14} className="animate-spin" />
-                Submitting Request...
-              </>
-            ) : (
-              "Post Stay Request"
-            )}
-          </button>
+            {isSubmitting ? "Submitting Request..." : "Post Stay Request"}
+          </Button>
         </div>
-
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

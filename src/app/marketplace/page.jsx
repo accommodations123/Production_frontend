@@ -20,7 +20,6 @@ import { useGetBuySellListingsQuery, useGetBuySellByIdQuery } from "@/hooks/data
 import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks";
 import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import HostGuard from "@/components/auth/HostGuard";
 import { usePagination } from "@/hooks/usePagination";
 import { Pagination } from "@/components/ui/Pagination";
 import { normalizeCountryName } from "@/shared/utils/countryUtils";
@@ -30,8 +29,17 @@ import { normalizeCountryName } from "@/shared/utils/countryUtils";
 export default function MarketplacePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const productIdFromUrl = searchParams.get("product");
+  const actionFromUrl = searchParams.get("action");
 
-  const [activeTab, setActiveTab] = useState("buy");
+  const [activeTab, setActiveTab] = useState(() => (actionFromUrl === "sell" ? "sell" : "buy"));
+
+  useEffect(() => {
+    if (actionFromUrl === "sell") {
+      setActiveTab("sell");
+    } else if (actionFromUrl === "buy") {
+      setActiveTab("buy");
+    }
+  }, [actionFromUrl]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const { activeCountry, isSelected } = useCountry();
 
@@ -123,10 +131,25 @@ export default function MarketplacePage() {
 
   const handleTabChange = (tab) => {
     if (tab === 'sell' && !user) {
-      navigate('/signin');
+      navigate('/signin?redirect=/marketplace?action=sell');
       return;
     }
     setActiveTab(tab);
+    const nextParams = new URLSearchParams(searchParams);
+    if (tab === 'sell') {
+      nextParams.set('action', 'sell');
+    } else {
+      nextParams.delete('action');
+    }
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const handlePost = (newItem) => {
+    setActiveTab("buy");
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("action");
+    setSearchParams(nextParams, { replace: true });
+    refetch();
   };
 
 
@@ -215,9 +238,7 @@ export default function MarketplacePage() {
 
 
 
-  const handlePost = () => {
-    setActiveTab("buy");
-  };
+
 
   /* ================= UI ================= */
 
@@ -295,17 +316,15 @@ export default function MarketplacePage() {
 
           {/* ================= SELL TAB ================= */}
           {activeTab === "sell" && (
-            <HostGuard>
-              <div className="max-w-4xl mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                  <Tip icon={<Zap />} title="Sell Faster" desc="Add clear photos" />
-                  <Tip icon={<Tag />} title="Moving Sale" desc="Use tags" />
-                  <Tip icon={<ShieldCheck />} title="Get Verified" desc="Build trust" />
-                </div>
-
-                <SellForm onPost={handlePost} />
+            <div className="max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                <Tip icon={<Zap />} title="Sell Faster" desc="Add clear photos" />
+                <Tip icon={<Tag />} title="Moving Sale" desc="Use tags" />
+                <Tip icon={<ShieldCheck />} title="Get Verified" desc="Build trust" />
               </div>
-            </HostGuard>
+
+              <SellForm onPost={handlePost} />
+            </div>
           )}
         </MarketplaceLayout>
       </div>

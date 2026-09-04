@@ -26,3 +26,5 @@ export function useAuth() {
         isAuthenticated: (isValidUser && !error) || hasToken
     };
 }
+
+export default useAuth;

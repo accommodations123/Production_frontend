@@ -4,7 +4,7 @@ import {
   MessageSquare, Check, X, Mail, Phone, Clock, Home, ShoppingBag, Plane, Calendar,
   User, Copy, CheckCheck, MessageCircle, ShieldCheck, Search
 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   useGetIncomingRequestsQuery,
   useUpdateRequestStatusMutation

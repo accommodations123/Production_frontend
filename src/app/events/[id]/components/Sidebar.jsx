@@ -3,7 +3,7 @@ import { Users, Check, Star, MessageCircle, UserPlus, MapPin, Video, Monitor, Cl
 import { FaWhatsapp, FaInstagram, FaFacebookF } from "react-icons/fa6"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { useAuth } from "../hooks/useAuth"
+import { useAuth } from "@/hooks/useAuth"
 import { getSocialUrl } from "@/shared/utils/socialUtils"
 import {
   useGetConnectionStatusQuery,

@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Clock, ShieldCheck, Tag } from "lucide-react";
+import { MapPin, Clock, Tag } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { Badge } from "@/components/ui/badge";
 import { useCountry } from "@/context/CountryContext";
 import WishlistButton from "@/components/ui/WishlistButton";
 import { SocialQuickConnect } from "@/components/ui/SocialConnect";
-import { formatUTCDate } from "../../utils/timezone";
+import { formatUTCDate } from "@/lib/timezone";
 import { resolveImageUrl } from "@/lib/imageUtils";
 
 export const CardContainer = ({ children, onClick, className = "" }) => {
@@ -19,11 +22,11 @@ export const CardContainer = ({ children, onClick, className = "" }) => {
   return (
     <div
       onClick={navigate}
-      className={`group block h-full cursor-pointer select-none focus:outline-none`}
+      className="group block h-full cursor-pointer select-none focus:outline-none"
     >
-      <div className={`bg-white rounded-[1.5rem] border border-[#E5E7EB] hover:border-[#CB2A25]/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full flex flex-col overflow-hidden relative ${className}`}>
+      <Card className={`rounded-2xl border border-border/80 hover:border-accent/30 shadow-xs hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 h-full flex flex-col overflow-hidden relative bg-card ${className}`}>
         {children}
-      </div>
+      </Card>
     </div>
   );
 };
@@ -100,7 +103,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
   };
   const postedDate = getPostedDateDisplay();
 
-  const isVerified = product.status === "active";
+  const isVerified = product.status === "active" || product.status === "approved";
 
   return (
     <CardContainer onClick={handleCardClick}>
@@ -120,84 +123,82 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-            <Tag className="w-12 h-12 text-slate-400/60" />
+          <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
+            <Tag className="w-12 h-12 stroke-[1.25]" />
           </div>
         )}
 
         {/* Top Badges */}
-        <div className="absolute top-4 left-4 z-20 flex gap-2">
-          <div className="bg-green-500/90 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-green-400/50">
-            <ShieldCheck className="w-3.5 h-3.5 text-white" />
-            <span className="text-xs font-bold text-white">Verified</span>
-          </div>
+        <div className="absolute top-3.5 left-3.5 z-20">
+          <StatusBadge status={isVerified ? "verified" : "pending"} />
         </div>
 
         {/* Top Right Heart */}
-        <div className="absolute top-4 right-4 z-20">
+        <div className="absolute top-3.5 right-3.5 z-20">
           <WishlistButton
             itemId={product.id || product._id}
             itemType="buysell"
-            className="h-9 w-9 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-sm border border-white/20 bg-black/20 hover:bg-white group"
+            className="h-9 w-9 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md shadow-xs border border-white/20 bg-black/20 hover:bg-white group"
             iconSize={16}
-            outlineColor="text-white group-hover:text-[#CB2A25]"
-            filledColor="fill-[#CB2A25] text-[#CB2A25]"
+            outlineColor="text-white group-hover:text-accent"
+            filledColor="fill-accent text-accent"
           />
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="p-3.5 sm:p-4 md:p-5 flex-grow flex flex-col gap-3 sm:gap-4 min-w-0">
-        {/* Title & Location */}
+      <div className="p-4 sm:p-5 flex-grow flex flex-col gap-3 min-w-0">
         <div className="space-y-1">
-          <h3 className="font-bold text-lg leading-tight line-clamp-1 text-[#00142E] group-hover:text-[#CB2A25] transition-colors">
-            {product.title}
-          </h3>
-          <div className="flex items-center gap-1.5 text-[#00142E]/60 text-sm font-medium">
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
-            <span className="line-clamp-1">
-              {product.location || [product.city, product.state, product.country].filter(Boolean).join(", ") || "Location not specified"}
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-base sm:text-lg leading-tight line-clamp-1 text-foreground group-hover:text-accent transition-colors">
+              {product.title}
+            </h3>
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-muted-foreground pt-0.5">
+            <span className="flex items-center gap-1 line-clamp-1">
+              <MapPin className="w-3.5 h-3.5 shrink-0 text-accent" />
+              {product.city || product.location || "Location Info"}
+            </span>
+            <span className="flex items-center gap-1 shrink-0">
+              <Clock className="w-3 h-3 text-muted-foreground" />
+              {postedDate}
             </span>
           </div>
         </div>
 
-        {/* Stats Row */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#00142E]/70 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#CB2A25]" />
-            <span className="font-medium">{product.condition || "Used"}</span>
-          </div>
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Tag className="w-3.5 h-3.5 text-[#CB2A25] shrink-0" />
-            <span className="font-medium truncate">{product.category || "Furniture"}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-[#CB2A25]" />
-            <span className="font-medium whitespace-nowrap">{postedDate}</span>
-          </div>
+        {/* Category & Condition tags */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {product.category && (
+            <Badge variant="secondary" className="text-[11px] font-medium py-0.5 px-2">
+              {product.category}
+            </Badge>
+          )}
+          {product.condition && (
+            <Badge variant="outline" className="text-[11px] font-medium py-0.5 px-2">
+              {product.condition}
+            </Badge>
+          )}
         </div>
 
         {/* Price & Actions Row */}
-        <div className="flex items-end justify-between mt-auto pt-4 border-t border-gray-100">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-black text-[#00142E]">
-                {formatPrice(product.price || 0)}
-              </span>
-            </div>
+        <div className="flex items-end justify-between mt-auto pt-3 border-t border-border/60">
+          <div>
+            <span className="text-lg sm:text-xl font-bold text-foreground">
+              {Number(product.price) > 0 ? formatPrice(product.price, product.currency) : "Free"}
+            </span>
           </div>
 
-          {/* Social Media Quick Connect */}
           <SocialQuickConnect
             socials={socials}
-            ownerId={product.sellerId || product.seller_id || product.user_id || product.userId || product.Host?.user_id || product.host?.user_id || product.Host?.id || product.host?.id || product.creator?.id}
-            ownerName={product.sellerName || product.seller_name || "Seller"}
+            ownerId={product.user_id || product.userId || product.seller_id || product.sellerId || product.Host?.user_id || product.host?.user_id || product.Host?.id || product.host?.id || product.id}
+            ownerName={product.sellerName || product.seller_name || product.userName || product.user_name || "Seller"}
             itemId={product.id || product._id}
             itemTitle={product.title}
-            itemType="buysell"
+            itemType="marketplace"
           />
         </div>
       </div>
     </CardContainer>
   );
-})
+});

@@ -25,4 +25,3 @@ export const isExpiredUTC = (date, time = "23:59:59") => {
   const utcDate = new Date(`${cleanDate}T${time}:00Z`);
   return utcDate.getTime() < Date.now();
 };
-

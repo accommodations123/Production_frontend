@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useCountry } from '@/context/CountryContext';
 import { COUNTRIES } from '@/lib/mock-data';
 import { CountryCodeSelect } from '@/components/ui/CountryCodeSelect';
-import { useAuth } from '@/app/events/[id]/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 
 export const ApplicationForm = ({ jobId, jobTitle, jobLocation, onSuccess, onCancel }) => {
     const navigate = useNavigate();

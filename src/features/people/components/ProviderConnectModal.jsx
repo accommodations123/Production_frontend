@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import { X, Link2, CheckCircle2 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Link2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 /**
@@ -88,70 +90,61 @@ export function ProviderConnectModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6 relative animate-in fade-in zoom-in-95 duration-200">
-        
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 bg-slate-100 p-2 rounded-full transition-colors cursor-pointer"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-lg rounded-2xl p-6 sm:p-7 border-border bg-card">
         {/* Header */}
-        <div className="flex items-center gap-4 border-b border-slate-100 pb-5">
+        <div className="flex items-center gap-4 border-b border-border pb-4">
           <div
-            className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md ${provider.bgClass}`}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-xs shrink-0 ${provider.bgClass}`}
           >
             <IconComponent className="w-6 h-6" />
           </div>
-          <div>
-            <h3 className="text-lg font-extrabold text-slate-900">Add {provider.name} Link</h3>
-            <p className="text-xs text-[#717171]">{provider.description}</p>
+          <div className="min-w-0 flex-1">
+            <DialogTitle className="text-lg font-bold text-foreground">Add {provider.name} Link</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground mt-0.5">{provider.description}</DialogDescription>
           </div>
         </div>
 
         {/* Username / URL Input Form */}
-        <form onSubmit={handleManualSave} className="space-y-4">
+        <form onSubmit={handleManualSave} className="space-y-4 pt-2">
           <div className="space-y-2">
-            <label className="text-xs font-extrabold text-slate-700 block flex items-center gap-1">
-              <Link2 className="w-3.5 h-3.5 text-slate-400" />
+            <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <Link2 className="w-3.5 h-3.5 text-muted-foreground" />
               Enter Username or Full URL
             </label>
-            <input
+            <Input
               type="text"
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
               placeholder={provider.placeholder}
-              className="w-full h-11 px-4 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-slate-800 text-slate-900 placeholder:text-slate-400 shadow-2xs"
+              className="h-11 text-xs"
               autoFocus
             />
-            <p className="text-[10px] text-[#717171]">
-              Enter username or full URL (e.g. <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">{provider.placeholder}</code>)
+            <p className="text-[11px] text-muted-foreground">
+              Enter username or full URL (e.g. <code className="bg-muted px-1.5 py-0.5 rounded text-foreground font-mono">{provider.placeholder}</code>)
             </p>
           </div>
 
           {/* Modal Actions */}
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex items-center justify-end gap-2.5 pt-3">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="h-10 px-4 text-xs font-bold text-slate-600 border-slate-200 hover:bg-slate-50 cursor-pointer rounded-xl"
+              className="text-xs font-semibold"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="h-10 px-5 text-xs font-bold text-white bg-[#E1392A] hover:bg-[#b0221e] cursor-pointer rounded-xl shadow-sm"
+              variant="accent"
+              className="text-xs font-semibold"
             >
               Save Link
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

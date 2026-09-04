@@ -1,7 +1,9 @@
 import React, { memo } from "react"
-import { Calendar, MapPin, Users, Star, MessageCircle, Heart, Share2, Clock } from "lucide-react"
+import { Calendar, MapPin, Users, Share2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { formatUTCDate } from "../../../utils/timezone"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { formatUTCDate } from "@/lib/timezone"
 import { HostPhoto } from "./HostPhoto"
 import { COUNTRIES } from "@/lib/mock-data"
 import WishlistButton from "@/components/ui/WishlistButton"
@@ -76,16 +78,16 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
             className={`${viewMode === "list" ? "flex flex-col sm:flex-row gap-4" : ""}`}
             style={{ animationDelay: `${index * 50}ms` }}
         >
-            <div className={`relative overflow-hidden rounded-xl sm:rounded-2xl border shadow-sm ${viewMode === "list" ? "flex-1 flex" : ""} bg-white transition-all duration-300 ${
-                isExpired ? "border-gray-200 opacity-70 grayscale-[30%]" : "border-gray-100"
+            <Card className={`relative overflow-hidden rounded-2xl border shadow-xs hover:shadow-md transition-all duration-300 ${viewMode === "list" ? "flex-1 flex" : ""} bg-card ${
+                isExpired ? "border-border opacity-75 grayscale-[20%]" : "border-border/80 hover:border-accent/30"
             }`}>
                 {/* Card Image */}
-                <div className={`relative ${viewMode === "list" ? "w-full sm:w-1/3 h-48 sm:h-auto" : "w-full h-48 sm:h-52 md:h-56"} overflow-hidden ${!eventImage ? 'bg-gradient-to-br from-slate-700 to-slate-900' : ''}`}>
+                <div className={`relative ${viewMode === "list" ? "w-full sm:w-1/3 h-48 sm:h-auto" : "w-full h-48 sm:h-52 md:h-56"} overflow-hidden bg-slate-900`}>
                     {eventImage ? (
                         <img
                             src={eventImage}
                             alt={event.title}
-                            className={`w-full h-full object-cover ${isExpired ? "brightness-75" : ""}`}
+                            className={`w-full h-full object-cover transition-transform duration-500 hover:scale-105 ${isExpired ? "brightness-75" : ""}`}
                             loading="lazy"
                         />
                     ) : (
@@ -93,110 +95,118 @@ export const EventCard = memo(({ event, viewMode, onViewDetails, index }) => {
                             <Calendar className="w-12 h-12 text-white/20" />
                         </div>
                     )}
-                    <div className="absolute inset-0 from-black/60 via-black/20 to-transparent" />
 
                     {/* Status badges */}
-                    <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                        <span className="px-2 sm:px-3 py-1 bg-[#00142E] text-white text-xs font-bold rounded-full shadow-lg">
+                    <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                        <Badge variant="default" className="shadow-xs font-semibold">
                             {event.type || "Event"}
-                        </span>
+                        </Badge>
                         {isExpired && (
-                            <span className="px-2 sm:px-3 py-1 bg-gray-800/90 backdrop-blur-sm text-gray-200 text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
+                            <Badge variant="secondary" className="shadow-xs gap-1">
                                 <Clock className="h-3 w-3" />
                                 Event Ended
-                            </span>
+                            </Badge>
                         )}
                         {isLive && (
-                            <span className="px-2 sm:px-3 py-1 bg-green-600/90 backdrop-blur-sm text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1 animate-pulse">
-                                <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                            <Badge variant="success" className="shadow-xs gap-1 animate-pulse">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                                 Happening Now
-                            </span>
+                            </Badge>
                         )}
                     </div>
 
-                    <div className="absolute top-3 right-3 flex gap-2">
+                    <div className="absolute top-3 right-3 flex gap-2 z-10">
                         <WishlistButton
                             itemId={event.id || event._id}
                             itemType="event"
-                            className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/30"
-                            iconSize={16}
+                            className="w-8 h-8 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/40"
+                            iconSize={15}
                             outlineColor="text-white"
                         />
                     </div>
                     {event.price && (
-                        <div className="absolute bottom-3 left-3">
-                            <span className="px-2 sm:px-3 py-1 bg-white/90 backdrop-blur-md text-gray-900 font-bold rounded-lg shadow-lg text-sm">
+                        <div className="absolute bottom-3 left-3 z-10">
+                            <Badge variant="secondary" className="bg-background/95 backdrop-blur-md text-foreground font-bold px-2.5 py-1 text-xs shadow-xs">
                                 {currencySymbol}{event.price}
-                            </span>
+                            </Badge>
                         </div>
                     )}
                 </div>
 
                 {/* Card Content */}
-                <div className={`p-3.5 sm:p-4 md:p-5 ${viewMode === "list" ? "flex-1 flex flex-col justify-between" : ""}`}>
+                <div className={`p-4 sm:p-5 ${viewMode === "list" ? "flex-1 flex flex-col justify-between" : ""}`}>
                     <div>
-                        <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                            <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
-                            <span className="text-xs sm:text-sm text-gray-600">
+                        <div className="flex items-center gap-1.5 mb-2 text-muted-foreground text-xs font-medium">
+                            <MapPin className="h-3.5 w-3.5 shrink-0 text-accent" />
+                            <span className="truncate">
                                 {event.city ? `${event.city}, ${event.country || ""}` : event.location || "Location TBA"}
                             </span>
                         </div>
-                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 line-clamp-2">{event.title}</h3>
-                        <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{event.description}</p>
+                        <h3 className="text-base sm:text-lg font-bold text-foreground mb-1.5 line-clamp-2 leading-snug">
+                            {event.title}
+                        </h3>
+                        <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 leading-relaxed">
+                            {event.description}
+                        </p>
 
                         {/* Event Stats */}
-                        <div className="flex items-center justify-between mb-3 sm:mb-4">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
-                                <span className="text-xs sm:text-sm text-gray-600">
+                        <div className="flex items-center justify-between mb-3 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1.5">
+                                <Calendar className="h-3.5 w-3.5" />
+                                <span>
                                     {formatDate(event.date || event.start_date)}
-                                    {event.time && ` at ${formatTime(event.time)}`}
+                                    {event.time && ` · ${formatTime(event.time)}`}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Users className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
-                                <span className="text-xs sm:text-sm text-gray-600">
-                                    {event.attendees_count || 0} attended
-                                </span>
+                            <div className="flex items-center gap-1.5">
+                                <Users className="h-3.5 w-3.5" />
+                                <span>{event.attendees_count || 0} attended</span>
                             </div>
                         </div>
 
                         {/* Organizer */}
-                        <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                        <div className="flex items-center gap-3 mb-4 pt-3 border-t border-border/60">
                             <HostPhoto host={event.host} />
-                            <div>
-                                <p className="text-xs text-gray-500">Organized by</p>
-                                <p className="text-sm font-medium text-gray-900">{getOrganizerName()}</p>
+                            <div className="min-w-0">
+                                <p className="text-[11px] text-muted-foreground">Organized by</p>
+                                <p className="text-xs sm:text-sm font-semibold text-foreground truncate">{getOrganizerName()}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 pt-2">
                         {isExpired ? (
                             <Button
                                 onClick={() => onViewDetails(event.id)}
                                 variant="outline"
-                                className="flex-1 border-gray-300 text-gray-500 rounded-lg py-2 text-xs sm:text-sm font-medium transition-all duration-200"
+                                className="flex-1 text-xs sm:text-sm gap-1.5"
                             >
-                                <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5" />
-                                View Recap
+                                <Clock className="h-3.5 w-3.5" />
+                                <span>View Recap</span>
                             </Button>
                         ) : (
                             <Button
                                 onClick={() => onViewDetails(event.id)}
-                                className="flex-1 bg-[#C93A30] hover:bg-[#b02e25] text-white rounded-lg py-2 text-xs sm:text-sm font-medium transition-all duration-200"
+                                variant="accent"
+                                className="flex-1 text-xs sm:text-sm font-semibold"
                             >
                                 View Details
                             </Button>
                         )}
-                        <Button variant="outline" className="px-3 sm:px-4 py-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200">
-                            <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="shrink-0"
+                            aria-label="Share event"
+                        >
+                            <Share2 className="h-4 w-4" />
                         </Button>
                     </div>
                 </div>
-            </div>
+            </Card>
         </div>
     )
 })
+
 EventCard.displayName = "EventCard"

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Sparkles, Users, Search, UserCheck } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/components/ui/button";
 import { useSelector } from "react-redux";
 import { useGetMyProfileQuery } from "@/hooks/data/usePeopleHooks";
 

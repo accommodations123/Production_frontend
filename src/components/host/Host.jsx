@@ -11,7 +11,7 @@ import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
 import { extractUsername } from "@/lib/socialUtils";
-import { useAuth } from "@/shared/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useCountry } from "@/context/CountryContext";
 
 // Helper to split phone number

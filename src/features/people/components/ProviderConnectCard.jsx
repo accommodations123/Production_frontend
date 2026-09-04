@@ -1,5 +1,5 @@
 import { CheckCircle2, Link2, ExternalLink, Trash2, Edit3 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/components/ui/button";
 
 /**
  * ProviderConnectCard — Compact Provider Connection Card Component

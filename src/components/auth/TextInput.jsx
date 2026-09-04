@@ -1,7 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
-const TextInput = ({
+export function TextInput({
     label,
     type = 'text',
     placeholder,
@@ -11,41 +12,40 @@ const TextInput = ({
     className = '',
     rightElement,
     ...props
-}) => {
+}) {
     return (
-        <div className={`flex flex-col space-y-1.5 ${className}`}>
+        <div className={cn("flex flex-col space-y-1.5", className)}>
             {label && (
-                <label className="text-sm font-medium text-gray-700 ml-1">
+                <label className="text-xs font-bold text-foreground uppercase tracking-wider ml-0.5">
                     {label}
                 </label>
             )}
-            <motion.div
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                className="relative flex items-center"
-            >
+            <div className="relative flex items-center">
                 {Icon && (
-                    <div className="absolute left-3 text-gray-400 pointer-events-none">
+                    <div className="absolute left-3 text-muted-foreground pointer-events-none z-10">
                         <Icon size={18} />
                     </div>
                 )}
-                <input
+                <Input
                     type={type}
                     value={value}
                     onChange={onChange}
                     placeholder={placeholder}
-                    className={`w-full bg-white/50 border border-gray-200 text-gray-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200 placeholder:text-gray-400 ${Icon ? 'pl-10' : 'pl-4'
-                        } ${rightElement ? 'pr-20' : 'pr-4'} py-2.5`}
+                    className={cn(
+                        "h-11 text-sm bg-background border-border focus-visible:ring-accent",
+                        Icon && "pl-10",
+                        rightElement && "pr-20"
+                    )}
                     {...props}
                 />
                 {rightElement && (
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 z-10">
                         {rightElement}
                     </div>
                 )}
-            </motion.div>
+            </div>
         </div>
     );
-};
+}
 
 export default TextInput;

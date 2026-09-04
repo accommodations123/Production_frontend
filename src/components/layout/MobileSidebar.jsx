@@ -1,4 +1,5 @@
 import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   ShoppingBag,
@@ -12,8 +13,8 @@ import {
   Home,
   LogOut,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch } from "react-redux";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
 import { logoutUser } from "@/store/slices/authSlice";
@@ -112,27 +113,10 @@ export function MobileSidebar({ isOpen, onClose }) {
     activeCountry?.code || activeCountry?.country || "";
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* OVERLAY */}
-          <motion.div
-            className="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
-            onClick={onClose}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-
-          {/* SIDEBAR */}
-          <motion.div
-            initial={{ x: "-100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed inset-y-0 left-0 w-[85%] max-w-sm bg-[#0F2238] z-50 border-r border-white/10 shadow-2xl overflow-y-auto"
-          >
-            <div className="min-h-full flex flex-col pt-20 pb-8 px-6">
+    <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <SheetContent side="left" className="w-[85%] max-w-sm bg-[#0F2238] border-r border-white/10 shadow-2xl p-0 overflow-y-auto text-white">
+        <SheetTitle className="sr-only">Mobile Navigation</SheetTitle>
+        <div className="min-h-full flex flex-col pt-12 pb-8 px-6">
 
               {/* USER CARD */}
               <div className="mb-8 p-4 rounded-2xl bg-white/5 border border-white/5">
@@ -282,9 +266,7 @@ export function MobileSidebar({ isOpen, onClose }) {
                 </button>
               )}
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+      </SheetContent>
+    </Sheet>
   );
 }

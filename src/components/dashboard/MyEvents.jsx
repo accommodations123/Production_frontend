@@ -5,7 +5,7 @@ import {
   Calendar, Eye, Heart, Plus, Search, ChevronRight, AlertCircle, 
   Trash2, Users, MapPin, Loader2, Sparkles, Clock
 } from "lucide-react";
-import { isExpiredUTC } from "../../utils/timezone";
+import { isExpiredUTC } from "@/lib/timezone";
 import { 
   useGetMyEventsQuery, 
   useDeleteEventMutation, 

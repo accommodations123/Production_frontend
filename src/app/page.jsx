@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { Hero } from "@/components/features/Hero";
+import { Hero } from "@/components/home/Hero";
 import { MobileHomeHeader } from "@/components/home/MobileHomeHeader";
 import HomeFeatured from "@/components/home/HomeFeatured";
 import { SearchOverlay } from "@/components/search/SearchOverlay";

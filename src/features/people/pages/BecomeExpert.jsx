@@ -4,8 +4,8 @@ import { Footer } from "@/components/layout/Footer";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { TextField, TextareaField, SelectField, CheckboxField } from "@/shared/ui/form-fields";
-import { Button } from "@/shared/ui/button";
+import { TextField, TextareaField, SelectField, CheckboxField } from "@/components/ui/form-fields";
+import { Button } from "@/components/ui/button";
 import {
   Sparkles,
   Star,
@@ -44,7 +44,7 @@ import { useCountry } from "@/context/CountryContext";
 import { PEOPLE_CATEGORIES } from "../data/categories";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
-import SearchableDropdown from "@/shared/ui/SearchableDropdown";
+import SearchableDropdown from "@/components/ui/SearchableDropdown";
 import { loadLocationData } from "@/shared/utils/lazyLocationData";
 import {
   useCreateProfileMutation,

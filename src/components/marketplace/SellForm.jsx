@@ -320,12 +320,8 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
     skip: !isUserLoading && !userData
   });
 
-  const isChecking = isUserLoading || isProfileLoading || isProfileFetching || (Boolean(userData) && hostProfile === undefined);
-
-  const isVerifiedHost = Boolean(
-    (hostProfile && (hostProfile.status === 'approved' || hostProfile.is_approved === true || hostProfile.role === 'host')) ||
-    (userData && (userData.status === 'approved' || userData.is_approved === true || userData.role === 'host'))
-  );
+  const isChecking = isUserLoading;
+  const isAuthenticated = Boolean(userData);
 
   // State
   const [title, setTitle] = useState("");
@@ -652,21 +648,17 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
     )
   }
 
-  if (!isVerifiedHost) {
-    const isPending = hostProfile?.status === 'pending';
+  if (!isAuthenticated && !isChecking) {
     return (
       <div className="max-w-3xl mx-auto bg-gray-50 p-8 rounded-xl text-center border border-gray-200 shadow-md">
-        <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-2xl">🔒</span>
         </div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">
-          {isPending ? "Account Verification Pending" : "Host Access Required"}
+          Sign In Required
         </h2>
         <p className="text-gray-600 mb-6">
-          {isPending
-            ? "Your host application is currently under review. You can list items once your account is approved."
-            : "You need to be an approved host to list items for sale."
-          }
+          Please sign in to list items for sale in the community marketplace.
         </p>
         <div className="flex justify-center gap-4">
           <button
@@ -676,15 +668,13 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
           >
             Back to Marketplace
           </button>
-          {!isPending && (
-            <button
-              type="button"
-              onClick={() => navigate("/hosts")}
-              className="px-5 py-2 text-sm font-medium text-white bg-[#C93A30] rounded-lg hover:bg-[#b02e25] transition shadow-sm cursor-pointer"
-            >
-              Become a Host
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => navigate("/signin?redirect=/marketplace?action=sell")}
+            className="px-5 py-2 text-sm font-medium text-white bg-[#C93A30] rounded-lg hover:bg-[#b02e25] transition shadow-sm cursor-pointer"
+          >
+            Sign In
+          </button>
         </div>
       </div>
     );

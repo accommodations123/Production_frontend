@@ -32,8 +32,8 @@ import {
   Phone,
   Clock
 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
-import { Breadcrumb } from "@/shared/ui/Breadcrumb";
+import { Button } from "@/components/ui/button";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { getCurrencySymbol, getCurrencyForCountry } from "@/shared/utils/countryUtils";
 import { useCountry } from "@/context/CountryContext";
 import { toast } from "sonner";
@@ -407,13 +407,12 @@ export default function PeopleProfile() {
         
         {/* Top Breadcrumb Navigation */}
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => navigate("/people")}
+          <Link
+            to="/people"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-all cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Directory
-          </button>
+          </Link>
         </div>
 
         {/* Owner Moderation Banner */}

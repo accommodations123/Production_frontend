@@ -21,7 +21,7 @@ import { useGetBuySellListingsQuery } from '@/hooks/data/useMarketplaceHooks';
 import { useGetPublicTripsQuery } from '@/hooks/data/useTravelHooks';
 import { useGetPublicStayRequestsQuery } from '@/hooks/data/useStayRequestHooks';
 import { useGetPublicProfilesQuery } from '@/hooks/data/usePeopleHooks';
-import { useAuth } from '@/app/events/[id]/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { SectionHeader } from './featured/SectionHeader.jsx';
 import { PropertyCard } from './featured/PropertyCard.jsx';
 import { StayRequestCard } from '@/components/search/StayRequestCard.jsx';
-import { EventCard } from './featured/EventCard.jsx';
+import { EventCard } from '@/app/events/components/EventCard.jsx';
 import { ProductCard } from '../marketplace/ProductCard.jsx';
 import PeopleCard from '@/features/people/components/PeopleCard.jsx';
 import TripCard from '@/components/travel/TripCard';

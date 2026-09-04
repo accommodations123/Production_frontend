@@ -1,6 +1,6 @@
 import * as React from "react"
 import { AlertCircle } from "lucide-react"
-import { cn } from "@/shared/utils/utils"
+import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 
 /**

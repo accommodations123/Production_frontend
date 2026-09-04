@@ -14,7 +14,7 @@ import {
   UserMinus,
   ArrowRight
 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   useGetMyProfileQuery,
   useGetFollowingQuery,

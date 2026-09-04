@@ -6,7 +6,7 @@ import { COUNTRIES } from "@/lib/mock-data"
 import WishlistButton from "@/components/ui/WishlistButton"
 import { useCountry } from "@/context/CountryContext"
 import { getEventStatus } from "@/lib/eventUtils"
-import { formatUTCDate } from "../../../utils/timezone"
+import { formatUTCDate } from "@/lib/timezone"
 import { resolveImageUrl } from "@/lib/imageUtils"
 
 export const HorizontalEventCard = memo(({ event, onViewDetails, index }) => {

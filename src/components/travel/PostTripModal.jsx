@@ -4,10 +4,12 @@ import { toast } from "sonner";
 import { X, Plane, User, MapPin, Clock, Loader2 } from "lucide-react";
 import { useCreateTripMutation } from "@/hooks/data/useTravelHooks";
 import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks";
-import { useAuth } from "../../app/events/[id]/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useGetMeQuery } from "@/hooks/data/useAuthHooks";
 import { loadLocationData } from '@/lib/lazyLocationData';
 import SearchableDropdown from "@/components/ui/SearchableDropdown";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function PostTripModal({ onClose, onAdd }) {
     const { user: currentUser } = useAuth();
@@ -237,13 +239,9 @@ export default function PostTripModal({ onClose, onAdd }) {
     );
 
     return (
-        <AnimatePresence>
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4 backdrop-blur-sm"
-            >
+        <Dialog open={true} onOpenChange={(open) => { if (!open) onClose(); }}>
+            <DialogContent className="max-w-4xl p-0 overflow-hidden flex flex-col rounded-2xl bg-card border-border">
+                <DialogTitle className="sr-only">Post Travel Plan</DialogTitle>
                 {/* Checking State View */}
                 {isChecking && (
                     <motion.div
@@ -588,7 +586,7 @@ export default function PostTripModal({ onClose, onAdd }) {
                         </div>
                     </motion.div>
                 )}
-            </motion.div>
-        </AnimatePresence>
+            </DialogContent>
+        </Dialog>
     );
 }

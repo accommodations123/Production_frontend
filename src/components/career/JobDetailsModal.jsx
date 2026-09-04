@@ -2,14 +2,14 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { X, MapPin, Clock, DollarSign, Briefcase, Building, Calendar, Heart, Share2, User, Mail, Phone, Award, TrendingUp, CheckCircle, Wifi, Linkedin } from 'lucide-react'
 import DOMPurify from 'dompurify'
 import { Button } from "@/components/ui/button"
-import { motion, AnimatePresence } from 'framer-motion'
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { ApplicationForm } from './ApplicationForm'
 import { toast } from "sonner"
 import { useGetJobByIdQuery } from "@/hooks/data/useCareerHooks";
 import { Loader2 } from "lucide-react"
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/app/events/[id]/hooks/useAuth'
-import { formatUTCDate } from '../../utils/timezone'
+import { useAuth } from '@/hooks/useAuth'
+import { formatUTCDate } from '@/lib/timezone'
 
 export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply }) {
     const [showApplicationForm, setShowApplicationForm] = useState(false)
@@ -82,38 +82,11 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
     };
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 overflow-hidden">
-                    {/* Backdrop */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
-                        onClick={onClose}
-                    />
-
-                    {/* Modal Box */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative bg-white w-full max-w-5xl max-h-[90vh] rounded-[1.5rem] shadow-2xl overflow-hidden flex flex-col z-10"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Close button */}
-                        <button
-                            onClick={onClose}
-                            className="absolute top-5 right-5 p-2 rounded-full hover:bg-gray-100 transition-all z-[100] cursor-pointer text-gray-400 hover:text-gray-950 group"
-                            aria-label="Close modal"
-                            type="button"
-                        >
-                            <X className="h-5 w-5 transform group-hover:rotate-90 transition-transform" />
-                        </button>
-
-                        <div className="flex-1 overflow-y-auto">
-                            {/* Premium Header */}
+        <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+            <DialogContent className="w-full max-w-5xl max-h-[90vh] p-0 overflow-hidden flex flex-col rounded-2xl bg-card border-border">
+                <DialogTitle className="sr-only">{job.title || "Job Details"}</DialogTitle>
+                <div className="flex-1 overflow-y-auto">
+                    {/* Premium Header */}
                             <div className="px-6 py-8 md:p-8 border-b border-gray-100 bg-gradient-to-br from-gray-50/50 to-white">
                                 <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
                                     <div className="w-16 h-16 rounded-2xl bg-[#00142E] text-white flex items-center justify-center font-bold text-2xl shadow-md shrink-0">
@@ -467,10 +440,8 @@ export function JobDetailsModal({ job: initialJob, isOpen, onClose, preOpenApply
                                     </div>
                                 )}
                             </div>
-                        </div>
-                    </motion.div>
                 </div>
-            )}
-        </AnimatePresence>
+            </DialogContent>
+        </Dialog>
     )
 }

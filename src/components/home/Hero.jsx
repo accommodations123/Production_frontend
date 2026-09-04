@@ -4,7 +4,7 @@ import React from "react"
 import { ArrowRight, ShieldCheck, Star, Users, Home, Calendar, Sparkles, Plane, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
-import { useAuth } from "@/shared/hooks/useAuth"
+import { useAuth } from "@/hooks/useAuth"
 import { getHostPath } from "@/lib/navigationUtils"
 
 export function Hero() {

@@ -5,11 +5,11 @@ import {
   Star, ChevronRight, ChevronDown, ChevronUp, Flag, AlertTriangle, Shield, ArrowRight, CheckCircle, Phone, Mail, UserPlus
 } from "lucide-react";
 import WishlistButton from "@/components/ui/WishlistButton";
-import { Breadcrumb } from "@/shared/ui/Breadcrumb";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { useCountry } from "@/context/CountryContext";
 import { useGetBuySellByIdQuery, useGetBuySellListingsQuery } from "@/hooks/data/useMarketplaceHooks";
 import { toast } from "sonner";
-import { useAuth } from "@/shared/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useGetConnectionStatusQuery,
   useSendConnectionRequestMutation

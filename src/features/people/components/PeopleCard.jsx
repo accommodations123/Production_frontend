@@ -1,7 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Star, Bookmark, ShieldCheck, UserPlus, UserCheck } from "lucide-react";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { getCurrencySymbol, getCurrencyForCountry } from "@/shared/utils/countryUtils";
 import { useCountry } from "@/context/CountryContext";
 import { useToggleWishlistMutation, useCheckWishlistStatusQuery } from "@/hooks/data/useWishlistHooks";
@@ -50,10 +53,11 @@ export function PeopleCard({ person }) {
 
   const isFollowingServer = useMemo(() => {
     if (!person || !followingList.length) return false;
-    const targetUserId = String(person.user_id || person.id || "");
+    const targetUserId = String(person.user_id || "");
+    const targetProfileId = String(person.id || "");
     return followingList.some((item) => {
       const fId = String(item.following_user_id || item.user_id || item.id || "");
-      return fId === targetUserId;
+      return (targetUserId && fId === targetUserId) || (targetProfileId && fId === targetProfileId);
     });
   }, [person, followingList]);
 
@@ -213,119 +217,114 @@ export function PeopleCard({ person }) {
     : (profession !== "Advisor" ? profession.split(/[,|•/]/).map(s => s.trim()).filter(Boolean) : ["Consulting", "Support", "Advisor"]);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/60 p-5 flex flex-col justify-between h-full group hover:-translate-y-1.5 hover:border-slate-300 hover:shadow-[0_16px_36px_rgba(0,0,0,0.05)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] relative overflow-hidden">
+    <Card className="rounded-2xl border border-border/80 p-5 flex flex-col justify-between h-full group hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-lg transition-all duration-300 relative overflow-hidden bg-card">
       
       {/* Save & Follow Action Buttons (Top Right) */}
       <div className="absolute top-4 right-4 flex items-center gap-1.5 z-10">
         {!isOwnCard && (
-          <button
+          <Button
+            size="sm"
+            variant={isFollowing ? "outline" : "accent"}
             onClick={handleFollowToggle}
             disabled={isFollowLoading}
-            className={`px-3 py-1.5 rounded-full text-xs font-extrabold border transition-all cursor-pointer flex items-center gap-1 shadow-2xs ${
-              isFollowing
-                ? "bg-slate-100 text-slate-800 border-slate-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                : "bg-[#E1392A] hover:bg-[#b0221e] text-white border-transparent"
-            }`}
+            className="rounded-full text-xs font-bold h-8 px-3 gap-1 shadow-xs"
             title={isFollowing ? "Following" : "Follow Expert"}
           >
             {isFollowing ? (
               <>
-                <UserCheck className="w-3.5 h-3.5 text-emerald-600" /> Following
+                <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Following</span>
               </>
             ) : (
               <>
-                <UserPlus className="w-3.5 h-3.5" /> Follow
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Follow</span>
               </>
             )}
-          </button>
+          </Button>
         )}
 
-        <button
+        <Button
+          size="icon"
+          variant="outline"
           onClick={handleSaveToggle}
           disabled={isToggling}
-          className={`p-2 rounded-full border transition-all cursor-pointer ${
+          className={`h-8 w-8 rounded-full border transition-all ${
             isSaved 
-              ? "bg-red-50 text-[#E1392A] border-red-200" 
-              : "bg-slate-50/50 hover:bg-slate-100 text-[#717171] hover:text-[#222222] border-transparent"
+              ? "bg-destructive/10 text-destructive border-destructive/20" 
+              : "border-border/80 text-muted-foreground hover:text-foreground"
           }`}
           title={isSaved ? "Saved" : "Save Expert"}
         >
-          <Bookmark className={`w-4 h-4 ${isSaved ? "fill-[#E1392A] text-[#E1392A]" : ""}`} />
-        </button>
+          <Bookmark className={`w-3.5 h-3.5 ${isSaved ? "fill-destructive text-destructive" : ""}`} />
+        </Button>
       </div>
 
       <div>
-        {/* Profile Header Block with pr-36 padding to prevent text collision into action buttons */}
+        {/* Profile Header Block */}
         <div className="flex gap-4 items-center mb-4 pr-32 sm:pr-36 min-w-0">
-          <div className="relative shrink-0">
-            {hasCustomAvatar ? (
-              <img
-                src={avatarUrl}
-                alt={name}
-                className="w-16 h-16 rounded-full object-cover border border-slate-100 shadow-sm"
-                loading="lazy"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-[#00142E] text-white flex items-center justify-center font-black text-xl border border-slate-100 shadow-sm">
-                {name?.charAt(0) || "P"}
-              </div>
-            )}
-          </div>
+          <Avatar className="w-14 h-14 shrink-0 border border-border">
+            {hasCustomAvatar && <AvatarImage src={avatarUrl} alt={name} />}
+            <AvatarFallback className="bg-primary text-white font-bold text-lg">
+              {name?.charAt(0) || "P"}
+            </AvatarFallback>
+          </Avatar>
           
           <div className="space-y-0.5 min-w-0 flex-1">
-            <h3 className="font-extrabold text-slate-900 text-base leading-snug group-hover:text-[#E1392A] transition-colors duration-250 truncate">
+            <h3 className="font-bold text-foreground text-base leading-snug group-hover:text-accent transition-colors truncate">
               {name}
             </h3>
-            <p className="text-[#E1392A] font-bold text-xs truncate">
+            <p className="text-accent font-semibold text-xs truncate">
               {profession}
             </p>
           </div>
         </div>
 
         {/* Short Bio summary */}
-        <p className="text-[#484848] text-xs sm:text-sm line-clamp-3 leading-relaxed mb-4">
+        <p className="text-muted-foreground text-xs sm:text-sm line-clamp-3 leading-relaxed mb-4">
           {bio}
         </p>
 
         {/* Dashboard-style Metrics Bar */}
-        <div className="grid grid-cols-3 gap-1 py-3 my-4 text-center border-y border-slate-100/80 bg-slate-50/50 rounded-xl">
+        <div className="grid grid-cols-3 gap-1 py-3 my-4 text-center border-y border-border bg-muted/30 rounded-xl">
           <div>
-            <span className="text-[10px] text-[#717171] font-bold uppercase tracking-wider block">Rating</span>
-            <span className="text-xs font-bold text-slate-800 flex items-center justify-center gap-0.5 mt-1">
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block">Rating</span>
+            <span className="text-xs font-bold text-foreground flex items-center justify-center gap-0.5 mt-1">
               {reviewCount > 0 && rating > 0 ? (
                 <>
                   <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                   {rating.toFixed(1)} ({reviewCount})
                 </>
               ) : (
-                <span className="text-[10px] text-slate-400 font-semibold">No reviews yet</span>
+                <span className="text-[10px] text-muted-foreground font-medium">No reviews</span>
               )}
             </span>
           </div>
           
-          <div className="border-x border-slate-200/60">
-            <span className="text-[10px] text-[#717171] font-bold uppercase tracking-wider block">Experience</span>
-            <span className="text-xs font-bold text-slate-800 block mt-1">{experienceDisplay || "—"}</span>
+          <div className="border-x border-border">
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block">Experience</span>
+            <span className="text-xs font-bold text-foreground block mt-1">{experienceDisplay || "—"}</span>
           </div>
 
           <div className="px-1">
-            <span className="text-[10px] text-[#717171] font-bold uppercase tracking-wider block">Location</span>
-            <span className="text-xs font-bold text-slate-800 block truncate mt-1">{locationText}</span>
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block">Location</span>
+            <span className="text-xs font-bold text-foreground block truncate mt-1">{locationText}</span>
           </div>
         </div>
 
         {/* Skills Tag row */}
         <div className="flex flex-wrap gap-1.5 mb-6 pt-1">
           {skills.slice(0, 3).map((skill, index) => (
-            <span
+            <Badge
               key={index}
-              className="text-[10px] font-bold text-[#222222] bg-slate-50 border border-slate-100/80 px-2.5 py-0.5 rounded-full select-none"
+              variant="secondary"
+              className="text-[10px] font-medium py-0.5 px-2.5"
             >
               {skill}
-            </span>
+            </Badge>
           ))}
           {skills.length > 3 && (
-            <span className="text-[10px] font-bold text-[#717171] px-1 py-0.5">
+            <span className="text-[10px] font-semibold text-muted-foreground px-1 py-0.5">
               +{skills.length - 3} more
             </span>
           )}
@@ -334,31 +333,33 @@ export function PeopleCard({ person }) {
       </div>
 
       {/* Footer view CTA and hourly rate estimates */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-100/80 mt-auto">
+      <div className="flex items-center justify-between pt-4 border-t border-border mt-auto">
         <div>
-          <span className="text-[9px] font-bold text-[#717171] uppercase tracking-wider block">Consultation Rate</span>
+          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block">Consultation Rate</span>
           {Number(hourlyRate) > 0 ? (
-            <span className="text-slate-900 font-black text-base sm:text-lg">
-              {getCurrencySymbol(currency)}{Number(hourlyRate).toLocaleString()} <span className="text-[#717171] text-[10px] font-bold">/ hr</span>
+            <span className="text-foreground font-bold text-base sm:text-lg">
+              {getCurrencySymbol(currency)}{Number(hourlyRate).toLocaleString()} <span className="text-muted-foreground text-[10px] font-normal">/ hr</span>
             </span>
           ) : (
-            <span className="text-slate-500 font-bold text-xs mt-1 block">
-              Rate not provided
+            <span className="text-muted-foreground font-medium text-xs mt-1 block">
+              Rate on request
             </span>
           )}
         </div>
         <Link to={`/people/${person.id}`}>
           <Button
             size="sm"
-            className="bg-[#00142E] hover:bg-slate-800 text-white font-bold rounded-xl text-xs px-4 py-2 cursor-pointer transition-all active:scale-95 shadow-sm"
+            variant="default"
+            className="font-semibold text-xs px-4"
           >
             View Profile
           </Button>
         </Link>
       </div>
 
-    </div>
+    </Card>
   );
 }
 
 export default PeopleCard;
+

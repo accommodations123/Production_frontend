@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { SiGmail } from "react-icons/si";
 import { FaWhatsapp, FaInstagram, FaFacebookF, FaXTwitter, FaUserPlus, FaClock } from "react-icons/fa6";
 import { validateSocial, getSocialUrl } from "@/lib/socialUtils";
-import { useAuth } from "@/shared/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useGetConnectionStatusQuery,
   useSendConnectionRequestMutation

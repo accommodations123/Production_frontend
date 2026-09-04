@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
-import { Button } from '@/shared/ui/button';
+import { Button } from '@/components/ui/button';
 
 export class AppErrorBoundary extends React.Component {
     constructor(props) {
@@ -52,7 +52,7 @@ export class AppErrorBoundary extends React.Component {
             return (
                 <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
                     <div className="max-w-md w-full text-center bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-                        <div className="w-16 h-16 bg-red-50 text-[#E1392A] rounded-full flex items-center justify-center mx-auto mb-6">
+                        <div className="w-16 h-16 bg-red-50 text-accent rounded-full flex items-center justify-center mx-auto mb-6">
                             <AlertTriangle size={32} />
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h2>
@@ -62,7 +62,8 @@ export class AppErrorBoundary extends React.Component {
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                             <Button
                                 onClick={this.handleReset}
-                                className="bg-[#E1392A] hover:bg-[#a82220] text-white gap-2 font-bold px-5 py-2.5 rounded-xl cursor-pointer"
+                                variant="accent"
+                                className="gap-2 font-bold px-5 py-2.5 rounded-xl cursor-pointer"
                             >
                                 <RefreshCw size={16} /> Reload Page
                             </Button>
@@ -87,3 +88,5 @@ export class AppErrorBoundary extends React.Component {
         return this.props.children;
     }
 }
+
+export default AppErrorBoundary;

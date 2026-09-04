@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plane } from "lucide-react";
 import { Navbar } from "../../../components/layout/Navbar";
 import { Footer } from "../../../components/layout/Footer";
-import { useAuth } from "../../../app/events/[id]/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useCountry } from "@/context/CountryContext";
 import {
   useGetMyTripsQuery,

@@ -8,7 +8,7 @@ import { toast } from "sonner"
 import { resolveImageUrl, normalizeImages } from "@/lib/imageUtils"
 
 // Hooks & Services
-import { useAuth } from "./hooks/useAuth"
+import { useAuth } from "@/hooks/useAuth"
 
 // Components
 import { HeroSection } from "./components/HeroSection"

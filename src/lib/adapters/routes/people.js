@@ -212,7 +212,125 @@ export async function handlePeopleRoute({ cleanUrl, method, body, queryParams })
 
             // Followers / Following endpoint
             if (cleanUrl.includes('follow')) {
-                return { data: { success: true, followed: true, data: [] } }
+                // 1. POST Toggle / Unfollow: people/:targetUserId/follow or people/:targetUserId/unfollow
+                if (method === 'POST') {
+                    const parts = cleanUrl.split('/');
+                    let targetUserId = parts.find((p, idx) => parts[idx + 1] === 'follow' || parts[idx + 1] === 'unfollow') || body?.targetUserId || body?.id;
+                    if (!targetUserId && parts.length >= 2) {
+                        targetUserId = parts[1];
+                    }
+
+                    if (!userId) {
+                        return { error: { status: 401, error: 'Please sign in to follow professionals' } };
+                    }
+
+                    if (String(userId) === String(targetUserId)) {
+                        return { error: { status: 400, error: 'Cannot follow your own profile' } };
+                    }
+
+                    const { data: curProf } = await supabase.from('profiles').select('street_address').eq('id', userId).maybeSingle();
+                    let curMeta = {};
+                    if (curProf?.street_address && (curProf.street_address.startsWith('{') || curProf.street_address.startsWith('['))) {
+                        try { curMeta = JSON.parse(curProf.street_address); } catch {}
+                    }
+                    curMeta.following = Array.isArray(curMeta.following) ? curMeta.following : [];
+
+                    const isCurrentlyFollowing = curMeta.following.includes(targetUserId);
+                    const isUnfollowAction = cleanUrl.endsWith('/unfollow');
+                    const shouldFollow = isUnfollowAction ? false : !isCurrentlyFollowing;
+
+                    if (shouldFollow) {
+                        if (!curMeta.following.includes(targetUserId)) {
+                            curMeta.following.push(targetUserId);
+                        }
+                    } else {
+                        curMeta.following = curMeta.following.filter(id => id !== targetUserId);
+                    }
+
+                    await supabase.from('profiles').update({ street_address: JSON.stringify(curMeta) }).eq('id', userId);
+
+                    // Update target user's followers list
+                    if (targetUserId) {
+                        const { data: tgtProf } = await supabase.from('profiles').select('street_address').eq('id', targetUserId).maybeSingle();
+                        let tgtMeta = {};
+                        if (tgtProf?.street_address && (tgtProf.street_address.startsWith('{') || tgtProf.street_address.startsWith('['))) {
+                            try { tgtMeta = JSON.parse(tgtProf.street_address); } catch {}
+                        }
+                        tgtMeta.followers = Array.isArray(tgtMeta.followers) ? tgtMeta.followers : [];
+                        if (shouldFollow) {
+                            if (!tgtMeta.followers.includes(userId)) tgtMeta.followers.push(userId);
+                        } else {
+                            tgtMeta.followers = tgtMeta.followers.filter(id => id !== userId);
+                        }
+                        await supabase.from('profiles').update({ street_address: JSON.stringify(tgtMeta) }).eq('id', targetUserId);
+                    }
+
+                    return {
+                        data: {
+                            success: true,
+                            followed: shouldFollow,
+                            isFollowing: shouldFollow,
+                            data: curMeta.following.map(id => ({ following_user_id: id, user_id: id, id }))
+                        }
+                    };
+                }
+
+                // 2. GET My Following: people/me/following
+                if (cleanUrl === 'people/me/following' || cleanUrl.endsWith('/me/following')) {
+                    if (!userId) return { data: [] };
+                    const { data: curProf } = await supabase.from('profiles').select('street_address').eq('id', userId).maybeSingle();
+                    let curMeta = {};
+                    if (curProf?.street_address && (curProf.street_address.startsWith('{') || curProf.street_address.startsWith('['))) {
+                        try { curMeta = JSON.parse(curProf.street_address); } catch {}
+                    }
+                    const following = Array.isArray(curMeta.following) ? curMeta.following : [];
+                    const formatted = following.map(id => ({ following_user_id: id, user_id: id, id }));
+                    return { data: formatted };
+                }
+
+                // 3. GET Check status: people/:targetUserId/is-following
+                if (cleanUrl.includes('is-following')) {
+                    const parts = cleanUrl.split('/');
+                    const targetId = parts[1];
+                    if (!userId || !targetId) return { data: { isFollowing: false, followed: false } };
+                    const { data: curProf } = await supabase.from('profiles').select('street_address').eq('id', userId).maybeSingle();
+                    let curMeta = {};
+                    if (curProf?.street_address && (curProf.street_address.startsWith('{') || curProf.street_address.startsWith('['))) {
+                        try { curMeta = JSON.parse(curProf.street_address); } catch {}
+                    }
+                    const isFollowing = Array.isArray(curMeta.following) && curMeta.following.includes(targetId);
+                    return { data: { isFollowing, followed: isFollowing } };
+                }
+
+                // 4. GET Followers: people/:userId/followers
+                if (cleanUrl.endsWith('/followers')) {
+                    const parts = cleanUrl.split('/');
+                    const targetId = parts[1] === 'me' ? userId : parts[1];
+                    if (!targetId) return { data: [] };
+                    const { data: prof } = await supabase.from('profiles').select('street_address').eq('id', targetId).maybeSingle();
+                    let meta = {};
+                    if (prof?.street_address && (prof.street_address.startsWith('{') || prof.street_address.startsWith('['))) {
+                        try { meta = JSON.parse(prof.street_address); } catch {}
+                    }
+                    const followers = Array.isArray(meta.followers) ? meta.followers : [];
+                    return { data: followers.map(id => ({ follower_user_id: id, user_id: id, id })) };
+                }
+
+                // 5. GET Following: people/:userId/following
+                if (cleanUrl.endsWith('/following')) {
+                    const parts = cleanUrl.split('/');
+                    const targetId = parts[1] === 'me' ? userId : parts[1];
+                    if (!targetId) return { data: [] };
+                    const { data: prof } = await supabase.from('profiles').select('street_address').eq('id', targetId).maybeSingle();
+                    let meta = {};
+                    if (prof?.street_address && (prof.street_address.startsWith('{') || prof.street_address.startsWith('['))) {
+                        try { meta = JSON.parse(prof.street_address); } catch {}
+                    }
+                    const following = Array.isArray(meta.following) ? meta.following : [];
+                    return { data: following.map(id => ({ following_user_id: id, user_id: id, id })) };
+                }
+
+                return { data: { success: true, followed: true, data: [] } };
             }
 
             // Public List of People / Professionals (GET people or GET people/search)

@@ -4,7 +4,7 @@ import { CATEGORIES } from '@/lib/mock-data';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Check, AlertCircle, FileText, MapPin, Coins, Image, Sparkles, ShieldCheck } from 'lucide-react';
-import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 
 // Import New Hook & Components
 import { useHostCreation } from '@/hooks/useHostCreation';

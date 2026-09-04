@@ -1,13 +1,61 @@
 @import "tailwindcss";
 
+:root {
+  --background: #ffffff;
+  --foreground: #00142E;
+  --card: #ffffff;
+  --card-foreground: #00142E;
+  --popover: #ffffff;
+  --popover-foreground: #00142E;
+  --primary: #00142E;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #00142E;
+  --muted: #f8f9fb;
+  --muted-foreground: #64748b;
+  --accent: #CB2A25;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #00142E;
+  --radius: 0.75rem;
+
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+}
+
 @theme {
-  --color-background: #ffffff;
-  --color-foreground: #00142E;
-  --color-primary: #00142E;
-  --color-secondary: #0A1C30;
-  --color-accent: #CB2A25;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
   --color-neutral: #D1CBB7;
   --color-navy-dark: #02152B;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 
   --font-inter: "Inter", sans-serif;
   --font-poppins: "Poppins", sans-serif;
@@ -43,12 +91,9 @@ h6 {
 /* Global Scrollbar Hide - Applies to entire application */
 * {
   scrollbar-width: none;
-  /* Firefox */
   -ms-overflow-style: none;
-  /* IE and Edge */
 }
 
 *::-webkit-scrollbar {
   display: none;
-  /* Chrome, Safari, Opera */
 }

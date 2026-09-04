@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MapPin, Loader2, Navigation, Globe } from 'lucide-react';
 import { loadLocationData } from '@/shared/utils/lazyLocationData';
 import { fetchAddressByPincode } from '@/lib/pincodeUtils';
-import SearchableDropdown from '@/shared/ui/SearchableDropdown';
+import SearchableDropdown from '@/components/ui/SearchableDropdown';
 import { COUNTRIES } from '@/lib/mock-data';
 
 const isZipCodeRequired = (country) => {

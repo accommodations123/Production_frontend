@@ -3,7 +3,7 @@ import { Plane, MapPin, Calendar, Globe, Shield } from "lucide-react";
 import WishlistButton from "@/components/ui/WishlistButton";
 import { SocialQuickConnect } from "@/components/ui/SocialConnect";
 import { resolveImageUrl } from "@/lib/imageUtils";
-import { formatUTCDate } from "../../utils/timezone";
+import { formatUTCDate } from "@/lib/timezone";
 
 const TripCard = React.memo(({ plan }) => {
     const [imageError, setImageError] = useState(false);

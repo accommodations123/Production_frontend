@@ -5,7 +5,7 @@ import ScrollToTop from "@/components/layout/ScrollToTop";
 import RootLayout from "@/app/layout";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import HostGuard from "@/components/auth/HostGuard";
-import { AppErrorBoundary } from "@/shared/components/AppErrorBoundary";
+import { AppErrorBoundary } from "@/components/shared/AppErrorBoundary";
 
 // Safe Lazy loader with automatic retry loop & storage safety for mobile / Safari
 const safeLazy = (importFn) =>

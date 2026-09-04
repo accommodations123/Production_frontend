@@ -15,11 +15,11 @@ import {
 } from "lucide-react";
 import { FaWhatsapp, FaLinkedin } from "react-icons/fa6";
 import { useCreateStayRequestMutation } from "@/hooks/data/useStayRequestHooks";
-import { useAuth } from "@/shared/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { loadLocationData } from "@/shared/utils/lazyLocationData";
-import SearchableDropdown from "@/shared/ui/SearchableDropdown";
-import { CountryCodeSelect } from "@/shared/ui/CountryCodeSelect";
-import { Breadcrumb } from "@/shared/ui/Breadcrumb";
+import SearchableDropdown from "@/components/ui/SearchableDropdown";
+import { CountryCodeSelect } from "@/components/ui/CountryCodeSelect";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { toast } from "sonner";

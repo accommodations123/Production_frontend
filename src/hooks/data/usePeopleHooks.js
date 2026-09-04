@@ -83,31 +83,31 @@ export function useAddReviewMutation(options) {
 }
 
 export function useToggleFollowMutation(options) {
-    return useMutation(peopleService.toggleFollow, { invalidatesTags: ['Profile'], ...options });
+    return useMutation(peopleService.toggleFollow, { invalidatesTags: ['Profile', 'Following'], ...options });
 }
 
 export function useFollowExpertMutation(options) {
-    return useMutation(peopleService.followExpert, { invalidatesTags: ['Profile'], ...options });
+    return useMutation(peopleService.followExpert, { invalidatesTags: ['Profile', 'Following'], ...options });
 }
 
 export function useUnfollowExpertMutation(options) {
-    return useMutation(peopleService.unfollowExpert, { invalidatesTags: ['Profile'], ...options });
+    return useMutation(peopleService.unfollowExpert, { invalidatesTags: ['Profile', 'Following'], ...options });
 }
 
 export function useGetFollowersQuery(userId, options) {
-    return useQuery(() => peopleService.getFollowers(userId), userId, options);
+    return useQuery(() => peopleService.getFollowers(userId), userId, { tags: ['Following', 'Profile'], ...options });
 }
 
 export function useGetFollowingQuery(userId, options) {
-    return useQuery(() => peopleService.getFollowing(userId), userId, options);
+    return useQuery(() => peopleService.getFollowing(userId), userId, { tags: ['Following', 'Profile'], ...options });
 }
 
 export function useGetMyFollowingQuery(args, options) {
-    return useQuery(peopleService.getMyFollowing, args, options);
+    return useQuery(peopleService.getMyFollowing, args, { tags: ['Following', 'Profile'], ...options });
 }
 
 export function useCheckFollowStatusQuery(targetUserId, options) {
-    return useQuery(() => peopleService.checkFollowStatus(targetUserId), targetUserId, options);
+    return useQuery(() => peopleService.checkFollowStatus(targetUserId), targetUserId, { tags: ['Following', 'Profile'], ...options });
 }
 
 export function useGetExpertPortfolioQuery(id, options) {
