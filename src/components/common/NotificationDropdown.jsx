@@ -68,10 +68,10 @@ export function NotificationDropdown({ minimal = false }) {
 
         window.addEventListener("nxt:new_notification", handleNewNotification);
 
-        // Supabase Realtime channel subscription
+        // Supabase Realtime channel subscription with reconnect reconciliation
         let unsubscribeRealtime = () => {};
         if (userId) {
-            unsubscribeRealtime = realtimeNotificationManager.subscribe(userId, handleNewNotification);
+            unsubscribeRealtime = realtimeNotificationManager.subscribe(userId, handleNewNotification, handleNewNotification);
         }
 
         try {

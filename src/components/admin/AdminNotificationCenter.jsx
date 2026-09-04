@@ -40,7 +40,7 @@ export function AdminNotificationCenter() {
         };
 
         window.addEventListener('nxt:new_admin_notification', handleAdminEvent);
-        const unsubscribe = realtimeNotificationManager.subscribe(null, handleAdminEvent);
+        const unsubscribe = realtimeNotificationManager.subscribe(null, handleAdminEvent, handleAdminEvent);
 
         return () => {
             window.removeEventListener('nxt:new_admin_notification', handleAdminEvent);

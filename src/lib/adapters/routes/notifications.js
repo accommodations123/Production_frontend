@@ -12,11 +12,14 @@ import {
     deleteAdminNotificationItem,
     deleteAllAdminNotificationsItems
 } from '../notificationUtils';
+import { getCurrentUserId, getCurrentUserObject } from '../userUtils';
 
 export async function handleNotificationsRoute({ cleanUrl, method, body, queryParams }) {
     // ── 10. NOTIFICATIONS ────────────────────────────────────────
     if (cleanUrl.startsWith('notifications') || cleanUrl.startsWith('admin/notifications') || cleanUrl.startsWith('notification')) {
-        const isAdmin = cleanUrl.startsWith('admin/notifications') || queryParams?.role === 'admin' || queryParams?.target_role === 'admin';
+        const currentUser = await getCurrentUserObject();
+        const currentUserId = await getCurrentUserId();
+        const isAdmin = cleanUrl.startsWith('admin/notifications') || currentUser?.role === 'admin' || currentUser?.is_admin === true;
 
         // Mark all as read: PATCH/POST notifications/read-all, notifications/mark-all-read, etc.
         if ((cleanUrl.includes('read-all') || cleanUrl.includes('mark-all')) && (method === 'PATCH' || method === 'POST' || method === 'PUT')) {
@@ -56,17 +59,25 @@ export async function handleNotificationsRoute({ cleanUrl, method, body, queryPa
         // Create notification manually: POST notifications
         if (method === 'POST') {
             if (isAdmin || body?.target_role === 'admin') {
-                const notif = await notifyAdminsOfUserSubmission(body || {});
+                const notif = await notifyAdminsOfUserSubmission({
+                    ...body,
+                    userId: currentUserId
+                });
                 return { data: { success: true, notification: notif } };
             }
-            const notif = await createInAppAndEmailNotification(body || {});
+            const notif = await createInAppAndEmailNotification({
+                ...body,
+                actorId: currentUserId
+            });
             return { data: { success: true, notification: notif } };
         }
 
         // Get notifications: GET admin/notifications OR GET notifications
+        // Authenticated user session strictly determines the scope (IDOR prevention)
         const result = isAdmin 
             ? await getAdminNotifications(queryParams) 
-            : await getUserNotifications(queryParams?.userId || queryParams?.user_id, queryParams?.email, queryParams);
+            : await getUserNotifications(currentUserId, currentUser?.email, queryParams);
+
         return { 
             data: { 
                 notifications: result.notifications, 

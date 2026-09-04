@@ -53,7 +53,7 @@ export function NotificationCenter() {
 
         let unsubscribe = () => {};
         if (userId) {
-            unsubscribe = realtimeNotificationManager.subscribe(userId, handleNewNotification);
+            unsubscribe = realtimeNotificationManager.subscribe(userId, handleNewNotification, handleNewNotification);
         }
 
         return () => {
