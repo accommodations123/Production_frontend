@@ -228,6 +228,21 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                         userName: formatted?.full_name,
                         metadata: formatted
                     });
+
+                    // Dispatch confirmation in-app notification to applicant
+                    await createInAppAndEmailNotification({
+                        userId: data?.id,
+                        recipientId: data?.id,
+                        userEmail: data?.email,
+                        title: '🛡️ Host Application Submitted',
+                        message: `Your host verification application for ${formatted?.city || formatted?.country || 'Community'} has been submitted and is currently pending review by the NextKinLife moderation team.`,
+                        type: NOTIFICATION_TYPES.HOST_APPLICATION_SUBMITTED,
+                        entityType: 'host',
+                        entityId: data?.id,
+                        actionUrl: '/account-v2',
+                        link: '/account-v2',
+                        metadata: formatted
+                    });
                 }
 
                 return { data: { host: formatted, profile: formatted, user: formatted, success: true } }

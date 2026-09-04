@@ -5,7 +5,7 @@ import {
     Sparkles, ExternalLink, CheckCheck, RefreshCw 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { cn } from '@/lib/utils';
 import { useTimeAgo } from '@/hooks/useTimeAgo';
 import {
@@ -30,9 +30,13 @@ export function NotificationCenter() {
     const dispatch = useDispatch();
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
-
-    const { data: userData } = useGetMeQuery();
-    const userId = userData?.id || userData?._id || userData?.user?.id;
+    const authUser = useSelector((state) => state.auth?.user);
+    const reduxUser = authUser?.user !== undefined ? authUser.user : authUser;
+    const { data: userData } = useGetMeQuery(undefined, {
+        skip: !!reduxUser?.id
+    });
+    const activeUser = reduxUser || userData;
+    const userId = activeUser?.id || activeUser?._id || activeUser?.user?.id;
 
     const { data: notifications = [], isLoading, isFetching, refetch } = useGetNotificationsQuery(userId ? { userId } : undefined);
     const [markAsRead] = useMarkNotificationAsReadMutation();

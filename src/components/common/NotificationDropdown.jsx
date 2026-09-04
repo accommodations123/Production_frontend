@@ -15,7 +15,7 @@ import {
     useDeleteNotificationMutation,
     useDeleteAllNotificationsMutation
 } from "@/hooks/data/useNotificationHooks";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useTimeAgo } from "../../hooks/useTimeAgo";
 import { 
     clearNotifications as clearLocalNotifications,
@@ -33,10 +33,15 @@ export function NotificationDropdown({ minimal = false }) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    // Check auth status to avoid unnecessary notification requests
-    const { data: userData, isError } = useGetMeQuery();
-    const isAuthenticated = !!userData && !isError;
-    const userId = userData?.id || userData?._id || userData?.user?.id;
+    // Check auth status from Redux state immediately, fallback to useGetMeQuery
+    const authUser = useSelector((state) => state.auth?.user);
+    const reduxUser = authUser?.user !== undefined ? authUser.user : authUser;
+    const { data: userData, isError } = useGetMeQuery(undefined, {
+        skip: !!reduxUser?.id
+    });
+    const activeUser = reduxUser || userData;
+    const isAuthenticated = Boolean(activeUser && (activeUser.id || activeUser.email)) && !isError;
+    const userId = activeUser?.id || activeUser?._id || activeUser?.user?.id;
 
     // Fetch notifications from API
     const { data: notifications = [], isLoading, refetch } = useGetNotificationsQuery(userId ? { userId } : undefined, {

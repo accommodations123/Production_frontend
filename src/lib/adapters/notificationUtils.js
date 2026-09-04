@@ -208,6 +208,56 @@ async function autoSyncUserApprovals(targetUserId) {
                     created_at: profile.updated_at || new Date().toISOString()
                 });
             }
+        } else if (profile && profile.status === 'rejected') {
+            const { data: existingRej } = await supabase
+                .from('notifications')
+                .select('id')
+                .eq('recipient_id', targetUserId)
+                .eq('type', 'HOST_REJECTED')
+                .limit(1);
+
+            if (!existingRej || existingRej.length === 0) {
+                await supabase.from('notifications').insert({
+                    recipient_id: targetUserId,
+                    actor_id: null,
+                    target_role: 'user',
+                    type: 'HOST_REJECTED',
+                    title: 'Update on Host Verification',
+                    message: `Hello ${profile.full_name || 'Applicant'}, your host verification could not be approved at this time. Please update your details and submit again.`,
+                    entity_type: 'host',
+                    entity_id: targetUserId,
+                    action_url: '/account-v2',
+                    metadata: { id: targetUserId, role: 'user', verified: false },
+                    channel: 'both',
+                    is_read: false,
+                    created_at: profile.updated_at || new Date().toISOString()
+                });
+            }
+        } else if (profile && (profile.status === 'pending' || profile.status === 'submitted')) {
+            const { data: existingSub } = await supabase
+                .from('notifications')
+                .select('id')
+                .eq('recipient_id', targetUserId)
+                .eq('type', 'HOST_APPLICATION_SUBMITTED')
+                .limit(1);
+
+            if (!existingSub || existingSub.length === 0) {
+                await supabase.from('notifications').insert({
+                    recipient_id: targetUserId,
+                    actor_id: null,
+                    target_role: 'user',
+                    type: 'HOST_APPLICATION_SUBMITTED',
+                    title: '🛡️ Host Application Submitted',
+                    message: `Your host verification application has been submitted and is currently pending review by the NextKinLife moderation team.`,
+                    entity_type: 'host',
+                    entity_id: targetUserId,
+                    action_url: '/account-v2',
+                    metadata: { id: targetUserId, status: 'pending' },
+                    channel: 'both',
+                    is_read: false,
+                    created_at: profile.created_at || new Date().toISOString()
+                });
+            }
         }
 
         // 2. Space / Accommodation Approvals
@@ -241,6 +291,78 @@ async function autoSyncUserApprovals(targetUserId) {
                         channel: 'both',
                         is_read: false,
                         created_at: p.updated_at || new Date().toISOString()
+                    });
+                }
+            }
+        }
+
+        // 3. Event Approvals
+        const { data: approvedEvents } = await supabase
+            .from('events')
+            .select('id, title, updated_at')
+            .eq('user_id', targetUserId)
+            .eq('status', 'approved');
+
+        if (approvedEvents && approvedEvents.length > 0) {
+            for (const ev of approvedEvents) {
+                const { data: existingEv } = await supabase
+                    .from('notifications')
+                    .select('id')
+                    .eq('recipient_id', targetUserId)
+                    .eq('entity_id', String(ev.id))
+                    .eq('type', 'EVENT_APPROVED')
+                    .limit(1);
+
+                if (!existingEv || existingEv.length === 0) {
+                    await supabase.from('notifications').insert({
+                        recipient_id: targetUserId,
+                        target_role: 'user',
+                        type: 'EVENT_APPROVED',
+                        title: '🎉 Event Approved & Published!',
+                        message: `Your event "${ev.title || 'Event'}" has been approved and is now live.`,
+                        entity_type: 'events',
+                        entity_id: String(ev.id),
+                        action_url: `/events/${ev.id}`,
+                        metadata: { id: ev.id, title: ev.title },
+                        channel: 'both',
+                        is_read: false,
+                        created_at: ev.updated_at || new Date().toISOString()
+                    });
+                }
+            }
+        }
+
+        // 4. Marketplace Item Approvals
+        const { data: approvedItems } = await supabase
+            .from('buy_sell_items')
+            .select('id, title, updated_at')
+            .eq('seller_id', targetUserId)
+            .eq('status', 'approved');
+
+        if (approvedItems && approvedItems.length > 0) {
+            for (const it of approvedItems) {
+                const { data: existingIt } = await supabase
+                    .from('notifications')
+                    .select('id')
+                    .eq('recipient_id', targetUserId)
+                    .eq('entity_id', String(it.id))
+                    .eq('type', 'BUY_SELL_APPROVED')
+                    .limit(1);
+
+                if (!existingIt || existingIt.length === 0) {
+                    await supabase.from('notifications').insert({
+                        recipient_id: targetUserId,
+                        target_role: 'user',
+                        type: 'BUY_SELL_APPROVED',
+                        title: '📦 Marketplace Listing Approved!',
+                        message: `Your marketplace item "${it.title || 'Item'}" has been approved and is now visible in the directory.`,
+                        entity_type: 'marketplace',
+                        entity_id: String(it.id),
+                        action_url: `/buysell/${it.id}`,
+                        metadata: { id: it.id, title: it.title },
+                        channel: 'both',
+                        is_read: false,
+                        created_at: it.updated_at || new Date().toISOString()
                     });
                 }
             }
@@ -302,13 +424,15 @@ export async function getUserNotifications(userId, userEmail, queryParams = {}) 
 
                 const { data: dbNotifs, error: dbErr } = await query;
                 if (!dbErr && Array.isArray(dbNotifs) && dbNotifs.length > 0) {
-                    notifications = dbNotifs.map(n => ({
-                        ...n,
-                        userId: n.recipient_id || n.actor_id,
-                        link: n.action_url,
-                        read: n.is_read,
-                        createdAt: n.created_at
-                    }));
+                    notifications = dbNotifs
+                        .filter(n => isAdmin || n.target_role !== 'admin')
+                        .map(n => ({
+                            ...n,
+                            userId: n.recipient_id || n.actor_id,
+                            link: n.action_url,
+                            read: n.is_read,
+                            createdAt: n.created_at
+                        }));
 
                     // Cache to localStorage for instant UI response
                     if (typeof window !== 'undefined') {

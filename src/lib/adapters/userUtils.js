@@ -10,6 +10,19 @@ export async function getCurrentUserObject() {
                     const parsed = JSON.parse(stored);
                     storedUser = parsed?.user || parsed;
                 }
+                if (!storedUser) {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && k.startsWith('sb-') && k.endsWith('-auth-token')) {
+                            const raw = localStorage.getItem(k);
+                            const parsed = JSON.parse(raw);
+                            if (parsed?.user?.id) {
+                                storedUser = parsed.user;
+                                break;
+                            }
+                        }
+                    }
+                }
             } catch {}
         }
 
