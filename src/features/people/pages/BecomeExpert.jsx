@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { TextField, TextareaField, SelectField, CheckboxField } from "@/components/ui/form-fields";
+import { TextField, TextareaField, SelectField } from "@/components/ui/form-fields";
 import { Button } from "@/components/ui/button";
 import {
   Sparkles,
@@ -575,12 +575,12 @@ export default function BecomeExpert() {
         isPublished: false,
         is_published: false,
         contact_preferences: {
-          allow_website: Boolean(data.allow_website),
-          allow_whatsapp: Boolean(data.allow_whatsapp),
-          allow_telegram: Boolean(data.allow_telegram),
-          allow_email: Boolean(data.allow_email),
+          allow_website: Boolean(safeTrim(data.website)),
+          allow_whatsapp: Boolean(safeTrim(data.whatsapp)),
+          allow_telegram: Boolean(safeTrim(data.telegram)),
+          allow_email: true,
           allow_phone: Boolean(data.allow_phone),
-          allow_contact_request: Boolean(data.allow_contact_request)
+          allow_contact_request: true
         }
       };
 
@@ -1119,30 +1119,6 @@ export default function BecomeExpert() {
                         </div>
                       </div>
 
-                      {/* Privacy Toggles */}
-                      <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                        <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
-                          Privacy & Visibility Controls
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                          <CheckboxField
-                            label="Show Website Link"
-                            variant="light"
-                            {...register("allow_website")}
-                          />
-                          <CheckboxField
-                            label="Show WhatsApp Button"
-                            variant="light"
-                            {...register("allow_whatsapp")}
-                          />
-
-                          <CheckboxField
-                            label="Allow Email Inquiries"
-                            variant="light"
-                            {...register("allow_email")}
-                          />
-                        </div>
-                      </div>
 
                       {uploadProgressText && (
                         <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-2 text-xs font-bold text-blue-700">

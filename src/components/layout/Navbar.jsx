@@ -69,6 +69,20 @@ export function Navbar({ minimal = false, onMenuClick }) {
         };
     }, [isAuthenticated, userDetails, hostProfile]);
 
+    // Check if user has host / approved status
+    const isHostApproved = React.useMemo(() => {
+        return Boolean(
+            hostProfile?.status === 'approved' ||
+            hostProfile?.is_approved === true ||
+            hostProfile?.role === 'host' ||
+            hostProfile?.role === 'expert' ||
+            userDetails?.role === 'host' ||
+            userDetails?.role === 'expert' ||
+            userDetails?.status === 'approved' ||
+            userDetails?.is_approved === true
+        );
+    }, [hostProfile, userDetails]);
+
     const displayName = React.useMemo(() => {
         if (!resolvedUser) return "User";
         const name = resolvedUser?.name;
@@ -158,6 +172,13 @@ export function Navbar({ minimal = false, onMenuClick }) {
 
     // Host options for dropdown
     const hostOptions = [
+        ...(isHostApproved ? [{
+            id: 'dashboard',
+            title: 'Host Dashboard',
+            description: 'Manage your listings, events and profile',
+            icon: <Grid3X3 className="h-5 w-5 text-accent" />,
+            path: '/account-v2'
+        }] : []),
         {
             id: 'property',
             title: 'Share Your Space',
@@ -451,7 +472,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                             >
                                 <div className="absolute inset-0 bg-white/20 opacity-0 hover:opacity-100 transition-opacity" />
                                 <Sparkles className="w-4 h-4 fill-white/20" />
-                                <span className="hidden sm:inline whitespace-nowrap">Become Host</span>
+                                <span className="hidden sm:inline whitespace-nowrap">{isHostApproved ? "Hosting" : "Become Host"}</span>
                                 <span className="sm:hidden">Host</span>
                             </motion.button>
 
@@ -464,7 +485,7 @@ export function Navbar({ minimal = false, onMenuClick }) {
                                         className="absolute top-full right-0 mt-3 w-80 bg-[#0F2238]/95 backdrop-blur-xl rounded-3xl shadow-[0_30px_60px_-12px_rgba(0,0,0,0.5)] z-50 border border-white/10 overflow-hidden"
                                     >
                                         <div className="px-5 py-4 border-b border-white/5 bg-gradient-to-r from-accent/10 to-transparent">
-                                            <p className="text-[10px] font-black text-accent uppercase tracking-widest">Start Hosting</p>
+                                            <p className="text-[10px] font-black text-accent uppercase tracking-widest">{isHostApproved ? "Host Tools & Menu" : "Start Hosting"}</p>
                                         </div>
                                         <div className="p-2 space-y-1">
                                             {hostOptions.map((option) => (

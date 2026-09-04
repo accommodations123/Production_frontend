@@ -52,14 +52,23 @@ export const fetchCurrentUser = createAsyncThunk(
                 const token = sessionData.session?.access_token;
                 if (token) localStorage.setItem('token', token);
 
+                let profile = null;
+                try {
+                    const { data: prof } = await supabase.from('profiles').select('*').eq('id', sbUser.id).maybeSingle();
+                    profile = prof;
+                } catch (e) {
+                    console.debug('Failed to fetch user profile:', e);
+                }
+
                 const user = {
                     id: sbUser.id,
                     email: sbUser.email,
-                    name: sbUser.user_metadata?.full_name || sbUser.user_metadata?.name || sbUser.email?.split('@')[0],
-                    first_name: sbUser.user_metadata?.first_name || sbUser.user_metadata?.full_name?.split(' ')[0] || '',
-                    last_name: sbUser.user_metadata?.last_name || sbUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
-                    profile_image: resolveImageUrl(sbUser.user_metadata?.avatar_url || sbUser.user_metadata?.picture || null),
+                    name: profile?.full_name || profile?.name || sbUser.user_metadata?.full_name || sbUser.user_metadata?.name || sbUser.email?.split('@')[0],
+                    first_name: sbUser.user_metadata?.first_name || (profile?.full_name || sbUser.user_metadata?.full_name)?.split(' ')[0] || '',
+                    last_name: sbUser.user_metadata?.last_name || (profile?.full_name || sbUser.user_metadata?.full_name)?.split(' ').slice(1).join(' ') || '',
+                    profile_image: resolveImageUrl(profile?.profile_image || sbUser.user_metadata?.avatar_url || sbUser.user_metadata?.picture || null),
                     ...sbUser.user_metadata,
+                    ...(profile || {}),
                 };
                 localStorage.setItem('user', JSON.stringify(user));
                 return { user };

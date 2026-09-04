@@ -176,12 +176,12 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
   const [formData, setFormData] = useState({
     full_name: initialData?.full_name || initialData?.name || "",
     email: initialData?.email || "",
-    phone: initialData?.phone || "",
+    phone: initialData?.phone || initialData?.whatsapp || "",
     country: initialData?.country || "",
     state: initialData?.state || "",
     city: initialData?.city || "",
     address: cleanStreetAddress(initialData?.address || initialData?.street_address),
-    zip: initialData?.zip || "",
+    zip: initialData?.zip_code || initialData?.zip || "",
     whatsapp: initialData?.whatsapp || "",
     facebook: initialData?.facebook || "",
     instagram: initialData?.instagram || "",
@@ -295,8 +295,10 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
         const defaultCode = activeCountry?.phoneCode || "+91";
         const defaultIso = activeCountry?.code || "IN";
         const userC = initialData.country || prev.country || activeCountry?.name || "";
-        const parsedPhone = splitPhone(initialData.phone, userC, defaultCode, defaultIso);
-        const parsedWhatsApp = splitPhone(initialData.whatsapp, userC, defaultCode, defaultIso);
+        const rawPhone = initialData.phone || initialData.contact_phone || initialData.whatsapp || "";
+        const rawWhatsapp = initialData.whatsapp || initialData.phone || initialData.contact_phone || "";
+        const parsedPhone = splitPhone(rawPhone, userC, defaultCode, defaultIso);
+        const parsedWhatsApp = splitPhone(rawWhatsapp, userC, defaultCode, defaultIso);
         const cleanFb = extractUsername('facebook', initialData.facebook || prev.facebook || "");
         const cleanInsta = extractUsername('instagram', initialData.instagram || prev.instagram || "");
 
@@ -377,12 +379,15 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
           payload.append('phone', finalPhone);
           payload.append('whatsapp', finalWhatsapp);
           payload.append('zip_code', formData.zip);
+          payload.append('zip', formData.zip);
           payload.append('street_address', formData.address);
+          payload.append('address', formData.address);
           if (formData.full_name) {
             payload.append('name', formData.full_name);
           }
 
           await onUpdate(payload);
+          toast.success("Profile details updated successfully!");
         }
         setEditStates(prev => ({ ...prev, [section]: false }));
       } catch (error) {

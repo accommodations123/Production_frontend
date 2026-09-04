@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Star, Bookmark, ShieldCheck, UserPlus, UserCheck } from "lucide-react";
+import { Star, Bookmark, ShieldCheck, UserPlus, UserCheck, Globe, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -219,7 +219,6 @@ export function PeopleCard({ person }) {
   }, [liveReviews, person]);
 
   // Extract years of experience accurately from experience field, without inventing fallback values
-  if (!person) return null;
 
   // Format experience string
   const experienceDisplay =
@@ -269,6 +268,18 @@ export function PeopleCard({ person }) {
   const skills = Array.isArray(person.skills) && person.skills.length > 0
     ? person.skills
     : (profession !== "Advisor" ? profession.split(/[,|•/]/).map(s => s.trim()).filter(Boolean) : ["Consulting", "Support", "Advisor"]);
+
+  const websiteUrl = (person.website && typeof person.website === "string" && person.website.trim() !== "")
+    ? person.website.trim()
+    : (person.website_url && typeof person.website_url === "string" && person.website_url.trim() !== "")
+      ? person.website_url.trim()
+      : (person.portfolio && typeof person.portfolio === "string" && person.portfolio.trim() !== "")
+        ? person.portfolio.trim()
+        : (person.social_links?.website && typeof person.social_links.website === "string" && person.social_links.website.trim() !== "")
+          ? person.social_links.website.trim()
+          : null;
+
+  if (!person) return null;
 
   return (
     <Card className="rounded-2xl border border-border/80 p-5 flex flex-col justify-between h-full group hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-lg transition-all duration-300 relative overflow-hidden bg-card">
@@ -383,6 +394,24 @@ export function PeopleCard({ person }) {
             </span>
           )}
         </div>
+
+        {/* Website Link (if provided) */}
+        {websiteUrl && (
+          <div className="mb-4">
+            <a
+              href={websiteUrl.startsWith("http") ? websiteUrl : `https://${websiteUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100/80 px-2.5 py-1 rounded-lg transition-colors border border-emerald-200/60 max-w-full truncate group/web"
+              title={`Visit website: ${websiteUrl}`}
+            >
+              <Globe className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+              <span className="truncate">{websiteUrl.replace(/^https?:\/\//i, "").replace(/^www\./i, "")}</span>
+              <ExternalLink className="w-3 h-3 shrink-0 opacity-70 group-hover/web:opacity-100" />
+            </a>
+          </div>
+        )}
 
       </div>
 

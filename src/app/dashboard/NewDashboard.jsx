@@ -101,8 +101,8 @@ export default function NewDashboard() {
     if (!reduxUser && !hostProfile) return null;
 
     const merged = mergeDefined(
-      hostProfile,
       reduxUser,
+      hostProfile,
       {
         profile_image: hostProfile?.profile_image
           ? `${hostProfile.profile_image}?v=${refreshKey}`
@@ -184,8 +184,13 @@ export default function NewDashboard() {
     hostProfile?.status === "approved" ||
     hostProfile?.is_approved === true ||
     hostProfile?.role === "host" ||
+    hostProfile?.role === "expert" ||
     reduxUser?.role === "host" ||
-    currentUser?.role === "host"
+    reduxUser?.role === "expert" ||
+    currentUser?.role === "host" ||
+    currentUser?.role === "expert" ||
+    currentUser?.status === "approved" ||
+    currentUser?.is_approved === true
   );
 
 
@@ -422,7 +427,7 @@ export default function NewDashboard() {
               initialData={currentUser}
               onUpdate={handleUpdatePersonalInfo}
               isUpdating={isUpdating}
-              isHost={!!hostProfile?.id}
+              isHost={isHostVerified}
             />
           )}
 
