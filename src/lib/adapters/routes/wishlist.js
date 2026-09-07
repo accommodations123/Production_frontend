@@ -107,26 +107,63 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                 return { data: { success: false, isWishlisted: false } };
             }
 
-            const existsIndex = userWishlist.findIndex(i => {
+            const existsInRemote = remoteList.some(i => {
                 const idMatches = (String(i.id) === targetId || String(i.item_id) === targetId);
                 if (!idMatches) return false;
                 if (!targetType) return true;
                 return normalizeItemType(i.type) === targetType;
             });
 
-            let newSavedState = false;
-            
-            if (existsIndex >= 0) {
-                userWishlist.splice(existsIndex, 1);
-                newSavedState = false;
+            const localMatch = localList.find(i => {
+                const idMatches = (String(i.id) === targetId || String(i.item_id) === targetId);
+                if (!idMatches) return false;
+                if (!targetType) return true;
+                return normalizeItemType(i.type) === targetType;
+            });
+
+            // If an item was just added to local cache within the last 10 seconds, it's an optimistic client write (e.g. PeopleCard)
+            const isFreshLocalAdd = localMatch && localMatch.created_at && (Date.now() - new Date(localMatch.created_at).getTime() < 10000);
+
+            let shouldAdd;
+            if (typeof body?.isWishlisted === 'boolean') {
+                shouldAdd = body.isWishlisted;
+            } else if (typeof body?.isSaved === 'boolean') {
+                shouldAdd = body.isSaved;
+            } else if (body?.action === 'add') {
+                shouldAdd = true;
+            } else if (body?.action === 'remove') {
+                shouldAdd = false;
+            } else if (isFreshLocalAdd && !existsInRemote) {
+                // UI component (e.g. PeopleCard) optimistically pushed to localStorage before calling toggle
+                shouldAdd = true;
+            } else if (userId && remoteList.length > 0) {
+                shouldAdd = !existsInRemote;
             } else {
-                userWishlist.push({
-                    id: targetId,
-                    item_id: targetId,
-                    type: targetType,
-                    created_at: new Date().toISOString()
+                const existsIndex = userWishlist.findIndex(i => {
+                    const idMatches = (String(i.id) === targetId || String(i.item_id) === targetId);
+                    if (!idMatches) return false;
+                    if (!targetType) return true;
+                    return normalizeItemType(i.type) === targetType;
                 });
-                newSavedState = true;
+                shouldAdd = existsIndex < 0;
+            }
+
+            if (shouldAdd) {
+                if (!userWishlist.some(i => (String(i.id) === targetId || String(i.item_id) === targetId) && normalizeItemType(i.type) === targetType)) {
+                    userWishlist.push({
+                        id: targetId,
+                        item_id: targetId,
+                        type: targetType,
+                        created_at: new Date().toISOString()
+                    });
+                }
+            } else {
+                userWishlist = userWishlist.filter(i => {
+                    const idMatches = (String(i.id) === targetId || String(i.item_id) === targetId);
+                    if (!idMatches) return true;
+                    if (!targetType) return false;
+                    return normalizeItemType(i.type) !== targetType;
+                });
             }
 
             profileMeta.wishlist = userWishlist;
@@ -138,7 +175,7 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                 }
             }
 
-            return { data: { success: true, isWishlisted: newSavedState, is_wishlisted: newSavedState, isSaved: newSavedState, saved: newSavedState } };
+            return { data: { success: true, isWishlisted: shouldAdd, is_wishlisted: shouldAdd, isSaved: shouldAdd, saved: shouldAdd } };
         }
 
         // 3. Add to wishlist: wishlist/add (POST)
@@ -255,6 +292,14 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                                 if (details) t = 'stay-request';
                             }
                         }
+                        if (!details && t !== 'expert') {
+                            let { data: prData } = await supabase.from('profiles').select('*').eq('id', wItem.id).maybeSingle();
+                            if (!prData) {
+                                const { data: prByUser } = await supabase.from('profiles').select('*').eq('user_id', wItem.id).maybeSingle();
+                                prData = prByUser;
+                            }
+                            if (prData) { details = formatPersonProfile(prData); t = 'expert'; }
+                        }
                     } catch {}
                 }
             } catch (enrichErr) {
@@ -274,9 +319,13 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
             const safeDetails = details || {
                 id: wItem.id,
                 _id: wItem.id,
-                title: wItem.title || (t === 'trip' ? 'Travel Plan' : (t === 'stay-request' ? 'Stay Request' : 'Saved Item')),
+                title: wItem.title || (t === 'trip' ? 'Travel Plan' : (t === 'stay-request' ? 'Stay Request' : (t === 'expert' ? 'Advisor' : 'Saved Item'))),
                 seekerName: wItem.title || 'Stay Seeker',
-                name: wItem.title || 'Stay Seeker',
+                name: wItem.title || (t === 'expert' ? 'Advisor' : 'Saved Item'),
+                fullName: wItem.title || (t === 'expert' ? 'Advisor' : 'Saved Item'),
+                full_name: wItem.title || (t === 'expert' ? 'Advisor' : 'Saved Item'),
+                profession: 'Professional Advisor',
+                headline: 'Professional Advisor',
                 photos: [],
                 images: [],
                 status: 'approved'
