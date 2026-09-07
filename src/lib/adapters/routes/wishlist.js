@@ -209,10 +209,12 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                     details = data ? (await enrichBuySellWithHostDetails(data)) : null;
                 } else if (t === 'trip') {
                     const { data } = await supabase.from('travel_trips').select('*').eq('id', wItem.id).maybeSingle();
-                    details = data ? (await enrichTravelWithHostDetails(data)) : null;
+                    const trEnriched = data ? (await enrichTravelWithHostDetails(data)) : null;
+                    details = Array.isArray(trEnriched) ? (trEnriched[0] || null) : trEnriched;
                 } else if (t === 'stay-request') {
                     const { data } = await supabase.from('stay_requests').select('*').eq('id', wItem.id).maybeSingle();
-                    details = data ? (await enrichStayRequests(data)) : null;
+                    const srEnriched = data ? (await enrichStayRequests(data)) : null;
+                    details = Array.isArray(srEnriched) ? (srEnriched[0] || null) : srEnriched;
                 } else if (t === 'expert') {
                     let { data } = await supabase.from('profiles').select('*').eq('id', wItem.id).maybeSingle();
                     if (!data) {
@@ -239,11 +241,19 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                         }
                         if (!details && t !== 'trip') {
                             const { data: trData } = await supabase.from('travel_trips').select('*').eq('id', wItem.id).maybeSingle();
-                            if (trData) { details = await enrichTravelWithHostDetails(trData); t = 'trip'; }
+                            if (trData) {
+                                const trEnriched = await enrichTravelWithHostDetails(trData);
+                                details = Array.isArray(trEnriched) ? (trEnriched[0] || null) : trEnriched;
+                                if (details) t = 'trip';
+                            }
                         }
                         if (!details && t !== 'stay-request') {
                             const { data: srData } = await supabase.from('stay_requests').select('*').eq('id', wItem.id).maybeSingle();
-                            if (srData) { details = await enrichStayRequests(srData); t = 'stay-request'; }
+                            if (srData) {
+                                const srEnriched = await enrichStayRequests(srData);
+                                details = Array.isArray(srEnriched) ? (srEnriched[0] || null) : srEnriched;
+                                if (details) t = 'stay-request';
+                            }
                         }
                     } catch {}
                 }
@@ -251,10 +261,22 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                 console.warn(`Error enriching wishlist item [${t}] ${wItem.id}:`, enrichErr);
             }
 
+            // Ensure details is an object and never an array
+            if (Array.isArray(details)) {
+                details = details[0] || null;
+            }
+
+            if (details && typeof details === 'object') {
+                if (!details.id) details.id = wItem.id;
+                if (!details._id) details._id = details.id;
+            }
+
             const safeDetails = details || {
                 id: wItem.id,
                 _id: wItem.id,
-                title: wItem.title || 'Saved Item',
+                title: wItem.title || (t === 'trip' ? 'Travel Plan' : (t === 'stay-request' ? 'Stay Request' : 'Saved Item')),
+                seekerName: wItem.title || 'Stay Seeker',
+                name: wItem.title || 'Stay Seeker',
                 photos: [],
                 images: [],
                 status: 'approved'
@@ -265,7 +287,7 @@ export async function handleWishlistRoute({ cleanUrl, method, body, queryParams 
                 id: wItem.id,
                 item_id: wItem.id,
                 type: t,
-                details: safeDetails
+                details: details || safeDetails
             };
         }));
 
