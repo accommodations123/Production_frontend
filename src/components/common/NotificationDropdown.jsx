@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { 
     Bell, Check, X, Trash2, Home, Calendar, ShoppingBag, 
-    ShieldCheck, MessageSquare, Briefcase, Mail, ExternalLink, Sparkles 
+    ShieldCheck, MessageSquare, Briefcase, Mail, ExternalLink, Sparkles, RefreshCw 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -238,7 +238,12 @@ export function NotificationDropdown({ minimal = false }) {
     return (
         <div className="relative" ref={dropdownRef}>
             <button
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={() => {
+                    if (!isOpen) {
+                        refetch();
+                    }
+                    setIsOpen(!isOpen);
+                }}
                 className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-white"
                 aria-label="Notifications"
             >
@@ -270,6 +275,13 @@ export function NotificationDropdown({ minimal = false }) {
                                 )}
                             </div>
                             <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => refetch()}
+                                    className="p-1 rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+                                    title="Refresh notifications"
+                                >
+                                    <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin text-sky-400")} />
+                                </button>
                                 {unreadCount > 0 && (
                                     <button
                                         onClick={handleClearAll}

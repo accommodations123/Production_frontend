@@ -197,7 +197,16 @@ export async function createInAppAndEmailNotification({
 export async function getUserNotifications(userId, userEmail, queryParams = {}) {
     try {
         const currentUser = await getCurrentUserObject();
-        const authenticatedUserId = userId || queryParams?.userId || currentUser?.id || currentUser?.user_id || (await getCurrentUserId());
+        let authenticatedUserId = userId || queryParams?.userId || currentUser?.id || currentUser?.user_id || (await getCurrentUserId());
+
+        if ((!authenticatedUserId || !isUuid(authenticatedUserId)) && (userEmail || currentUser?.email) && supabase) {
+            try {
+                const { data: prof } = await supabase.from('profiles').select('id').eq('email', userEmail || currentUser?.email).maybeSingle();
+                if (prof?.id && isUuid(prof.id)) {
+                    authenticatedUserId = prof.id;
+                }
+            } catch {}
+        }
 
         if (!authenticatedUserId || !isUuid(authenticatedUserId)) {
             // Return broadcast notifications if not authenticated with specific UUID
