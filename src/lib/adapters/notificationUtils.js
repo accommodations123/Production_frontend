@@ -505,8 +505,9 @@ export async function notifyAdminsOfUserSubmission({
         }
 
         // 3. Asynchronous Admin Email Alert (Non-blocking background flow)
+        const adminEmail = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ADMIN_EMAIL) || 'accommodations.nextkinlife@gmail.com';
         sendEmailNotification({
-            to: 'admin@nextkinlife.com',
+            to: adminEmail,
             type: adminNotif.type,
             title: `[ADMIN ALERT] ${adminNotif.title}`,
             message: `${adminNotif.message}\n\nSubmitted by: ${senderName} (${senderEmail})`,

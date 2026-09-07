@@ -258,7 +258,16 @@ BEGIN
     -- If email channel is active, enqueue email job
     IF p_channel IN ('email', 'both') THEN
         IF p_target_role = 'admin' THEN
-            v_recipient_email := 'admin@nextkinlife.com';
+            SELECT email INTO v_recipient_email 
+            FROM public.profiles 
+            WHERE (role = 'admin' OR is_admin = TRUE) 
+              AND email IS NOT NULL 
+            ORDER BY created_at ASC 
+            LIMIT 1;
+            
+            IF v_recipient_email IS NULL THEN
+                v_recipient_email := 'accommodations.nextkinlife@gmail.com';
+            END IF;
         ELSIF p_recipient_id IS NOT NULL THEN
             SELECT email INTO v_recipient_email FROM public.profiles WHERE id = p_recipient_id;
         END IF;
