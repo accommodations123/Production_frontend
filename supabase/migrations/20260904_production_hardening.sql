@@ -18,7 +18,7 @@ SECURITY DEFINER
 STABLE
 AS $$
   SELECT COALESCE(
-    (SELECT role = 'admin' OR is_admin = true
+    (SELECT role = 'admin'
      FROM public.profiles
      WHERE id = auth.uid()),
     FALSE
@@ -260,7 +260,7 @@ BEGIN
         IF p_target_role = 'admin' THEN
             SELECT email INTO v_recipient_email 
             FROM public.profiles 
-            WHERE (role = 'admin' OR is_admin = TRUE) 
+            WHERE role = 'admin' 
               AND email IS NOT NULL 
             ORDER BY created_at ASC 
             LIMIT 1;
