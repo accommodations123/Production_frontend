@@ -19,11 +19,11 @@ export async function handleNotificationsRoute({ cleanUrl, method, body, queryPa
     if (cleanUrl.startsWith('notifications') || cleanUrl.startsWith('admin/notifications') || cleanUrl.startsWith('notification')) {
         const currentUser = await getCurrentUserObject();
         const currentUserId = await getCurrentUserId();
-        const isAdmin = cleanUrl.startsWith('admin/notifications') || currentUser?.role === 'admin' || currentUser?.is_admin === true;
+        const isAdminRoute = cleanUrl.startsWith('admin/notifications');
 
         // Mark all as read: PATCH/POST notifications/read-all, notifications/mark-all-read, etc.
         if ((cleanUrl.includes('read-all') || cleanUrl.includes('mark-all')) && (method === 'PATCH' || method === 'POST' || method === 'PUT')) {
-            const result = isAdmin ? await markAllAdminNotificationsRead() : await markAllNotificationsRead();
+            const result = isAdminRoute ? await markAllAdminNotificationsRead() : await markAllNotificationsRead();
             return { data: { success: true, ...result } };
         }
 
@@ -31,20 +31,20 @@ export async function handleNotificationsRoute({ cleanUrl, method, body, queryPa
         if (cleanUrl.includes('/read') && (method === 'PATCH' || method === 'POST' || method === 'PUT')) {
             const parts = cleanUrl.split('/');
             const id = parts[1] || parts[parts.indexOf('read') - 1];
-            const result = isAdmin ? await markAdminNotificationRead(id) : await markNotificationRead(id);
+            const result = isAdminRoute ? await markAdminNotificationRead(id) : await markNotificationRead(id);
             return { data: { success: true, ...result } };
         }
 
         if ((method === 'PATCH' || method === 'PUT') && !cleanUrl.includes('read-all')) {
             const parts = cleanUrl.split('/');
             const id = parts.pop();
-            const result = isAdmin ? await markAdminNotificationRead(id) : await markNotificationRead(id);
+            const result = isAdminRoute ? await markAdminNotificationRead(id) : await markNotificationRead(id);
             return { data: { success: true, ...result } };
         }
 
         // Delete all notifications: DELETE notifications/all
         if (cleanUrl.endsWith('/all') && method === 'DELETE') {
-            const result = isAdmin ? await deleteAllAdminNotificationsItems() : await deleteAllNotificationsItems();
+            const result = isAdminRoute ? await deleteAllAdminNotificationsItems() : await deleteAllNotificationsItems();
             return { data: { success: true, ...result } };
         }
 
@@ -52,13 +52,13 @@ export async function handleNotificationsRoute({ cleanUrl, method, body, queryPa
         if (method === 'DELETE') {
             const parts = cleanUrl.split('/');
             const id = parts.pop();
-            const result = isAdmin ? await deleteAdminNotificationItem(id) : await deleteNotificationItem(id);
+            const result = isAdminRoute ? await deleteAdminNotificationItem(id) : await deleteNotificationItem(id);
             return { data: { success: true, ...result } };
         }
 
         // Create notification manually: POST notifications
         if (method === 'POST') {
-            if (isAdmin || body?.target_role === 'admin') {
+            if (isAdminRoute || body?.target_role === 'admin') {
                 const notif = await notifyAdminsOfUserSubmission({
                     ...body,
                     userId: currentUserId
@@ -74,7 +74,7 @@ export async function handleNotificationsRoute({ cleanUrl, method, body, queryPa
 
         // Get notifications: GET admin/notifications OR GET notifications
         // Authenticated user session strictly determines the scope (IDOR prevention)
-        const result = isAdmin 
+        const result = isAdminRoute 
             ? await getAdminNotifications(queryParams) 
             : await getUserNotifications(currentUserId, currentUser?.email, queryParams);
 

@@ -87,7 +87,7 @@ class RealtimeNotificationManager {
                         (payload) => this.handleIncomingUpdate(payload.new)
                     );
             } else if (this.currentUserId) {
-                // Filter for user-targeted notifications
+                // Filter for user-targeted notifications and broadcasts
                 this.channel
                     .on(
                         'postgres_changes',
@@ -96,6 +96,16 @@ class RealtimeNotificationManager {
                             schema: 'public',
                             table: 'notifications',
                             filter: `recipient_id=eq.${this.currentUserId}`
+                        },
+                        (payload) => this.handleIncomingNotification(payload.new)
+                    )
+                    .on(
+                        'postgres_changes',
+                        {
+                            event: 'INSERT',
+                            schema: 'public',
+                            table: 'notifications',
+                            filter: 'target_role=eq.all'
                         },
                         (payload) => this.handleIncomingNotification(payload.new)
                     )

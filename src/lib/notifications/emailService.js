@@ -40,6 +40,40 @@ export async function sendEmailNotification({
     });
 
     try {
+        // Direct Resend dispatch fallback if VITE_RESEND_API_KEY is configured in client environment
+        const directResendKey = typeof import.meta !== 'undefined' && import.meta.env?.VITE_RESEND_API_KEY;
+        if (directResendKey) {
+            try {
+                const fromAddress = import.meta.env?.VITE_EMAIL_FROM || 'NextKinLife <onboarding@resend.dev>';
+                const resendRes = await fetch('https://api.resend.com/emails', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${directResendKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        from: fromAddress,
+                        to: [to],
+                        subject,
+                        html,
+                        text
+                    })
+                });
+                const resendData = await resendRes.json().catch(() => ({}));
+                if (resendRes.ok && resendData?.id) {
+                    console.log(`📬 [EMAIL SENT VIA RESEND] to: ${to} | ID: ${resendData.id} | Subject: "${subject}"`);
+                    return {
+                        status: 'sent',
+                        sent_at: new Date().toISOString(),
+                        messageId: resendData.id,
+                        error: null
+                    };
+                }
+            } catch (directErr) {
+                console.warn('[Direct Resend fallback error]:', directErr);
+            }
+        }
+
         if (!supabase?.functions) {
             return {
                 status: 'failed',
@@ -60,11 +94,16 @@ export async function sendEmailNotification({
         });
 
         if (fnError) {
-            console.warn(`❌ [EMAIL DISPATCH FAILED] to: ${to} | Error:`, fnError);
+            const isUndeployed = fnError.context?.status === 404 || fnError.message?.includes('non-2xx');
+            const note = isUndeployed
+                ? 'Edge Function "send-email" is not deployed to Supabase. Deploy it using `npx supabase functions deploy send-email` or set VITE_RESEND_API_KEY in .env.'
+                : (fnError.message || 'Edge Function execution error');
+
+            console.warn(`❌ [EMAIL DISPATCH FAILED] to: ${to} | Note: ${note}`);
             return {
                 status: 'failed',
                 sent_at: null,
-                error: fnError.message || 'Edge Function execution error'
+                error: note
             };
         }
 

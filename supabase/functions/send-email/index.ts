@@ -1,9 +1,11 @@
+// @ts-nocheck
 // Follow this setup guide to integrate the Deno language server with your editor:
 // https://deno.land/manual/getting_started/setup_your_environment
 // This code runs in Supabase Edge Functions (Deno runtime).
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import nodemailer from "npm:nodemailer@6.9.13";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -69,6 +71,10 @@ serve(async (req: Request) => {
     }
 
     // 4. Retrieve Server-Side Secrets
+    const smtpUser = Deno.env.get("SMTP_USER") || Deno.env.get("GMAIL_USER");
+    const smtpPass = Deno.env.get("SMTP_PASS") || Deno.env.get("GMAIL_APP_PASSWORD");
+    const smtpHost = Deno.env.get("SMTP_HOST") || "smtp.gmail.com";
+    const smtpPort = parseInt(Deno.env.get("SMTP_PORT") || "465", 10);
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const sendgridApiKey = Deno.env.get("SENDGRID_API_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -83,8 +89,38 @@ serve(async (req: Request) => {
     let providerError: string | null = null;
     let deliveryStatus: "sent" | "failed" = "failed";
 
-    // 5. Dispatch via Transactional Provider (Resend or SendGrid)
-    if (resendApiKey) {
+    // 5. Dispatch via Transactional Provider (Gmail/SMTP, Resend, or SendGrid)
+    if (smtpUser && smtpPass) {
+      try {
+        const fromAddress = from || Deno.env.get("EMAIL_FROM_ADDRESS") || `NextKinLife <${smtpUser}>`;
+        const transporter = nodemailer.createTransport({
+          host: smtpHost,
+          port: smtpPort,
+          secure: smtpPort === 465,
+          auth: {
+            user: smtpUser,
+            pass: smtpPass,
+          },
+        });
+
+        const info = await transporter.sendMail({
+          from: fromAddress,
+          to,
+          subject,
+          text: text || "",
+          html: html || `<p>${text}</p>`,
+        });
+
+        if (info && info.messageId) {
+          deliveryStatus = "sent";
+          providerMessageId = info.messageId;
+        } else {
+          providerError = "SMTP dispatch failed";
+        }
+      } catch (smtpErr) {
+        providerError = `SMTP error: ${smtpErr instanceof Error ? smtpErr.message : String(smtpErr)}`;
+      }
+    } else if (resendApiKey) {
       const fromAddress = from || Deno.env.get("EMAIL_FROM_ADDRESS") || "NextKinLife <notifications@nextkinlife.com>";
       const resendRes = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -136,7 +172,7 @@ serve(async (req: Request) => {
       }
     } else {
       // No server provider configured in Edge Function secrets
-      providerError = "No transactional email provider configured. Please set RESEND_API_KEY in Edge Function secrets.";
+      providerError = "No transactional email provider configured. Please set SMTP_USER & SMTP_PASS (for Gmail) or RESEND_API_KEY in Edge Function secrets.";
       console.error(providerError);
     }
 

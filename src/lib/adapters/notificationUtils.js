@@ -5,8 +5,20 @@ import { sendEmailNotification } from '../notifications/emailService';
 
 // In-memory deduplication cache: `${recipientId}_${type}_${entityId}` -> timestamp (5s window)
 const deduplicationCache = new Map();
-const DEDUP_WINDOW_MS = 5000;
 const isUuid = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str.trim());
+
+function generateUuid() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        try {
+            return crypto.randomUUID();
+        } catch {}
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
+}
 
 // Standard column projection for performance
 const NOTIFICATION_COLUMNS = 'id, recipient_id, actor_id, target_role, type, title, message, entity_type, entity_id, action_url, metadata, channel, is_read, read_at, email_status, email_sent_at, email_error, created_at';
@@ -51,12 +63,10 @@ export async function createInAppAndEmailNotification({
         }
         deduplicationCache.set(dedupKey, now);
 
-        const notificationId = (typeof crypto !== 'undefined' && crypto.randomUUID) 
-            ? crypto.randomUUID() 
-            : `notif_${now}_${Math.random().toString(36).substring(2, 9)}`;
+        const notificationId = generateUuid();
 
         const newNotif = {
-            id: String(notificationId),
+            id: notificationId,
             recipient_id: isUuid(targetUserId) ? targetUserId : null,
             actor_id: isUuid(actorId) ? actorId : (isUuid(currentUserId) ? currentUserId : null),
             target_role: NOTIFICATION_TARGET_ROLES.USER,
@@ -77,36 +87,53 @@ export async function createInAppAndEmailNotification({
             email_status: (channel === NOTIFICATION_CHANNELS.BOTH || channel === NOTIFICATION_CHANNELS.EMAIL) ? 'pending' : 'skipped',
             email_sent_at: null,
             email_error: null,
-            idempotency_key: dedupKey,
             created_at: new Date().toISOString()
         };
 
         // 2. Persist to Supabase `notifications` table immediately
         if (supabase) {
             try {
-                const { error: insertErr } = await supabase
+                const dbPayload = {
+                    id: isUuid(newNotif.id) ? newNotif.id : undefined,
+                    recipient_id: isUuid(newNotif.recipient_id) ? newNotif.recipient_id : null,
+                    actor_id: isUuid(newNotif.actor_id) ? newNotif.actor_id : null,
+                    target_role: newNotif.target_role,
+                    type: newNotif.type,
+                    title: newNotif.title,
+                    message: newNotif.message,
+                    entity_type: newNotif.entity_type,
+                    entity_id: newNotif.entity_id,
+                    action_url: newNotif.action_url,
+                    metadata: newNotif.metadata,
+                    channel: newNotif.channel,
+                    is_read: false,
+                    email_status: newNotif.email_status,
+                    created_at: newNotif.created_at
+                };
+                if (!dbPayload.id) delete dbPayload.id;
+
+                let { data: insertedData, error: insertErr } = await supabase
                     .from('notifications')
-                    .insert({
-                        id: newNotif.id,
-                        recipient_id: newNotif.recipient_id,
-                        actor_id: newNotif.actor_id,
-                        target_role: newNotif.target_role,
-                        type: newNotif.type,
-                        title: newNotif.title,
-                        message: newNotif.message,
-                        entity_type: newNotif.entity_type,
-                        entity_id: newNotif.entity_id,
-                        action_url: newNotif.action_url,
-                        metadata: newNotif.metadata,
-                        channel: newNotif.channel,
-                        is_read: false,
-                        email_status: newNotif.email_status,
-                        idempotency_key: newNotif.idempotency_key,
-                        created_at: newNotif.created_at
-                    });
+                    .insert(dbPayload)
+                    .select()
+                    .maybeSingle();
 
                 if (insertErr) {
-                    console.warn('[Notification DB insert note]:', insertErr.message || insertErr);
+                    // Check if foreign key constraint failed (e.g. recipient_id or actor_id not yet in profiles)
+                    if (insertErr.code === '23503') {
+                        console.warn('[Notification DB FK fallback]: User profile not found, retrying with broadcast/null FK');
+                        dbPayload.recipient_id = null;
+                        dbPayload.actor_id = null;
+                        dbPayload.target_role = 'all';
+                        const retryRes = await supabase.from('notifications').insert(dbPayload).select().maybeSingle();
+                        if (!retryRes.error && retryRes.data) {
+                            newNotif.id = retryRes.data.id;
+                        }
+                    } else {
+                        console.warn('[Notification DB insert note]:', insertErr.message || insertErr);
+                    }
+                } else if (insertedData?.id) {
+                    newNotif.id = insertedData.id;
                 }
             } catch (dbErr) {
                 console.warn('[Notification DB insert error]:', dbErr);
@@ -170,13 +197,34 @@ export async function createInAppAndEmailNotification({
 export async function getUserNotifications(userId, userEmail, queryParams = {}) {
     try {
         const currentUser = await getCurrentUserObject();
-        const authenticatedUserId = currentUser?.id || currentUser?.user_id || (await getCurrentUserId());
+        const authenticatedUserId = userId || queryParams?.userId || currentUser?.id || currentUser?.user_id || (await getCurrentUserId());
 
         if (!authenticatedUserId || !isUuid(authenticatedUserId)) {
+            // Return broadcast notifications if not authenticated with specific UUID
+            if (supabase) {
+                try {
+                    const { data: broadcastNotifs } = await supabase
+                        .from('notifications')
+                        .select(NOTIFICATION_COLUMNS)
+                        .eq('target_role', 'all')
+                        .order('created_at', { ascending: false })
+                        .limit(20);
+                    if (Array.isArray(broadcastNotifs)) {
+                        const mapped = broadcastNotifs.map((n) => ({
+                            ...n,
+                            userId: n.recipient_id || n.actor_id,
+                            link: n.action_url,
+                            read: n.is_read,
+                            createdAt: n.created_at
+                        }));
+                        return { notifications: mapped, unreadCount: mapped.filter(n => !n.is_read).length, data: mapped, total: mapped.length };
+                    }
+                } catch {}
+            }
             return { notifications: [], unreadCount: 0, data: [], total: 0 };
         }
 
-        const isAdmin = currentUser?.role === 'admin' || currentUser?.is_admin === true;
+        const isAdmin = currentUser?.role === 'admin' || currentUser?.is_admin === true || queryParams?.role === 'admin';
         let notifications = [];
 
         if (supabase) {
@@ -376,12 +424,10 @@ export async function notifyAdminsOfUserSubmission({
         }
         deduplicationCache.set(dedupKey, now);
 
-        const adminNotifId = (typeof crypto !== 'undefined' && crypto.randomUUID) 
-            ? crypto.randomUUID() 
-            : `admin_notif_${now}_${Math.random().toString(36).substring(2, 9)}`;
+        const adminNotifId = generateUuid();
 
         const adminNotif = {
-            id: String(adminNotifId),
+            id: adminNotifId,
             recipient_id: null,
             actor_id: isUuid(senderUserId) ? senderUserId : null,
             target_role: NOTIFICATION_TARGET_ROLES.ADMIN,
@@ -402,15 +448,14 @@ export async function notifyAdminsOfUserSubmission({
             is_read: false,
             read_at: null,
             email_status: 'pending',
-            idempotency_key: dedupKey,
             created_at: new Date().toISOString()
         };
 
         // 1. Persist to Supabase notifications table
         if (supabase) {
             try {
-                await supabase.from('notifications').insert({
-                    id: adminNotif.id,
+                const dbPayload = {
+                    id: isUuid(adminNotif.id) ? adminNotif.id : undefined,
                     recipient_id: null,
                     actor_id: adminNotif.actor_id,
                     target_role: NOTIFICATION_TARGET_ROLES.ADMIN,
@@ -424,9 +469,30 @@ export async function notifyAdminsOfUserSubmission({
                     channel: NOTIFICATION_CHANNELS.BOTH,
                     is_read: false,
                     email_status: 'pending',
-                    idempotency_key: adminNotif.idempotency_key,
                     created_at: adminNotif.created_at
-                });
+                };
+                if (!dbPayload.id) delete dbPayload.id;
+
+                let { data: insertedData, error: insertErr } = await supabase
+                    .from('notifications')
+                    .insert(dbPayload)
+                    .select()
+                    .maybeSingle();
+
+                if (insertErr) {
+                    if (insertErr.code === '23503') {
+                        // Actor ID foreign key constraint failure fallback
+                        dbPayload.actor_id = null;
+                        const retryRes = await supabase.from('notifications').insert(dbPayload).select().maybeSingle();
+                        if (!retryRes.error && retryRes.data) {
+                            adminNotif.id = retryRes.data.id;
+                        }
+                    } else {
+                        console.warn('[Supabase admin notification insert error]:', insertErr.message || insertErr);
+                    }
+                } else if (insertedData?.id) {
+                    adminNotif.id = insertedData.id;
+                }
             } catch (err) {
                 console.warn('[Supabase admin notification insert error]:', err);
             }
