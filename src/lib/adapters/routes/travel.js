@@ -117,6 +117,24 @@ export async function handleTravelRoute({ cleanUrl, method, body, queryParams })
                     metadata: enriched
                 });
 
+                const tripUserId = payload.host_id || (await getCurrentUserId());
+                const tripUserEmail = userObj?.email;
+                if (tripUserId) {
+                    await createInAppAndEmailNotification({
+                        userId: tripUserId,
+                        recipientId: tripUserId,
+                        userEmail: tripUserEmail,
+                        title: '🚗 Trip Posted Successfully',
+                        message: `Your travel companion trip from ${originStr || 'Origin'} to ${destStr || 'Destination'} has been created.`,
+                        type: NOTIFICATION_TYPES.TRIP_SUBMITTED,
+                        entityType: 'trip',
+                        entityId: data?.id,
+                        actionUrl: '/resources/travel',
+                        link: '/resources/travel',
+                        metadata: enriched
+                    });
+                }
+
                 return { data: { trip: enriched, results: [enriched], trips: [enriched], success: true } }
             }
 

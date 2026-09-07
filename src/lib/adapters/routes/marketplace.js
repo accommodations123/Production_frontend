@@ -111,6 +111,24 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
                     metadata: data
                 });
 
+                const sellerUserId = data?.user_id || (await getCurrentUserId());
+                const sellerEmail = data?.email || (await getCurrentUserObject())?.email;
+                if (sellerUserId) {
+                    await createInAppAndEmailNotification({
+                        userId: sellerUserId,
+                        recipientId: sellerUserId,
+                        userEmail: sellerEmail,
+                        title: '🛍️ Marketplace Item Submitted',
+                        message: `Your item "${data?.title || payload.title || 'Item'}" has been submitted successfully and is pending review.`,
+                        type: NOTIFICATION_TYPES.BUY_SELL_SUBMITTED,
+                        entityType: 'buy_sell',
+                        entityId: data?.id,
+                        actionUrl: `/marketplace/${data?.id}`,
+                        link: `/marketplace/${data?.id}`,
+                        metadata: data
+                    });
+                }
+
                 return { data: { listing: data, success: true } }
             }
             if (cleanUrl.startsWith('buy-sell/update/') || (cleanUrl.startsWith('buy-sell/') && (method === 'PUT' || method === 'PATCH') && !cleanUrl.includes('sold'))) {

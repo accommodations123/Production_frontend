@@ -178,6 +178,24 @@ export async function handleEventsRoute({ cleanUrl, method, body, queryParams })
                     metadata: data
                 });
 
+                const eventUserId = userObj?.id || userObj?._id || (await getCurrentUserId());
+                const eventUserEmail = payload.organizer_email || userObj?.email;
+                if (eventUserId) {
+                    await createInAppAndEmailNotification({
+                        userId: eventUserId,
+                        recipientId: eventUserId,
+                        userEmail: eventUserEmail,
+                        title: '📅 Event Submitted for Review',
+                        message: `Your event "${data?.title || payload.title || 'Event'}" has been submitted successfully and is pending review.`,
+                        type: NOTIFICATION_TYPES.EVENT_SUBMITTED,
+                        entityType: 'event',
+                        entityId: data?.id,
+                        actionUrl: `/events/${data?.id}`,
+                        link: `/events/${data?.id}`,
+                        metadata: data
+                    });
+                }
+
                 return { data: { event: data, id: data?.id, success: true } }
             }
             if (cleanUrl.startsWith('events/media/')) {

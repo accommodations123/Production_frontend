@@ -70,19 +70,28 @@ export function buildEmailTemplate({ type, title, message, entityId, actionUrl, 
 
     switch (type) {
         // Property
-        case NOTIFICATION_TYPES.PROPERTY_SUBMITTED:
-            emailSubject = `[Admin Alert] New Space Listed: ${metadata?.title || 'Accommodation'}`;
-            emailPreheader = 'A new accommodation has been submitted for review.';
-            bodyContent = `
+        case NOTIFICATION_TYPES.PROPERTY_SUBMITTED: {
+            const isPropertyAdmin = Boolean(title && title.includes('[ADMIN ALERT]'));
+            emailSubject = isPropertyAdmin ? title : `🏡 Your Accommodation "${metadata?.title || 'Listing'}" has been submitted!`;
+            emailPreheader = isPropertyAdmin ? 'A new accommodation has been submitted for review.' : 'Your accommodation listing has been submitted for review.';
+            bodyContent = isPropertyAdmin ? `
                 <p>A new accommodation listing has been submitted and is awaiting administrative review.</p>
                 <div class="info-box">
                     <strong>Listing:</strong> ${metadata?.title || 'Accommodation Space'}<br/>
                     <strong>Location:</strong> ${metadata?.city || ''}, ${metadata?.country || ''}<br/>
                     <strong>Host:</strong> ${metadata?.host_name || metadata?.email || 'Host'}
                 </div>
+            ` : `
+                <p>Thank you for listing your space on NextKinLife! We have received your submission and it is currently being reviewed by our moderation team.</p>
+                <div class="info-box">
+                    <strong>Listing:</strong> ${metadata?.title || 'Accommodation Space'}<br/>
+                    <strong>Location:</strong> ${metadata?.city || ''}, ${metadata?.country || ''}
+                </div>
+                <p>You will receive another notification once your listing is verified and live.</p>
             `;
-            actionText = 'Review Accommodation';
+            actionText = isPropertyAdmin ? 'Review Accommodation' : 'View Listing';
             break;
+        }
 
         case NOTIFICATION_TYPES.PROPERTY_APPROVED:
             emailSubject = `🎉 Your Space "${metadata?.title || 'Accommodation'}" is Approved!`;
@@ -105,19 +114,28 @@ export function buildEmailTemplate({ type, title, message, entityId, actionUrl, 
             break;
 
         // Events
-        case NOTIFICATION_TYPES.EVENT_SUBMITTED:
-            emailSubject = `[Admin Alert] New Event: ${metadata?.title || 'Event'}`;
-            emailPreheader = 'A new community event has been submitted for review.';
-            bodyContent = `
+        case NOTIFICATION_TYPES.EVENT_SUBMITTED: {
+            const isEventAdmin = Boolean(title && title.includes('[ADMIN ALERT]'));
+            emailSubject = isEventAdmin ? title : `📅 Your Event "${metadata?.title || 'Event'}" has been submitted!`;
+            emailPreheader = isEventAdmin ? 'A new community event has been submitted for review.' : 'Your community event has been submitted for review.';
+            bodyContent = isEventAdmin ? `
                 <p>A new event has been submitted and requires administrative review.</p>
                 <div class="info-box">
                     <strong>Event:</strong> ${metadata?.title || 'Community Event'}<br/>
                     <strong>Date:</strong> ${metadata?.start_date || 'Upcoming'}<br/>
                     <strong>Organizer:</strong> ${metadata?.organizer_name || metadata?.organizer_email || 'Organizer'}
                 </div>
+            ` : `
+                <p>Thank you for submitting your event on NextKinLife! We have received your event details and they are currently under review.</p>
+                <div class="info-box">
+                    <strong>Event:</strong> ${metadata?.title || 'Community Event'}<br/>
+                    <strong>Date:</strong> ${metadata?.start_date || 'Upcoming'}
+                </div>
+                <p>You will receive another notification once your event is approved and published.</p>
             `;
-            actionText = 'Review Event';
+            actionText = isEventAdmin ? 'Review Event' : 'View Event';
             break;
+        }
 
         case NOTIFICATION_TYPES.EVENT_APPROVED:
             emailSubject = `🎉 Your Event "${metadata?.title || 'Event'}" is Live!`;
@@ -139,17 +157,27 @@ export function buildEmailTemplate({ type, title, message, entityId, actionUrl, 
             break;
 
         // Marketplace
-        case NOTIFICATION_TYPES.BUY_SELL_SUBMITTED:
-            emailSubject = `[Admin Alert] New Marketplace Item: ${metadata?.title || 'Item'}`;
-            bodyContent = `
+        case NOTIFICATION_TYPES.BUY_SELL_SUBMITTED: {
+            const isMarketAdmin = Boolean(title && title.includes('[ADMIN ALERT]'));
+            emailSubject = isMarketAdmin ? title : `🛍️ Your Item "${metadata?.title || 'Product'}" has been submitted!`;
+            emailPreheader = isMarketAdmin ? 'A user listed a new item for sale in the marketplace.' : 'Your marketplace item has been submitted for review.';
+            bodyContent = isMarketAdmin ? `
                 <p>A user listed a new item for sale in the marketplace.</p>
                 <div class="info-box">
                     <strong>Item:</strong> ${metadata?.title || 'Product'}<br/>
                     <strong>Price:</strong> ${metadata?.currency || 'INR'} ${metadata?.price || ''}
                 </div>
+            ` : `
+                <p>Your listing has been submitted to the NextKinLife marketplace and is currently being reviewed.</p>
+                <div class="info-box">
+                    <strong>Item:</strong> ${metadata?.title || 'Product'}<br/>
+                    <strong>Price:</strong> ${metadata?.currency || 'INR'} ${metadata?.price || ''}
+                </div>
+                <p>You will receive another notification once your item is active and visible to buyers.</p>
             `;
-            actionText = 'Review Marketplace Item';
+            actionText = isMarketAdmin ? 'Review Marketplace Item' : 'View Marketplace';
             break;
+        }
 
         case NOTIFICATION_TYPES.BUY_SELL_APPROVED:
             emailSubject = `🎉 Your Item "${metadata?.title || 'Product'}" is Live in Marketplace!`;
@@ -158,17 +186,23 @@ export function buildEmailTemplate({ type, title, message, entityId, actionUrl, 
             break;
 
         // Host Verification
-        case NOTIFICATION_TYPES.HOST_APPLICATION_SUBMITTED:
-            emailSubject = `[Admin Alert] New Host Verification Request`;
-            bodyContent = `
+        case NOTIFICATION_TYPES.HOST_APPLICATION_SUBMITTED: {
+            const isHostAdmin = Boolean(title && title.includes('[ADMIN ALERT]'));
+            emailSubject = isHostAdmin ? title : `🛡️ Host Application Received`;
+            emailPreheader = isHostAdmin ? 'A user has submitted identity verification documents.' : 'Your host verification application is under review.';
+            bodyContent = isHostAdmin ? `
                 <p>A user has submitted identity verification documents to become a verified Host.</p>
                 <div class="info-box">
                     <strong>Applicant:</strong> ${metadata?.full_name || metadata?.name || 'Applicant'}<br/>
                     <strong>Email:</strong> ${metadata?.email || ''}
                 </div>
+            ` : `
+                <p>We have received your host verification application along with your verification documents.</p>
+                <p>Our team is reviewing your details and will update your host verification status shortly.</p>
             `;
-            actionText = 'Review Host Application';
+            actionText = isHostAdmin ? 'Review Host Application' : 'View Applications';
             break;
+        }
 
         case NOTIFICATION_TYPES.HOST_APPROVED:
             emailSubject = `🎉 Welcome to NextKinLife Hosts!`;

@@ -113,6 +113,22 @@ export async function handleStayRequestsRoute({ cleanUrl, method, body, queryPar
                     metadata: single
                 });
 
+                if (clean.user_id) {
+                    await createInAppAndEmailNotification({
+                        userId: clean.user_id,
+                        recipientId: clean.user_id,
+                        userEmail: clean.email,
+                        title: '🛏️ Stay Request Posted',
+                        message: `Your stay request for ${clean.city || clean.country || 'your destination'} has been posted successfully.`,
+                        type: NOTIFICATION_TYPES.STAY_REQUEST_SUBMITTED,
+                        entityType: 'stay_request',
+                        entityId: data?.id,
+                        actionUrl: '/accommodations/post-request',
+                        link: '/accommodations/post-request',
+                        metadata: single
+                    });
+                }
+
                 return { data: { request: single, data: single, success: true } }
             }
 

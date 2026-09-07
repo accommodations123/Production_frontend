@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { PROPERTY_COLUMNS, sanitizePayload, resilientInsert } from '../constants';
-import { getCurrentUserId } from '../userUtils';
+import { getCurrentUserId, getCurrentUserObject } from '../userUtils';
 import { enrichPropertiesWithHostDetails } from '../enrichmentUtils';
 import { parseFormDataWithUploads } from '../storageUtils';
 import { uploadToSupabaseStorage } from '@/lib/storageUtils';
@@ -105,6 +105,10 @@ export async function handlePropertiesRoute({ cleanUrl, method, body, queryParam
                 const { data, error } = await supabase.from('properties').insert(clean).select().maybeSingle()
                 if (error) throw error
 
+                const hostUserId = data?.host_id || data?.user_id || clean.host_id || clean.user_id || (await getCurrentUserId());
+                const hostUserEmail = data?.email || data?.host_email || clean.email || (await getCurrentUserObject())?.email;
+                const hostUserName = data?.host_name || data?.hostName || payload.host_name || payload.hostName || (await getCurrentUserObject())?.name || 'Host';
+
                 await notifyAdminsOfUserSubmission({
                     title: `🏡 New Accommodation Listed: ${data?.title || payload.title || 'Space'}`,
                     message: `Host (${data?.email || data?.phone || 'Host'}) created a new listing in ${data?.city || data?.country || 'NextKinLife'}.`,
@@ -113,11 +117,27 @@ export async function handlePropertiesRoute({ cleanUrl, method, body, queryParam
                     entityId: data?.id,
                     actionUrl: `/admin/properties`,
                     link: `/admin/properties`,
-                    userId: data?.host_id || data?.user_id,
-                    userEmail: data?.email,
-                    userName: data?.host_name || data?.hostName,
+                    userId: hostUserId,
+                    userEmail: hostUserEmail,
+                    userName: hostUserName,
                     metadata: data
                 });
+
+                if (hostUserId) {
+                    await createInAppAndEmailNotification({
+                        userId: hostUserId,
+                        recipientId: hostUserId,
+                        userEmail: hostUserEmail,
+                        title: '🏡 Accommodation Listing Submitted',
+                        message: `Your space "${data?.title || payload.title || 'Space'}" has been submitted successfully and is pending review by the NextKinLife team.`,
+                        type: NOTIFICATION_TYPES.PROPERTY_SUBMITTED,
+                        entityType: 'property',
+                        entityId: data?.id,
+                        actionUrl: `/rooms/${data?.id}`,
+                        link: `/rooms/${data?.id}`,
+                        metadata: data
+                    });
+                }
 
                 return { data: { propertyId: data?.id, id: data?.id, data, property: data, success: true } }
             }
@@ -175,19 +195,39 @@ export async function handlePropertiesRoute({ cleanUrl, method, body, queryParam
                 if (error) throw error
 
                 if (cleanUrl.includes('submit')) {
+                    const hostUserId = data?.host_id || data?.user_id || (await getCurrentUserId());
+                    const hostUserEmail = data?.email || data?.host_email || (await getCurrentUserObject())?.email;
+                    const hostUserName = data?.host_name || data?.hostName || (await getCurrentUserObject())?.name || 'Host';
+
                     await notifyAdminsOfUserSubmission({
                         title: `🏡 Accommodation Submitted for Review: ${data?.title || 'Listing'}`,
-                        message: `Host (${data?.email || data?.phone || 'Host'}) submitted space "${data?.title || 'Accommodation'}" in ${data?.city || data?.country || 'NextKinLife'} for admin review.`,
+                        message: `Host (${hostUserName} - ${hostUserEmail || 'N/A'}) submitted space "${data?.title || 'Accommodation'}" in ${data?.city || data?.country || 'NextKinLife'} for admin review.`,
                         type: NOTIFICATION_TYPES.PROPERTY_SUBMITTED,
                         entityType: 'property',
                         entityId: data?.id,
                         actionUrl: `/admin/properties`,
                         link: `/admin/properties`,
-                        userId: data?.host_id || data?.user_id,
-                        userEmail: data?.email,
-                        userName: data?.host_name || data?.hostName,
+                        userId: hostUserId,
+                        userEmail: hostUserEmail,
+                        userName: hostUserName,
                         metadata: data
                     });
+
+                    if (hostUserId) {
+                        await createInAppAndEmailNotification({
+                            userId: hostUserId,
+                            recipientId: hostUserId,
+                            userEmail: hostUserEmail,
+                            title: '🏡 Accommodation Listing Submitted',
+                            message: `Your space "${data?.title || 'Accommodation'}" has been submitted successfully and is pending review by the NextKinLife team.`,
+                            type: NOTIFICATION_TYPES.PROPERTY_SUBMITTED,
+                            entityType: 'property',
+                            entityId: data?.id,
+                            actionUrl: `/rooms/${data?.id}`,
+                            link: `/rooms/${data?.id}`,
+                            metadata: data
+                        });
+                    }
                 }
 
                 return { data: { property: data, data, success: true } }
