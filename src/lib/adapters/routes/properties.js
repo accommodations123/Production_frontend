@@ -17,10 +17,16 @@ export async function handlePropertiesRoute({ cleanUrl, method, body, queryParam
                 const id = cleanUrl.split('/').pop()
                 const { data } = await supabase.from('properties').update({ status: 'approved', is_approved: true }).eq('id', id).select().maybeSingle()
                 if (data) {
+                    const hostId = data.host_id || data.user_id;
+                    let hostEmail = data.host_email || data.email;
+                    if (!hostEmail && hostId) {
+                        const { data: prof } = await supabase.from('profiles').select('email').eq('id', hostId).maybeSingle();
+                        hostEmail = prof?.email;
+                    }
                     await createInAppAndEmailNotification({
-                        userId: data.host_id || data.user_id,
-                        recipientId: data.host_id || data.user_id,
-                        userEmail: data.host_email || data.email,
+                        userId: hostId,
+                        recipientId: hostId,
+                        userEmail: hostEmail,
                         title: '🎉 Accommodation Approved & Verified!',
                         message: `Great news! Your space "${data.title || 'Accommodation'}" has been approved by NextKinLife admin and is now live and verified.`,
                         type: NOTIFICATION_TYPES.PROPERTY_APPROVED,
@@ -37,10 +43,16 @@ export async function handlePropertiesRoute({ cleanUrl, method, body, queryParam
                 const id = cleanUrl.split('/').pop()
                 const { data } = await supabase.from('properties').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
                 if (data) {
+                    const hostId = data.host_id || data.user_id;
+                    let hostEmail = data.host_email || data.email;
+                    if (!hostEmail && hostId) {
+                        const { data: prof } = await supabase.from('profiles').select('email').eq('id', hostId).maybeSingle();
+                        hostEmail = prof?.email;
+                    }
                     await createInAppAndEmailNotification({
-                        userId: data.host_id || data.user_id,
-                        recipientId: data.host_id || data.user_id,
-                        userEmail: data.host_email || data.email,
+                        userId: hostId,
+                        recipientId: hostId,
+                        userEmail: hostEmail,
                         title: '⚠️ Accommodation Listing Update',
                         message: `Your accommodation listing "${data.title || 'Accommodation'}" requires revisions according to community guidelines.`,
                         type: NOTIFICATION_TYPES.PROPERTY_REJECTED,
