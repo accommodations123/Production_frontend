@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { 
     Bell, Check, X, Trash2, Home, Calendar, ShoppingBag, 
-    ShieldCheck, MessageSquare, Briefcase, Mail, ExternalLink, Sparkles, RefreshCw 
+    ShieldCheck, MessageSquare, Briefcase, Mail, ExternalLink, Sparkles, RefreshCw, UserCheck 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -165,6 +165,10 @@ export function NotificationDropdown({ minimal = false }) {
             case NOTIFICATION_TYPES.HOST_APPROVED:
             case NOTIFICATION_TYPES.HOST_REJECTED:
                 return <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />;
+            case NOTIFICATION_TYPES.EXPERT_APPLICATION_SUBMITTED:
+            case NOTIFICATION_TYPES.EXPERT_APPROVED:
+            case NOTIFICATION_TYPES.EXPERT_REJECTED:
+                return <UserCheck className="w-3.5 h-3.5 text-violet-400" />;
             case NOTIFICATION_TYPES.CONNECTION_REQUEST_RECEIVED:
             case NOTIFICATION_TYPES.CONNECTION_REQUEST_ACCEPTED:
                 return <MessageSquare className="w-3.5 h-3.5 text-purple-400" />;
