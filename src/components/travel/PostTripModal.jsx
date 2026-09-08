@@ -225,18 +225,29 @@ export default function PostTripModal({ onClose, onAdd }) {
         }
     };
 
-    const { data: userData, isLoading: isUserLoading } = useGetMeQuery();
-    const { data: hostProfile, isLoading: isHostLoading, isFetching: isHostFetching } = useGetHostProfileQuery(undefined, {
-        skip: !isUserLoading && !userData
-    });
+    // Synchronous immediate check from localStorage to prevent modal stalls
+    const localUser = (() => {
+        try {
+            const raw = localStorage.getItem('user');
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    })();
 
-    const isChecking = isUserLoading || isHostLoading || isHostFetching || (Boolean(userData) && hostProfile === undefined);
+    const { data: userData, isLoading: isUserLoading } = useGetMeQuery();
+    const activeUser = userData || currentUser || localUser;
+
+    const { data: hostProfile, isLoading: isHostLoading } = useGetHostProfileQuery(undefined, {
+        skip: !isUserLoading && !activeUser
+    });
 
     const isVerifiedHost = Boolean(
         (hostProfile && (hostProfile.status === 'approved' || hostProfile.is_approved === true || hostProfile.role === 'host')) ||
-        (userData && (userData.status === 'approved' || userData.is_approved === true || userData.role === 'host')) ||
-        (currentUser && (currentUser.status === 'approved' || currentUser.is_approved === true || currentUser.role === 'host'))
+        (activeUser && (activeUser.status === 'approved' || activeUser.is_approved === true || activeUser.role === 'host'))
     );
+
+    const isChecking = !isVerifiedHost && (isUserLoading || (Boolean(activeUser) && isHostLoading && hostProfile === undefined));
 
     return (
         <Dialog open={true} onOpenChange={(open) => { if (!open) onClose(); }}>

@@ -21,17 +21,29 @@ import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks"
 import { useGetMeQuery } from "@/hooks/data/useAuthHooks"
 
 export default function HostEventPage() {
-  const { data: userData, isLoading: isUserLoading } = useGetMeQuery()
-  const { data: hostProfile, isLoading: isProfileLoading, isFetching: isProfileFetching } = useGetHostProfileQuery(undefined, {
-    skip: !isUserLoading && !userData
-  })
+  // Synchronous immediate check from localStorage to prevent white-screen stalls
+  const localUser = (() => {
+    try {
+      const raw = localStorage.getItem('user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
 
-  const isChecking = isUserLoading || isProfileLoading || isProfileFetching || (Boolean(userData) && hostProfile === undefined);
+  const { data: userData, isLoading: isUserLoading } = useGetMeQuery();
+  const activeUser = userData || localUser;
+
+  const { data: hostProfile, isLoading: isProfileLoading } = useGetHostProfileQuery(undefined, {
+    skip: !isUserLoading && !activeUser
+  });
 
   const isVerifiedHost = Boolean(
     (hostProfile && (hostProfile.status === 'approved' || hostProfile.is_approved === true || hostProfile.role === 'host')) ||
-    (userData && (userData.status === 'approved' || userData.is_approved === true || userData.role === 'host'))
+    (activeUser && (activeUser.status === 'approved' || activeUser.is_approved === true || activeUser.role === 'host'))
   );
+
+  const isChecking = !isVerifiedHost && (isUserLoading || (Boolean(activeUser) && isProfileLoading && hostProfile === undefined));
 
   const {
     step,
