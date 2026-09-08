@@ -50,9 +50,9 @@ export function StatusBadge({ status, className, showIcon = true }) {
         case "inactive":
         case "unverified":
         case "false":
-            variant = "neutral";
-            label = normalizedStatus === "false" ? "Unverified" : status.charAt(0).toUpperCase() + status.slice(1);
-            Icon = AlertCircle;
+            variant = "warning";
+            label = "Unverified";
+            Icon = ShieldAlert;
             break;
 
         default:

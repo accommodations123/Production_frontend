@@ -107,7 +107,7 @@ export default function App() {
                                 <Route path="/accommodations/post-request" element={<PostStayRequestPage />} />
 
                                 <Route path="/host/create" element={
-                                    <HostGuard>
+                                    <HostGuard allowPending={true}>
                                         <HostCreatePage />
                                     </HostGuard>
                                 } />

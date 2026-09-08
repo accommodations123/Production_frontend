@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { X, Plane, User, MapPin, Clock, Loader2 } from "lucide-react";
@@ -12,6 +13,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 export default function PostTripModal({ onClose, onAdd }) {
+    const navigate = useNavigate();
     const { user: currentUser } = useAuth();
     const [createTrip, { isLoading: isSubmitting }] = useCreateTripMutation();
     const [form, setForm] = useState({
@@ -291,6 +293,15 @@ export default function PostTripModal({ onClose, onAdd }) {
                                 : "You need to be an approved host to post travel plans."
                             }
                         </p>
+                        {hostProfile?.status !== 'pending' && (
+                            <button
+                                type="button"
+                                onClick={() => { onClose(); navigate('/hosts'); }}
+                                className="px-5 py-2.5 text-sm font-semibold text-white bg-[#CB2A25] hover:bg-[#b0221e] rounded-xl transition shadow-sm cursor-pointer"
+                            >
+                                Apply to Become Host
+                            </button>
+                        )}
                     </motion.div>
                 )}
 

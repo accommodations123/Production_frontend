@@ -53,6 +53,7 @@ import {
   useUploadFileMutation,
   useGetMyProfileQuery
 } from "@/hooks/data/usePeopleHooks";
+import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks";
 
 import { ProviderConnectCard } from "../components/ProviderConnectCard";
 import { ProviderConnectModal } from "../components/ProviderConnectModal";
@@ -158,6 +159,15 @@ export default function BecomeExpert() {
   const { activeCountry } = useCountry();
   const navigate = useNavigate();
   const { isAuthenticated, user: currentUser } = useSelector((state) => state.auth || {});
+
+  const { data: hostProfile, isLoading: isHostLoading } = useGetHostProfileQuery(undefined, {
+    skip: !currentUser
+  });
+  const isApprovedHost = Boolean(
+    (hostProfile && (hostProfile.status === 'approved' || hostProfile.is_approved === true || hostProfile.role === 'host')) ||
+    (currentUser && (currentUser.status === 'approved' || currentUser.is_approved === true || currentUser.role === 'host'))
+  );
+  const isPendingHost = Boolean(hostProfile?.status === 'pending' || currentUser?.status === 'pending');
 
   // Wizard active step state (1 Basic Info -> 2 Professional Details -> 3 Review & Publish)
   const [currentStep, setCurrentStep] = useState(1);
@@ -649,6 +659,44 @@ export default function BecomeExpert() {
   };
 
   const isSubmitting = isCreating || isUpdating || isPublishing || isUploading;
+
+  if (!isApprovedHost && !isHostLoading) {
+    return (
+      <div className="bg-[#FAFBFD] min-h-screen flex flex-col justify-between">
+        <Navbar />
+        <div className="pt-32 pb-16 px-4 flex-1 flex items-center justify-center">
+          <div className="max-w-md w-full bg-white rounded-3xl p-8 text-center shadow-xl border border-slate-100">
+            <div className={`w-16 h-16 ${isPendingHost ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-[#CB2A25]'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+              {isPendingHost ? (
+                <span className="text-2xl">⏳</span>
+              ) : (
+                <Users className="w-8 h-8" />
+              )}
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+              {isPendingHost ? "Account Verification Pending" : "Host Access Required"}
+            </h2>
+            <p className="text-slate-600 mb-6 text-sm leading-relaxed">
+              {isPendingHost
+                ? "Your host application is currently under review. You can create your expert profile once your host account is approved by admin."
+                : "You need to be an approved host to offer professional services and register as an expert. Please apply to become a host first."}
+            </p>
+            <div className="space-y-3">
+              {!isPendingHost && (
+                <Button onClick={() => navigate("/hosts")} className="w-full bg-[#CB2A25] hover:bg-[#b0221e] text-white">
+                  Apply to Become Host
+                </Button>
+              )}
+              <Button onClick={() => navigate("/people")} variant="outline" className="w-full">
+                Back to People
+              </Button>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#FAFBFD] min-h-screen flex flex-col justify-between">

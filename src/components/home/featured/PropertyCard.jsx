@@ -122,7 +122,7 @@ export const PropertyCard = React.memo(({ property }) => {
 
                 {/* Top Status Badge */}
                 <div className="absolute top-3.5 left-3.5 z-20">
-                    <StatusBadge status={propertyData.isVerified ? "approved" : "pending"} />
+                    <StatusBadge status={propertyData.isVerified ? "approved" : "unverified"} />
                 </div>
 
                 {/* Top Right Wishlist Action */}
