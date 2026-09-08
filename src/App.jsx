@@ -52,7 +52,7 @@ const PostStayRequestPage = safeLazy(() => import("@/app/accommodations/post-req
 const HostCreatePage = safeLazy(() => import("@/app/host/create/page"));
 const TravelPage = safeLazy(() => import("@/app/resources/travel/page"));
 const LegalPage = safeLazy(() => import("@/app/resources/legal/page"));
-const Signup = safeLazy(() => import("@/app/signup/page"));
+const Signup = safeLazy(() => import("@/app/signup/page"))
 const Signin = safeLazy(() => import("@/app/signin/page"));
 const AuthCallback = safeLazy(() => import("@/app/auth/AuthCallback"));
 const SupportPage = safeLazy(() => import("./components/mentorship/page"));
