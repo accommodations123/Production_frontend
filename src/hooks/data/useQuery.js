@@ -21,6 +21,7 @@ export function useQuery(queryFn, args, options = {}) {
 
     const cachedEntry = !skip ? queryCache.get(cacheKey) : undefined;
     const initialData = cachedEntry ? cachedEntry.data : undefined;
+    const tagsKey = Array.isArray(tags) ? tags.slice().sort().join(',') : String(tags || '');
 
     const [data, setData] = useState(initialData);
     const [isLoading, setIsLoading] = useState(!skip && initialData === undefined);
@@ -32,6 +33,10 @@ export function useQuery(queryFn, args, options = {}) {
     const isMountedRef = useRef(true);
     const queryFnRef = useRef(queryFn);
     queryFnRef.current = queryFn;
+    const dataRef = useRef(data);
+    dataRef.current = data;
+    const argsRef = useRef(args);
+    argsRef.current = args;
 
     const execute = useCallback(async () => {
         if (skip) {
@@ -41,12 +46,17 @@ export function useQuery(queryFn, args, options = {}) {
         }
 
         setIsFetching(true);
-        if (data === undefined && !queryCache.has(cacheKey)) {
-            setIsLoading(true);
+        if (dataRef.current === undefined) {
+            const cached = queryCache.get(cacheKey);
+            if (cached) {
+                setData(cached.data);
+            } else {
+                setIsLoading(true);
+            }
         }
 
         try {
-            const result = await queryFnRef.current(args);
+            const result = await queryFnRef.current(argsRef.current);
             if (isMountedRef.current) {
                 setData(result);
                 setIsSuccess(true);
@@ -66,7 +76,7 @@ export function useQuery(queryFn, args, options = {}) {
                 setIsFetching(false);
             }
         }
-    }, [skip, argsKey, cacheKey, data]);
+    }, [skip, argsKey, cacheKey]);
 
     useEffect(() => {
         isMountedRef.current = true;
@@ -89,7 +99,7 @@ export function useQuery(queryFn, args, options = {}) {
         });
 
         return unsubscribe;
-    }, [tags, skip, execute, cacheKey]);
+    }, [tagsKey, skip, execute, cacheKey]);
 
     return {
         data,

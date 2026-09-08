@@ -65,7 +65,7 @@ export function WishlistManager() {
   }, [allWishlist, activeTab]);
 
   const renderContent = () => {
-    if (isLoading || isFetching) {
+    if ((isLoading || isFetching) && allWishlist.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[350px] py-12">
           <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-3" />

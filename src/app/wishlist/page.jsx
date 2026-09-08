@@ -31,7 +31,7 @@ export default function WishlistPage() {
     ];
 
     const renderContent = () => {
-        if (isLoading || isFetching) {
+        if ((isLoading || isFetching) && (!data?.wishlist || data.wishlist.length === 0)) {
             return (
                 <div className="flex flex-col items-center justify-center min-h-[400px]">
                     <Loader2 className="w-10 h-10 animate-spin text-primary" />
