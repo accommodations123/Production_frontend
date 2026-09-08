@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { PROFILE_COLUMNS, sanitizePayload } from '../constants';
-import { getCurrentUserId, getCurrentUserObject } from '../userUtils';
+import { getCurrentUserId, getCurrentUserObject, clearUserCache } from '../userUtils';
 import { formatUserProfile, formatPersonProfile } from '../enrichmentUtils';
 import { parseFormDataWithUploads } from '../storageUtils';
 import { uploadToSupabaseStorage } from '@/lib/storageUtils';
@@ -253,6 +253,7 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 const { data, error } = await supabase.from('profiles').upsert(cleanProfile).select().maybeSingle();
                 if (error) throw error;
                 const formatted = formatUserProfile(data);
+                clearUserCache();
 
                 try {
                     if (payload.full_name || payload.name) {
@@ -326,6 +327,7 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 const { data, error } = await supabase.from('profiles').upsert(cleanProfile).select().maybeSingle()
                 if (error) throw error
                 const formatted = formatUserProfile(data);
+                clearUserCache();
 
                 // Notify admin only for new host applications (not profile edits by approved hosts)
                 if (!isAlreadyApproved) {

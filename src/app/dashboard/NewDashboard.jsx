@@ -35,6 +35,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateProfile, updateUserLocal } from "@/store/slices/authSlice";
 import { useGetMyTripsQuery } from "@/hooks/data/useTravelHooks";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 
 /* -------------------------------
    Utility: safe merge (NO overwrite)
@@ -127,19 +128,23 @@ export default function NewDashboard() {
   const handleUpdatePersonalInfo = async (formData) => {
     setIsUpdating(true);
     try {
+      let updatedUser = null;
       if (hostProfile?.id) {
         const res = await updateHost({ hostId: hostProfile.id, data: formData }).unwrap();
-        if (res?.success) {
-          refetchHost();
-          if (res.data?.user) {
-            dispatch(updateUserLocal(res.data.user));
-          }
-        }
+        updatedUser = res?.user || res?.profile || res?.host || res?.data?.user || res?.data?.profile;
       } else {
-        await dispatch(updateProfile(formData)).unwrap();
+        const res = await dispatch(updateProfile(formData)).unwrap();
+        updatedUser = res?.user || res?.profile || res?.data?.user || res?.data?.profile;
       }
+      if (updatedUser) {
+        dispatch(updateUserLocal(updatedUser));
+      }
+      await refetchHost();
+      toast.success("Personal details updated successfully!");
     } catch (err) {
       console.error("Failed to update profile:", err);
+      toast.error("Failed to update profile. Please try again.");
+      throw err;
     } finally {
       setIsUpdating(false);
     }

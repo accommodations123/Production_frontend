@@ -37,6 +37,7 @@ const DetailCard = ({ title, description, children, onEdit, isEditing, icon: Ico
         </div>
 
         <button
+          type="button"
           onClick={onEdit}
           disabled={isUpdating}
           className={cn(
@@ -94,7 +95,7 @@ const InfoField = ({
       type === "textarea" ? (
         <textarea
           name={name}
-          value={value}
+          value={value || ""}
           onChange={onChange}
           placeholder={placeholder || label}
           rows={4}
@@ -110,7 +111,7 @@ const InfoField = ({
           <input
             type={type}
             name={name}
-            value={value}
+            value={value || ""}
             onChange={(e) => {
               let val = e.target.value;
               if (name === "phone" || name === "whatsapp" || name === "zip") {
@@ -290,6 +291,9 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
   };
 
   useEffect(() => {
+    // Prevent wiping form fields while user is actively editing any section
+    if (editStates.personal || editStates.location || editStates.social) return;
+
     if (initialData) {
       setFormData(prev => {
         const defaultCode = activeCountry?.phoneCode || "+91";
@@ -320,7 +324,7 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
         };
       });
     }
-  }, [initialData]);
+  }, [initialData, editStates.personal, editStates.location, editStates.social]);
 
   // Update default prefix only if no country or phone is already configured
   useEffect(() => {
@@ -351,6 +355,9 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
         const cleanInsta = extractUsername('instagram', formData.instagram);
         const cleanPhoneNum = (formData.phone || "").replace(/\D/g, "");
         const cleanWhatsappNum = (formData.whatsapp || "").replace(/\D/g, "");
+
+        const finalPhone = cleanPhoneNum ? `${formData.phoneCode} ${cleanPhoneNum}` : "";
+        const finalWhatsapp = cleanWhatsappNum ? `${formData.whatsappCode} ${cleanWhatsappNum}` : "";
         
         setFormData(prev => ({
           ...prev,
@@ -367,19 +374,19 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
               let val = formData[key];
               if (key === 'facebook') val = cleanFb;
               if (key === 'instagram') val = cleanInsta;
-              payload.append(key, val);
+              if (val !== undefined && val !== null) {
+                payload.append(key, val);
+              }
             }
           });
 
-          const finalPhone = cleanPhoneNum ? `${formData.phoneCode} ${cleanPhoneNum}` : "";
-          const finalWhatsapp = cleanWhatsappNum ? `${formData.whatsappCode} ${cleanWhatsappNum}` : "";
-
           payload.append('phone', finalPhone);
           payload.append('whatsapp', finalWhatsapp);
-          payload.append('zip_code', formData.zip);
-          payload.append('street_address', formData.address);
+          payload.append('zip_code', formData.zip || "");
+          payload.append('street_address', formData.address || "");
           if (formData.full_name) {
             payload.append('name', formData.full_name);
+            payload.append('full_name', formData.full_name);
           }
 
           await onUpdate(payload);
@@ -387,7 +394,6 @@ export const PersonalInfo = ({ initialData, verificationState, onUpdate, isUpdat
         setEditStates(prev => ({ ...prev, [section]: false }));
       } catch (error) {
         console.error("Update failed", error);
-        toast.error("Failed to update profile. Please try again.");
       }
     } else {
       setEditStates(prev => ({ ...prev, [section]: true }));
