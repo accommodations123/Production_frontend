@@ -10,7 +10,7 @@ import { createInAppAndEmailNotification, notifyAdminsOfUserSubmission } from '.
 
 export async function handlePeopleRoute({ cleanUrl, method, body, queryParams }) {
         // ── 7. PEOPLE / EXPERTS / PROFESSIONALS ─────────────────────
-        if (cleanUrl === 'people' || cleanUrl.startsWith('people/') || cleanUrl.startsWith('expert') || cleanUrl.startsWith('experts') || cleanUrl.startsWith('advisor') || cleanUrl.startsWith('advisors') || cleanUrl.startsWith('admin/people') || cleanUrl.startsWith('admin/professionals') || cleanUrl.startsWith('admin/expert') || cleanUrl.startsWith('admin/experts') || cleanUrl.startsWith('admin/advisor') || cleanUrl.startsWith('admin/advisors') || cleanUrl.startsWith('admin/pending/pending-people') || cleanUrl.startsWith('admin/approved/approved-people') || cleanUrl.startsWith('admin/rejected/rejected-people') || cleanUrl.startsWith('admin/pending/pending-expert') || cleanUrl.startsWith('admin/approved/approved-expert') || cleanUrl.startsWith('admin/rejected/rejected-expert') || cleanUrl.startsWith('admin/pending/pending-advisor') || cleanUrl.startsWith('admin/approved/approved-advisor') || cleanUrl.startsWith('admin/rejected/rejected-advisor')) {
+        if (cleanUrl === 'people' || cleanUrl.startsWith('people/') || cleanUrl.startsWith('admin/people') || cleanUrl.startsWith('admin/professionals') || cleanUrl.startsWith('admin/pending/pending-people') || cleanUrl.startsWith('admin/approved/approved-people') || cleanUrl.startsWith('admin/rejected/rejected-people')) {
             const userObj = await getCurrentUserObject()
             const userId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
 

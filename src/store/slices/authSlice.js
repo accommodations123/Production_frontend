@@ -47,11 +47,11 @@ export const fetchCurrentUser = createAsyncThunk(
         try {
             // Check Supabase session first
             const { data: sessionData } = await supabase.auth.getSession();
-            const token = sessionData?.session?.access_token;
-            if (token) localStorage.setItem('token', token);
-
             const sbUser = sessionData?.session?.user;
             if (sbUser) {
+                const token = sessionData.session?.access_token;
+                if (token) localStorage.setItem('token', token);
+
                 const user = {
                     id: sbUser.id,
                     email: sbUser.email,
@@ -71,10 +71,6 @@ export const fetchCurrentUser = createAsyncThunk(
                 try {
                     const parsed = JSON.parse(stored);
                     if (parsed && (parsed.id || parsed.email)) {
-                        const fallbackToken = parsed.token || parsed.access_token || parsed.data?.token || parsed.data?.access_token;
-                        if (fallbackToken && !localStorage.getItem('token')) {
-                            localStorage.setItem('token', fallbackToken);
-                        }
                         return { user: parsed };
                     }
                 } catch (parseError) {
@@ -115,16 +111,9 @@ export const loginUser = createAsyncThunk(
         try {
             purgeAllUserCaches(dispatch);
             const response = await axiosClient.post('login', credentials);
-            const resData = response.data;
-            const token = resData?.token || resData?.access_token || resData?.data?.token || resData?.data?.access_token || resData?.session?.access_token;
-            if (token) localStorage.setItem('token', token);
-            const user = resData?.user || resData?.data?.user;
-            if (user && (user.id || user.email)) {
-                localStorage.setItem('user', JSON.stringify(user));
-            }
             // Force getMe subscribers to refetch with the new session
             invalidateTags(['User']);
-            return resData;
+            return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Login failed');
         }
@@ -205,11 +194,7 @@ export const verifyOtp = createAsyncThunk(
             const response = await axiosClient.post('otp/verify-otp', payload);
             const resData = response.data;
             const user = resData?.user || resData?.data?.user;
-            const token = resData?.token || resData?.access_token || resData?.data?.token || resData?.data?.access_token || resData?.session?.access_token;
-            if (token) {
-                localStorage.setItem('token', token);
-            }
-            const formatted = { ...resData, user, token };
+            const formatted = { ...resData, user };
             if (user) {
                 localStorage.setItem('user', JSON.stringify(user));
             }

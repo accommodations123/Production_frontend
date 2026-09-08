@@ -86,7 +86,6 @@ export default function App() {
                                 <Route path="/help" element={<Help />} />
                                 <Route path="/contact" element={<Contact />} />
                                 <Route path="/account-v2" element={<NewDashboard />} />
-                                <Route path="/notifications" element={<Navigate to="/account-v2?tab=notifications" replace />} />
                                 <Route path="/events" element={<EventsPage />} />
                                 <Route path="/events/host" element={
                                     <HostGuard>

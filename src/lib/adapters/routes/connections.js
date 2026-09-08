@@ -472,5 +472,5 @@ export async function handleConnectionsRoute({ cleanUrl, method, body, queryPara
                 return { data: { success: true, message: `Request ${finalStatus}`, data: targetReq } };
             }
         }
-        return undefined;
+        return null;
 }

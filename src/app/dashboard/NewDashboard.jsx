@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import {
   User, Home, MapPin, Plane, Building2, Calendar,
   LayoutDashboard, Briefcase, ShoppingBag, Users, Heart, Sparkles,
@@ -23,7 +23,6 @@ import { MyConnectionRequests } from "@/components/dashboard/MyConnectionRequest
 import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
 import { AdminNotificationCenter } from "@/components/admin/AdminNotificationCenter";
 import { Bell } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 
 import {
   useGetHostProfileQuery,
@@ -60,23 +59,6 @@ export default function NewDashboard() {
   const [refreshKey] = useState(() => Date.now());
 
   const activeTab = searchParams.get("tab") || "overview";
-
-  // Ensure auth token is reliably synchronized to localStorage on accounts page
-  useEffect(() => {
-    async function syncSessionToken() {
-      try {
-        if (typeof window !== "undefined" && !localStorage.getItem("token")) {
-          const { data } = await supabase.auth.getSession();
-          if (data?.session?.access_token) {
-            localStorage.setItem("token", data.session.access_token);
-          }
-        }
-      } catch (e) {
-        console.debug("Dashboard token sync note:", e);
-      }
-    }
-    syncSessionToken();
-  }, []);
 
   /* -------------------------------
      Host profile (NO SKIP)

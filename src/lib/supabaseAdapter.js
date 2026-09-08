@@ -95,51 +95,51 @@ export async function executeSupabaseRequest(args) {
 
         // 1. PROPERTIES / ACCOMMODATIONS
         response = await handlePropertiesRoute(context);
-        if (response !== undefined && response !== null) return response;
+        if (response !== undefined) return response;
 
         // 2. EVENTS
         response = await handleEventsRoute(context);
-        if (response !== undefined && response !== null) return response;
+        if (response !== undefined) return response;
 
         // 3. BUY & SELL / MARKETPLACE
         response = await handleMarketplaceRoute(context);
-        if (response !== undefined && response !== null) return response;
+        if (response !== undefined) return response;
 
         // 4. TRAVEL / TRIPS
         response = await handleTravelRoute(context);
-        if (response !== undefined && response !== null) return response;
+        if (response !== undefined) return response;
 
         // 5. STAY REQUESTS
         response = await handleStayRequestsRoute(context);
-        if (response !== undefined && response !== null) return response;
+        if (response !== undefined) return response;
 
         // 6. PROFILES / HOST / USER
         response = await handleProfilesRoute(context);
-        if (response !== undefined && response !== null) return response;
+        if (response !== undefined) return response;
 
         // 7. PEOPLE / EXPERTS / PROFESSIONALS
         response = await handlePeopleRoute(context);
-        if (response !== undefined && response !== null) return response;
+        if (response !== undefined) return response;
 
         // 8. CAREER, JOBS & APPLICATIONS
         response = await handleCareerRoute(context);
-        if (response !== undefined && response !== null) return response;
+        if (response !== undefined) return response;
 
         // 9. WISHLIST
         response = await handleWishlistRoute(context);
-        if (response !== undefined && response !== null) return response;
+        if (response !== undefined) return response;
 
         // 10. CONNECTION REQUESTS
         response = await handleConnectionsRoute(context);
-        if (response !== undefined && response !== null) return response;
+        if (response !== undefined) return response;
 
         // 11. NOTIFICATIONS
         response = await handleNotificationsRoute(context);
-        if (response !== undefined && response !== null) return response;
+        if (response !== undefined) return response;
 
         // 12. CONTACT FORM SUBMISSIONS & ADMIN MESSAGES
         response = await handleContactRoute(context);
-        if (response !== undefined && response !== null) return response;
+        if (response !== undefined) return response;
 
         // Default empty response
         return { data: {} };
