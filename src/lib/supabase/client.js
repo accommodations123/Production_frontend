@@ -20,4 +20,26 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
+// Automatically synchronize Supabase session token to localStorage.token
+if (typeof window !== 'undefined') {
+  try {
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.access_token) {
+        localStorage.setItem('token', session.access_token);
+      } else if (event === 'SIGNED_OUT') {
+        localStorage.removeItem('token');
+      }
+    });
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (data?.session?.access_token && !localStorage.getItem('token')) {
+        localStorage.setItem('token', data.session.access_token);
+      }
+    }).catch(() => {});
+  } catch (err) {
+    console.debug('Supabase token sync init note:', err);
+  }
+}
+
 export default supabase;
+
