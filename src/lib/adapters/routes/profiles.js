@@ -1,11 +1,34 @@
 import { supabase } from '@/lib/supabaseClient';
 import { PROFILE_COLUMNS, sanitizePayload } from '../constants';
 import { getCurrentUserId, getCurrentUserObject } from '../userUtils';
-import { formatUserProfile } from '../enrichmentUtils';
+import { formatUserProfile, formatPersonProfile } from '../enrichmentUtils';
 import { parseFormDataWithUploads } from '../storageUtils';
 import { uploadToSupabaseStorage } from '@/lib/storageUtils';
 import { NOTIFICATION_TYPES } from '@/shared/constants/notificationTypes';
 import { createInAppAndEmailNotification, notifyAdminsOfUserSubmission } from '../notificationUtils';
+
+export function isPeopleProfile(p) {
+    if (!p) return false;
+    if (p.role === 'expert' || p.role === 'advisor' || p.role === 'professional') return true;
+    if (p.is_expert === true || p.is_advisor === true || p.expert_status) return true;
+
+    let meta = {};
+    const rawAddr = p.street_address || p.address;
+    if (typeof rawAddr === 'string' && (rawAddr.startsWith('{') || rawAddr.startsWith('['))) {
+        try { meta = JSON.parse(rawAddr); } catch {}
+    }
+
+    const hasProfession = Boolean(p.profession && p.profession.trim() && p.profession.toLowerCase() !== 'user' && p.profession.toLowerCase() !== 'host' && p.profession.toLowerCase() !== 'guest');
+    const hasHeadline = Boolean(p.headline && p.headline.trim());
+    const hasBio = Boolean((meta.bio && meta.bio.trim()) || (p.bio && p.bio.trim()));
+    const hasCategory = Boolean((meta.category && meta.category.trim() && meta.category.toLowerCase() !== 'host') || (p.category && p.category.trim() && p.category.toLowerCase() !== 'host'));
+    const hasSkills = (Array.isArray(meta.skills) && meta.skills.length > 0) || (Array.isArray(p.skills) && p.skills.length > 0);
+    const hasHourlyRate = (meta.hourly_rate !== null && meta.hourly_rate !== undefined) || (p.hourly_rate !== null && p.hourly_rate !== undefined);
+    const hasEducations = (Array.isArray(meta.educations) && meta.educations.length > 0) || (Array.isArray(p.educations) && p.educations.length > 0);
+    const hasServices = Array.isArray(meta.services) && meta.services.length > 0;
+
+    return hasProfession || hasHeadline || hasBio || hasCategory || hasSkills || hasHourlyRate || hasEducations || hasServices;
+}
 
 export async function handleProfilesRoute({ cleanUrl, method, body, queryParams }) {
         // ── 6. PROFILES / HOST / USER ──────────────────────────────
@@ -14,52 +37,136 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
             const userId = userObj?.id || userObj?.user_id || userObj?.user?.id || userObj?._id || await getCurrentUserId()
             const userEmail = userObj?.email || userObj?.user?.email
 
-            // Admin Host Approval Actions
+            // Admin Approval Actions (Differentiates between People/Advisor and Host)
             if ((cleanUrl.includes('/approve/') || cleanUrl.endsWith('/approve')) && method !== 'GET') {
                 const id = cleanUrl.split('/').pop()
-                const { data } = await supabase.from('profiles').update({ status: 'approved', is_approved: true, role: 'host' }).eq('id', id).select().maybeSingle()
-                if (data) {
-                    await createInAppAndEmailNotification({
-                        userId: data.id,
-                        recipientId: data.id,
-                        userEmail: data.email,
-                        title: '🎉 Host Application Approved!',
-                        message: `Congratulations! Your Host Application has been approved by NextKinLife admin. You can now create and manage spaces, events, and trips!`,
-                        type: NOTIFICATION_TYPES.HOST_APPROVED,
-                        entityType: 'host',
-                        entityId: data.id,
-                        actionUrl: `/account-v2`,
-                        link: `/account-v2`
-                    });
+                const { data: existing } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle()
+                
+                const isPeopleSection = 
+                    cleanUrl.includes('people') || 
+                    cleanUrl.includes('expert') || 
+                    cleanUrl.includes('advisor') || 
+                    cleanUrl.includes('professional') ||
+                    body?.role === 'expert' ||
+                    body?.role === 'advisor' ||
+                    body?.type === 'expert' ||
+                    body?.type === 'people' ||
+                    isPeopleProfile(existing)
+
+                if (isPeopleSection) {
+                    const { data } = await supabase.from('profiles').update({ status: 'approved', is_approved: true, is_verified: true, role: 'expert' }).eq('id', id).select().maybeSingle()
+                    const profileData = data || existing
+                    if (profileData) {
+                        await createInAppAndEmailNotification({
+                            userId: profileData.id,
+                            recipientId: profileData.id,
+                            userEmail: profileData.email,
+                            title: '🎉 Advisor Profile Approved & Verified!',
+                            message: `Congratulations! Your professional advisor profile has been approved by NextKinLife admin and is now live in the People directory.`,
+                            type: NOTIFICATION_TYPES.EXPERT_APPROVED,
+                            entityType: 'expert',
+                            entityId: profileData.id,
+                            actionUrl: `/people/${profileData.id}`,
+                            link: `/people/${profileData.id}`,
+                            metadata: profileData
+                        });
+                    }
+                    return { data: { success: true, host: profileData, profile: profileData ? formatPersonProfile(profileData) : null, message: 'Advisor profile approved' } }
+                } else {
+                    const { data } = await supabase.from('profiles').update({ status: 'approved', is_approved: true, role: 'host' }).eq('id', id).select().maybeSingle()
+                    const hostData = data || existing
+                    if (hostData) {
+                        await createInAppAndEmailNotification({
+                            userId: hostData.id,
+                            recipientId: hostData.id,
+                            userEmail: hostData.email,
+                            title: '🎉 Host Application Approved!',
+                            message: `Congratulations! Your Host Application has been approved by NextKinLife admin. You can now create and manage spaces, events, and trips!`,
+                            type: NOTIFICATION_TYPES.HOST_APPROVED,
+                            entityType: 'host',
+                            entityId: hostData.id,
+                            actionUrl: `/account-v2`,
+                            link: `/account-v2`,
+                            metadata: hostData
+                        });
+                    }
+                    return { data: { success: true, host: hostData, profile: hostData, message: 'Host approved' } }
                 }
-                return { data: { success: true, host: data, profile: data, message: 'Host approved' } }
             }
+
+            // Admin Rejection Actions (Differentiates between People/Advisor and Host)
             if ((cleanUrl.includes('/reject/') || cleanUrl.endsWith('/reject')) && method !== 'GET') {
                 const id = cleanUrl.split('/').pop()
-                const { data } = await supabase.from('profiles').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
-                if (data) {
-                    await createInAppAndEmailNotification({
-                        userId: data.id,
-                        recipientId: data.id,
-                        userEmail: data.email,
-                        title: '⚠️ Host Application Status Update',
-                        message: `Your host application was reviewed by our moderation team and requires additional verification documents.`,
-                        type: NOTIFICATION_TYPES.HOST_REJECTED,
-                        entityType: 'host',
-                        entityId: data.id,
-                        actionUrl: `/hosts`,
-                        link: `/hosts`
-                    });
+                const { data: existing } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle()
+                
+                const isPeopleSection = 
+                    cleanUrl.includes('people') || 
+                    cleanUrl.includes('expert') || 
+                    cleanUrl.includes('advisor') || 
+                    cleanUrl.includes('professional') ||
+                    body?.role === 'expert' ||
+                    body?.role === 'advisor' ||
+                    body?.type === 'expert' ||
+                    body?.type === 'people' ||
+                    isPeopleProfile(existing)
+
+                if (isPeopleSection) {
+                    const { data } = await supabase.from('profiles').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
+                    const profileData = data || existing
+                    if (profileData) {
+                        await createInAppAndEmailNotification({
+                            userId: profileData.id,
+                            recipientId: profileData.id,
+                            userEmail: profileData.email,
+                            title: '⚠️ Advisor Profile Update',
+                            message: `Your professional advisor profile requires revisions according to community guidelines.`,
+                            type: NOTIFICATION_TYPES.EXPERT_REJECTED,
+                            entityType: 'expert',
+                            entityId: profileData.id,
+                            actionUrl: `/people/become`,
+                            link: `/people/become`,
+                            metadata: profileData
+                        });
+                    }
+                    return { data: { success: true, host: profileData, profile: profileData ? formatPersonProfile(profileData) : null, message: 'Advisor profile rejected' } }
+                } else {
+                    const { data } = await supabase.from('profiles').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
+                    const hostData = data || existing
+                    if (hostData) {
+                        await createInAppAndEmailNotification({
+                            userId: hostData.id,
+                            recipientId: hostData.id,
+                            userEmail: hostData.email,
+                            title: '⚠️ Host Application Status Update',
+                            message: `Your host application was reviewed by our moderation team and requires additional verification documents.`,
+                            type: NOTIFICATION_TYPES.HOST_REJECTED,
+                            entityType: 'host',
+                            entityId: hostData.id,
+                            actionUrl: `/hosts`,
+                            link: `/hosts`,
+                            metadata: hostData
+                        });
+                    }
+                    return { data: { success: true, host: hostData, profile: hostData, message: 'Host rejected' } }
                 }
-                return { data: { success: true, host: data, profile: data, message: 'Host rejected' } }
             }
+
             if (cleanUrl.includes('pending') && method === 'GET') {
+                // If this is specifically asking for people/experts, let handlePeopleRoute handle it
+                if (cleanUrl.includes('people') || cleanUrl.includes('expert') || cleanUrl.includes('advisor') || cleanUrl.includes('professional')) {
+                    return undefined;
+                }
                 const { data } = await supabase.from('profiles').select('*').eq('status', 'pending').order('created_at', { ascending: false })
-                return { data: { hosts: data || [], profiles: data || [] } }
+                const hostOnly = (data || []).filter(p => !isPeopleProfile(p))
+                return { data: { hosts: hostOnly, profiles: hostOnly } }
             }
             if (cleanUrl.includes('rejected') && method === 'GET') {
+                if (cleanUrl.includes('people') || cleanUrl.includes('expert') || cleanUrl.includes('advisor') || cleanUrl.includes('professional')) {
+                    return undefined;
+                }
                 const { data } = await supabase.from('profiles').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
-                return { data: { hosts: data || [], profiles: data || [] } }
+                const hostOnly = (data || []).filter(p => !isPeopleProfile(p))
+                return { data: { hosts: hostOnly, profiles: hostOnly } }
             }
 
             // Current logged-in user profile & host status

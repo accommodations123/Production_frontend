@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { 
     Bell, Check, Trash2, Search, Filter, Home, Calendar, 
     ShoppingBag, ShieldCheck, MessageSquare, Briefcase, Mail, 
-    Sparkles, ExternalLink, CheckCheck, RefreshCw 
+    Sparkles, ExternalLink, CheckCheck, RefreshCw, UserCheck 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -176,6 +176,10 @@ export function NotificationCenter() {
             case NOTIFICATION_TYPES.HOST_APPROVED:
             case NOTIFICATION_TYPES.HOST_REJECTED:
                 return <ShieldCheck className="w-4 h-4 text-indigo-600" />;
+            case NOTIFICATION_TYPES.EXPERT_APPLICATION_SUBMITTED:
+            case NOTIFICATION_TYPES.EXPERT_APPROVED:
+            case NOTIFICATION_TYPES.EXPERT_REJECTED:
+                return <UserCheck className="w-4 h-4 text-violet-600" />;
             case NOTIFICATION_TYPES.CONNECTION_REQUEST_RECEIVED:
             case NOTIFICATION_TYPES.CONNECTION_REQUEST_ACCEPTED:
                 return <MessageSquare className="w-4 h-4 text-purple-600" />;

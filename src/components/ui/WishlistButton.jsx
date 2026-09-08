@@ -4,9 +4,10 @@ import { Heart } from 'lucide-react';
 import { useCheckWishlistStatusQuery, useToggleWishlistMutation } from '@/hooks/data/useWishlistHooks';
 import { useAuth } from '@/hooks/useAuth';
 
-function isItemWishlistedInCache(id) {
+function isItemWishlistedInCache(id, itemType) {
     if (typeof window === 'undefined' || !id) return false;
     const idStr = String(id);
+    const normType = (itemType || '').toLowerCase().replace(/[-_\s]/g, '');
     try {
         for (let i = 0; i < localStorage.length; i++) {
             const k = localStorage.key(i);
@@ -15,7 +16,13 @@ function isItemWishlistedInCache(id) {
                 if (raw && raw.includes(idStr)) {
                     try {
                         const list = JSON.parse(raw);
-                        if (Array.isArray(list) && list.some(item => String(item.id || item.item_id) === idStr)) {
+                        if (Array.isArray(list) && list.some(item => {
+                            const matchId = String(item.id || item.item_id) === idStr;
+                            if (!matchId) return false;
+                            if (!normType || !item.type) return true;
+                            const itNorm = (item.type || '').toLowerCase().replace(/[-_\s]/g, '');
+                            return itNorm === normType || (normType.includes('buy') && itNorm.includes('buy'));
+                        })) {
                             return true;
                         }
                     } catch {}
@@ -27,15 +34,15 @@ function isItemWishlistedInCache(id) {
             try {
                 const parsed = JSON.parse(rawUser);
                 const street = parsed?.street_address || parsed?.user?.street_address;
-                if (street && typeof street === 'string' && (street.startsWith('{') || street.startsWith('['))) {
-                    const meta = JSON.parse(street);
-                    if (Array.isArray(meta?.wishlist) && meta.wishlist.some(item => String(item.id || item.item_id) === idStr)) {
-                        return true;
-                    }
-                } else if (street && typeof street === 'object') {
-                    if (Array.isArray(street?.wishlist) && street.wishlist.some(item => String(item.id || item.item_id) === idStr)) {
-                        return true;
-                    }
+                const meta = typeof street === 'string' ? JSON.parse(street) : street;
+                if (Array.isArray(meta?.wishlist) && meta.wishlist.some(item => {
+                    const matchId = String(item.id || item.item_id) === idStr;
+                    if (!matchId) return false;
+                    if (!normType || !item.type) return true;
+                    const itNorm = (item.type || '').toLowerCase().replace(/[-_\s]/g, '');
+                    return itNorm === normType || (normType.includes('buy') && itNorm.includes('buy'));
+                })) {
+                    return true;
                 }
             } catch {}
         }
@@ -68,7 +75,7 @@ export function WishlistButton({
     }, [authUser]);
 
     // Synchronously check local cache on mount so the red color is immediately present on page refresh
-    const [isWishlisted, setIsWishlisted] = useState(() => isItemWishlistedInCache(itemId));
+    const [isWishlisted, setIsWishlisted] = useState(() => isItemWishlistedInCache(itemId, itemType));
 
     // Check wishlist status from server
     const { data } = useCheckWishlistStatusQuery(
@@ -82,30 +89,10 @@ export function WishlistButton({
         if (data) {
             const status = data.isWishlisted ?? data.is_wishlisted ?? data.data?.isWishlisted ?? data.data?.is_wishlisted ?? data.isSaved ?? data.saved;
             if (typeof status !== 'undefined') {
-                const isSaved = Boolean(status);
-                setIsWishlisted(isSaved);
-
-                // Warm local storage cache so future refreshes always initialize with the correct state
-                try {
-                    const uId = user?.id || user?.user_id || user?._id;
-                    const keys = [`user_wishlist_${uId || 'guest'}`, 'user_wishlist_guest'];
-                    keys.forEach((key) => {
-                        const raw = localStorage.getItem(key);
-                        let list = raw ? JSON.parse(raw) : [];
-                        if (!Array.isArray(list)) list = [];
-                        if (isSaved) {
-                            if (!list.some(i => String(i.id || i.item_id) === String(itemId))) {
-                                list.push({ id: itemId, item_id: itemId, type: itemType, created_at: new Date().toISOString() });
-                            }
-                        } else {
-                            list = list.filter(i => String(i.id || i.item_id) !== String(itemId));
-                        }
-                        localStorage.setItem(key, JSON.stringify(list));
-                    });
-                } catch {}
+                setIsWishlisted(Boolean(status));
             }
         }
-    }, [data, itemId, itemType, user]);
+    }, [data]);
 
     const handleToggle = async (e) => {
         e.preventDefault();
@@ -116,27 +103,9 @@ export function WishlistButton({
             return;
         }
 
-        const nextState = !isWishlisted;
+        const previousState = isWishlisted;
+        const nextState = !previousState;
         setIsWishlisted(nextState);
-
-        // Optimistically update local cache so refresh immediately preserves the new state
-        try {
-            const uId = user.id || user.user_id || user._id;
-            const keys = [`user_wishlist_${uId || 'guest'}`, 'user_wishlist_guest'];
-            keys.forEach((key) => {
-                const raw = localStorage.getItem(key);
-                let list = raw ? JSON.parse(raw) : [];
-                if (!Array.isArray(list)) list = [];
-                if (nextState) {
-                    if (!list.some(i => String(i.id || i.item_id) === String(itemId))) {
-                        list.push({ id: itemId, item_id: itemId, type: itemType, created_at: new Date().toISOString() });
-                    }
-                } else {
-                    list = list.filter(i => String(i.id || i.item_id) !== String(itemId));
-                }
-                localStorage.setItem(key, JSON.stringify(list));
-            });
-        } catch {}
 
         try {
             const result = await toggleWishlist({
@@ -159,7 +128,7 @@ export function WishlistButton({
             }
         } catch (error) {
             // Revert on error
-            setIsWishlisted(!nextState);
+            setIsWishlisted(previousState);
             console.error("Failed to toggle wishlist:", error);
             toast.error("Failed to update wishlist");
         }
@@ -184,4 +153,3 @@ export function WishlistButton({
 }
 
 export default WishlistButton;
-
