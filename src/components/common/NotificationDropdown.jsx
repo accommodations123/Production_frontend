@@ -214,24 +214,24 @@ export function NotificationDropdown({ minimal = false }) {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                         {!isRead && (
                             <button
+                                type="button"
                                 onClick={(e) => handleMarkAsRead(e, notif.id)}
-                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-lg transition-all text-white/60 hover:text-sky-400"
-                                title="Mark as read"
+                                className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-sky-400 focus:outline-none"
                                 aria-label="Mark as read"
                             >
-                                <Check className="w-3.5 h-3.5" />
+                                <Check className="w-3.5 h-3.5 pointer-events-none" />
                             </button>
                         )}
                         <button
+                            type="button"
                             onClick={(e) => handleDeleteNotification(e, notif.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded-lg transition-all text-white/60 hover:text-red-400"
-                            title="Delete notification"
+                            className="p-1 hover:bg-red-500/20 rounded-lg transition-colors text-white/60 hover:text-red-400 focus:outline-none"
                             aria-label="Delete notification"
                         >
-                            <X className="w-3.5 h-3.5" />
+                            <X className="w-3.5 h-3.5 pointer-events-none" />
                         </button>
                     </div>
                 </div>
