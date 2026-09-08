@@ -174,15 +174,22 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 if (!userId && !userEmail) return { data: { host: null, user: null, profile: null } }
 
                 let profile = null
-                if (userId) {
+                if (userObj && (userObj.role || userObj.status !== undefined || userObj.is_approved !== undefined)) {
+                    profile = userObj;
+                }
+                if (!profile && userId) {
                     try {
-                        const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+                        const profilePromise = supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+                        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ data: null }), 2500))
+                        const { data } = await Promise.race([profilePromise, timeoutPromise])
                         profile = data
                     } catch {}
                 }
                 if (!profile && userEmail) {
                     try {
-                        const { data } = await supabase.from('profiles').select('*').eq('email', userEmail).maybeSingle()
+                        const profilePromise = supabase.from('profiles').select('*').eq('email', userEmail).maybeSingle()
+                        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ data: null }), 2500))
+                        const { data } = await Promise.race([profilePromise, timeoutPromise])
                         profile = data
                     } catch {}
                 }

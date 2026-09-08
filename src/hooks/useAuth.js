@@ -21,7 +21,7 @@ export function useAuth() {
 
     return {
         user,
-        loading: isLoading,
+        loading: !isValidUser && isLoading,
         error,
         isAuthenticated: (isValidUser && !error) || hasToken
     };

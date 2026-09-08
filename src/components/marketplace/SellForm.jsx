@@ -321,7 +321,7 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
     skip: !isUserLoading && !userData
   });
 
-  const isChecking = isUserLoading;
+  const isChecking = !userData && isUserLoading;
 
   // State
   const [title, setTitle] = useState("");

@@ -1,6 +1,19 @@
 import { supabase } from '@/lib/supabaseClient';
 
-export async function getCurrentUserObject() {
+let cachedUserObject = null;
+let cachedUserTimestamp = 0;
+const CACHE_TTL_MS = 15000; // 15 seconds in-memory cache to eliminate duplicate DB roundtrips
+
+export function clearUserCache() {
+    cachedUserObject = null;
+    cachedUserTimestamp = 0;
+}
+
+export async function getCurrentUserObject(forceFresh = false) {
+    if (!forceFresh && cachedUserObject && (Date.now() - cachedUserTimestamp < CACHE_TTL_MS)) {
+        return cachedUserObject;
+    }
+
     try {
         let storedUser = null;
         if (typeof window !== 'undefined') {
@@ -29,7 +42,10 @@ export async function getCurrentUserObject() {
         let authUser = null;
         if (supabase) {
             try {
-                const { data } = await supabase.auth.getSession();
+                // Safeguard against browser navigator.locks stalls with 1500ms timeout
+                const sessionPromise = supabase.auth.getSession();
+                const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ data: { session: null } }), 1500));
+                const { data } = await Promise.race([sessionPromise, timeoutPromise]);
                 if (data?.session?.user) authUser = data.session.user;
             } catch {}
         }
@@ -37,13 +53,22 @@ export async function getCurrentUserObject() {
         const mergedId = storedUser?.id || storedUser?.user_id || authUser?.id;
         if (mergedId && supabase) {
             try {
-                const { data: profile } = await supabase.from('profiles').select('*').eq('id', mergedId).maybeSingle();
+                const profilePromise = supabase.from('profiles').select('*').eq('id', mergedId).maybeSingle();
+                const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ data: null }), 2000));
+                const { data: profile } = await Promise.race([profilePromise, timeoutPromise]);
                 if (profile) {
-                    return { ...authUser, ...storedUser, ...profile };
+                    const merged = { ...authUser, ...storedUser, ...profile };
+                    cachedUserObject = merged;
+                    cachedUserTimestamp = Date.now();
+                    return merged;
                 }
             } catch {}
         }
-        return storedUser || authUser || null;
+
+        const fallback = storedUser || authUser || null;
+        cachedUserObject = fallback;
+        cachedUserTimestamp = Date.now();
+        return fallback;
     } catch {
         return null;
     }
@@ -52,9 +77,10 @@ export async function getCurrentUserObject() {
 // Helper to get active user ID
 export async function getCurrentUserId() {
     try {
-        const user = await getCurrentUserObject()
-        return user?.id || user?.user_id || user?._id || null
+        if (cachedUserObject?.id) return cachedUserObject.id;
+        const user = await getCurrentUserObject();
+        return user?.id || user?.user_id || user?._id || null;
     } catch {
-        return null
+        return null;
     }
 }
