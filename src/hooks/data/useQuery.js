@@ -1,9 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { subscribeTags } from '@/lib/supabase/eventBus';
 
-// In-memory query cache for instant (0ms) data resolution across component mounts
-const queryCache = new Map();
-
 /**
  * Custom hook providing RTK Query-compatible data fetching semantics
  * using direct async service functions.
@@ -15,24 +12,19 @@ const queryCache = new Map();
  */
 export function useQuery(queryFn, args, options = {}) {
     const { skip = false, tags = [] } = options;
-
-    // Stable string representation of arguments to prevent infinite fetch loops
-    const argsKey = typeof args === 'object' && args !== null ? JSON.stringify(args) : String(args);
-    const cacheKey = (queryFn.name || 'anon') + ':' + argsKey;
-
-    const cachedEntry = !skip ? queryCache.get(cacheKey) : undefined;
-    const initialData = cachedEntry ? cachedEntry.data : undefined;
-
-    const [data, setData] = useState(initialData);
-    const [isLoading, setIsLoading] = useState(!skip && initialData === undefined);
+    const [data, setData] = useState(undefined);
+    const [isLoading, setIsLoading] = useState(!skip);
     const [isFetching, setIsFetching] = useState(!skip);
     const [isError, setIsError] = useState(false);
     const [error, setError] = useState(null);
-    const [isSuccess, setIsSuccess] = useState(initialData !== undefined);
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const isMountedRef = useRef(true);
     const queryFnRef = useRef(queryFn);
     queryFnRef.current = queryFn;
+
+    // Stable string representation of arguments to prevent infinite fetch loops
+    const argsKey = typeof args === 'object' && args !== null ? JSON.stringify(args) : String(args);
 
     const execute = useCallback(async () => {
         if (skip) {
@@ -42,10 +34,7 @@ export function useQuery(queryFn, args, options = {}) {
         }
 
         setIsFetching(true);
-        if (data === undefined && !queryCache.has(cacheKey)) {
-            setIsLoading(true);
-        }
-
+        setIsLoading(prev => data === undefined ? true : prev);
         try {
             const result = await queryFnRef.current(args);
             if (isMountedRef.current) {
@@ -53,7 +42,6 @@ export function useQuery(queryFn, args, options = {}) {
                 setIsSuccess(true);
                 setIsError(false);
                 setError(null);
-                queryCache.set(cacheKey, { data: result, tags, timestamp: Date.now() });
             }
         } catch (err) {
             if (isMountedRef.current) {
@@ -67,7 +55,7 @@ export function useQuery(queryFn, args, options = {}) {
                 setIsFetching(false);
             }
         }
-    }, [skip, argsKey, cacheKey, data]);
+    }, [skip, argsKey]);
 
     useEffect(() => {
         isMountedRef.current = true;
@@ -83,14 +71,13 @@ export function useQuery(queryFn, args, options = {}) {
         if (!tags || tags.length === 0 || skip) return;
 
         const unsubscribe = subscribeTags(tags, () => {
-            queryCache.delete(cacheKey);
             if (isMountedRef.current && !skip) {
                 execute();
             }
         });
 
         return unsubscribe;
-    }, [tags, skip, execute, cacheKey]);
+    }, [tags, skip, execute]);
 
     return {
         data,

@@ -9,59 +9,49 @@ export function HostGuard({ children }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Synchronous immediate check from localStorage to prevent white-screen stalls
-    const localUser = (() => {
-        try {
-            const raw = localStorage.getItem('user');
-            return raw ? JSON.parse(raw) : null;
-        } catch {
-            return null;
-        }
-    })();
-
     // 1. Check if User is Logged In
     const { data: user, isLoading: isUserLoading } = useGetMeQuery();
-    const activeUser = user || localUser;
 
     // 2. Check Host Status (Skip only if user check has finished and user is not logged in)
     const {
         data: host,
         isLoading: isHostLoading,
+        isFetching: isHostFetching,
     } = useGetHostProfileQuery(undefined, {
-        skip: !isUserLoading && !activeUser
+        skip: !isUserLoading && !user
     });
 
-    // Check host approval status from host profile, user object, local state, or role
+    // Check host approval status from host profile, user object, or role
     const isApprovedHost = Boolean(
         (host && (host.status === 'approved' || host.is_approved === true || host.role === 'host')) ||
-        (activeUser && (activeUser.status === 'approved' || activeUser.is_approved === true || activeUser.role === 'host'))
+        (user && (user.status === 'approved' || user.is_approved === true || user.role === 'host'))
     );
 
-    // If host is already confirmed, never block with a spinner
-    const isResolving = !isApprovedHost && (isUserLoading || (Boolean(activeUser) && isHostLoading && host === undefined));
+    // If still resolving authentication or host profile, wait before deciding to redirect
+    const isResolving = isUserLoading || (Boolean(user) && (isHostLoading || isHostFetching || (host === undefined && !isApprovedHost)));
 
     useEffect(() => {
         if (isResolving) return;
 
         // If not logged in, redirect to signin
-        if (!activeUser && !isUserLoading) {
+        if (!user) {
             navigate('/signin', { replace: true, state: { from: location } });
             return;
         }
 
         // Only redirect to /hosts if host verification check has completed and user is genuinely not a host
-        if (!isApprovedHost && !isHostLoading && !isUserLoading) {
+        if (!isApprovedHost) {
             navigate('/hosts', { replace: true });
         }
 
-    }, [activeUser, host, isResolving, isApprovedHost, isUserLoading, isHostLoading, navigate, location]);
+    }, [user, host, isResolving, isApprovedHost, navigate, location]);
 
     // Show loading spinner while loading or if redirecting
-    if (isResolving || (!isApprovedHost && isHostLoading)) {
+    if (isResolving || !isApprovedHost) {
         return <LoadingSpinner />;
     }
 
-    return isApprovedHost ? children : null;
+    return children;
 }
 
 export default HostGuard;
