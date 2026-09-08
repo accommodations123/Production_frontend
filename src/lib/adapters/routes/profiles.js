@@ -42,7 +42,8 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 const id = cleanUrl.split('/').pop()
                 const { data: existing } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle()
                 
-                const isPeopleSection = 
+                const isHostApproval = cleanUrl.startsWith('host/') || cleanUrl.includes('/host/') || cleanUrl.endsWith('/host') || cleanUrl.includes('admin/approved/approved-host');
+                const isPeopleSection = !isHostApproval && (
                     cleanUrl.includes('people') || 
                     cleanUrl.includes('expert') || 
                     cleanUrl.includes('advisor') || 
@@ -52,6 +53,7 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                     body?.type === 'expert' ||
                     body?.type === 'people' ||
                     isPeopleProfile(existing)
+                );
 
                 if (isPeopleSection) {
                     const { data } = await supabase.from('profiles').update({ status: 'approved', is_approved: true, is_verified: true, role: 'expert' }).eq('id', id).select().maybeSingle()
@@ -99,7 +101,8 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 const id = cleanUrl.split('/').pop()
                 const { data: existing } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle()
                 
-                const isPeopleSection = 
+                const isHostRejection = cleanUrl.startsWith('host/') || cleanUrl.includes('/host/') || cleanUrl.endsWith('/host');
+                const isPeopleSection = !isHostRejection && (
                     cleanUrl.includes('people') || 
                     cleanUrl.includes('expert') || 
                     cleanUrl.includes('advisor') || 
@@ -107,8 +110,8 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                     body?.role === 'expert' ||
                     body?.role === 'advisor' ||
                     body?.type === 'expert' ||
-                    body?.type === 'people' ||
-                    isPeopleProfile(existing)
+                    body?.type === 'people'
+                );
 
                 if (isPeopleSection) {
                     const { data } = await supabase.from('profiles').update({ status: 'rejected', is_approved: false }).eq('id', id).select().maybeSingle()
@@ -157,7 +160,7 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                     return undefined;
                 }
                 const { data } = await supabase.from('profiles').select('*').eq('status', 'pending').order('created_at', { ascending: false })
-                const hostOnly = (data || []).filter(p => !isPeopleProfile(p))
+                const hostOnly = (data || []).filter(p => !isPeopleProfile(p) && p.status !== 'approved' && p.role !== 'host' && p.is_approved !== true)
                 return { data: { hosts: hostOnly, profiles: hostOnly } }
             }
             if (cleanUrl.includes('rejected') && method === 'GET') {
@@ -165,7 +168,7 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                     return undefined;
                 }
                 const { data } = await supabase.from('profiles').select('*').eq('status', 'rejected').order('created_at', { ascending: false })
-                const hostOnly = (data || []).filter(p => !isPeopleProfile(p))
+                const hostOnly = (data || []).filter(p => !isPeopleProfile(p) && p.status !== 'approved' && p.role !== 'host' && p.is_approved !== true)
                 return { data: { hosts: hostOnly, profiles: hostOnly } }
             }
 
@@ -281,17 +284,24 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 // Check existing profile to preserve approval status if host is already approved
                 let existingMeta = {};
                 let isAlreadyApproved = false;
+                let existProf = null;
                 if (payload.id) {
-                    const { data: existProf } = await supabase.from('profiles').select('*').eq('id', payload.id).maybeSingle();
-                    if (existProf?.is_approved || existProf?.status === 'approved') {
-                        isAlreadyApproved = true;
-                        payload.status = existProf.status || 'approved';
-                        payload.is_approved = true;
-                        payload.role = existProf.role || 'host';
-                    }
-                    if (existProf?.street_address && (existProf.street_address.startsWith('{') || existProf.street_address.startsWith('['))) {
-                        try { existingMeta = JSON.parse(existProf.street_address); } catch {}
-                    }
+                    const { data } = await supabase.from('profiles').select('*').eq('id', payload.id).maybeSingle();
+                    existProf = data;
+                }
+                if (!existProf && (payload.email || userEmail)) {
+                    const { data } = await supabase.from('profiles').select('*').eq('email', payload.email || userEmail).maybeSingle();
+                    existProf = data;
+                }
+
+                if (existProf?.is_approved || existProf?.status === 'approved' || existProf?.role === 'host') {
+                    isAlreadyApproved = true;
+                    payload.status = existProf.status || 'approved';
+                    payload.is_approved = true;
+                    payload.role = existProf.role || 'host';
+                }
+                if (existProf?.street_address && (existProf.street_address.startsWith('{') || existProf.street_address.startsWith('['))) {
+                    try { existingMeta = JSON.parse(existProf.street_address); } catch {}
                 }
 
                 if (!isAlreadyApproved) {
