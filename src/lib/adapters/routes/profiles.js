@@ -174,29 +174,25 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                 if (!userId && !userEmail) return { data: { host: null, user: null, profile: null } }
 
                 let profile = null
-                if (userObj && (userObj.role || userObj.status !== undefined || userObj.is_approved !== undefined)) {
-                    profile = userObj;
-                }
-                if (!profile && userId) {
+                if (userId) {
                     try {
-                        const profilePromise = supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
-                        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ data: null }), 2500))
-                        const { data } = await Promise.race([profilePromise, timeoutPromise])
-                        profile = data
+                        const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+                        if (data) profile = data
                     } catch {}
                 }
                 if (!profile && userEmail) {
                     try {
-                        const profilePromise = supabase.from('profiles').select('*').eq('email', userEmail).maybeSingle()
-                        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ data: null }), 2500))
-                        const { data } = await Promise.race([profilePromise, timeoutPromise])
-                        profile = data
+                        const { data } = await supabase.from('profiles').select('*').eq('email', userEmail).maybeSingle()
+                        if (data) profile = data
                     } catch {}
                 }
+                if (!profile && userObj) {
+                    profile = userObj;
+                }
 
-                // If brand new user, initialize as standard user (NOT approved host)
+                // Fallback in-memory profile if user record does not exist yet (never overwrite database on read)
                 if (!profile && (userId || userEmail)) {
-                    const fallbackProfile = {
+                    profile = {
                         id: userId || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : undefined),
                         email: userEmail,
                         full_name: userObj?.full_name || userObj?.name || [userObj?.first_name, userObj?.last_name].filter(Boolean).join(' ') || (userEmail ? userEmail.split('@')[0] : 'User'),
@@ -204,12 +200,6 @@ export async function handleProfilesRoute({ cleanUrl, method, body, queryParams 
                         role: 'user',
                         status: null,
                         is_approved: false,
-                    }
-                    try {
-                        const { data } = await supabase.from('profiles').upsert(fallbackProfile).select().maybeSingle()
-                        profile = data || fallbackProfile
-                    } catch {
-                        profile = fallbackProfile
                     }
                 }
 
