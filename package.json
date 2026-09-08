@@ -9,6 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "allowScripts": {
+    "esbuild": true
+  },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
     "@radix-ui/react-accordion": "^1.2.20",
