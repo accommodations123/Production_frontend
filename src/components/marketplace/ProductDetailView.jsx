@@ -42,7 +42,7 @@ function Badge({
 
 export default function ProductDetailView({ product: initialProduct, onBack }) {
   const navigate = useNavigate();
-  const { formatPrice } = useCountry();
+  const { formatPrice, activeCountry } = useCountry();
   const [activeImg, setActiveImg] = useState(0);
   const [imgError, setImgError] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
@@ -106,6 +106,9 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
   const original = Number(product.original_price || product.mrp || 0);
   const price = Number(product.price || 0);
   const discountPct = original > price && original > 0 ? Math.round(((original - price) / original) * 100) : 0;
+  const resolvedCurrency = (product.country?.toLowerCase() === 'india' || (!product.country && activeCountry?.currency === 'INR'))
+    ? 'INR'
+    : (product.currency || activeCountry?.currency || 'USD');
 
   const rating = Number(product.sellerRating || product.rating || 0);
   const responseRate = product.response_rate || product.responseRate;
@@ -447,10 +450,10 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
               {/* Price details section */}
               <div className="border-t border-slate-100 pt-5">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-black text-[#222222]">{formatPrice ? formatPrice(price) : `${product.currency || '₹'} ${price.toLocaleString()}`}</span>
+                  <span className="text-3xl font-black text-[#222222]">{formatPrice ? formatPrice(price, resolvedCurrency) : `${resolvedCurrency === 'INR' ? '₹' : (resolvedCurrency || '$')} ${price.toLocaleString()}`}</span>
                   {original > price && (
                     <>
-                      <span className="text-sm text-slate-400 font-bold line-through">{formatPrice ? formatPrice(original) : `${product.currency || '₹'} ${original.toLocaleString()}`}</span>
+                      <span className="text-sm text-slate-400 font-bold line-through">{formatPrice ? formatPrice(original, resolvedCurrency) : `${resolvedCurrency === 'INR' ? '₹' : (resolvedCurrency || '$')} ${original.toLocaleString()}`}</span>
                       {discountPct > 0 && <Badge variant="red">{discountPct}% off</Badge>}
                     </>
                   )}
@@ -622,7 +625,16 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
                         <div>
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <h3 className="font-bold text-[#222222] text-sm leading-snug line-clamp-1 group-hover:text-[#E1392A] transition-colors">{item.title}</h3>
-                            <span className="text-sm font-extrabold text-[#222222] shrink-0">{formatPrice ? formatPrice(item.price || 0) : `${item.currency || '₹'} ${item.price}`}</span>
+                            <span className="text-sm font-extrabold text-[#222222] shrink-0">
+                              {formatPrice
+                                ? formatPrice(
+                                    item.price || 0,
+                                    (item.country?.toLowerCase() === 'india' || (!item.country && activeCountry?.currency === 'INR'))
+                                      ? 'INR'
+                                      : (item.currency || activeCountry?.currency || 'USD')
+                                  )
+                                : `${item.currency === 'INR' ? '₹' : (item.currency || '₹')} ${item.price}`}
+                            </span>
                           </div>
                           <div className="flex items-center gap-1 text-xs text-[#717171] font-semibold mb-3">
                             <MapPin size={11} />
@@ -713,7 +725,7 @@ export default function ProductDetailView({ product: initialProduct, onBack }) {
       {/* Mobile sticky bottom CTA */}
       <div className="md:hidden fixed bottom-[56px] left-0 right-0 bg-white border-t border-slate-200 px-4 py-3 flex items-center justify-between gap-3 z-40 shadow-lg">
         <div>
-          <div className="text-lg font-black text-[#222222]">{formatPrice ? formatPrice(price) : `${product.currency || '₹'} ${price}`}</div>
+          <div className="text-lg font-black text-[#222222]">{formatPrice ? formatPrice(price, resolvedCurrency) : `${resolvedCurrency === 'INR' ? '₹' : (resolvedCurrency || '₹')} ${price}`}</div>
           <div className="text-xs font-bold text-[#717171]">
             {product.condition} {product.negotiable && "· Negotiable"}
           </div>

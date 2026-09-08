@@ -577,6 +577,10 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
     appendIfExists(formData, "title", title);
     if (price !== "" && price !== null && price !== undefined) {
       formData.append("price", Number(price));
+      const resolvedCurrency = (typeof country === 'string' && country.toLowerCase() === 'india') || globalActiveCountry?.currency === 'INR' || globalActiveCountry?.code === 'IN'
+        ? 'INR'
+        : (globalActiveCountry?.currency || 'USD');
+      formData.append("currency", resolvedCurrency);
     }
     appendIfExists(formData, "description", description);
 

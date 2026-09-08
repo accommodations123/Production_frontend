@@ -9,6 +9,15 @@ import { normalizeCountryName } from '@/shared/utils/countryUtils';
 import { NOTIFICATION_TYPES } from '@/shared/constants/notificationTypes';
 import { createInAppAndEmailNotification, notifyAdminsOfUserSubmission } from '../notificationUtils';
 
+function normalizeMarketplaceCurrency(item) {
+    if (!item) return item;
+    if (Array.isArray(item)) return item.map(normalizeMarketplaceCurrency);
+    if ((!item.currency || item.currency === 'USD') && item.country && item.country.toLowerCase() === 'india') {
+        return { ...item, currency: 'INR' };
+    }
+    return item;
+}
+
 export async function handleMarketplaceRoute({ cleanUrl, method, body, queryParams }) {
         // ── 3. BUY & SELL / MARKETPLACE ─────────────────────────────
         if (cleanUrl.startsWith('buy-sell') || cleanUrl.startsWith('marketplace') || cleanUrl.startsWith('admin/buysell') || cleanUrl.startsWith('admin/buy-sell')) {
@@ -61,7 +70,8 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
             }
             if (cleanUrl.includes('pending') && method === 'GET') {
                 const { data } = await supabase.from('buy_sell').select('*').eq('status', 'pending').order('created_at', { ascending: false })
-                return { data: await enrichBuySellWithHostDetails(data || []) }
+                const enriched = await enrichBuySellWithHostDetails(data || [])
+                return { data: normalizeMarketplaceCurrency(enriched) }
             }
             if (cleanUrl.includes('my-listings') || cleanUrl.includes('my-items') || cleanUrl.includes('my-buy-sell')) {
                 const userObj = await getCurrentUserObject()
@@ -77,7 +87,8 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
                 }
                 const { data } = await q
                 const enriched = await enrichBuySellWithHostDetails(data || [])
-                return { data: enriched, listings: enriched }
+                const normalized = normalizeMarketplaceCurrency(enriched)
+                return { data: normalized, listings: normalized }
             }
             if ((cleanUrl.startsWith('buy-sell/create') || cleanUrl === 'buy-sell' || cleanUrl === 'marketplace/create') && method === 'POST') {
                 const userId = await getCurrentUserId()
@@ -94,6 +105,9 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
 
                 payload.images = allImgs;
                 payload.status = payload.status || 'pending'
+                if (!payload.currency) {
+                    payload.currency = (payload.country && payload.country.toLowerCase() === 'india') ? 'INR' : 'USD';
+                }
                 const clean = sanitizePayload(payload, BUY_SELL_COLUMNS)
                 const { data, error } = await supabase.from('buy_sell').insert(clean).select().maybeSingle()
                 if (error) throw error
@@ -144,6 +158,9 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
                     ].filter(Boolean));
                 }
 
+                if (!payload.currency && payload.country && payload.country.toLowerCase() === 'india') {
+                    payload.currency = 'INR';
+                }
                 const clean = sanitizePayload(payload, BUY_SELL_COLUMNS)
                 const { data, error } = await supabase.from('buy_sell').update(clean).eq('id', id).select().maybeSingle()
                 if (error) throw error
@@ -159,7 +176,8 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
             const singleItemMatch = cleanUrl.match(/^(?:buy-sell\/get|buy-sell|marketplace)\/([^/]+)$/)
             if (singleItemMatch && method === 'GET' && !['get', 'all', 'approved', 'pending', 'rejected', 'my-listings', 'my-buy-sell', 'my-items', 'search'].includes(singleItemMatch[1])) {
                 const { data } = await supabase.from('buy_sell').select('*').eq('id', singleItemMatch[1]).maybeSingle()
-                return { data: { listing: await enrichBuySellWithHostDetails(data) } }
+                const enriched = await enrichBuySellWithHostDetails(data)
+                return { data: { listing: normalizeMarketplaceCurrency(enriched) } }
             }
 
             // Public Listings: /buy-sell/get, /buy-sell/approved, /buy-sell/all, /buy-sell, /marketplace
@@ -188,6 +206,7 @@ export async function handleMarketplaceRoute({ cleanUrl, method, body, queryPara
             const { data, error } = await query
             if (error) throw error
             const enriched = await enrichBuySellWithHostDetails(data || [])
-            return { data: { listings: enriched, total: enriched.length } }
+            const normalized = normalizeMarketplaceCurrency(enriched)
+            return { data: { listings: normalized, total: normalized.length } }
         }
 }

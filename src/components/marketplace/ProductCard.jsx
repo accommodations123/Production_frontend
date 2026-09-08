@@ -33,7 +33,7 @@ export const CardContainer = ({ children, onClick, className = "" }) => {
 
 export const ProductCard = React.memo(function ProductCard({ product, onClick }) {
   const navigate = useNavigate();
-  const { formatPrice } = useCountry();
+  const { formatPrice, activeCountry } = useCountry();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   if (!product || !product.title) return null;
@@ -185,7 +185,14 @@ export const ProductCard = React.memo(function ProductCard({ product, onClick })
         <div className="flex items-end justify-between mt-auto pt-3 border-t border-border/60">
           <div>
             <span className="text-lg sm:text-xl font-bold text-foreground">
-              {Number(product.price) > 0 ? formatPrice(product.price, product.currency) : "Free"}
+              {Number(product.price) > 0
+                ? formatPrice(
+                    product.price,
+                    (product.country?.toLowerCase() === 'india' || (!product.country && activeCountry?.currency === 'INR'))
+                      ? 'INR'
+                      : (product.currency || activeCountry?.currency || 'USD')
+                  )
+                : "Free"}
             </span>
           </div>
 

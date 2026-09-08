@@ -352,7 +352,7 @@ export default function MarketplacePage() {
 
 const SingleProductView = ({ product: initialProduct, onBack }) => {
   const [imageError, setImageError] = useState(false);
-  const { formatPrice } = useCountry();
+  const { formatPrice, activeCountry } = useCountry();
   const FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'%3E%3C/circle%3E%3Cpolyline points='21 15 16 10 5 21'%3E%3C/polyline%3E%3C/svg%3E";
 
   const { data: fetchedProduct, isLoading } = useGetBuySellByIdQuery(initialProduct.id || initialProduct._id, {
@@ -619,7 +619,12 @@ const SingleProductView = ({ product: initialProduct, onBack }) => {
               <div className="flex flex-col gap-3 mb-6">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-3xl font-black text-[#00142E] tracking-tight">
-                    {formatPrice(product.price || 0)}
+                    {formatPrice(
+                      product.price || 0,
+                      (product.country?.toLowerCase() === 'india' || (!product.country && activeCountry?.currency === 'INR'))
+                        ? 'INR'
+                        : (product.currency || activeCountry?.currency || 'USD')
+                    )}
                   </span>
                   {product.negotiable && (
                     <span className="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full border border-green-200 shrink-0">
