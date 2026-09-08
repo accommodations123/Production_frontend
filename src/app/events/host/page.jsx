@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-import { useNavigate } from "react-router-dom"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { Button } from "@/components/ui/button"
@@ -22,7 +21,6 @@ import { useGetHostProfileQuery } from "@/hooks/data/useHostHooks"
 import { useGetMeQuery } from "@/hooks/data/useAuthHooks"
 
 export default function HostEventPage() {
-  const navigate = useNavigate();
   // Synchronous immediate check from localStorage to prevent white-screen stalls
   const localUser = (() => {
     try {
@@ -84,24 +82,13 @@ export default function HostEventPage() {
             <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="h-8 w-8 text-yellow-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {hostProfile?.status === 'pending' ? "Account Verification Pending" : "Host Access Required"}
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Verification Pending</h2>
             <p className="text-gray-600 mb-6">
               {hostProfile?.status === 'pending'
                 ? "Your host application is currently under review. You can create events once your account is approved."
                 : "You need to be an approved host to create events."}
             </p>
-            <div className="flex justify-center gap-3">
-              <Button onClick={() => navigate("/events")} variant="outline">
-                Back to Events
-              </Button>
-              {hostProfile?.status !== 'pending' && (
-                <Button onClick={() => navigate("/hosts")} className="bg-[#CB2A25] hover:bg-[#b0221e] text-white">
-                  Apply to Become Host
-                </Button>
-              )}
-            </div>
+
           </div>
         </div>
         <Footer />

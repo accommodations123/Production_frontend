@@ -321,12 +321,6 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
     skip: !isUserLoading && !userData
   });
 
-  const isApprovedHost = Boolean(
-    (hostProfile && (hostProfile.status === 'approved' || hostProfile.is_approved === true || hostProfile.role === 'host')) ||
-    (userData && (userData.status === 'approved' || userData.is_approved === true || userData.role === 'host'))
-  );
-  const isPendingHost = Boolean(hostProfile?.status === 'pending' || userData?.status === 'pending');
-
   const isChecking = isUserLoading;
 
   // State
@@ -682,46 +676,6 @@ export function SellForm({ onPost, initialData, isEditing: externalIsEditing }) 
           >
             Sign In
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isApprovedHost && !isChecking) {
-    return (
-      <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl text-center border border-gray-100 shadow-xl">
-        <div className={`w-16 h-16 ${isPendingHost ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-[#CB2A25]'} rounded-full flex items-center justify-center mx-auto mb-4`}>
-          {isPendingHost ? (
-            <span className="text-2xl">⏳</span>
-          ) : (
-            <Tag className="w-8 h-8" />
-          )}
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          {isPendingHost ? "Account Verification Pending" : "Host Access Required"}
-        </h2>
-        <p className="text-gray-600 mb-6 max-w-md mx-auto text-sm leading-relaxed">
-          {isPendingHost
-            ? "Your host application is currently under review. You can list items for sale in the marketplace once your account is approved by admin."
-            : "You need to be an approved host to list products in the marketplace. Please submit your host details to apply."}
-        </p>
-        <div className="flex justify-center gap-4">
-          <button
-            type="button"
-            onClick={() => navigate("/marketplace")}
-            className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition shadow-sm cursor-pointer"
-          >
-            Back to Marketplace
-          </button>
-          {!isPendingHost && (
-            <button
-              type="button"
-              onClick={() => navigate("/hosts")}
-              className="px-5 py-2.5 text-sm font-semibold text-white bg-[#CB2A25] hover:bg-[#b0221e] rounded-xl transition shadow-sm cursor-pointer"
-            >
-              Apply to Become Host
-            </button>
-          )}
         </div>
       </div>
     );

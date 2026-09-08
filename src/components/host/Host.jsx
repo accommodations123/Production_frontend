@@ -315,10 +315,10 @@ export default function HostOnboardingForm() {
       // Submit to host/save
       const result = await saveHost(hostPayload).unwrap();
       setShowSuccess(true);
-      // Navigate to accommodations post page or redirect target
-      const searchParams = new URLSearchParams(window.location.search);
-      const redirectUrl = searchParams.get('redirect') || "/host/create";
-      navigate(redirectUrl);
+      toast.success("Host application submitted successfully! Your application is under review.");
+
+      // Close page and return to home
+      navigate("/");
 
       // Reset form after success
       setTimeout(() => {
@@ -486,21 +486,14 @@ export default function HostOnboardingForm() {
                   </div>
                   <div className="ml-4">
                     <h3 className="text-lg font-bold text-blue-900">Application Under Review</h3>
-                    <p className="text-blue-700 text-sm mt-0.5">Your host application is under review. You can already post accommodations; marketplace, events, travels, and expert profiles unlock once approved by admin.</p>
+                    <p className="text-blue-700 text-sm mt-0.5">We've received your application and our team is reviewing it. You'll be notified via email once approved.</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 self-end sm:self-center">
                   <button
                     type="button"
-                    onClick={() => navigate("/host/create")}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm cursor-pointer"
-                  >
-                    List Accommodation
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => navigate("/")}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm cursor-pointer"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
                   >
                     Return to Home
                   </button>

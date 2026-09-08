@@ -5,7 +5,7 @@ import { useGetHostProfileQuery } from '@/hooks/data/useHostHooks';
 
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
-export function HostGuard({ children, allowPending = false }) {
+export function HostGuard({ children }) {
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -37,18 +37,8 @@ export function HostGuard({ children, allowPending = false }) {
         (activeUser && (activeUser.status === 'approved' || activeUser.is_approved === true || activeUser.role === 'host'))
     );
 
-    // Check if user has submitted host details (pending admin review or already approved)
-    const hasSubmittedHost = Boolean(
-        isApprovedHost ||
-        (host && (host.status === 'pending' || host.country || host.city || host.phone || host.address || host.street_address)) ||
-        (activeUser && (activeUser.status === 'pending' || activeUser.role === 'host'))
-    );
-
-    // Accommodations posting allows users who submitted host details; other services require approved host
-    const hasAccess = allowPending ? (hasSubmittedHost || isApprovedHost) : isApprovedHost;
-
-    // If access is confirmed, never block with a spinner
-    const isResolving = !hasAccess && (isUserLoading || (Boolean(activeUser) && isHostLoading && host === undefined));
+    // If host is already confirmed, never block with a spinner
+    const isResolving = !isApprovedHost && (isUserLoading || (Boolean(activeUser) && isHostLoading && host === undefined));
 
     useEffect(() => {
         if (isResolving) return;
@@ -59,19 +49,19 @@ export function HostGuard({ children, allowPending = false }) {
             return;
         }
 
-        // If user does not have required access once checks complete, redirect to host onboarding form
-        if (!hasAccess && !isHostLoading && !isUserLoading) {
+        // Only redirect to /hosts if host verification check has completed and user is genuinely not a host
+        if (!isApprovedHost && !isHostLoading && !isUserLoading) {
             navigate('/hosts', { replace: true });
         }
 
-    }, [activeUser, host, isResolving, hasAccess, isUserLoading, isHostLoading, navigate, location]);
+    }, [activeUser, host, isResolving, isApprovedHost, isUserLoading, isHostLoading, navigate, location]);
 
-    // Show loading spinner while resolving permissions
-    if (isResolving || (!hasAccess && isHostLoading)) {
+    // Show loading spinner while loading or if redirecting
+    if (isResolving || (!isApprovedHost && isHostLoading)) {
         return <LoadingSpinner />;
     }
 
-    return hasAccess ? children : null;
+    return isApprovedHost ? children : null;
 }
 
 export default HostGuard;
